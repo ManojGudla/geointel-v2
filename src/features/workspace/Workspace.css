@@ -1,0 +1,121 @@
+/* The shell is exactly the height it is given and never scrolls. Every
+   scrollbar in the app therefore belongs to a panel you are looking at,
+   which is the whole point: the previous layout had the page and a rail
+   scrolling independently, their scrollbars a few pixels apart at the same
+   edge, and no way to tell which one moved what. */
+.workspace {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.workspace__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+}
+
+.workspace__content {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  /* Positioning context for the mobile sheet, which covers this area only
+     and must never cover the rail that dismisses it. */
+  position: relative;
+}
+
+.workspace__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  /* Overlays are absolutely positioned against this box; clipping keeps a
+     bottom-docked card from spilling past the map's own bounds. */
+  overflow: hidden;
+}
+
+/* Search floats over the map, top-left, always visible — the first thing
+   anyone does with a map application should never be behind a click. */
+.workspace__search {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  /* Wider: at 500px the search placeholder was clipped mid-word, which made
+     the one input that explains what this product does look like a rendering
+     fault. */
+  width: min(560px, calc(100% - var(--space-3) * 2));
+  display: flex;
+  flex-direction: column;
+  /* Clear of the search row's own drop shadow, so the action row beneath
+     isn't sitting in it. */
+  gap: var(--space-3);
+  z-index: 14;
+}
+
+@media (max-width: 900px) {
+  /* Rail to the bottom, map above it: thumb-reachable navigation and the
+     map keeping the full width of a narrow screen. */
+  .workspace__body {
+    flex-direction: column;
+  }
+
+  .workspace__content {
+    order: 1;
+  }
+
+  .workspace__body > .nav-rail {
+    order: 2;
+  }
+
+  .workspace__search {
+    top: var(--space-2);
+    left: var(--space-2);
+    right: var(--space-2);
+    width: auto;
+  }
+
+  /* While measuring on a phone, the bottom edge belongs to the measurement
+     readout alone rather than stacking two overlays in 380px of width. */
+  .workspace__stage--measuring .coordinate-readout {
+    display: none;
+  }
+
+  /* Same rule for the getting-started card, and for the same reason.
+
+     The card is bottom-anchored on a phone. The coordinate chip (z-index 13)
+     and the Ask maNOWj launcher (z-index 19) both outrank it (z-index 12), so
+     both were painted over it: the launcher covered the last suggestion chip
+     and sat directly beside "Dismiss", and the coordinate chip covered the
+     card's bottom-left corner. A first-time visitor could not see how to
+     close the thing, which is the one control that screen must never hide.
+
+     Hiding the launcher here costs nothing: it needs a selected location to
+     answer anything, and while this card is up there isn't one. Both come
+     back the moment the card is dismissed or a place is chosen. */
+  .workspace__stage--onboarding .coordinate-readout,
+  .workspace__stage--onboarding .copilot-launcher {
+    display: none;
+  }
+}
+
+/*
+  Placeholder that stands in for the map while its chunk downloads.
+
+  MapLibre is loaded separately from the rest of the app (see Workspace.tsx),
+  so for a moment on a slow connection there is no canvas. This fills the
+  stage exactly rather than collapsing it, which keeps every control that is
+  positioned against the stage in its final place from the first paint —
+  a collapsing placeholder would move the whole layout when the map arrived.
+*/
+.workspace__maploading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}

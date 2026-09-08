@@ -1,0 +1,113 @@
+.feedback-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 25, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.feedback-form {
+  width: min(360px, 92vw);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
+  padding: var(--space-4);
+}
+
+.feedback-form__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.feedback-form__head h2 {
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+.feedback-form__head button {
+  border: none;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-weight: 700;
+}
+
+.feedback-form form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.feedback-form__stars {
+  display: flex;
+  gap: var(--space-2);
+  font-size: 28px;
+}
+
+.feedback-form__stars button {
+  border: none;
+  background: none;
+  color: var(--color-text-faint);
+  line-height: 1;
+  padding: 0;
+}
+
+.feedback-form__stars button.active {
+  /* Was #f0a83c, which measured 2.02:1 on a white surface — the filled stars
+     were nearly invisible in light mode. The token is defined per theme. */
+  color: var(--color-warning);
+}
+
+.feedback-form select,
+.feedback-form textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  font-family: inherit;
+  resize: vertical;
+}
+
+.feedback-form__error {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+}
+
+.feedback-form > form > button[type="submit"] {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-brand-600);
+  color: white;
+  font-weight: 700;
+}
+
+.feedback-form > form > button[type="submit"]:disabled {
+  opacity: 0.6;
+}
+
+.feedback-form__done {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.feedback-form__done button {
+  align-self: center;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-brand-600);
+  color: white;
+  font-weight: 700;
+}

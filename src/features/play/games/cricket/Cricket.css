@@ -1,0 +1,320 @@
+/* The pitch: a tall lane the ball travels down, toward you. */
+.cricket__pitch {
+  position: relative;
+  display: block;
+  width: min(320px, 100%);
+  height: min(46vh, 360px);
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  /* Green outfield with a lighter strip up the middle — reads as a pitch at
+     a glance without needing an illustration. */
+  background:
+    linear-gradient(to bottom, #cbb78a 0%, #d8c79c 100%) center / 34% 100% no-repeat,
+    linear-gradient(to bottom, #2f7a45, #256437);
+  cursor: pointer;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+.cricket__pitch--travelling {
+  border-color: var(--color-warning);
+}
+
+.cricket__bowler {
+  position: absolute;
+  top: 2%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 22px;
+}
+
+.cricket__bat {
+  position: absolute;
+  bottom: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 30px;
+}
+
+/* The ball. Positioned in JS from the real elapsed time, so what you see and
+   what the timing maths uses are the same number. */
+.cricket__ballmark {
+  position: absolute;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ff8a6b, #c0392b 62%, #7d1f14);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  will-change: top, transform;
+}
+
+/* The crease — the line the ball must be met on. Its position matches
+   progress = 1 in the component, so it is an honest visual cue rather than
+   decoration. */
+.cricket__crease {
+  position: absolute;
+  top: 82%;
+  left: 12%;
+  right: 12%;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.14);
+}
+
+.cricket__prompt {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--space-2);
+  background: rgba(8, 22, 14, 0.72);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+}
+
+.cricket__pitch--travelling .cricket__prompt {
+  background: rgba(180, 90, 10, 0.85);
+}
+
+.cricket__feedback {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.cricket__feedback strong {
+  color: var(--color-text);
+}
+
+.cricket__delivery-info {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-faint);
+}
+
+.cricket__aim {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.cricket__aim-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-faint);
+}
+
+.cricket__aim button {
+  min-height: 38px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.cricket__aim button.active {
+  border-color: transparent;
+  background: var(--gradient-brand);
+  color: #fff;
+}
+
+.cricket__aim button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cricket__aim-hint {
+  margin: 0;
+  max-width: 420px;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The ball still moves — it has to, it IS the game — but nothing else
+     animates, and the shrink-toward-you scaling is dropped. */
+  .cricket__ballmark {
+    transition: none;
+  }
+}
+
+/*
+  The chase, made legible.
+
+  A scoreboard states a fact; the required rate is what the fact MEANS. Nine an
+  over is comfortable and eighteen is nearly gone, and until this was on screen
+  the player had no way to tell which match they were in.
+*/
+.cricket__rate {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+/* The last over turns the required rate red. Nothing else changes — the
+   colour is the whole signal, and it only ever means one thing. */
+.cricket__need--death strong {
+  color: #dc2626;
+}
+
+.cricket__commentary {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.cricket__callout {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+/* What the bowler has worked out about you. Quieter than the commentary,
+   because it is advice rather than drama. */
+.cricket__plan {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+/*
+  DRS.
+
+  Deliberately loud. It only appears when a wicket has fallen and a review is
+  available, it demands an answer before the next ball, and burning the review
+  on a ball that was hitting costs you the rest of the innings. A quiet panel
+  would be ignored, and the whole point is that this is a decision.
+*/
+.cricket__drs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--space-3);
+  border: 2px solid #f59e0b;
+  border-radius: var(--radius-md);
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.cricket__drs-head {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.cricket__drs-note {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.cricket__drs-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.cricket__drs-go {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  background: #b45309;
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cricket__drs-no {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cricket__drs-verdict {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--color-brand-500);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+/*
+  Full screen.
+
+  Asked for directly, and the screenshots showed exactly why: inside the games
+  modal the scoreboard, the ground and the aim buttons did not fit together, so
+  a ball would arrive while the player was still scrolling to see the pitch.
+  You cannot time a shot you have to scroll to reach.
+
+  In full screen the ground takes every pixel that is left after the scoreboard
+  and the controls, which are the only two things that must stay visible.
+*/
+.game--cricket-fs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  height: 100vh;
+  padding: var(--space-3);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.game--cricket-fs .stadium {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: auto;
+}
+
+/* Difficulty and the per-ball explainer are setup, not play: they go away once
+   the ground has the screen. */
+.game--cricket-fs .play-controls,
+.game--cricket-fs .cricket__aim-hint {
+  display: none;
+}
+
+.game--cricket-fs .cricket__commentary {
+  min-height: 0;
+}
+
+/*
+  And the same problem in the normal, non-fullscreen case: the ground was
+  62vh, which pushed the aim buttons off the bottom of the modal. Capped so
+  the whole game fits in one view without scrolling.
+*/
+.game--cricket .stadium {
+  max-height: min(52vh, 430px);
+}

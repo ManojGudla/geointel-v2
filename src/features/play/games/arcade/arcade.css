@@ -1,0 +1,300 @@
+/*
+  Shared shell for the four arcade games.
+
+  One stylesheet rather than four because the games differ in what they ask,
+  not in how they are laid out: a bar at the top, a card in the middle, a set
+  of choices below it, and a reveal line under that. Four near-identical
+  stylesheets would drift apart within a week and the games would stop looking
+  like one product.
+
+  The reveal line reserves its height whether or not it has text in it, so the
+  card does not jump when an answer is shown.
+*/
+
+.arc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.arc__eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-brand-600);
+}
+
+.arc__title {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.arc__lede {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.arc__rules {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 56ch;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.arc__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.arc__primary {
+  min-height: 48px;
+  padding: 0 var(--space-5);
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-brand-600);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.arc__primary:hover:not(:disabled) {
+  background: var(--color-brand-700);
+}
+
+.arc__primary:disabled {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.arc__quiet {
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.arc__quiet:hover {
+  border-color: var(--color-text-muted);
+}
+
+/* ── In play ──────────────────────────────────────────────────────────── */
+
+.arc__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.arc__back {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.arc__progress {
+  margin: 0 0 0 auto;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.arc__score {
+  margin: 0;
+  min-width: 6ch;
+  text-align: right;
+  font-size: var(--text-lg);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.arc__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.arc__claim {
+  margin: 0;
+  font-size: clamp(19px, 3vw, 26px);
+  line-height: 1.35;
+  text-align: center;
+  text-wrap: balance;
+  min-height: 3.2em;
+  display: grid;
+  place-items: center;
+}
+
+.arc__options {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: 1fr 1fr;
+}
+
+.arc__options--stack {
+  grid-template-columns: 1fr;
+}
+
+.arc__opt {
+  min-height: 58px;
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.arc__opt:hover:not(:disabled) {
+  border-color: var(--color-brand-600);
+}
+
+.arc__opt:disabled {
+  cursor: default;
+}
+
+.arc__opt--right {
+  border-color: #1a8a5f;
+  background: #1a8a5f;
+  color: #fff;
+}
+
+.arc__opt--wrong {
+  border-color: #d7342b;
+  background: #d7342b;
+  color: #fff;
+}
+
+.arc__opt--dim {
+  opacity: 0.45;
+}
+
+/* Big centred choices, for REAL / FAKE and for numeric answers. */
+.arc__opt--big {
+  min-height: 76px;
+  text-align: center;
+  font-size: var(--text-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Holds its space so the layout does not shift when the answer appears. */
+.arc__reveal {
+  margin: 0;
+  min-height: 4.4em;
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.arc__source {
+  display: block;
+  margin-top: 4px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.arc__streak {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* Equations and sequences: monospace so the columns line up. */
+.arc__mono {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(20px, 3.4vw, 28px);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.arc__sequence {
+  margin: 0;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(24px, 5vw, 40px);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Result ───────────────────────────────────────────────────────────── */
+
+.arc__final {
+  margin: 0;
+  font-size: clamp(44px, 11vw, 76px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.arc__pb {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-brand-600);
+}
+
+.arc__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-2);
+}
+
+.arc__stats dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.arc__stats dd {
+  margin: 4px 0 0;
+  font-size: var(--text-lg);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 560px) {
+  .arc__options {
+    grid-template-columns: 1fr;
+  }
+}

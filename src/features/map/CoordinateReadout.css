@@ -1,0 +1,52 @@
+.coordinate-readout {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-3);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 5px var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-sm);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  z-index: 13;
+}
+
+.coordinate-readout:hover {
+  border-color: var(--color-brand-500);
+}
+
+.coordinate-readout__decimal {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.coordinate-readout__dms {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.coordinate-readout__zoom {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-brand-600);
+}
+
+/* On a phone the DMS form is the first thing to go — the decimal pair and
+   zoom are what fit and what get used. */
+@media (max-width: 900px) {
+  .coordinate-readout {
+    bottom: var(--space-2);
+    left: var(--space-2);
+    padding: 4px var(--space-2);
+  }
+
+  .coordinate-readout__dms {
+    display: none;
+  }
+}

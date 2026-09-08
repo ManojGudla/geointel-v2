@@ -1,0 +1,198 @@
+.live-layers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.live-layers__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.live-layers__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.live-layers__toggle input {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-brand-600);
+  flex: none;
+}
+
+.live-layers__toggle > span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.live-layers__toggle strong {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.live-layers__status {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.live-layers__sub {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-left: 26px;
+}
+
+.live-layers__segmented {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.live-layers__segmented button {
+  flex: 1;
+  padding: 6px 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.live-layers__segmented button.active {
+  background: var(--color-surface);
+  color: var(--color-brand-700);
+  box-shadow: var(--shadow-sm);
+}
+
+.live-layers__events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.live-layers__events button {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 5px var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  text-align: left;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.live-layers__events button:hover {
+  background: var(--color-brand-100);
+}
+
+.live-layers__events strong {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-danger);
+}
+
+.live-layers__events span:not(.live-layers__when) {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+}
+
+.live-layers__when {
+  flex: none;
+  color: var(--color-text-faint);
+  font-size: 11px;
+}
+
+.live-layers__aqi-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.live-layers__aqi-head strong {
+  font-size: var(--text-sm);
+}
+
+.live-layers__aqi-badge {
+  padding: 3px var(--space-2);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.live-layers__aqi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.live-layers__aqi-grid dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-faint);
+}
+
+.live-layers__aqi-grid dd {
+  margin: 1px 0 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-layers__source,
+.live-layers__note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-faint);
+}
+
+@media (max-width: 900px) {
+  .live-layers__toggle input {
+    width: 22px;
+    height: 22px;
+  }
+
+  .live-layers__segmented button {
+    min-height: 40px;
+  }
+}
+
+/* An honesty note, not an error: the layer is working, it just can't resolve
+   detail at this zoom. Tinted amber so it reads as "know this" rather than
+   "something is broken". */
+.live-layers__caveat {
+  margin: var(--space-1) 0 0;
+  padding: 6px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-warning-bg);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-warning);
+}

@@ -1,0 +1,156 @@
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-actions__row {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.quick-actions button {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  /* Opaque, not the panel tint: these sit over map imagery now, and a
+     translucent chip over satellite photography is unreadable. */
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  /* Full-strength text, not muted. These sit under the search bar's drop
+     shadow, and muted type under a shadow read as disabled even when the
+     button worked — which is exactly how they were reported as broken. */
+  color: var(--color-text);
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 36px;
+}
+
+.quick-actions button:hover:not(:disabled) {
+  background: var(--color-brand-100);
+  color: var(--color-brand-700);
+}
+
+/* "Needs a place" is NOT disabled. It's a live button that takes you to the
+   search box — see the note in QuickActions.tsx. A dashed border says
+   "not ready yet" without the half-opacity that made these look faulty. */
+.quick-actions__needs-place {
+  border-style: dashed !important;
+  color: var(--color-text-muted) !important;
+}
+
+.quick-actions__needs-place:hover {
+  border-style: solid !important;
+  color: var(--color-brand-700) !important;
+}
+
+.quick-actions__hint {
+  margin: 0;
+  padding: 4px var(--space-2);
+  border-radius: var(--radius-sm);
+  /* Its own opaque chip: over satellite imagery, bare text on the map is
+     unreadable whatever colour it is. */
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  align-self: flex-start;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+/* Phones: one scrollable row rather than two wrapped rows. Two rows of
+   chips over a phone-width map cost about 90px of map for no gain — a
+   horizontal swipe reaches the rest, and the row still shows enough of the
+   next chip to signal that it scrolls. */
+@media (max-width: 900px) {
+  .quick-actions__row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .quick-actions__row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .quick-actions button {
+    flex: 0 0 auto;
+    min-height: 40px;
+  }
+}
+
+/* The "on" state for toggles in this row (currently 3D).
+
+   A toggle that looks identical whether it is on or off is a toggle people
+   press twice and then give up on, so this is a real filled state rather
+   than a tint: the same brand colour the rail uses for its active section,
+   so "this is switched on" reads the same way everywhere in the app. */
+.quick-actions button.quick-actions__on {
+  background: var(--color-brand-600);
+  border-color: var(--color-brand-600);
+  color: #fff;
+  font-weight: 700;
+}
+
+.quick-actions button.quick-actions__on:hover {
+  background: var(--color-brand-700);
+  border-color: var(--color-brand-700);
+}
+
+/* The next-step suggestion.
+
+   Its own opaque chip for the same reason as the hint above it: bare text
+   over satellite imagery is unreadable at any colour. Kept to one line on a
+   laptop and allowed to wrap on a phone, because a suggestion that pushes
+   the map down is worse than no suggestion. */
+.quick-actions__next {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 5px 5px 5px var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.quick-actions__next-text {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.quick-actions__next-go {
+  flex: 0 0 auto;
+  padding: 5px 11px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-brand-600);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.quick-actions__next-go:hover {
+  background: var(--color-brand-700);
+}
+
+@media (max-width: 900px) {
+  .quick-actions__next {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .quick-actions__next-go {
+    min-height: 36px;
+  }
+}

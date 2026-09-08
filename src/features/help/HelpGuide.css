@@ -1,0 +1,111 @@
+.help-guide-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 25, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: var(--space-4);
+}
+
+.help-guide {
+  width: min(720px, 100%);
+  max-height: min(600px, 100%);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.help-guide__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.help-guide__head h2 {
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+.help-guide__head button {
+  border: none;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-weight: 700;
+}
+
+.help-guide__body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+}
+
+.help-guide__nav {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.help-guide__nav button {
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.help-guide__nav button.active {
+  background: var(--color-brand-100);
+  color: var(--color-brand-700);
+  font-weight: 700;
+}
+
+.help-guide__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+.help-guide__content h3 {
+  margin-top: 0;
+  font-size: var(--text-lg);
+}
+
+.help-guide__content p {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.help-guide__content ul {
+  padding-left: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.help-guide__content button {
+  border: none;
+  background: var(--color-brand-600);
+  color: white;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  min-height: 40px;
+}

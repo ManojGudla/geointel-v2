@@ -1,0 +1,258 @@
+.ttt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.ttt__controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 360px;
+}
+
+.ttt__segmented {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.ttt__segmented button {
+  flex: 1;
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+
+.ttt__segmented button.active {
+  background: var(--color-surface);
+  color: var(--color-brand-700);
+  box-shadow: var(--shadow-sm);
+}
+
+.ttt__segmented--small button {
+  min-height: 34px;
+  font-size: 11px;
+}
+
+.ttt__status {
+  margin: 0;
+  min-height: 24px;
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.ttt__status--won {
+  color: var(--color-brand-700);
+}
+
+.ttt__status--draw {
+  color: var(--color-text);
+}
+
+/* Square by construction at any width, so the board never distorts and
+   never forces the page sideways on a narrow screen. */
+.ttt__board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: min(360px, 100%);
+  aspect-ratio: 1;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.ttt__cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  /* Restrained depth: enough to read as a physical tile, not a game bezel. */
+  box-shadow: 0 1px 0 var(--color-border-strong);
+  font-size: clamp(30px, 9vw, 46px);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.ttt__cell:hover:not(:disabled) {
+  background: var(--color-brand-100);
+  border-color: var(--color-brand-400);
+}
+
+.ttt__cell:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+.ttt__cell:disabled {
+  cursor: default;
+}
+
+.ttt__cell span {
+  animation: ttt-place var(--duration-fast) var(--ease-standard);
+}
+
+@keyframes ttt-place {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ttt__cell span {
+    animation: none;
+  }
+}
+
+/* X and O are distinguished by shape first; colour only reinforces it. */
+.ttt__cell--x {
+  color: var(--color-brand-600);
+}
+
+.ttt__cell--o {
+  color: var(--color-player-o);
+}
+
+.ttt__cell--winning {
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.ttt__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.ttt__primary {
+  min-height: 44px;
+  padding: 0 var(--space-5);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--gradient-brand);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.ttt__primary:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.ttt__scoreboard {
+  width: min(360px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.ttt__scores {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.ttt__scores dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-faint);
+}
+
+.ttt__scores dd {
+  margin: 1px 0 0;
+  font-size: var(--text-lg);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.ttt__reset {
+  align-self: flex-start;
+  padding: 5px var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.ttt__reset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ttt__confirm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.ttt__confirm button {
+  padding: 5px var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.ttt__note {
+  margin: 0;
+  max-width: 360px;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--color-text-faint);
+}
+
+@media (max-width: 640px) {
+  .ttt__board {
+    gap: 6px;
+  }
+
+  .ttt__segmented button {
+    min-height: 44px;
+  }
+}

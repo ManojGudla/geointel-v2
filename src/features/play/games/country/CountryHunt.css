@@ -1,0 +1,246 @@
+/*
+  Country Hunt.
+
+  The hint row is the part that needed care: the cost has to be legible BEFORE
+  the press, or the first hint feels like a trick. So each button carries its
+  own price, and a taken hint stays on screen showing what it bought.
+*/
+.hunt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.hunt__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.hunt__group {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.hunt__group button {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hunt__group button:last-child { border-right: none; }
+.hunt__group button.active { background: var(--color-brand-600); color: #fff; }
+
+.hunt__progress { margin: 0; font-size: var(--text-sm); font-weight: 700; }
+.hunt__running {
+  margin: 0 0 0 auto;
+  font-weight: 700;
+  color: var(--color-brand-600);
+  font-variant-numeric: tabular-nums;
+}
+
+.hunt__prompt {
+  margin: 0;
+  font-size: clamp(20px, 4vw, 26px);
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.hunt__prompt strong { color: var(--color-brand-600); }
+
+/* MapLibre sizes its canvas from the container, so this needs a real height
+   rather than relying on a flex child to stretch. */
+.hunt__map {
+  height: clamp(260px, 45vh, 480px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.hunt__eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-brand-500);
+}
+
+/* ── Hints ───────────────────────────────────────────────────────────── */
+
+.hunt__hints {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.hunt__hints-title {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.hunt__hints-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.hunt__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 38px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.hunt__hint:hover:not(:disabled) { border-color: var(--color-brand-500); }
+
+/* The price is the whole point of the button, so it never hides. */
+.hunt__hint-cost {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--color-accent-amber);
+  color: #3a2a00;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+
+.hunt__hint--taken {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.hunt__hints-shown {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+/* ── Answer ──────────────────────────────────────────────────────────── */
+
+.hunt__answer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+.hunt__answer-head { margin: 0; font-size: var(--text-md); }
+.hunt__answer-score { margin: 0; font-size: var(--text-sm); color: var(--color-text-muted); }
+
+.hunt__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.hunt__primary {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-600);
+  color: #fff;
+  font-weight: 700;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.hunt__primary:disabled {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.hunt__ghost {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+/* ── Result ──────────────────────────────────────────────────────────── */
+
+.hunt__total {
+  margin: 0;
+  font-size: clamp(34px, 8vw, 54px);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.hunt__outof {
+  margin-left: var(--space-2);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.hunt__review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hunt__review li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  font-size: var(--text-sm);
+}
+
+.hunt__review-name { font-weight: 600; }
+
+.hunt__review-score {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hunt__review-score em { font-style: normal; color: var(--color-accent-amber); }
+
+.hunt__note,
+.hunt__caveat {
+  margin: 0;
+  max-width: 62ch;
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}

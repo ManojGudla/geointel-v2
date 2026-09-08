@@ -1,0 +1,93 @@
+.findit__timer {
+  width: min(460px, 100%);
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.findit__timer > span {
+  display: block;
+  height: 100%;
+  background: var(--color-success);
+  /* No CSS transition: the width is set every animation frame from the real
+     clock, and a transition would make the bar lag behind the actual time
+     left — which in a timing game is a lie. */
+}
+
+.findit__timer > span.findit__timer--low {
+  background: var(--color-danger);
+}
+
+.findit__target {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5);
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.findit__target--hit {
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.findit__target--miss,
+.findit__target--timeout {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.findit__target-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.findit__target-icon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.findit__grid {
+  display: grid;
+  gap: 6px;
+  width: min(460px, 100%);
+}
+
+.findit__cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 40px floor: below this the cells stop being reliably tappable, and a
+     reflex game you can't hit is just frustrating. */
+  min-width: 40px;
+  min-height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-size: clamp(16px, 4.5vw, 26px);
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.findit__cell:hover {
+  border-color: var(--color-brand-400);
+  background: var(--color-brand-100);
+}
+
+.findit__cell:active {
+  transform: scale(0.94);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .findit__cell:active {
+    transform: none;
+  }
+}

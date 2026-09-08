@@ -1,0 +1,559 @@
+.directions-panel {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: 320px;
+  max-height: calc(100% - var(--space-6));
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-4);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (max-width: 640px) {
+  .directions-panel {
+    left: var(--space-2);
+    right: var(--space-2);
+    top: var(--space-2);
+    width: auto;
+    max-height: calc(100% - 64px);
+  }
+}
+
+.directions-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.directions-panel__head h2 {
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+.directions-panel__head button {
+  border: none;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-weight: 700;
+}
+
+.directions-panel__locate {
+  align-self: flex-start;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-brand-600);
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.directions-panel__error {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+}
+
+.directions-panel__modes {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.directions-panel__modes button {
+  flex: 1;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.directions-panel__modes button.active {
+  background: var(--color-brand-600);
+  color: white;
+  border-color: var(--color-brand-600);
+}
+
+.directions-panel__result {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.directions-panel__result > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.directions-panel__result strong {
+  font-size: var(--text-md);
+  color: var(--color-text);
+}
+
+.directions-panel__source {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.directions-panel__steps {
+  margin: var(--space-2) 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.directions-panel__steps summary {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.directions-panel__steps ol {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.directions-panel__steps li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.directions-panel__step-instruction {
+  flex: 1;
+}
+
+.directions-panel__step-distance {
+  flex-shrink: 0;
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.directions-panel__booking {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.directions-panel__booking strong {
+  display: block;
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-2);
+}
+
+.directions-panel__booking-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.directions-panel__booking-links a {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.directions-panel__booking-links a:hover {
+  background: var(--color-brand-100);
+}
+
+.directions-panel__booking small {
+  color: var(--color-text-faint);
+  font-size: 11px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Interactive directions (rewrite). The panel is wider than it was: a turn
+   list with an icon, an instruction and a distance does not fit in 320px
+   without wrapping every line, and a wrapped turn list is unreadable.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.directions-panel {
+  width: 380px;
+}
+
+@media (max-width: 640px) {
+  .directions-panel {
+    width: auto;
+  }
+}
+
+/* From / swap / To as one connected block, the way every maps app draws it. */
+.directions-panel__fields {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.directions-panel__swap {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-surface);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.directions-panel__swap:hover:not(:disabled) {
+  border-color: var(--color-brand-400);
+  color: var(--color-brand-600);
+}
+
+.directions-panel__swap:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.directions-panel__modes {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.directions-panel__modes button {
+  flex: 1;
+  min-height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.directions-panel__modes button.active {
+  border-color: transparent;
+  background: var(--gradient-brand);
+  color: #fff;
+}
+
+/* Every non-result state says something. This is the element that replaces
+   the old panel's silence when both boxes were filled but no point was set. */
+.directions-panel__prompt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.directions-panel__spinner,
+.place-input__spinner {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+  border-top-color: var(--color-brand-600);
+  animation: directions-spin 0.8s linear infinite;
+}
+
+@keyframes directions-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.directions-panel__failed {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.directions-panel__failed p {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-danger);
+}
+
+.directions-panel__failed-why {
+  margin-top: 4px !important;
+  font-weight: 400 !important;
+  line-height: 1.5;
+  color: var(--color-text-muted) !important;
+}
+
+.directions-panel__failed button {
+  margin-top: var(--space-2);
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-danger);
+  cursor: pointer;
+}
+
+.directions-panel__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-brand-100);
+}
+
+.directions-panel__summary-main {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.directions-panel__summary-main strong {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--color-brand-700);
+}
+
+.directions-panel__summary-main span {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.directions-panel__eta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.directions-panel__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.directions-panel__options button {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.directions-panel__options button.active {
+  border-color: var(--color-brand-500);
+  background: var(--color-brand-100);
+}
+
+.directions-panel__options strong {
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.directions-panel__options span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* Turn list — always visible, never hidden behind a <details> summary.
+   Directions you have to expand before you can read are not directions. */
+.directions-panel__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.directions-panel__steps-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.directions-panel__steps-head h3 {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.directions-panel__steps-head button {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-brand-600);
+  cursor: pointer;
+}
+
+.directions-panel__steps ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Long routes have hundreds of turns; the list scrolls inside itself so
+     the summary and mode buttons stay reachable. */
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.directions-panel__steps li button {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2);
+  border: none;
+  border-left: 3px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.directions-panel__steps li button:hover {
+  background: var(--color-bg);
+}
+
+.directions-panel__steps li button.active {
+  border-left-color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.directions-panel__step-icon {
+  flex: none;
+  width: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.directions-panel__step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.directions-panel__step-instruction {
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+.directions-panel__step-meta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* ── PlaceInput ── */
+
+.place-input__box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.place-input__box input {
+  width: 100%;
+  padding-right: 34px;
+}
+
+.place-input__box--resolved input {
+  border-color: var(--color-success);
+}
+
+.place-input__check {
+  position: absolute;
+  right: 10px;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  color: var(--color-success);
+  pointer-events: none;
+}
+
+.place-input__spinner {
+  position: absolute;
+  right: 10px;
+}
+
+.place-input__hint {
+  margin: 3px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+.place-input__suggestions button.highlighted {
+  background: var(--color-brand-100);
+}
+
+.directions-panel__start {
+  min-height: 48px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-success);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.directions-panel__start:hover:not(:disabled) {
+  box-shadow: var(--shadow-md);
+}
+
+.directions-panel__start:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.directions-panel__start-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}

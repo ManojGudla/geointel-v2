@@ -1,0 +1,65 @@
+.travel-planner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.travel-planner__intro {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.travel-planner__card {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.travel-planner__card h3 {
+  margin: 0;
+  font-size: var(--text-sm, 14px);
+}
+
+.travel-planner__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.travel-planner__row input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  font-size: var(--text-xs);
+  color: var(--color-text);
+}
+
+.travel-planner__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.travel-planner__links a {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-brand-500);
+  color: var(--color-brand-600);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  background: var(--color-brand-100);
+}
+
+.travel-planner__note {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: var(--color-text-faint);
+}

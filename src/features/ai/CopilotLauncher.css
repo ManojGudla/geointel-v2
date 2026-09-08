@@ -1,0 +1,41 @@
+/*
+  Bottom-right of the map — which is also where MapLibre puts the map credit.
+
+  This button used to sit at var(--space-3) from the bottom and drew straight
+  over that credit, leaving "© OpenStr…" clipped behind it. OpenStreetMap's
+  ODbL licence and Esri's terms both require the attribution to stay visible,
+  so the button clears it instead: MapLibre's attribution occupies roughly the
+  first 34px of this corner (a 10px margin plus ~24px of 11px text), and 44px
+  leaves a 10px gap above it — measured in a real browser at 1280x800, with
+  headroom so a system with a taller default line-height cannot close it.
+  MapView.css holds the matching z-index rule.
+
+  On phones the button is already lifted clear of the bottom sheet, which puts
+  it well above the credit, so the desktop offset is the only one that needs
+  this.
+*/
+.copilot-launcher {
+  position: absolute;
+  bottom: 44px;
+  right: var(--space-3);
+  z-index: 19;
+  padding: var(--space-2) var(--space-4);
+  border-radius: 999px;
+  border: none;
+  background: var(--color-brand-600);
+  color: white;
+  font-weight: 700;
+  font-size: var(--text-sm);
+  box-shadow: var(--shadow-lg);
+}
+
+.copilot-launcher:hover {
+  background: var(--color-brand-700);
+}
+
+@media (max-width: 900px) {
+  .copilot-launcher {
+    bottom: calc(48px + var(--space-3));
+    min-height: 44px;
+  }
+}

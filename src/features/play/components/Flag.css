@@ -1,0 +1,33 @@
+/*
+  Flags are 4:3 images with real edges, so they need a hairline border: a white
+  flag on a white card (Japan) would otherwise have no boundary at all, and a
+  flag with a white band touching the edge (France, Italy, Nigeria) would look
+  clipped.
+*/
+.flag {
+  display: inline-block;
+  vertical-align: -0.15em;
+  object-fit: cover;
+  border-radius: 3px;
+  /* Not a solid border: a hard line reads as a frame around small flags. */
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.14);
+  background: var(--color-surface);
+}
+
+/* The large flag above a quiz question. Sized by the container so it scales
+   with the card rather than being pinned to the width attribute. */
+.flag--display {
+  width: min(220px, 60vw);
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.14), var(--shadow-md);
+}
+
+/* Inline beside a country name in a results list. */
+.flag--inline {
+  width: 22px;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  margin-right: 6px;
+}

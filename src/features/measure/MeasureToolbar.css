@@ -1,0 +1,99 @@
+/* In-panel now, not floating over the map.
+   The tools used to float at the map's bottom-left, which is a fine place
+   for them once you know they exist and no place at all if you don't —
+   nothing in the interface said "measuring lives here". They sit under
+   Tools on the rail instead, where someone looking for them will look.
+   The live figure still follows you onto the map while measuring; that's
+   MeasureHud.tsx. */
+.measure-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.measure-toolbar__modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.measure-toolbar__modes button {
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
+}
+
+.measure-toolbar__modes button:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.measure-toolbar__modes button.active {
+  background: var(--color-brand-600);
+  border-color: var(--color-brand-600);
+  color: #fff;
+}
+
+.measure-toolbar__readout {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.measure-toolbar__value {
+  display: block;
+  font-size: var(--text-lg, 18px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.measure-toolbar__hint {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.measure-toolbar__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.measure-toolbar__actions button {
+  flex: 1;
+  min-height: 36px;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.measure-toolbar__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .measure-toolbar__actions button {
+    min-height: 44px;
+  }
+}

@@ -1,0 +1,101 @@
+.map-load {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  /* Opaque enough that a half-painted canvas underneath doesn't read as a
+     broken map, translucent enough that a successful load shows through as
+     it arrives. */
+  background: var(--color-bg);
+  pointer-events: none;
+}
+
+/* Once we're past "probably fine", the card takes clicks so the retry
+   button is actually pressable. */
+.map-load--slow,
+.map-load--failed {
+  pointer-events: auto;
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.map-load__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 340px;
+  padding: var(--space-5);
+  text-align: center;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+/* While it's just "loading", the card is a bare spinner and one line —
+   a bordered dialog for a 400ms wait is noise. */
+.map-load--loading .map-load__card {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.map-load__spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  font-size: 26px;
+}
+
+.map-load__ring {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2.5px solid var(--color-border-strong);
+  border-top-color: var(--color-brand-600);
+  animation: map-load-spin 0.8s linear infinite;
+}
+
+@keyframes map-load-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-load__ring {
+    animation-duration: 2.4s;
+  }
+}
+
+.map-load__title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.map-load__body {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.map-load__retry {
+  margin-top: var(--space-1);
+  min-height: 40px;
+  padding: 0 var(--space-5);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--gradient-brand);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: pointer;
+}

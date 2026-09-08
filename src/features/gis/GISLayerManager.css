@@ -1,0 +1,229 @@
+.layer-manager {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.layer-manager h3 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-faint);
+}
+
+.layer-manager__list {
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  /* No max-height/overflow of its own — this flows as part of the
+     right panel's single scrollbar (.workspace__panel--right). */
+}
+
+.layer-manager__list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  padding: 4px 0;
+}
+
+.layer-manager__item--disabled {
+  opacity: 0.5;
+}
+
+.layer-manager__list label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Custom checkbox: appearance:none replaces the native box with a small
+   rounded square tinted by the per-layer --layer-color custom property
+   (passed inline from GISLayerManager.tsx), with a filled-square check
+   indicator grown in via ::after on :checked. Replaces the old always-on
+   .layer-manager__swatch color dot — the color now lives on the control
+   itself instead of a separate decoration next to it. */
+.layer-manager__checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  margin: 0;
+  border-radius: 4px;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.layer-manager__checkbox::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--layer-color, var(--color-brand-600));
+  transform: scale(0);
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.layer-manager__checkbox:checked {
+  border-color: var(--layer-color, var(--color-brand-600));
+  background: color-mix(in srgb, var(--layer-color, var(--color-brand-600)) 18%, var(--color-bg));
+}
+
+.layer-manager__checkbox:checked::after {
+  transform: scale(1);
+}
+
+.layer-manager__checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.layer-manager__checkbox:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+.layer-manager__meta {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.layer-manager__opacity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.layer-manager__source {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.layer-manager__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.layer-manager__head-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.layer-manager__count {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-brand-700);
+  background: var(--color-brand-100);
+  border-radius: 999px;
+  padding: 2px var(--space-2);
+}
+
+.layer-manager__reset {
+  padding: 3px var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.layer-manager__reset:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+/* Groups: a heading you can scan, a hint that says what it's for, and a
+   count so the state of a collapsed group is never hidden. */
+.layer-group {
+  border-top: 1px solid var(--color-border);
+}
+
+.layer-group__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.layer-group__chevron {
+  flex: none;
+  width: 12px;
+  font-size: 11px;
+  color: var(--color-text-faint);
+  line-height: 1.5;
+}
+
+.layer-group__title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.layer-group__title strong {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.layer-group__title span {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-faint);
+}
+
+.layer-group__count {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-faint);
+  padding-top: 2px;
+}
+
+.layer-manager__opacity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.layer-manager__opacity > span {
+  cursor: help;
+}
+
+.layer-manager__opacity input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-brand-600);
+}
+
+@media (max-width: 900px) {
+  .layer-group__toggle {
+    min-height: 52px;
+  }
+}

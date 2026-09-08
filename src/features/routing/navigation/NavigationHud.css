@@ -1,0 +1,212 @@
+.nav-hud {
+  position: absolute;
+  z-index: 25;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* The instruction banner. Dark and high-contrast rather than the usual
+   surface colour: this has to be readable at a glance, at arm's length, on a
+   phone in daylight, and it must not be mistaken for one more panel. */
+.nav-hud--banner {
+  top: var(--space-3);
+  left: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: #10203f;
+  color: #fff;
+}
+
+.nav-hud__turn {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.nav-hud__turn-icon {
+  flex: none;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.nav-hud__turn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nav-hud__turn-distance {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8fb0f7;
+}
+
+.nav-hud__turn-instruction {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+/* The turn after next, the way both major maps apps show it. Dimmer, so it
+   reads as context rather than as the thing to do now. */
+.nav-hud__turn-then {
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.nav-hud__end {
+  flex: none;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  color: #fff;
+  cursor: pointer;
+}
+
+.nav-hud__end:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Trip strip along the bottom. */
+.nav-hud--strip {
+  bottom: var(--space-3);
+  left: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.nav-hud__trip {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.nav-hud__trip strong {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--color-success);
+}
+
+.nav-hud__trip span {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.nav-hud__eta {
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-hud__strip-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.nav-hud__recenter {
+  min-height: 38px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-brand-400);
+  border-radius: var(--radius-md);
+  background: var(--color-brand-100);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-brand-700);
+  cursor: pointer;
+}
+
+.nav-hud__caveat {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  cursor: help;
+}
+
+.nav-hud__accuracy {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+/* Problem and arrival states share one compact card. */
+.nav-hud--problem,
+.nav-hud--arrived {
+  top: var(--space-3);
+  left: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.nav-hud--problem {
+  border-color: var(--color-danger);
+}
+
+.nav-hud--arrived {
+  border-color: var(--color-success);
+}
+
+.nav-hud__problem-body strong {
+  display: block;
+  font-size: var(--text-md);
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.nav-hud__problem-body p {
+  margin: 3px 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.nav-hud--problem .nav-hud__end,
+.nav-hud--arrived .nav-hud__end {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+@media (max-width: 640px) {
+  .nav-hud--banner {
+    padding: var(--space-3);
+  }
+
+  .nav-hud__turn-icon {
+    font-size: 28px;
+  }
+
+  .nav-hud__turn-instruction {
+    font-size: var(--text-md);
+  }
+
+  .nav-hud--strip {
+    /* Clear of the mobile bottom sheet's handle. */
+    bottom: 78px;
+  }
+}

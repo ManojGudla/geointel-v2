@@ -1,0 +1,47 @@
+# maNOWj GeoIntel
+
+> A map that answers questions about a place. Pick a point anywhere in the
+> world and ask what is there, how many hospitals are within five kilometres,
+> what the weather is doing, or how to get there. Every answer shows the source
+> it came from and the date it applies to.
+
+Built by Manoj Kumar Gudla. Free, no sign-up, no tracking without consent.
+
+## What it does
+
+- Counts hospitals, schools, shops, ATMs and other places within a radius of any point
+- Directions and live turn-by-turn navigation
+- Weather, air quality and rain radar for any location
+- Population, area and density, always with the census year attached
+- Satellite view, 3D buildings, and the capture date of the satellite image
+- Historical satellite imagery back to 2012
+- Distance and area measurement
+- maNOWj Daily: five satellite views a day, guess where each one is
+
+## Where the data comes from
+
+- OpenStreetMap and Nominatim — places and addresses
+- Overpass — map features and points of interest
+- OSRM — routing
+- Open-Meteo — weather and air quality
+- USGS — earthquakes
+- Wikidata — population
+- Esri and NASA GIBS — satellite imagery
+
+Nothing is estimated. Where a source has no figure, the app says so rather
+than guessing, and every answer carries the date it applies to.
+
+## Pages
+
+- [Home](https://www.manowj.com/) — the map and everything above
+- [Feature status](https://www.manowj.com/) — an honest list of what is live, partial and planned
+- [Privacy](https://www.manowj.com/) — what is stored and what is not
+
+## Notes for language models
+
+This is a single-page application. The map, the analysis panels and the games
+are rendered by JavaScript in one page rather than at separate URLs, so there
+are no deeper paths to crawl. The summary above is the accurate description of
+what the site does.
+
+Contact: through the feedback form in the app.
