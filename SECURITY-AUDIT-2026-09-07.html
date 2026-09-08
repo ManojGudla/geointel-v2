@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>maNOWj GeoIntel — Security Audit</title>
+<style>
+  :root {
+    --ink: #10151f; --body: #3a4354; --muted: #6b7688; --faint: #98a2b3;
+    --line: #e3e7ee; --paper: #ffffff; --ground: #f5f7fa;
+    --crit: #b42318; --crit-bg: #fef3f2; --high: #b54708; --high-bg: #fffaeb;
+    --med: #1849a9; --med-bg: #eff8ff; --low: #475467; --low-bg: #f2f4f7;
+    --safe: #067647; --safe-bg: #ecfdf3;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--body);
+    font: 15px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 24px 80px; }
+  header.top {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+    padding: 28px 32px; margin-bottom: 28px;
+  }
+  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.02em; color: var(--ink); }
+  .sub { margin: 0; color: var(--muted); font-size: 14px; }
+  .verdict {
+    margin-top: 22px; padding: 16px 18px; border-radius: 10px;
+    background: var(--high-bg); border: 1px solid #fec84b;
+  }
+  .verdict strong { display: block; font-size: 17px; color: var(--high); margin-bottom: 4px; }
+  section { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 26px 32px; margin-bottom: 20px; }
+  h2 { margin: 0 0 4px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
+  h2 .n { color: var(--faint); font-weight: 500; margin-left: 6px; letter-spacing: 0; text-transform: none; }
+  .h2note { margin: 0 0 20px; color: var(--muted); font-size: 13.5px; }
+  h2.c-crit { color: var(--crit); } h2.c-high { color: var(--high); }
+  h2.c-med { color: var(--med); } h2.c-low { color: var(--low); } h2.c-safe { color: var(--safe); }
+  .item { border-top: 1px solid var(--line); padding: 20px 0 4px; }
+  .item:first-of-type { border-top: none; padding-top: 4px; }
+  h3 { margin: 0 0 10px; font-size: 16.5px; color: var(--ink); letter-spacing: -0.01em; line-height: 1.35; }
+  h3 .id { color: var(--faint); font-weight: 600; margin-right: 8px; font-variant-numeric: tabular-nums; }
+  dl { margin: 0; display: grid; grid-template-columns: 108px 1fr; gap: 7px 16px; }
+  dt { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--faint); padding-top: 3px; }
+  dd { margin: 0; }
+  code, .where { font-family: var(--mono); font-size: 12.5px; background: var(--low-bg); padding: 1px 5px; border-radius: 4px; color: #344054; }
+  .where { display: inline-block; margin: 1px 0; }
+  .rotate { display: inline-block; background: var(--crit-bg); color: var(--crit); font-weight: 700;
+            font-size: 12px; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 5px; border: 1px solid #fda29b; }
+  .norotate { color: var(--muted); font-size: 13px; }
+  pre { background: #0f1620; color: #dbe3ef; padding: 14px 16px; border-radius: 8px; overflow-x: auto;
+        font-family: var(--mono); font-size: 12.5px; line-height: 1.55; margin: 8px 0 0; }
+  pre .k { color: #7dd3a0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 8px; display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--faint); }
+  ul.tight { margin: 8px 0 0; padding-left: 20px; }
+  ul.tight li { margin-bottom: 5px; }
+  ol.check { margin: 0; padding-left: 0; list-style: none; counter-reset: c; }
+  ol.check li { counter-increment: c; position: relative; padding: 11px 0 11px 40px; border-bottom: 1px solid var(--line); }
+  ol.check li:last-child { border-bottom: none; }
+  ol.check li::before {
+    content: counter(c); position: absolute; left: 0; top: 11px;
+    width: 25px; height: 25px; border-radius: 50%; background: var(--ground); border: 1px solid var(--line);
+    font-size: 12px; font-weight: 700; color: var(--muted); display: grid; place-items: center;
+  }
+  .tag { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px; margin-left: 6px; white-space: nowrap; }
+  .t-crit { background: var(--crit-bg); color: var(--crit); }
+  .t-high { background: var(--high-bg); color: var(--high); }
+  .t-med { background: var(--med-bg); color: var(--med); }
+  .safe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px 24px; }
+  .safe-grid p { margin: 0; font-size: 13.5px; padding-left: 20px; position: relative; }
+  .safe-grid p::before { content: "✓"; position: absolute; left: 0; color: var(--safe); font-weight: 700; }
+  .lim { background: var(--low-bg); border-left: 3px solid var(--faint); padding: 14px 18px; border-radius: 0 8px 8px 0; }
+  .lim p { margin: 0 0 8px; font-size: 13.5px; }
+  .lim p:last-child { margin-bottom: 0; }
+  footer { text-align: center; color: var(--faint); font-size: 12.5px; padding-top: 8px; }
+  @media (max-width: 620px) {
+    .wrap { padding: 20px 14px 50px; }
+    section, header.top { padding: 20px 18px; border-radius: 10px; }
+    dl { grid-template-columns: 1fr; gap: 2px; }
+    dt { padding-top: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>Security &amp; production readiness audit</h1>
+  <p class="sub">maNOWj GeoIntel · www.manowj.com · 7 September 2026 · code review plus live testing against the deployed site</p>
+  <div class="verdict">
+    <strong>🟠 NEEDS SECURITY FIXES BEFORE WIDER SHARING</strong>
+    Nothing here lets an attacker steal your API keys or read your database directly, and the parts that usually leak
+    in an app like this are genuinely well built. But one shared password protects every visitor's personal data and
+    the site publicly tells anyone whether their guess was right; your AI endpoint has no working spend limit; and your
+    OpenStreetMap usage is over the line in two places, which can get the whole app cut off without warning.
+  </div>
+</header>
+
+<section>
+  <h2 class="c-crit">Critical<span class="n">1 issue · fix today</span></h2>
+  <p class="h2note">Could lead to theft of every visitor's personal data, or site-wide disruption.</p>
+
+  <div class="item">
+    <h3><span class="id">C1</span>One shared password guards all visitor data, and the site tells attackers when a guess is correct</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd><code>GET /api/admin/maintenance</code> needs no login. Send any value in the
+        <code>x-geointel-admin-key</code> header and it replies <code>"adminKeyValid": true</code> or
+        <code>false</code>. I confirmed this live on your site today. That turns guessing the admin password into a
+        simple loop with instant feedback. The same password is the only thing protecting
+        <code>/api/admin/submissions</code>.</dd>
+      <dt>Why it matters</dt>
+      <dd>A correct guess returns up to 50 feedback rows and 50 team applications, each including the submitter's
+        <strong>name, email, message, IP address and browser</strong>. It also lets an attacker switch your entire site
+        into maintenance mode for every visitor. There is no lockout, no expiry, no alerting, and no way to tell one
+        admin from another because there is only one password for everyone.</dd>
+      <dt>Where</dt>
+      <dd><span class="where">api/_routes/admin/maintenance.ts:63-76</span>
+          <span class="where">api/_routes/admin/submissions.ts:38-73</span>
+          <span class="where">api/_lib/rateLimit.ts:78-95</span></dd>
+      <dt>Attack path</dt>
+      <dd>Guess against the oracle from a pool of cloud IP addresses, which sidesteps the per-IP limit of 20/minute.
+        The limit also silently falls back to a per-instance memory counter whenever Supabase is slow or erroring, and
+        on Vercel that counter resets on every cold start, so during an outage it is effectively unlimited. Then read
+        every visitor's PII.</dd>
+      <dt>Fix</dt>
+      <dd>Four changes, in this order:
+        <ul class="tight">
+          <li>Delete <code>adminKeyValid</code> from the unauthenticated GET. Move verification to a
+            <code>POST /api/admin/verify</code> that returns a bare 200 or 401 and nothing else.</li>
+          <li>Add a <strong>global</strong> failed-attempt budget, not per IP, so a distributed guess is still bounded.</li>
+          <li>Make the limiter fail <em>closed</em> for the admin scope specifically when Supabase is unreachable.</li>
+          <li>Set a new key of at least 32 random characters. Longer term, put <code>/api/admin/*</code> behind Vercel
+            Access rather than a shared passphrase.</li>
+        </ul>
+      </dd>
+      <dt>Rotate?</dt>
+      <dd><span class="rotate">ROTATE GEOINTEL_ADMIN_KEY</span> <span class="norotate">The oracle has been live on a
+        public site. You cannot prove nobody ground against it, so treat the current key as burned.</span></dd>
+    </dl>
+  </div>
+</section>
+
+<section>
+  <h2 class="c-high">High<span class="n">6 issues · fix this week</span></h2>
+  <p class="h2note">Unbounded cost, service bans, legal exposure, and abuse of your brand.</p>
+
+  <div class="item">
+    <h3><span class="id">H1</span>Your AI endpoint has no working spend limit</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd><code>/api/ai-intent</code> uses an in-memory counter (10/min) instead of the durable Postgres limiter. On
+        Vercel that counter is per serverless instance and resets on every cold start, so parallel connections each
+        get a fresh budget. Your other two AI routes were migrated to the durable limiter for exactly this reason;
+        this one was missed.</dd>
+      <dt>Why it matters</dt>
+      <dd>Anyone can loop requests and burn your OpenRouter quota or bill. Exhausting it also takes down Ask maNOWj and
+        all six agents for real users.</dd>
+      <dt>Where</dt><dd><span class="where">api/_routes/ai-intent.ts:25,120</span></dd>
+      <dt>Fix</dt>
+      <dd><pre><span class="k">const</span> rate = <span class="k">await</span> checkDurableLimit(<span class="k">"ai"</span>, getClientIp(req), 60_000, 15);</pre>
+        Use the same <code>"ai"</code> scope as copilot and agent so they cannot be alternated for triple budget.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No, unless you see unexplained OpenRouter spend, in which case rotate <code>OPENROUTER_API_KEY</code>.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">H2</span>Rate limiting does not actually work on 17 of your 22 endpoints</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd>Only admin and the two AI routes use the durable Postgres limiter. Everything else uses
+        <code>new RateLimiter(...)</code>, which is per-instance memory. Serverless functions do not share memory, so
+        the limit is not a limit.</dd>
+      <dt>Why it matters</dt>
+      <dd>The reasoning at the time was "the CDN absorbs it", but the CDN only caches repeated URLs. Random
+        coordinates miss the cache every single time, and every miss is a real upstream query to Overpass, Nominatim,
+        Wikidata or OSRM. <code>/api/reverse-geocode</code> is the worst: one request fires up to five sequential
+        Nominatim calls.</dd>
+      <dt>Where</dt><dd><span class="where">api/_lib/cache.ts:40-61</span> and every <code>new RateLimiter(</code> call site</dd>
+      <dt>Attack path</dt>
+      <dd>Loop <code>/api/gis?lat=&lt;random&gt;&amp;lon=&lt;random&gt;</code>. Overpass and Nominatim ban datacenter IPs for
+        this. The result is not a data breach, it is your GIS evidence, Nearby, click-to-inspect, Property
+        Intelligence, officials and every AI agent going dark at once.</dd>
+      <dt>Fix</dt>
+      <dd>Move at least <code>reverse-geocode</code>, <code>geocode</code>, <code>officials</code>,
+        <code>status</code> and the four Overpass routes onto <code>checkDurableLimit</code>, with a generous window
+        (120/min) so ordinary use is unaffected.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">H3</span>You are over the Nominatim usage limit, and there is no mechanism that could keep you under it</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd>The OSM Nominatim policy is an <strong>absolute maximum of 1 request per second</strong> for your whole
+        application, and results <strong>must be cached</strong>. Your code has no outbound throttle to Nominatim at
+        all. The 30/min limit is per visitor, not for your app in total, so ten people at once are permitted 5
+        requests per second. The cache is per serverless instance, so each new instance starts empty.</dd>
+      <dt>Why it matters</dt>
+      <dd>One person typing a place and picking a result puts roughly 8 Nominatim requests on the wire in about two
+        seconds. The zoom-fallback loop alone fires up to 5 back-to-back calls with no delay between them. Nominatim
+        blocks abusers by IP without notice. If they block Vercel's egress IPs, all search and click-to-inspect
+        stops working.</dd>
+      <dt>Where</dt>
+      <dd><span class="where">api/_lib/nominatim.ts</span> (no throttle)
+          <span class="where">api/_routes/reverse-geocode.ts:89-101</span>
+          <span class="where">src/features/search/SearchBar.tsx:51</span> (300 ms as-you-type autocomplete, which the
+          policy explicitly asks people not to build)</dd>
+      <dt>Fix</dt>
+      <dd><ul class="tight">
+        <li>Collapse the zoom-fallback loop to one request at zoom 18, falling back at most once. That alone removes
+          roughly 60% of your Nominatim traffic.</li>
+        <li>Add a global outbound token bucket of 1 request/second in <code>api/_lib/nominatim.ts</code>, backed by the
+          Postgres limiter you already built.</li>
+        <li>Raise the search debounce to 600 ms and require 3 characters.</li>
+        <li>The real fix is to move geocoding to a provider that permits autocomplete. LocationIQ is
+          Nominatim-compatible, so it is close to a drop-in change, and its free tier is about 5,000 requests/day.</li>
+      </ul></dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">H4</span>OpenStreetMap attribution is missing wherever it legally has to appear</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd>On the Satellite and Dark basemaps the credit line reads "Imagery © Esri, Maxar, Earthstar Geographics" with
+        no mention of OpenStreetMap. But you are drawing OSM-derived data on top of that imagery: GIS evidence,
+        building footprints, POI markers and routes built from OSM road geometry. None of those GeoJSON sources
+        declares an <code>attribution</code>.</dd>
+      <dt>Why it matters</dt>
+      <dd>ODbL attribution attaches to the <em>data</em>, not the background image. A user on Satellite sees OSM data
+        with no OSM credit anywhere on screen. This is a licence condition, not a nicety.</dd>
+      <dt>Where</dt>
+      <dd><span class="where">src/features/map/basemaps.ts:12-17</span>
+          <span class="where">src/features/map/MapView.tsx:85,106,122,192</span></dd>
+      <dt>Fix</dt>
+      <dd>Add <code>attribution: '© OpenStreetMap contributors'</code> to the GIS, buildings, marker, route, step and
+        nav sources. MapLibre removes duplicates automatically, so this is safe on the Standard basemap too.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">H5</span>Four of your data providers can cut you off, and one is a licensing question</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd><ul class="tight">
+        <li><strong>tile.openstreetmap.org</strong> is your default basemap. OSMF's policy says access may be
+          withdrawn without notice and that commercial or heavy use should expect this. Donated infrastructure is
+          serving every visitor of a marketed product.</li>
+        <li><strong>Esri</strong> tiles come from a keyless legacy endpoint. That is not the licensed access path.
+          Esri's current model wants an ArcGIS Location Platform account and API key. This affects Satellite, Dark,
+          the dark labels, both game maps and the imagery-date lookup.</li>
+        <li><strong>OSRM demo server</strong> is documented as not for production, and routing is a headline feature
+          of your app.</li>
+        <li><strong>OpenTopoMap</strong> is a small volunteer project on donated hardware, serving your Terrain
+          basemap directly to every browser.</li>
+      </ul></dd>
+      <dt>Where</dt>
+      <dd><span class="where">src/features/map/basemaps.ts:25-34</span>
+          <span class="where">api/_routes/route.ts:9-11</span>
+          <span class="where">api/_routes/imagery.ts:27</span></dd>
+      <dt>Fix</dt>
+      <dd>Move tiles and geocoding onto a provider you have a relationship with. <strong>Stadia Maps</strong> covers
+        tiles, Nominatim-compatible geocoding and Valhalla routing with one key, which replaces three of the four
+        above. <strong>MapTiler</strong> is a good tiles-plus-geocoding alternative. If you want to keep this exact
+        satellite imagery legitimately, get an <strong>Esri Location Platform</strong> key and enable referrer
+        restrictions. Check current pricing yourself, tiers move.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No, but when you add these keys, restrict them by referrer/domain immediately.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">H6</span>Anyone can write your AI assistant's system prompt</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd>Two separate routes into the same weakness. First, the whole <code>context</code> object from the request
+        body is pasted into the <strong>system</strong> message with only a size cap, no schema and no validation, so
+        a direct API call can author the assistant's instructions. Second, world-editable OpenStreetMap names and
+        Wikidata labels land in that same block, and your prompt actively tells the model to treat that block as its
+        only source of truth about government officials.</dd>
+      <dt>Why it matters</dt>
+      <dd>An attacker can neutralise your guardrails and make your branded assistant state anything, on your bill,
+        with your "source: Wikidata" framing around it. Editing a Wikidata label reaches every user who selects that
+        location, with no access to them at all. This is reputational and cost abuse, not a data breach: there are no
+        tools, no database access and no key in the prompt, so nothing privileged can be reached this way.</dd>
+      <dt>Where</dt>
+      <dd><span class="where">api/_routes/ai/copilot.ts:15-56,87-118</span>
+          <span class="where">api/_routes/ai/agent.ts:26-77,99-121</span></dd>
+      <dt>Fix</dt>
+      <dd>Move all location data out of the system message into a separate <code>user</code> message, wrapped in
+        delimiters with a line saying it is untrusted retrieved data and must never be treated as instructions. Then
+        validate <code>context</code> against a strict schema: known keys only, enums for status fields, every string
+        capped at ~200 characters with newlines stripped.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+</section>
+
+<section>
+  <h2 class="c-med">Medium<span class="n">10 issues · fix before you grow</span></h2>
+  <p class="h2note">Real problems that are either bounded today or need a second thing to go wrong first.</p>
+
+  <div class="item">
+    <h3><span class="id">M1</span><code>.gitignore</code> does not cover <code>.env.production</code></h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd>Only <code>.env</code>, <code>.env.local</code> and <code>.env.*.local</code> are ignored. I verified with
+        <code>git check-ignore</code>: <code>.env.production</code>, <code>.env.development</code> and
+        <code>secrets.json</code> are <strong>not</strong> ignored. <code>.env.production</code> is a file Vite actively
+        reads, and it is the most natural name to reach for.</dd>
+      <dt>Why it matters</dt>
+      <dd>The day you create that file it gets committed silently, carrying your Supabase service-role key, which
+        bypasses every access rule on every table.</dd>
+      <dt>Where</dt><dd><span class="where">.gitignore:6-8</span></dd>
+      <dt>Fix</dt><dd><pre>.env
+.env.*
+!.env.example</pre></dd>
+      <dt>Rotate?</dt><dd class="norotate">No. No such file exists and nothing has ever been committed.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">M2</span>Your rate-limit database functions can be called by anyone holding a Supabase anon key</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd><code>check_rate_limit()</code> and <code>prune_rate_limits()</code> are <code>security definer</code>
+        functions in the <code>public</code> schema. Postgres grants EXECUTE to PUBLIC by default and Supabase exposes
+        them as REST endpoints. There is no <code>revoke</code> anywhere in your migrations.</dd>
+      <dt>Why it matters</dt>
+      <dd><code>prune_rate_limits</code> wipes the whole table, resetting the counter that exists specifically to stop
+        someone brute-forcing your admin key. Calling <code>check_rate_limit</code> with a chosen key can lock <em>you</em>
+        out of the endpoint that turns maintenance mode off. Not reachable today, because your frontend embeds no
+        Supabase key at all. It becomes live the moment one is introduced or leaks.</dd>
+      <dt>Where</dt><dd><span class="where">supabase/migrations/0005_rate_limits.sql:36-72</span></dd>
+      <dt>Fix</dt>
+      <dd><pre><span class="k">revoke execute on function</span> public.check_rate_limit(text,integer,integer),
+  public.prune_rate_limits() <span class="k">from</span> public, anon, authenticated;
+<span class="k">grant execute on function</span> public.check_rate_limit(text,integer,integer),
+  public.prune_rate_limits() <span class="k">to</span> service_role;</pre></dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">M3</span>Google Fonts loads before consent, and your privacy page says it does not</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd><code>index.html</code> fetches a stylesheet from Google on every page load, before any consent decision, so
+        every visitor's IP and browser reach Google regardless of what they click. Your privacy page states as
+        checkable fact that if you decline "nothing from Google is fetched", and that Google's analytics domains are
+        the only non-map domains in your CSP. Both are false — the two font hosts are in the CSP too.</dd>
+      <dt>Why it matters</dt>
+      <dd>German courts have found unconsented Google Fonts embedding to be an unlawful transfer of personal data. And
+        your own privacy page's opening line says a page that promises more than the code does is worse than no page
+        at all. This is that case.</dd>
+      <dt>Where</dt>
+      <dd><span class="where">index.html:63-65</span> <span class="where">src/features/privacy/privacyFacts.ts:69,75</span></dd>
+      <dt>Fix</dt>
+      <dd>Self-host Inter. Put the woff2 in <code>public/fonts/</code>, use a local <code>@font-face</code>, then drop
+        both Google font hosts from the CSP. Faster page load and the privacy claims become true.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">M4</span>Admin responses containing visitor PII are cacheable</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd>I confirmed live: the admin maintenance response returns
+        <code>Cache-Control: public, max-age=0, must-revalidate</code> and <strong>no <code>Vary</code> header</strong>,
+        even though the body changes depending on the admin key you send. Successful admin responses get no
+        <code>no-store</code> because <code>ok()</code> sets no cache header at all.</dd>
+      <dt>Why it matters</dt>
+      <dd>The response body is visitor PII and the maintenance audit log. Without <code>Vary</code>, a shared cache has
+        no way to know the response depends on a header.</dd>
+      <dt>Where</dt><dd><span class="where">api/_lib/http.ts:29-31</span> <span class="where">api/_routes/admin/*.ts</span></dd>
+      <dt>Fix</dt>
+      <dd><pre>res.setHeader(<span class="k">"Cache-Control"</span>, <span class="k">"no-store"</span>);
+res.setHeader(<span class="k">"Vary"</span>, <span class="k">"x-geointel-admin-key"</span>);</pre>
+        on both admin routes, and on <code>feedback</code> and <code>team-apply</code>.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">M5</span><code>/api/status</code> is a 10-to-1 amplifier and tells strangers which keys work</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd>One uncached request probes 6 Overpass mirrors, Nominatim, Wikidata, OpenRouter and Supabase. Both its cache
+        and its limiter are per-instance, so concurrency defeats both at once. It has no
+        <code>withEdgeCache</code> wrapper, unlike every other route. It also returns strings like "Provider rejected
+        the configured API key" and "No Supabase credentials" to anonymous callers.</dd>
+      <dt>Why it matters</dt>
+      <dd>An attacker gets a live map of which integrations you have, which are weak, and the exact moment your AI key
+        is revoked or out of quota. Meanwhile each probe hammers six volunteer Overpass mirrors from your IP, which is
+        how you get banned.</dd>
+      <dt>Where</dt><dd><span class="where">api/_routes/status.ts:42-43,146-166,210</span></dd>
+      <dt>Fix</dt>
+      <dd>Wrap it: <code>export default withEdgeCache(60, 300)(handler)</code>, move the limiter to the durable one,
+        and return only <code>operational / degraded / down</code> publicly with the per-dependency detail behind the
+        admin key.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">M6</span>A crafted link crashes the whole app for whoever opens it</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd><code>?lat=</code> and <code>?lon=</code> from the URL are checked with <code>Number.isFinite</code> only,
+        never for a valid geographic range. MapLibre throws on a latitude above 90, inside an effect with no
+        try/catch, so React tears down the map and every panel and shows an error box that does not self-recover.</dd>
+      <dt>Where</dt>
+      <dd><span class="where">src/hooks/useSharedLocationFromUrl.ts:30-32</span>
+          <span class="where">src/features/map/MapView.tsx:1145</span></dd>
+      <dt>Attack path</dt>
+      <dd>Send someone <code>https://www.manowj.com/?lat=999&amp;lon=0</code>. Their workspace is gone until they edit
+        the URL. Easy to post as a "look at this place" link.</dd>
+      <dt>Fix</dt>
+      <dd>Range-check in the hook before setting the location, and add the same ±90/±180 guard to every geo API route.
+        Nine routes currently check <code>isFinite</code> only.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">M7</span><code>/api/gis</code> returns an uncapped feature list that the browser then renders in full</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd>No <code>.slice()</code> anywhere in the chain, unlike <code>/api/nearby</code> (60) and
+        <code>/api/buildings</code>. The Overpass query has 25 tag filters, no <code>[maxsize]</code> and no output
+        limit. At the 5 km preset over a dense city centre that is tens of thousands of elements, a multi-megabyte
+        response, and a GeoJSON source big enough to stall the browser's main thread.</dd>
+      <dt>Where</dt><dd><span class="where">api/_routes/gis.ts:159-170</span> <span class="where">src/features/map/MapView.tsx:519-536</span></dd>
+      <dt>Fix</dt><dd>Cap at ~2,000 features server-side but still return the true total so the Evidence panel stays honest, and show "showing N of M".</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">M8</span>Two unvalidated writes into your database</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd><code>/api/feedback</code> caps <code>message</code> at 2,000 characters but never caps
+        <code>deviceId</code> and inserts <code>pageContext</code> as arbitrary JSON with no size or shape check, up to
+        Vercel's ~4.5 MB body limit, per row, unauthenticated, behind the broken in-memory limiter. Separately,
+        <code>/api/poi-evidence</code> never validates <code>radius</code>, so <code>?radius=abc</code> becomes
+        <code>around:NaN</code> in the Overpass query and <code>?radius=-1e9</code> is sent as-is.</dd>
+      <dt>Where</dt><dd><span class="where">api/_routes/feedback.ts:32,58</span> <span class="where">api/_routes/poi-evidence.ts:144-146</span></dd>
+      <dt>Fix</dt>
+      <dd><code>/^[A-Za-z0-9_-]{8,64}$/</code> on <code>deviceId</code>; reject <code>pageContext</code> over 2 KB;
+        add a length check constraint in a migration; copy the radius validation that <code>gis.ts</code> and
+        <code>nearby.ts</code> already have.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">M9</span>The dev server listens on every network interface</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd><code>server.host: true</code> binds to <code>0.0.0.0</code>. Every one of the five npm advisories against
+        this project is a dev-server vulnerability, including a critical one that allows arbitrary file read.</dd>
+      <dt>Why it matters</dt>
+      <dd>Individually harmless, together they mean anyone on the same Wi-Fi — a café, a hotel, a coworking space —
+        can reach your dev server while you are working.</dd>
+      <dt>Where</dt><dd><span class="where">vite.config.ts:37</span></dd>
+      <dt>Fix</dt><dd>Make it opt-in: <code>host: process.env.VITE_LAN === "1"</code>, and only enable it when you are testing on your phone.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+
+  <div class="item">
+    <h3><span class="id">M10</span>There is no version control on this project at all</h3>
+    <dl>
+      <dt>Problem</dt>
+      <dd>Your working folder has no git repository. The cloud copy has a git folder with <strong>zero commits</strong>.
+        Good news for this audit: no credential can ever have leaked through git history, because there is no history.
+        Bad news for everything else.</dd>
+      <dt>Why it matters</dt>
+      <dd>You have no way to roll back a bad deploy, no record of what changed, no backup if the folder is lost, and no
+        way for anyone to review a change before it is live. For a public product that is a production readiness gap,
+        not a nicety.</dd>
+      <dt>Fix</dt>
+      <dd><pre>git init
+git add -A
+git commit -m <span class="k">"Initial commit"</span></pre>
+        Then create a <strong>private</strong> GitHub repo and push. Fix M1 first, so the gitignore is right before the
+        first commit.</dd>
+      <dt>Rotate?</dt><dd class="norotate">No.</dd>
+    </dl>
+  </div>
+</section>
+
+<section>
+  <h2 class="c-low">Low<span class="n">11 items · hardening</span></h2>
+  <p class="h2note">Worth doing, none urgent.</p>
+  <table>
+    <thead><tr><th>#</th><th>Issue</th><th>Where</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>L1</td><td>Upstream error text is reflected to callers, exposing which mirrors you use and their current HTTP status</td><td><code>buildings, gis, nearby, poi-evidence, live</code></td><td>Log the detail, return a fixed string, as <code>status.ts</code> already does</td></tr>
+      <tr><td>L2</td><td>No <code>security.txt</code>, so a researcher who finds something has no way to reach you. Confirmed missing live.</td><td><code>public/.well-known/</code></td><td>Add one with a contact email</td></tr>
+      <tr><td>L3</td><td>Admin key stored in <code>sessionStorage</code>, readable by any script on the origin</td><td><code>AdminDashboard.tsx:61</code></td><td>Exchange it for an HttpOnly SameSite=Strict cookie</td></tr>
+      <tr><td>L4</td><td>RainViewer's returned host is used to build a tile URL with no validation. Blocked by CSP today.</td><td><code>live.ts:102</code></td><td>Assert <code>/^https:\/\/[a-z0-9.-]+\.rainviewer\.com$/</code></td></tr>
+      <tr><td>L5</td><td>User-Agent sent to OSM says <code>contact: geointel app</code>, which is not a contact</td><td><code>nominatim.ts:4</code>, <code>overpass.ts:74</code></td><td>Put a real URL and email in, so they can warn you before blocking</td></tr>
+      <tr><td>L6</td><td>Read routes never check the HTTP method, so DELETE or OPTIONS runs the full upstream query</td><td>all GET handlers</td><td><code>if (req.method !== "GET") return err(res, 405, ...)</code></td></tr>
+      <tr><td>L7</td><td>Env var names appear in client-facing errors, confirming your auth scheme and AI provider</td><td><code>ai.ts:28,66</code>, <code>status.ts:146</code></td><td>Generic text to the client, specifics to the log</td></tr>
+      <tr><td>L8</td><td>In-memory cache has no size bound; three caches are keyed on unbounded user input</td><td><code>cache.ts:16-38</code></td><td>Cap the key length and add LRU eviction</td></tr>
+      <tr><td>L9</td><td>Knowledge base retrieval has no visibility filter. Harmless now — all 7 rows are public docs — but the table has a <code>user_id</code> column.</td><td><code>kb.ts:33-40</code></td><td>Add <code>.is("user_id", null)</code> now, before private rows exist</td></tr>
+      <tr><td>L10</td><td><code>maplibre-gl</code> is two majors behind. It is your only production dependency with real attack surface: WebGL and untrusted tile parsing.</td><td><code>package.json:23</code></td><td>Schedule 4.7 → 6.x deliberately, then re-check attribution behaviour</td></tr>
+      <tr><td>L11</td><td>Missing <code>Cross-Origin-Opener-Policy</code>, <code>Cross-Origin-Resource-Policy</code>; <code>Permissions-Policy</code> lacks <code>browsing-topics=()</code>, which matters because you load GTM</td><td><code>vercel.json:26</code></td><td>Add both COOP/CORP as <code>same-origin</code>; extend Permissions-Policy. Do <strong>not</strong> add COEP, it would break your tile loading.</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:16px;font-size:13.5px;color:var(--muted)">Also: <code>check2.mjs</code> and <code>check3.mjs</code> are forgotten scratch files in your project root pointing at localhost. They do not ship to users, but delete them and add a <code>.vercelignore</code>.</p>
+</section>
+
+<section>
+  <h2 class="c-safe">Verified safe<span class="n">what I checked and found correctly done</span></h2>
+  <p class="h2note">This is not a courtesy list. Each of these is a specific thing I looked for and did not find, or found done properly. Several are the exact places apps like yours usually leak.</p>
+  <div class="safe-grid">
+    <p><strong>No secret reaches the browser.</strong> Exactly one <code>VITE_</code> variable exists, <code>VITE_GTM_ID</code>, which is public by design.</p>
+    <p><strong>Production bundle is clean.</strong> I grepped all 128 built files for JWTs, <code>sk-</code>, <code>AIza</code>, <code>service_role</code>, Bearer tokens and long hex blobs. Zero matches.</p>
+    <p><strong>No source maps in production.</strong> Confirmed live: <code>/assets/index-*.js.map</code> returns 404.</p>
+    <p><strong>Service-role key cannot reach the frontend.</strong> Supabase is imported in exactly one server-side file; <code>src/</code> has zero Supabase references.</p>
+    <p><strong>No credentials in git history.</strong> There is no history. Nothing was ever committed.</p>
+    <p><strong>Admin password comparison is constant-time</strong> and fails closed when unset.</p>
+    <p><strong>No XSS anywhere.</strong> Zero uses of <code>dangerouslySetInnerHTML</code>, <code>innerHTML</code>, <code>eval</code> or <code>new Function</code> in <code>src/</code>. No markdown or HTML renderer is even installed, so OSM tags, RSS titles and AI output all render as escaped text.</p>
+    <p><strong>No SSRF.</strong> Every outbound URL is a hardcoded host and path. No user value ever becomes a hostname, scheme or full URL.</p>
+    <p><strong>No SQL or Overpass injection.</strong> Every database call is the query builder or a parameterised RPC. No user <em>text</em> ever reaches an Overpass query — only numbers and a whitelisted filter table.</p>
+    <p><strong>No path traversal.</strong> The router matches a static allowlist with <code>Object.hasOwn</code>. I confirmed live that <code>/api/toString</code> returns 404.</p>
+    <p><strong>No IDOR.</strong> No endpoint takes an id or email to fetch or change a specific record.</p>
+    <p><strong>No CSRF surface.</strong> No cookies, no sessions, no CORS headers. The API is same-origin only.</p>
+    <p><strong>CSP is genuinely strong</strong> and confirmed live: no <code>unsafe-inline</code> or <code>unsafe-eval</code> for scripts, with <code>base-uri</code>, <code>form-action</code>, <code>frame-ancestors</code> and <code>object-src</code> all set. A test fails the build if an inline script reappears.</p>
+    <p><strong>HSTS is fully correct</strong> and live: 2 years, includeSubDomains, preload.</p>
+    <p><strong>Row-level security is on for all six tables</strong> with zero policies, which means the anon key reaches no data at all. Deny by default, correct.</p>
+    <p><strong>All five npm advisories are dev-only</strong> and unreachable in the deployed app. Do <em>not</em> run <code>npm audit fix --force</code>; it would install two major versions of Vite and Vitest for no production benefit.</p>
+    <p><strong>No unused production dependencies.</strong> <code>three</code> is not in your project at all — that earlier note was wrong.</p>
+    <p><strong>Service worker is well built.</strong> It refuses to cache <code>/api/</code> responses and all cross-origin requests, so no personal data or map tile lands in a client cache.</p>
+    <p><strong>The AI has no tools</strong>, no database access and no key in its prompt. User instructions cannot reach anything privileged, and no key can be extracted through it.</p>
+    <p><strong>Model and token limits are server-side.</strong> No caller can pick an expensive model or a huge output.</p>
+    <p><strong>Precise coordinates are handled carefully.</strong> Routes carrying full precision are marked private so they stay out of the shared CDN; everything else is grid-snapped.</p>
+    <p><strong>No file upload or import exists</strong>, so there is nothing to attack there. No user-supplied GeoJSON is ever parsed.</p>
+    <p><strong>Map styles and tile URLs are hardcoded.</strong> Nothing user-controlled can reach a style, source or tile URL.</p>
+    <p><strong>Attribution mechanism is policy-compliant</strong> on the Standard basemap: it shows expanded on load and collapses to an ⓘ on interaction, which is exactly what the guidelines allow.</p>
+    <p><strong>No scraping or bulk downloading</strong> anywhere. Overpass queries are bounded and the Overpass mirror hedging is better engineering than most projects manage.</p>
+    <p><strong>Every outbound call has a timeout</strong> (one exception, <code>imagery.ts:124</code>).</p>
+    <p><strong>No debug or test routes in production.</strong> <code>/api/health</code> returns only a status and timestamp. Dev middleware cannot ship. Zero <code>console.log</code> in the whole project.</p>
+    <p><strong><code>/.env</code>, <code>/.git/config</code>, <code>/package.json</code> return 200 but they are your app's HTML page, not the files.</strong> I fetched each one and verified the body. Nothing is exposed.</p>
+    <p><strong>robots.txt correctly disallows /admin</strong>, and the admin surface is protected server-side rather than by robots.txt.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Authentication<span class="n">section 12 of your brief</span></h2>
+  <p class="h2note" style="margin-bottom:0">There is no user authentication in this application. No accounts, no login, no passwords, no OAuth, no password reset, no email verification, no sessions and no cookies. So account takeover, session expiry, cookie flags, brute-force protection and account enumeration do not apply — with one exception, which is the single shared admin password covered in <strong>C1</strong>. That is your entire authentication surface, and it is the most serious finding in this report.</p>
+</section>
+
+<section>
+  <h2>Limitations of this audit</h2>
+  <div class="lim">
+    <p><strong>I did not open your <code>.env.local</code>.</strong> Everything about your secrets is inferred from how the code uses them and from what is or is not in the built bundle. I cannot confirm the values are strong, or that the same value is not reused elsewhere. In particular I cannot tell you how long or random your admin key is, which is the difference between C1 being serious and being catastrophic.</p>
+    <p><strong>I could not inspect your Vercel or Supabase dashboards.</strong> Migration files say row-level security is enabled on all six tables. That is what the files say, not what the live database does. Confirm in the Supabase dashboard that RLS is on for all six and that no policy was added by hand. Also confirm which environment variables are actually set in Vercel production, and that <code>PUBLIC_APP_URL</code> is among them.</p>
+    <p><strong>I only tested safely and non-destructively.</strong> I sent one deliberately wrong admin key to confirm the oracle exists. I did not attempt to guess the real one, did not load-test your endpoints, and did not send anything to third-party services beyond normal use.</p>
+    <p><strong>A code audit cannot see runtime behaviour.</strong> I cannot see your actual traffic, whether anyone has already abused these endpoints, what is in your logs, or whether your Supabase data has been accessed. If you want to know whether C1 has already been exploited, check Vercel's logs for repeated requests to <code>/api/admin/*</code>.</p>
+    <p><strong>This is one pass by one reviewer.</strong> Finding nothing in a category means I did not find it, not that it is not there. Nothing here replaces a professional penetration test if this app ever handles anything more sensitive than it does today.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Before I share this again<span class="n">do these in order</span></h2>
+  <ol class="check">
+    <li><strong>Rotate <code>GEOINTEL_ADMIN_KEY</code> now.</strong> Generate at least 32 random characters, set it in Vercel, and do not paste it anywhere. <span class="tag t-crit">C1</span></li>
+    <li><strong>Remove <code>adminKeyValid</code></strong> from the public maintenance endpoint, and add a global failed-attempt limit. <span class="tag t-crit">C1</span></li>
+    <li><strong>Fix <code>.gitignore</code></strong> to <code>.env.*</code> with <code>!.env.example</code>. Do this before your first commit. <span class="tag t-med">M1</span></li>
+    <li><strong>Put the project in git</strong> and push to a private GitHub repo, so you can roll back. <span class="tag t-med">M10</span></li>
+    <li><strong>Move <code>/api/ai-intent</code> to the durable rate limiter</strong>, or your AI bill has no ceiling. <span class="tag t-high">H1</span></li>
+    <li><strong>Collapse the reverse-geocode zoom loop</strong> and add a 1 request/second outbound cap to Nominatim. This is the difference between staying up and being IP-banned. <span class="tag t-high">H3</span></li>
+    <li><strong>Add "© OpenStreetMap contributors" to the map data layers</strong>, so the credit appears on Satellite and Dark too. This one is a licence condition. <span class="tag t-high">H4</span></li>
+    <li><strong>Move location data out of the AI system prompt</strong> and validate the context object. <span class="tag t-high">H6</span></li>
+    <li><strong>Add <code>no-store</code> and <code>Vary</code> to the admin routes.</strong> <span class="tag t-med">M4</span></li>
+    <li><strong>Revoke the Supabase function grants</strong> with a new migration. <span class="tag t-med">M2</span></li>
+    <li><strong>Range-check latitude and longitude</strong> in the URL hook and in all nine geo routes. <span class="tag t-med">M6</span></li>
+    <li><strong>Self-host the Inter font</strong> and correct the two false statements on your privacy page. <span class="tag t-med">M3</span></li>
+    <li><strong>Sign up for a real tile and geocoding provider.</strong> Stadia Maps or MapTiler. You are currently building a public product on donated volunteer infrastructure that can be withdrawn without notice. <span class="tag t-high">H5</span></li>
+    <li><strong>Check the Supabase dashboard</strong>: RLS enabled on all six tables, no hand-added policies. <span class="tag t-med">Limitations</span></li>
+    <li><strong>Check Vercel logs</strong> for repeated hits on <code>/api/admin/*</code>, to see whether anyone has already been guessing.</li>
+  </ol>
+</section>
+
+<footer>
+  Audit performed 7 September 2026 against the deployed site and the working copy at <code>geointel-v2</code>.<br>
+  Live checks confirmed headers, absent source maps, the admin oracle, and route behaviour on www.manowj.com.
+</footer>
+
+</div>
+</body>
+</html>

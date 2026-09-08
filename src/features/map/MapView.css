@@ -1,0 +1,84 @@
+.map-view {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg);
+}
+
+.map-view__canvas {
+  height: 100%;
+  width: 100%;
+}
+
+.maplibregl-ctrl-attrib {
+  font-size: 11px;
+}
+
+/*
+  Keep the OpenStreetMap credit visible.
+
+  The "Ask maNOWj" launcher sits in this same bottom-right corner and was
+  drawing straight over the attribution, leaving "© OpenStr…" clipped behind
+  the button. That credit is not decoration — OpenStreetMap's ODbL licence and
+  Esri's terms both require it to stay visible — so a button covering it is a
+  licence problem, not only an untidy one.
+
+  The fix is in CopilotLauncher.css: the button moves up to sit above the
+  attribution row, rather than the attribution being pushed out of the corner
+  every map library puts it in. This z-index is the backstop for the same
+  rule — if any future overlay lands in this corner, the credit still wins
+  instead of silently disappearing. (Nothing in the app uses a z-index above
+  19 over the map, so this stays on top without covering panels or dialogs,
+  which sit outside the map container.)
+*/
+.maplibregl-ctrl-bottom-right {
+  z-index: 20;
+}
+
+/* Marker-drop: the selected-location pin (MapView.tsx's markerRef) drops
+   in from above with a slight settle rather than just appearing. Animates
+   the marker's inner SVG, not the outer .maplibregl-marker div — that div's
+   own `transform` is how MapLibre positions the pin on the map, so
+   animating it directly would fight the library's placement during the
+   animation. */
+.maplibregl-marker svg {
+  animation: geointel-marker-drop 480ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: bottom center;
+}
+
+@keyframes geointel-marker-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-28px) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maplibregl-marker svg {
+    animation: none;
+  }
+}
+
+/* Phones: MapLibre's zoom buttons are dropped — pinch-to-zoom is the native
+   gesture and every phone map application relies on it, while the buttons
+   sat in the same top-right corner the floating search now occupies. The
+   compass (tap to reset north) and fullscreen stay, since neither has a
+   gesture equivalent. Desktop keeps the full stack. */
+@media (max-width: 900px) {
+  .maplibregl-ctrl-group button.maplibregl-ctrl-zoom-in,
+  .maplibregl-ctrl-group button.maplibregl-ctrl-zoom-out {
+    display: none;
+  }
+
+  .maplibregl-ctrl-top-right {
+    /* Clear of the floating search row above it. */
+    margin-top: 62px;
+  }
+}

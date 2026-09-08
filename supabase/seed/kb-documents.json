@@ -1,0 +1,37 @@
+[
+  {
+    "title": "How property classification works",
+    "tags": ["property", "classification", "confidence", "trust"],
+    "content": "GeoIntel classifies a location (Commercial, Residential, Industrial, Institutional, Mixed Use, or Vacant/Unknown) using only real OpenStreetMap/Overpass evidence within the selected analysis radius — it never guesses from the address text or an AI model's prior knowledge. The algorithm counts buildings, shops, offices, amenities, and land-use tags, converts them into weighted scores per category (commercial = shops*3 + offices*2 + amenities*0.5, residential = residential-tagged features*2, industrial = industrial features*3, institutional = institutional features*2.5), then picks the top-scoring category. If the top two scores are within 25% of each other, the result is 'Mixed Use' rather than an arbitrary winner. If there is zero evidence in the radius (no buildings, shops, offices, or amenities found), the result is always 'Vacant / Unknown' with 0% confidence — the system will never fabricate a classification when there is nothing to base it on. Confidence combines two things: how dominant the top category is over the others (60% weight) and how much total evidence was found (40% weight) — a lot of mixed evidence gives lower confidence than a small amount of one-sided evidence, and vice versa."
+  },
+  {
+    "title": "What VERIFIED, INFERRED, and UNAVAILABLE mean",
+    "tags": ["trust", "evidence", "verified", "inferred"],
+    "content": "Every piece of location intelligence in GeoIntel is labeled with a trust level so users never mistake an estimate for a verified fact. VERIFIED means the result came directly from live provider data with enough supporting evidence (3 or more matching features for property classification, for example) to be confident in it. INFERRED means there is some real evidence, but not much of it (fewer than 3 features) — the conclusion is a reasonable guess from thin data, not a confirmed fact. UNAVAILABLE means either no evidence was found at all, or the underlying data provider (Nominatim, Overpass, Open-Meteo, OSRM) could not be reached — in both cases GeoIntel says so plainly rather than inventing a plausible-sounding answer."
+  },
+  {
+    "title": "How GIS evidence and analysis radius work",
+    "tags": ["gis", "overpass", "radius", "evidence"],
+    "content": "GIS Evidence comes from live Overpass API queries against OpenStreetMap data, run fresh (with caching for a few minutes to reduce load) for the exact coordinates and radius selected. Available radii are 100m, 250m, 500m, 1km, 2km, and 5km, or a custom value up to 5km. The query pulls buildings, shops, offices, amenities, land-use polygons, and points of interest inside that circle, then classifies each one into layers (buildings, shops, offices, amenities, hospitals, schools, restaurants, hotels, parks, water, railways, transport, and more). Roads and administrative boundaries are shown in the layer list but marked 'coming soon' rather than faked, because fetching their full polygon/line geometry responsibly needs a different, tiled fetch strategy than a single Overpass call."
+  },
+  {
+    "title": "How weather and forecast data is sourced",
+    "tags": ["weather", "open-meteo", "forecast"],
+    "content": "Weather data comes from Open-Meteo, a free, keyless weather API, queried live for the selected location's coordinates. GeoIntel shows current temperature, feels-like temperature, condition (translated from Open-Meteo's numeric WMO weather codes into plain text like 'Mainly clear' or 'Light rain'), humidity, wind speed, precipitation, sunrise/sunset times, and a multi-day forecast. If Open-Meteo can't be reached, the Weather panel shows a 'temporarily unavailable' state rather than a stale or fabricated forecast."
+  },
+  {
+    "title": "How routing, directions, and ride booking work",
+    "tags": ["routing", "osrm", "directions", "booking"],
+    "content": "Turn-by-turn routes are calculated live by OSRM (Open Source Routing Machine) public routers, with car, walking, and bicycle modes, each using a dedicated router profile. GeoIntel shows distance, estimated duration, and how many alternative routes exist. The 'book a ride' links (Uber, Rapido, Ola, Google Maps) open the provider's own app or website with the route prefilled where that provider supports it — GeoIntel does not process bookings, payments, or show live fares itself, because no free service provides real fare/availability data without a paid partnership. This is the same honest, no-fake-data approach used everywhere else in the product."
+  },
+  {
+    "title": "How Nearby search works",
+    "tags": ["nearby", "poi", "categories", "distance"],
+    "content": "The Nearby panel searches OpenStreetMap via Overpass for real points of interest around the selected location across 13 categories: restaurants, cafes, hotels, hospitals, schools, ATMs, banks, petrol stations, shopping, parks, pharmacies, police, and public transport. Results are sorted by straight-line distance from the selected point and capped at the closest 60 (60 shown per category page). Every result includes its OpenStreetMap source tags for transparency."
+  },
+  {
+    "title": "What the AI Copilot and AI Agents can and cannot do",
+    "tags": ["ai", "copilot", "agents", "limitations"],
+    "content": "The GeoIntel AI Copilot and the six intelligence agents (Search, GIS, Property, Navigation, Travel, and Make My Trip) only ever reason over data that is already real and already on screen for the currently selected location — the live GIS evidence, property classification, weather, nearby results, and route data described in this knowledge base — plus these knowledge-base articles about how the product itself works. They do not have access to the live internet beyond that, do not know about locations other than the one currently selected, and are instructed to say plainly when they don't have enough information rather than inventing an answer. If the AI provider is temporarily unreachable, the Copilot and agents show a clear 'AI temporarily unavailable' message instead of a wrong or fabricated answer."
+  }
+]

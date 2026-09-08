@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>maNOWj GeoIntel</title>
+    <meta name="description" content="Pick a place, ask a question, get a real answer. How many hospitals within 5 km? What's here? Every answer shows its source and its date. Built by Manoj Kumar Gudla." />
+
+    <!--
+      Who built this. `author` is a real, long-standing meta tag and is the
+      correct place for a person's name.
+    -->
+    <meta name="author" content="Manoj Kumar Gudla" />
+
+    <!--
+      Keywords, and an honest note about them.
+
+      Google has ignored <meta name="keywords"> since 2009 and says so
+      publicly; Bing treats stuffing it as a negative signal. It is here
+      because it was asked for and it is harmless, NOT because it will affect
+      where this site ranks. Anyone maintaining this should know that adding a
+      word here does nothing on its own.
+
+      What actually makes a name findable is the same word appearing in the
+      title, the description, the structured data below, and the visible text
+      of the page. All four are done, so this tag is the least of it.
+    -->
+    <meta
+      name="keywords"
+      content="maNOWj, manowj, maNOWj GeoIntel, Manoj Kumar Gudla, Gudla, geospatial intelligence, GIS platform, map analysis, satellite imagery, area analysis, points of interest, Hyderabad"
+    />
+    <link rel="canonical" href="https://www.manowj.com/" />
+
+    <!--
+      Social preview. Without these a shared link renders as a bare grey URL
+      on WhatsApp, LinkedIn and X — no title, no image, nothing to click. The
+      app already had a working share button and shareable location URLs, so
+      every share was landing with no card at all.
+
+      og:image must be an ABSOLUTE url; relative paths are silently ignored by
+      every scraper, which is the usual reason a card shows text but no image.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="maNOWj GeoIntel" />
+    <meta property="og:url" content="https://www.manowj.com/" />
+    <meta property="og:title" content="maNOWj GeoIntel — Pick a place. Ask a question. Get a real answer." />
+    <meta property="og:description" content="How many hospitals within 5 km? What's here? A map that answers real questions and shows its sources — never a guess." />
+    <meta property="og:image" content="https://www.manowj.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="maNOWj GeoIntel — pick a place, ask a question, get a real answer." />
+    <meta property="og:locale" content="en_IN" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="maNOWj GeoIntel — Pick a place. Ask a question. Get a real answer." />
+    <meta name="twitter:description" content="How many hospitals within 5 km? What's here? A map that answers real questions and shows its sources." />
+    <meta name="twitter:image" content="https://www.manowj.com/og-image.png" />
+    <!-- tokens.css already names "Inter" first in --font-sans; it was
+         silently falling back to the OS default (Segoe UI/system-ui)
+         because the font was never actually loaded. Preconnect + a
+         variable-weight subset keeps this cheap (one request). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!--
+      Structured data. Not a keyword list — those have been ignored by search
+      engines for well over a decade — but a machine-readable description of
+      what this site IS, which is what actually gets understood.
+
+      A ld+json block is data, not code: browsers never execute it, so the
+      script-src CSP does not apply to it. tests/unit/cspInline.test.ts knows
+      the difference and still fails on any executable inline script.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "maNOWj GeoIntel",
+        "alternateName": ["maNOWj", "manowj", "maNOWj GeoIntel Platform"],
+        "url": "https://www.manowj.com/",
+        "description": "A map that answers questions about a place. How many hospitals within 5 km, what is here, what is the weather, how do I get there. Every answer shows the source it came from and the date it applies to.",
+        "applicationCategory": "https://schema.org/UtilitiesApplication",
+        "operatingSystem": "Any web browser",
+        "browserRequirements": "Requires JavaScript",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": {
+          "@type": "Person",
+          "name": "Manoj Kumar Gudla",
+          "alternateName": ["Manoj Gudla", "Gudla Manoj Kumar"],
+          "jobTitle": "Founder and developer",
+          "url": "https://www.manowj.com/"
+        },
+        "creator": { "@type": "Person", "name": "Manoj Kumar Gudla" },
+        "featureList": [
+          "Count hospitals, schools, shops and other places within a radius",
+          "Directions and live turn-by-turn navigation",
+          "Weather, air quality and rain radar for any point",
+          "Population with the census year it applies to",
+          "Satellite imagery with its capture date, 3D buildings, historical imagery",
+          "Distance and area measurement"
+        ]
+      }
+    </script>
+
+    <!--
+      Static fallback so the page is not empty to anything that does not run
+      JavaScript. It replaced literally nothing: the body was a bare
+      <div id="root"></div>, so an SEO checker scored the site zero and a
+      crawler had no words to read. React replaces this the moment it mounts,
+      and it says only what the app genuinely says, so it is a fallback rather
+      than hidden text written for search engines.
+    -->
+    <style>
+      .prerender {
+        max-width: 720px;
+        margin: 8vh auto;
+        padding: 0 24px;
+        font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: #101828;
+      }
+      .prerender h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; }
+      .prerender h2 { font-size: 18px; margin: 28px 0 8px; }
+      .prerender p { color: #45526b; }
+      .prerender li { margin-bottom: 6px; color: #45526b; }
+      @media (prefers-color-scheme: dark) {
+        .prerender { color: #e7ecf5; }
+        .prerender p, .prerender li { color: #a9b4c8; }
+      }
+    </style>
+
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#12294f" />
+    <link rel="icon" href="/icons/icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  </head>
+  <body>
+    <div id="root">
+      <!--
+        Everything below is replaced by the app on mount. It exists so the
+        page has real content for anyone, and anything, that does not run
+        JavaScript. The id="prerender" marker is how recovery.js can still
+        tell a blank page from a mounted one.
+      -->
+      <div id="prerender" class="prerender">
+        <h1>maNOWj GeoIntel</h1>
+        <p>
+          A map that answers questions about a place. Pick a point anywhere in the world and ask what is there,
+          how many hospitals are within five kilometres, what the weather is doing, or how to get there. Every
+          answer shows the source it came from and the date it applies to.
+        </p>
+
+        <h2>What you can do</h2>
+        <ul>
+          <li>Count hospitals, schools, shops, ATMs and other places within a radius of any point.</li>
+          <li>Get directions and live turn-by-turn navigation.</li>
+          <li>See weather, air quality and rain radar for a location.</li>
+          <li>Look up population, area and density, always with the census year attached.</li>
+          <li>Switch to satellite view or 3D buildings, and see when the satellite image was taken.</li>
+          <li>Measure a distance, or draw a shape to measure an area.</li>
+          <li>Play maNOWj Daily: five satellite views a day, guess where each one is.</li>
+        </ul>
+
+        <h2>Where the data comes from</h2>
+        <p>
+          OpenStreetMap and Nominatim for places and addresses, Overpass for map features, OSRM for routing,
+          Open-Meteo for weather and air quality, USGS for earthquakes, Wikidata for population, and Esri and NASA
+          for satellite imagery. Nothing is estimated: where a source has no figure, the app says so instead of
+          guessing.
+        </p>
+
+        <h2>Who built it</h2>
+        <p>
+          maNOWj GeoIntel was designed and built by Manoj Kumar Gudla. This is the part that actually makes the
+          name findable: a search engine indexes words people can read on the page, which is why it is written
+          here in the open rather than hidden in a tag.
+        </p>
+
+        <p>
+          It is free, needs no sign-up, and does not track you. The map itself needs JavaScript, so please enable
+          it to use the app.
+        </p>
+      </div>
+    </div>
+
+    <!--
+      Recovery guard: if the app never mounts, clear caches and reload once.
+      See public/recovery.js for what it does and why.
+
+      It MUST stay an external file. This used to be an inline script block,
+      and the production CSP (script-src 'self', no 'unsafe-inline') blocked it
+      on every page load, so the safety net never once ran on the live site.
+      The dev server allows 'unsafe-inline' for Vite's HMR, which is why it
+      looked fine locally. tests/unit/cspInline.test.ts now fails the build if
+      any inline script or inline event handler comes back into this file.
+    -->
+    <script src="/recovery.js" defer></script>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

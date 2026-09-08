@@ -1,0 +1,196 @@
+/*
+  Design tokens — the single source of truth for color, spacing, and type.
+  Light values live on :root. Dark is a real second theme (not an invert
+  filter): every color below is redefined for [data-theme="dark"], and the
+  app also respects prefers-color-scheme when the user hasn't chosen.
+*/
+
+:root {
+  color-scheme: light;
+
+  /* Brand: deep navy / blue / neutral, per the product's design direction */
+  --color-brand-900: #0b1b3a;
+  --color-brand-700: #12295c;
+  --color-brand-600: #1d3f8f;
+  --color-brand-500: #2b5bd7;
+  --color-brand-400: #4d78ea;
+  --color-brand-300: #8fa8f2;
+  --color-brand-100: #e6ecfb;
+
+  /* Neutrals */
+  --color-bg: #f7f8fb;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-border: #e1e5ee;
+  --color-border-strong: #c7ceDE;
+  --color-text: #101828;
+  --color-text-muted: #55607a;
+  /* Every one of these was set by eye and every one of them failed WCAG AA
+     against the surfaces it actually sits on — faint text was 2.97:1 on the
+     app background, which is why so much secondary copy read as "not that
+     much visible". They're now computed values: scripts/check-contrast.mjs
+     recalculates every text/surface pair in both themes and fails if any
+     drops below 4.5:1, so this can't silently regress again. */
+  --color-text-faint: #626c85;
+
+  /* Status */
+  --color-success: #0f6f4a;
+  --color-success-bg: #e7f7f0;
+  --color-warning: #8a5800;
+  --color-warning-bg: #fdf1de;
+  --color-danger: #c22b3f;
+  --color-danger-bg: #fbe9ec;
+  --color-info: #2b5bd7;
+  --color-info-bg: #e6ecfb;
+
+  /* The second player's mark in the board games. X uses the brand ramp; O
+     needs its own hue that is distinguishable from it AND readable on the
+     board tile in both themes. */
+  --color-player-o: #b8481c;
+
+  /* Evidence trust labels — kept in step with the status ramp above, since
+     they carry the same meanings and sit on the same surfaces. */
+  --color-verified: #0f6f4a;
+  --color-inferred: #8a5800;
+  --color-unavailable: #626c85;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 14px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.14);
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Radius: moderate, not "huge rounded cards" */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Type */
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 360ms;
+
+  /* Accent palette: used sparingly for visual variety on AI / travel /
+     3D-adjacent surfaces so the product doesn't read as one flat blue —
+     same discipline as the brand ramp above (each has a light-mode value
+     here, redefined in both dark blocks below). */
+  --color-accent-violet: #7c4dff;
+  --color-accent-violet-bg: #f1ecff;
+  --color-accent-teal: #0d9488;
+  --color-accent-teal-bg: #e6f7f5;
+  --color-accent-amber: #e0a825;
+
+  /* Gradients: the header wordmark already used an ad hoc brand gradient —
+     promoted to a token here so other "hero" surfaces (launcher, active
+     states) can reuse the exact same identity instead of inventing new
+     ones. */
+  --gradient-brand: linear-gradient(135deg, var(--color-brand-600), var(--color-brand-400));
+  --gradient-accent: linear-gradient(135deg, var(--color-accent-violet), var(--color-brand-500));
+  --shadow-glow: 0 0 0 4px var(--color-brand-100), var(--shadow-md);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-bg: #0a0f1e;
+    --color-surface: #111a30;
+    --color-surface-raised: #16213c;
+    --color-border: #223056;
+    --color-border-strong: #2e3f6e;
+    --color-text: #eef1fb;
+    --color-text-muted: #a7b1cc;
+    --color-text-faint: #8e99b8;
+    /* Saturated mid-tones that pass on white are far too dark on a navy
+       surface — these are the dark-theme equivalents, not the same hexes. */
+    --color-success: #3fcf95;
+    --color-warning: #e6b23a;
+    --color-danger: #f4738a;
+    /* --color-info-bg doubles as --color-surface-raised in dark mode, so the
+       info text on it has to be a light blue, not the mid-blue brand-500. */
+    --color-info: #7ba3f5;
+    --color-player-o: #f59356;
+    --color-verified: #3fcf95;
+    --color-inferred: #e6b23a;
+    --color-unavailable: #8e99b8;
+
+    --color-success-bg: #0f2a20;
+    --color-warning-bg: #2b230f;
+    --color-danger-bg: #2c1620;
+    --color-info-bg: #16213c;
+
+    --color-brand-100: #172448;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+    --color-accent-violet-bg: #241c42;
+    --color-accent-teal-bg: #0f2a27;
+    --shadow-glow: 0 0 0 4px var(--color-brand-100), var(--shadow-md);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #0a0f1e;
+  --color-surface: #111a30;
+  --color-surface-raised: #16213c;
+  --color-border: #223056;
+  --color-border-strong: #2e3f6e;
+  --color-text: #eef1fb;
+  --color-text-muted: #a7b1cc;
+  --color-text-faint: #8e99b8;
+  /* Must stay byte-identical to the media-query block above — the contrast
+     script checks for drift between the two, because a mismatch means the
+     manual toggle and the OS preference render different colours. */
+  --color-success: #3fcf95;
+  --color-warning: #e6b23a;
+  --color-danger: #f4738a;
+  --color-info: #7ba3f5;
+  --color-player-o: #f59356;
+  --color-verified: #3fcf95;
+  --color-inferred: #e6b23a;
+  --color-unavailable: #8e99b8;
+
+  --color-success-bg: #0f2a20;
+  --color-warning-bg: #2b230f;
+  --color-danger-bg: #2c1620;
+  --color-info-bg: #16213c;
+
+  --color-brand-100: #172448;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --color-accent-violet-bg: #241c42;
+  --color-accent-teal-bg: #0f2a27;
+  --shadow-glow: 0 0 0 4px var(--color-brand-100), var(--shadow-md);
+}
+
+/* Reduced motion: collapse durations rather than deleting transitions, so
+   layout/opacity end-states stay correct even with motion off. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}

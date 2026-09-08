@@ -1,0 +1,236 @@
+.report-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-4);
+  overflow-y: auto;
+  background: rgba(10, 15, 30, 0.55);
+}
+
+.report-sheet {
+  width: min(860px, 100%);
+  background: #ffffff;
+  color: #14181f;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.report-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: #f4f6fa;
+  border-bottom: 1px solid #dfe4ee;
+}
+
+.report-toolbar__print {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-600);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.report-toolbar__close {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid #cfd6e4;
+  border-radius: var(--radius-md);
+  background: #fff;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: #48505f;
+  cursor: pointer;
+}
+
+/* The report body is intentionally light-only and uses fixed colours rather
+   than theme tokens: it is a document, and a document that comes out of the
+   printer in dark-mode inverse is not a document. */
+.report {
+  padding: var(--space-5);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.report__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid #14181f;
+}
+
+.report__head h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.report__place {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #48505f;
+}
+
+.report__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.report__brand strong {
+  font-size: 13px;
+}
+
+.report__brand span {
+  font-size: 11px;
+  color: #6b7386;
+}
+
+.report__section {
+  margin-top: var(--space-4);
+  break-inside: avoid;
+}
+
+.report__section h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #48505f;
+}
+
+.report__headline {
+  margin: 0 0 var(--space-2);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.report__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.report__grid--tight {
+  gap: var(--space-2);
+}
+
+.report__grid dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7386;
+}
+
+.report__grid dd {
+  margin: 1px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.report__table {
+  width: 100%;
+  margin-top: var(--space-2);
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.report__table th,
+.report__table td {
+  padding: 5px 6px;
+  border-bottom: 1px solid #e4e8f0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.report__table th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7386;
+}
+
+.report__source {
+  margin: var(--space-2) 0 0;
+  font-size: 11px;
+  color: #6b7386;
+}
+
+.report__pending {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid #e0a825;
+  background: #fdf6e6;
+  font-size: 12px;
+}
+
+.report__footer {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid #dfe4ee;
+  font-size: 11px;
+  color: #6b7386;
+}
+
+@media (max-width: 720px) {
+  .report__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .report {
+    padding: var(--space-4) var(--space-3);
+  }
+}
+
+/* Printing: only the report reaches the page. Everything else in the
+   application — the shell, the map, the overlay backdrop — is removed
+   rather than hidden behind a scroll, and the sheet loses its own framing
+   so the paper's margins are the only margins. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .report-overlay,
+  .report-overlay * {
+    visibility: visible;
+  }
+
+  .report-overlay {
+    position: static;
+    padding: 0;
+    background: none;
+    overflow: visible;
+  }
+
+  .report-sheet {
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .report-toolbar {
+    display: none;
+  }
+
+  .report {
+    padding: 0;
+    font-size: 10.5pt;
+  }
+
+  @page {
+    margin: 16mm;
+  }
+}

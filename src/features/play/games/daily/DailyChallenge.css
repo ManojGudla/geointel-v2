@@ -1,0 +1,427 @@
+/*
+  Daily Challenge.
+
+  Laid out as a single scrolling column rather than a fixed two-pane layout,
+  because the game has to work on a phone held in one hand — which is where a
+  daily puzzle is actually played. The satellite view and the guess map are
+  both full width and stacked; on a wide screen they sit side by side.
+*/
+.daily {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  min-height: 100%;
+}
+
+.daily__back {
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.daily__back:hover {
+  color: var(--color-text);
+}
+
+.daily__eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-brand-500);
+}
+
+.daily__title {
+  margin: 0;
+  font-size: clamp(22px, 4vw, 30px);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.daily__lede {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
+.daily__rules {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 52ch;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.daily__streak {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.daily__primary {
+  align-self: flex-start;
+  min-height: 46px;
+  padding: 0 var(--space-5);
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-brand-600);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.daily__primary:hover:not(:disabled) {
+  background: var(--color-brand-700);
+}
+
+/* Disabled is the normal state until a pin is placed, so it has to read as
+   "not yet" rather than "broken" — it carries the instruction itself. */
+.daily__primary:disabled {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+/* ── Playing ─────────────────────────────────────────────────────────── */
+
+.daily__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.daily__progress {
+  margin: 0;
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.daily__running {
+  margin: 0 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--color-brand-600);
+}
+
+.daily__view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* The two maps each need a real height of their own: MapLibre sizes its canvas
+   from the container, and a flex child with no height collapses to nothing.
+
+   Targeted by class rather than by :last-child, which is what it used to be.
+   That version worked only as long as the map happened to be the final element
+   in the panel; adding a line of helper text below it handed the 240px to the
+   paragraph and flattened the map. Naming the thing being sized removes the
+   trap instead of documenting it. */
+.daily__view .play-map {
+  height: clamp(240px, 38vh, 420px);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.daily__viewlabel {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* A hint that costs nothing, so it sits quietly under the label rather than
+   claiming any of the map's space. */
+.daily__viewhint {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* This used to be a single row holding one button. It now carries the clue
+   ladder above that button, so it stacks. */
+.daily__action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.daily__action .daily__primary {
+  align-self: stretch;
+}
+
+/* ── Clues ───────────────────────────────────────────────────────────────
+   Numbered because the number is real information: it is the rung of the
+   ladder, and each rung costs more than the last. */
+.daily__cluelist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: clue;
+}
+
+.daily__clue {
+  counter-increment: clue;
+  position: relative;
+  max-width: 62ch;
+  padding: var(--space-2) var(--space-3);
+  padding-left: calc(var(--space-3) + 26px);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-brand-600);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.daily__clue::before {
+  content: counter(clue);
+  position: absolute;
+  left: var(--space-3);
+  top: calc(var(--space-2) + 2px);
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-brand-600);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Deliberately quieter than the primary button, and outlined rather than
+   filled: taking a clue is optional, and locking in a guess is the thing the
+   player is actually here to do. */
+.daily__clue-btn {
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.daily__clue-btn:hover {
+  border-style: solid;
+  border-color: var(--color-brand-600);
+  color: var(--color-brand-600);
+}
+
+.daily__clue-cost {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.daily__answer-clues {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.daily__answer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-2);
+}
+
+.daily__answer-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.daily__answer-name {
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.daily__answer-country {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.daily__answer-score {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The fact is the reason to read the answer card at all, so it gets room
+   rather than being tucked in as a footnote. */
+.daily__answer-fact {
+  margin: 0;
+  max-width: 58ch;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+/* ── Result ──────────────────────────────────────────────────────────── */
+
+.daily__total {
+  margin: 0;
+  font-size: clamp(38px, 9vw, 60px);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily__outof {
+  margin-left: var(--space-2);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.daily__grid {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: 0.12em;
+}
+
+.daily__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.daily__stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.daily__stats dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.daily__stats dd {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily__countdown {
+  font-variant-numeric: tabular-nums;
+}
+
+.daily__note {
+  margin: 0;
+  max-width: 56ch;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
+.daily__note--quiet {
+  opacity: 0.85;
+}
+
+.daily__review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.daily__review li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  font-size: var(--text-sm);
+}
+
+.daily__review-name {
+  font-weight: 600;
+}
+
+.daily__review-score {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Side by side once there is width for it: comparing the two maps at a glance
+   is the whole skill of the game, and scrolling between them loses that. */
+@media (min-width: 900px) {
+  .daily--play {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "bar bar"
+      "left right"
+      "action action";
+    align-items: start;
+  }
+
+  .daily__bar {
+    grid-area: bar;
+  }
+
+  .daily__view:nth-of-type(1) {
+    grid-area: left;
+  }
+
+  .daily__view:nth-of-type(2) {
+    grid-area: right;
+  }
+
+  .daily__action,
+  .daily__answer {
+    grid-area: action;
+  }
+
+  .daily__view .play-map {
+    height: clamp(320px, 46vh, 520px);
+  }
+}
+
+/* The continent, stated beside the round number. Quieter than the round
+   count because it is context, not progress. */
+.daily__region {
+  font-weight: 600;
+  color: var(--color-text-muted);
+}

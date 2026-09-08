@@ -1,0 +1,95 @@
+/* Bottom-right, stacked directly above the Copilot launcher which occupies
+   that corner (see CopilotLauncher.css). Top-right belongs to MapLibre's own
+   zoom/compass/fullscreen stack, and bottom-left to the coordinate readout —
+   every overlay has its own reserved space, none of them overlap. */
+.measure-hud {
+  position: absolute;
+  bottom: calc(var(--space-3) + 52px);
+  right: var(--space-3);
+  width: 216px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 15;
+}
+
+.measure-hud__value {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.measure-hud__label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-faint);
+}
+
+.measure-hud__value strong {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.measure-hud__hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.measure-hud__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.measure-hud__actions button {
+  flex: 1 1 auto;
+  min-height: 32px;
+  padding: 0 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.measure-hud__actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.measure-hud__actions button:not(:disabled):hover {
+  border-color: var(--color-border-strong);
+}
+
+.measure-hud__done {
+  background: var(--color-brand-600) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
+@media (max-width: 900px) {
+  /* Full width across the bottom of a phone screen, clear of the basemap
+     controls which move up to make room. */
+  .measure-hud {
+    bottom: calc(var(--space-2) + 52px);
+    right: var(--space-2);
+    left: var(--space-2);
+    width: auto;
+  }
+
+  .measure-hud__actions button {
+    min-height: 44px;
+  }
+}

@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+_to_delete
+.env
+.env.*
+!.env.example
+.vercel
+coverage
+playwright-report
+test-results
+*.tsbuildinfo

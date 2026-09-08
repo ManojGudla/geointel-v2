@@ -1,0 +1,53 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import App from "./App";
+import "@/styles/reset.css";
+import "@/styles/tokens.css";
+import "./App.css";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Real-world reported issue: free public Overpass mirrors (GIS
+      // evidence, Nearby, POI click-to-inspect, GIS layers all share
+      // api/_lib/overpass.ts's 6-mirror race) go through rough patches
+      // where several mirrors 502/504 or time out at once — the query
+      // fails, and with only 1 retry the user had to keep clicking Retry
+      // by hand until a healthy mirror combination came up, sometimes for
+      // minutes. Each attempt re-races all 6 mirrors fresh, and which ones
+      // are healthy shifts moment to moment, so more automatic attempts
+      // meaningfully improve the odds of resolving on their own. Paired
+      // with the shorter per-mirror timeout in overpass.ts, going from 1
+      // to 2 retries roughly triples the independent attempts without
+      // materially raising the worst-case wall-clock wait.
+      retry: 2,
+      staleTime: 60_000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+const rootEl = document.getElementById("root");
+if (!rootEl) throw new Error("Root element #root not found.");
+
+createRoot(rootEl).render(
+  <StrictMode>
+    <ErrorBoundary label="maNOWj GeoIntel" variant="page">
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </ErrorBoundary>
+  </StrictMode>
+);
+
+// Registers the installability service worker (public/sw.js) so the app can
+// be "Added to Home Screen." Only in production builds — in dev it would
+// just cache stale Vite-served assets and confuse hot reload.
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.error("[pwa] service worker registration failed", error);
+    });
+  });
+}

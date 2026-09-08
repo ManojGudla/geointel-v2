@@ -1,0 +1,106 @@
+.agent-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  transition: transform var(--duration-base) var(--ease-standard), box-shadow var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard);
+}
+
+.agent-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-brand-400);
+}
+
+.agent-card--running {
+  border-color: var(--color-brand-400);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Waiting its turn in the AI request gate (src/services/aiRequestQueue.ts):
+   the same active treatment as running, without the glow, so a queued card
+   reads as "started, not yet in flight" rather than idle. */
+.agent-card--queued {
+  border-color: var(--color-brand-400);
+}
+
+.agent-card > button {
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.agent-card > button:active {
+  transform: scale(0.96);
+}
+
+.agent-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.agent-card__icon {
+  font-size: var(--text-lg);
+}
+
+.agent-card__head strong {
+  font-size: var(--text-sm);
+}
+
+.agent-card__description {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  flex: 1;
+}
+
+.agent-card > button {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--color-brand-600);
+  color: white;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.agent-card--done > button.agent-card__rerun {
+  background: var(--color-bg);
+  color: var(--color-brand-700);
+  border: 1px solid var(--color-border);
+}
+
+.agent-card__status {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.agent-card__error {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+}
+
+.agent-card__result {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  line-height: 1.5;
+  /* A long AI response used to stretch this one card (and the whole grid
+     row it sits in, since siblings are height:100%) far taller than the
+     others, breaking the card grid's alignment. Capping it and letting it
+     scroll internally keeps every card in the row a consistent height
+     regardless of how much a given agent has to say. */
+  max-height: 168px;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+.agent-card__sources {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}

@@ -1,0 +1,30 @@
+.weather-fx {
+  position: absolute;
+  inset: 0;
+  /* Above the map canvas, BELOW every panel, control, marker popup and the
+     search bar. The data always wins. */
+  z-index: 2;
+  /* Never eats a click. Clicking "through" the weather onto the map is not
+     negotiable — the map is the product. */
+  pointer-events: none;
+  /* A hard ceiling on how much the effect can obscure. Even at full particle
+     density the basemap and every GIS layer stay legible through it. */
+  opacity: 0.55;
+}
+
+.weather-fx--fog,
+.weather-fx--clouds {
+  opacity: 0.42;
+}
+
+.weather-fx--storm {
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The component already declines to animate under this setting; hiding the
+     canvas as well means no static particle field is left frozen on screen. */
+  .weather-fx {
+    display: none;
+  }
+}

@@ -1,0 +1,35 @@
+.intel-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.intel-panel__tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+  z-index: 5;
+}
+
+.intel-panel__tabs button {
+  flex: 1;
+  padding: var(--space-3) var(--space-2);
+  border: none;
+  background: transparent;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-faint);
+  border-bottom: 2px solid transparent;
+}
+
+.intel-panel__tabs button.active {
+  color: var(--color-brand-600);
+  border-bottom-color: var(--color-brand-600);
+}
+
+.intel-panel__content {
+  flex: 1;
+  overflow-y: auto;
+}

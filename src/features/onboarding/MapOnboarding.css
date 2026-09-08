@@ -1,0 +1,187 @@
+/* Anchored low and centred over the map rather than filling it: the map has
+   to stay visible and clickable while this is on screen, because "click
+   anywhere on the map" is one of the three things it tells you to do. */
+.onboarding {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: 12;
+  /* The container never eats a click; only the card itself does. */
+  pointer-events: none;
+}
+
+.onboarding__card {
+  pointer-events: auto;
+  width: min(520px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-lg);
+  animation: onboarding-in var(--duration-slow) var(--ease-standard);
+}
+
+@keyframes onboarding-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding__card {
+    animation: none;
+  }
+}
+
+.onboarding__headline {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--color-text);
+}
+
+.onboarding__sub {
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.onboarding__examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.onboarding__examples button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
+}
+
+.onboarding__examples button:hover:not(:disabled) {
+  border-color: var(--color-brand-500);
+  background: var(--color-brand-100);
+  color: var(--color-brand-700);
+}
+
+.onboarding__examples button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.onboarding__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.onboarding__skip {
+  border: none;
+  background: transparent;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.onboarding__skip:hover {
+  color: var(--color-text);
+}
+
+@media (max-width: 900px) {
+  .onboarding {
+    align-items: flex-end;
+    padding: var(--space-3);
+    /* Clear of the floating search above, the rail below, and the map credit
+       that MapLibre pins to this same bottom edge — the card used to finish
+       on top of the attribution, which the OSM licence requires stay
+       readable. 22px is the credit's own line box. */
+    padding-bottom: calc(var(--space-4) + 22px);
+  }
+
+  .onboarding__card {
+    padding: var(--space-4);
+    gap: var(--space-2);
+  }
+
+  .onboarding__headline {
+    font-size: 21px;
+  }
+
+  .onboarding__sub {
+    font-size: var(--text-sm);
+  }
+
+  .onboarding__examples button {
+    min-height: 40px;
+  }
+
+  /*
+    Dismiss becomes a real button on a phone.
+
+    Reported straight from a phone: new visitors could not find how to close
+    this card. Two causes, both fixed here. It was a small underlined text
+    link at the end of a cramped row, which reads as a footnote rather than a
+    control; and the floating Ask maNOWj button was painted directly over that
+    corner (Workspace.css now hides it while this card is up).
+
+    So the row stacks, and the control becomes a full-width bordered button at
+    the standard 44px touch target. The one thing this screen must never hide
+    is the way out of it.
+  */
+  .onboarding__foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+
+  .onboarding__foot > span {
+    text-align: center;
+  }
+
+  .onboarding__skip {
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+}

@@ -1,0 +1,174 @@
+.privacy {
+  position: fixed;
+  inset: 0;
+  z-index: 72;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(10, 15, 30, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.privacy__sheet {
+  width: min(760px, 100%);
+  max-height: min(94vh, 940px);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.privacy__head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.privacy__head h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.privacy__head p {
+  margin: 3px 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.privacy__close {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 15px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.privacy__close:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.privacy__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.privacy__lede {
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-brand-100);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.privacy__section h3 {
+  margin: 0 0 2px;
+  font-size: var(--text-md);
+  font-weight: 800;
+}
+
+.privacy__intro {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.privacy__section ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.privacy__section li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.privacy__section li strong {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.privacy__section li span {
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+/* The pointer at the code that makes each claim true. Monospace so it reads
+   as a reference rather than as more prose. */
+.privacy__section li code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+/* The gaps section is visually distinct so it can't be mistaken for another
+   list of reassurances. */
+.privacy__section--gaps li {
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+.privacy__section--gaps li strong {
+  color: var(--color-warning);
+}
+
+.privacy__foot {
+  flex: 0 0 auto;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 640px) {
+  .privacy {
+    padding: 0;
+  }
+
+  .privacy__sheet {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    border: none;
+  }
+
+  .privacy__close {
+    width: 44px;
+    height: 44px;
+  }
+}

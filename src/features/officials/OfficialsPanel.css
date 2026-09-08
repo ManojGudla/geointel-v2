@@ -1,0 +1,112 @@
+.officials-panel {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.officials-panel__summary {
+  cursor: pointer;
+  font-size: var(--text-md);
+  font-weight: 700;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.officials-panel__summary::-webkit-details-marker {
+  display: none;
+}
+
+.officials-panel__summary::before {
+  content: "▸";
+  font-size: 11px;
+  color: var(--color-text-muted);
+  transition: transform 0.15s ease;
+}
+
+.officials-panel[open] .officials-panel__summary::before {
+  transform: rotate(90deg);
+}
+
+.officials-panel[open] .officials-panel__summary {
+  margin-bottom: var(--space-3);
+}
+
+.officials-panel__summary-flag {
+  font-size: 15px;
+}
+
+.officials-panel__level {
+  margin-bottom: var(--space-4);
+}
+
+.officials-panel__level h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.officials-panel__row {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  margin-bottom: var(--space-2);
+}
+
+.officials-panel__row--unavailable {
+  border-style: dashed;
+}
+
+.officials-panel__row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+}
+
+.officials-panel__role {
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.officials-panel__name {
+  margin: 0 0 4px;
+  font-size: var(--text-md);
+  font-weight: 800;
+  color: var(--color-brand-700);
+}
+
+:root[data-theme="dark"] .officials-panel__name {
+  color: var(--color-brand-300);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .officials-panel__name {
+    color: var(--color-brand-300);
+  }
+}
+
+.officials-panel__meta {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.officials-panel__meta a {
+  color: var(--color-brand-600);
+}
+
+.officials-panel__unavailable {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.officials-panel__verified-at {
+  margin: var(--space-2) 0 0;
+  font-size: 11px;
+  color: var(--color-text-faint);
+}

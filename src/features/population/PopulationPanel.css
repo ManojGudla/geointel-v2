@@ -1,0 +1,82 @@
+.population h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-md);
+  font-weight: 800;
+}
+
+.population__empty {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.population__figure {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.population__figure strong {
+  font-size: 30px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--color-brand-600);
+}
+
+.population__figure span {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.population__scope {
+  margin: 2px 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+}
+
+.population__density {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.population__density strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.population__area {
+  margin-left: auto;
+}
+
+/* Amber, like the radar zoom note: something you need in order to read the
+   number correctly, not a failure. */
+.population__caveat {
+  margin: var(--space-2) 0 0;
+  padding: 6px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-warning-bg);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-warning);
+}
+
+.population__source {
+  margin: var(--space-2) 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-faint);
+}
+
+.population__source a {
+  color: var(--color-brand-600);
+}

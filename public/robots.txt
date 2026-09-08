@@ -1,0 +1,8 @@
+# Everything here is public and safe to index except the admin surface,
+# which is a real page (not a secret) but has nothing useful for a searcher
+# and shouldn't appear in results.
+User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: https://www.manowj.com/sitemap.xml

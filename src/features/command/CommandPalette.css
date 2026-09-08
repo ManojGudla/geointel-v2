@@ -1,0 +1,95 @@
+.command-palette__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 25, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  z-index: 100;
+}
+
+.command-palette {
+  width: min(480px, 92vw);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.command-palette__input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.command-palette__input input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: var(--text-md);
+  outline: none;
+  color: var(--color-text);
+}
+
+.command-palette__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2);
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.command-palette__empty {
+  padding: var(--space-3);
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+}
+
+.command-palette__list button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  text-align: left;
+  color: var(--color-text);
+}
+
+.command-palette__list button:not(:disabled):hover {
+  background: var(--color-bg);
+}
+
+.command-palette__list button:disabled {
+  color: var(--color-text-faint);
+  cursor: not-allowed;
+}
+
+/* Same muted look as a disabled command, but this one is still clickable —
+   it focuses the search bar instead of running, since picking a location is
+   the actual next step (see the requiresLocation note in CommandPalette.tsx). */
+.command-palette__list button.command-palette__needs-location {
+  color: var(--color-text-faint);
+}
+
+.command-palette__list button.command-palette__needs-location:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.command-palette__list button em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--color-text-faint);
+  background: var(--color-bg);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}

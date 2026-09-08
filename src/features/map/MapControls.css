@@ -1,0 +1,76 @@
+/* In-panel, not floating. See MapControls.tsx for why these moved. */
+.map-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.map-controls__group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.map-controls__group button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
+}
+
+.map-controls__group button:hover {
+  border-color: var(--color-border-strong);
+}
+
+.map-controls__label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.map-controls__note {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.map-controls__group button.active {
+  background: var(--color-brand-600);
+  border-color: var(--color-brand-600);
+}
+
+.map-controls__group button.active .map-controls__label,
+.map-controls__group button.active .map-controls__note {
+  color: #fff;
+}
+
+.map-controls__3d {
+  padding: var(--space-2) var(--space-3);
+  min-height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.map-controls__3d[aria-pressed="true"] {
+  background: var(--color-brand-600);
+  color: #fff;
+  border-color: var(--color-brand-600);
+}
+
+@media (max-width: 900px) {
+  .map-controls__group button,
+  .map-controls__3d {
+    min-height: 48px;
+  }
+}
