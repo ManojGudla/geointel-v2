@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Small on purpose. This is a single-page app: /status and /admin are the only
-  other real paths, and /admin is excluded in robots.txt. Listing fake URLs to
-  pad a sitemap does nothing except waste crawl budget.
--->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
   <url>
     <loc>https://www.manowj.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <url>
+    <loc>https://www.manowj.com/ai-map-search</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
   <url>
     <loc>https://www.manowj.com/status</loc>
     <changefreq>daily</changefreq>
     <priority>0.3</priority>
   </url>
+
 </urlset>
