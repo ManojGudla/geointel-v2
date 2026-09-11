@@ -90,7 +90,7 @@ function setSecurityHeaders(res: ServerResponse) {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       `img-src 'self' data: blob: ${TILE_HOSTS.join(" ")}`,
-      `connect-src 'self' ws: wss: ${TILE_HOSTS.join(" ")}`,
+      `connect-src 'self' ws: wss: https://*.ingest.us.sentry.io https://*.ingest.sentry.io ${TILE_HOSTS.join(" ")}`,
       "worker-src 'self' blob:",
       "font-src 'self' https://fonts.gstatic.com",
       "manifest-src 'self'",
