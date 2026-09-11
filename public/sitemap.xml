@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Small on purpose. This is a single-page app: /ai-map-search, /status and
+  /admin are the only other real paths, and /admin is excluded in robots.txt.
+  Listing fake URLs to pad a sitemap does nothing except waste crawl budget.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
   <url>
@@ -7,6 +12,11 @@
     <priority>1.0</priority>
   </url>
 
+  <!--
+    The landing page. Google found and indexed it under its own title before
+    it was ever listed here, which is exactly why it belongs in the sitemap:
+    a URL a crawler discovers on its own is one it can also quietly drop.
+  -->
   <url>
     <loc>https://www.manowj.com/ai-map-search</loc>
     <changefreq>weekly</changefreq>

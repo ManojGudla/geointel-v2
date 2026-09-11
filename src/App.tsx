@@ -25,8 +25,14 @@ const PlayHub = lazy(() => import("@/features/play/PlayHub").then((m) => ({ defa
 const PrivacyPanel = lazy(() => import("@/features/privacy/PrivacyPanel").then((m) => ({ default: m.PrivacyPanel })));
 const AdminDashboard = lazy(() => import("@/features/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
 const SystemStatusPage = lazy(() => import("@/features/status/SystemStatusPage").then((m) => ({ default: m.SystemStatusPage })));
+/* The marketing page at /ai-map-search. Split out for the same reason as the
+   rest of this list, and more so: nobody who opens the app itself should pay
+   for a landing page they will never see, and nobody landing on the marketing
+   page should download the whole workspace to read it. */
+const LandingPage = lazy(() => import("@/features/landing/LandingPage").then((m) => ({ default: m.LandingPage })));
 import { MaintenancePage } from "@/features/maintenance/MaintenancePage";
 import { useMaintenanceStore } from "@/stores/maintenanceStore";
+import { usePrivacyStore } from "@/stores/privacyStore";
 import { useMaintenancePolling } from "@/hooks/useMaintenancePolling";
 import { useSharedLocationFromUrl } from "@/hooks/useSharedLocationFromUrl";
 import { useLocationPanelSync } from "@/hooks/useLocationPanelSync";
@@ -51,6 +57,29 @@ export default function App() {
   // that's a deliberate choice elsewhere) — /admin is a plain pathname
   // check, read once since this SPA never navigates between paths itself.
   const [pathname] = useState(() => window.location.pathname.replace(/\/+$/, "") || "/");
+
+  // The consent banner and the landing page footer both link to /privacy,
+  // but there was never a route behind it: the SPA rewrite served index.html
+  // and the app rendered the plain map, so anyone following "see our Privacy
+  // page" landed on a map with no privacy page in sight. The panel is a
+  // modal rather than a route, so the honest fix is to open it on arrival.
+  if (pathname === "/privacy") {
+    usePrivacyStore.getState().open();
+  }
+
+  // The landing page. Also deliberately outside the maintenance gate: it is
+  // a description of the product, it calls no data endpoint, and a visitor
+  // arriving from a search result during a maintenance window should still
+  // be able to read what this is rather than hit a wall.
+  if (pathname === "/ai-map-search") {
+    return (
+      <ErrorBoundary label="Landing page" variant="page">
+        <Suspense fallback={<div className="app-loading">Loading…</div>}>
+          <LandingPage />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
 
   // Deliberately NOT behind the maintenance gate below: when the app is in
   // maintenance the status page is exactly what someone needs to reach.

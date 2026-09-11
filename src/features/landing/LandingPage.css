@@ -1,0 +1,1187 @@
+/*
+  Landing page styling.
+
+  A deliberate single-theme design: this page commits to one visual world —
+  a dark instrument panel — rather than following the app's light/dark
+  switch. That is a choice, not an omission, so every colour below is
+  painted explicitly on .ln and nothing is inherited from the app's theme
+  tokens. Dropping it onto a white host background cannot make it unreadable.
+
+  The look comes from the subject. This is a cartographic tool, so the page
+  borrows what cartographic tools actually look like: a graticule ruling the
+  background, hairline rules instead of drop shadows, coordinates and source
+  attributions set in monospace with tabular figures, and exactly one warm
+  signal colour — survey-marker amber — against a deep navy that matches the
+  app's own brand ramp. Blue is reserved for things to do with the map data
+  itself; amber is spent only on the live indicator and the primary action.
+*/
+
+/*
+  The two display faces are NOT @imported here, deliberately.
+
+  An @import in this file becomes an @import in the built CSS chunk, and
+  Vite's lazy-route loader waits on that chunk's load event before it will
+  render the route. A stylesheet whose @import points at a host that is slow
+  or blocked — Google Fonts is both, intermittently, on some networks in the
+  regions this site actually gets traffic from — never fires that event, so
+  the whole page fell into its error boundary instead of rendering with a
+  fallback font. Caught by rendering the built page with the font host
+  unreachable, which is exactly what a blocked visitor sees.
+
+  LandingPage.tsx injects the font <link> at runtime instead: it is not on
+  the critical path, and if it never arrives the stacks below fall back to
+  Inter, which the app has already loaded.
+*/
+
+/*
+  Opt this route out of the app shell's full-height lock.
+
+  reset.css sets `html, body, #root { height: 100% }` — correct for the app,
+  which is a full-screen map whose panels do all their own scrolling and
+  which must never let the page itself scroll. It is fatal here: it clamps
+  the document to exactly one viewport, so a 4,500px landing page rendered
+  in full and then simply could not be scrolled to. Nothing looked broken in
+  a screenshot of the top of the page, which is why it was only caught by
+  measuring the rendered document height against the content height.
+
+  LandingPage.tsx puts .ln-route on <html> while this page is mounted and
+  takes it off again on unmount, so the app keeps its lock.
+*/
+html.ln-route,
+html.ln-route body,
+html.ln-route #root {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
+html.ln-route body {
+  background: #0a1120;
+}
+
+.ln {
+  --ln-void: #060b14;
+  --ln-ground: #0a1120;
+  --ln-panel: #0f1829;
+  --ln-panel-2: #131e31;
+  --ln-grid: #1a2740;
+  --ln-edge: #26385a;
+  --ln-paper: #eaf0fa;
+  --ln-muted: #9aabc8;
+  --ln-faint: #74809c;
+  --ln-signal: #ff8d3a;
+  --ln-signal-dim: rgba(255, 141, 58, 0.14);
+  --ln-beam: #58b0ff;
+
+  --ln-display: "Archivo", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ln-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ln-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  background: var(--ln-ground);
+  color: var(--ln-paper);
+  font-family: var(--ln-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.ln *,
+.ln *::before,
+.ln *::after {
+  box-sizing: border-box;
+}
+
+.ln-wrap {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+/* ---------- shared type ---------- */
+
+.ln-h1 {
+  font-family: var(--ln-display);
+  font-weight: 800;
+  font-size: clamp(2.6rem, 6.2vw, 4.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  margin: 0 0 20px;
+  text-wrap: balance;
+}
+
+.ln-h2 {
+  font-family: var(--ln-display);
+  font-weight: 700;
+  font-size: clamp(1.65rem, 3.2vw, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.022em;
+  margin: 0 0 14px;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+.ln-h2--wide {
+  max-width: 28ch;
+}
+
+.ln-lede {
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--ln-muted);
+  margin: 0;
+  max-width: 62ch;
+}
+
+.ln-kicker {
+  font-family: var(--ln-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ln-signal);
+  margin: 0 0 14px;
+}
+
+/* ---------- top bar ---------- */
+
+/* Fixed rather than sticky, and transparent until it leaves the hero.
+
+   Sticky would sit in normal flow, which would push the hero down and stop
+   the map reaching the top of the window; the map is meant to run edge to
+   edge behind the bar. Transparent at rest for the same reason: a solid
+   strip laid across a satellite photograph from the first frame spends the
+   one thing the hero exists to show. */
+.ln-bar {
+  position: fixed;
+  inset: 0 0 auto;
+  width: 100%;
+  z-index: 20;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+/* Anchor links land below the fixed bar instead of under it. */
+.ln [id] {
+  scroll-margin-top: 84px;
+}
+
+.ln-bar.is-solid {
+  background: rgba(6, 11, 20, 0.88);
+  backdrop-filter: blur(14px);
+  border-bottom-color: var(--ln-grid);
+}
+
+.ln-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: 16px 24px;
+}
+
+.ln-bar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--ln-display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  color: var(--ln-paper);
+  text-decoration: none;
+}
+
+.ln-bar__brand img {
+  border-radius: 6px;
+  display: block;
+}
+
+.ln-bar__brand-dim {
+  color: var(--ln-muted);
+  font-weight: 600;
+}
+
+.ln-bar__nav {
+  display: flex;
+  gap: 22px;
+  margin-left: auto;
+}
+
+.ln-bar__nav a {
+  font-size: 0.88rem;
+  color: var(--ln-muted);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.ln-bar__nav a:hover {
+  color: var(--ln-paper);
+}
+
+.ln-bar__cta {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ln-paper);
+  text-decoration: none;
+  padding: 9px 16px;
+  border: 1px solid var(--ln-edge);
+  border-radius: 2px;
+  background: rgba(10, 17, 32, 0.72);
+  backdrop-filter: blur(8px);
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.ln-bar__cta:hover {
+  border-color: var(--ln-signal);
+  background: var(--ln-signal-dim);
+}
+
+/* ---------- hero ---------- */
+
+.ln-hero {
+  position: relative;
+  min-height: min(88vh, 840px);
+  display: flex;
+  align-items: flex-end;
+  background: var(--ln-void);
+  border-bottom: 1px solid var(--ln-grid);
+  overflow: hidden;
+}
+
+.ln-hero__map {
+  position: absolute;
+  inset: 0;
+}
+
+/* The map is a photograph of the Earth; the text has to survive on top of it
+   whatever happens to be under the camera. Two gradients rather than one flat
+   tint: a strong left-to-right wash that carries the copy, and a bottom lift
+   that seats the pills. */
+.ln-hero__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(100deg, var(--ln-void) 0%, rgba(6, 11, 20, 0.92) 34%, rgba(6, 11, 20, 0.42) 62%, rgba(6, 11, 20, 0.1) 100%),
+    linear-gradient(to top, var(--ln-void) 0%, rgba(6, 11, 20, 0.3) 26%, transparent 55%);
+}
+
+.ln-hero__inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: 132px 24px 32px;
+}
+
+.ln-hero__panel {
+  max-width: 640px;
+}
+
+.ln-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--ln-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ln-signal);
+  margin: 0 0 22px;
+  padding: 7px 13px 7px 11px;
+  border: 1px solid rgba(255, 141, 58, 0.32);
+  border-radius: 2px;
+  background: var(--ln-signal-dim);
+}
+
+.ln-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ln-signal);
+  box-shadow: 0 0 0 0 rgba(255, 141, 58, 0.7);
+  animation: ln-pulse 2.2s ease-out infinite;
+}
+
+@keyframes ln-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 141, 58, 0.6); }
+  70% { box-shadow: 0 0 0 7px rgba(255, 141, 58, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 141, 58, 0); }
+}
+
+.ln-sub {
+  font-size: 1.06rem;
+  line-height: 1.66;
+  color: var(--ln-muted);
+  margin: 0 0 28px;
+  max-width: 56ch;
+}
+
+.ln-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.ln-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--ln-body);
+  font-size: 0.94rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 13px 22px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  transition: transform 0.16s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.ln-btn--primary {
+  background: var(--ln-signal);
+  color: #1a0d02;
+}
+
+.ln-btn--primary:hover {
+  background: #ffa055;
+  transform: translateY(-1px);
+}
+
+.ln-btn--ghost {
+  color: var(--ln-paper);
+  border-color: var(--ln-edge);
+  background: rgba(15, 24, 41, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.ln-btn--ghost:hover {
+  border-color: var(--ln-muted);
+}
+
+.ln-btn--lg {
+  font-size: 1.02rem;
+  padding: 16px 30px;
+}
+
+.ln-note {
+  font-size: 0.84rem;
+  color: var(--ln-faint);
+  margin: 0 0 30px;
+}
+
+/* The instrument readout. Tabular figures matter here: without them the
+   coordinates jitter sideways on every frame of a drag, which reads as a
+   bug rather than as live data. */
+.ln-readout {
+  display: inline-block;
+  border: 1px solid var(--ln-grid);
+  border-radius: 2px;
+  background: rgba(6, 11, 20, 0.66);
+  backdrop-filter: blur(10px);
+  padding: 12px 15px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.ln-readout__row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--ln-mono);
+  font-size: 0.79rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ln-readout__k {
+  color: var(--ln-faint);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+}
+
+.ln-readout__v {
+  color: var(--ln-beam);
+  margin-right: 6px;
+}
+
+.ln-readout__place {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid var(--ln-grid);
+  font-size: 0.82rem;
+  color: var(--ln-paper);
+}
+
+.ln-readout__src {
+  font-family: var(--ln-mono);
+  font-size: 0.7rem;
+  color: var(--ln-faint);
+}
+
+.ln-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 34px;
+}
+
+.ln-pill {
+  font-family: var(--ln-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ln-muted);
+  background: rgba(10, 17, 32, 0.7);
+  border: 1px solid var(--ln-grid);
+  border-radius: 2px;
+  padding: 9px 15px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.ln-pill:hover {
+  color: var(--ln-paper);
+  border-color: var(--ln-edge);
+}
+
+.ln-pill.is-active {
+  color: var(--ln-signal);
+  border-color: rgba(255, 141, 58, 0.5);
+  background: var(--ln-signal-dim);
+}
+
+/* ---------- thesis / sources ---------- */
+
+.ln-thesis {
+  padding: clamp(64px, 9vw, 104px) 0;
+  background: var(--ln-ground);
+  /* The graticule. Two hairline gradients on a 64px grid, barely there —
+     it reads as ruled paper rather than as a pattern, which is the point. */
+  background-image:
+    linear-gradient(var(--ln-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ln-grid) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center;
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-thesis__head {
+  margin-bottom: 44px;
+}
+
+.ln-thesis__head .ln-h2 {
+  max-width: 24ch;
+}
+
+.ln-sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ln-grid);
+}
+
+.ln-source {
+  display: grid;
+  grid-template-columns: 200px 1fr 170px;
+  gap: 20px;
+  align-items: baseline;
+  padding: 15px 4px;
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-source__name {
+  font-family: var(--ln-mono);
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--ln-paper);
+}
+
+.ln-source__answers {
+  font-size: 0.92rem;
+  color: var(--ln-muted);
+}
+
+.ln-source__note {
+  font-family: var(--ln-mono);
+  font-size: 0.74rem;
+  color: var(--ln-faint);
+  text-align: right;
+}
+
+/* ---------- asks ---------- */
+
+.ln-ask {
+  padding: clamp(64px, 9vw, 104px) 0;
+  background: var(--ln-void);
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-asks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1px;
+  margin-top: 42px;
+  background: var(--ln-grid);
+  border: 1px solid var(--ln-grid);
+}
+
+/* One shared object, not eight separate cards: the gap IS the rule between
+   them, so the grid reads as a single ruled table and the cards keep the
+   same edges and baselines however many land in a row. */
+.ln-askcard {
+  background: var(--ln-ground);
+  padding: 26px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: background 0.2s ease;
+}
+
+.ln-askcard:hover {
+  background: var(--ln-panel);
+}
+
+.ln-askcard__q {
+  font-family: var(--ln-display);
+  font-weight: 600;
+  font-size: 1.06rem;
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+  color: var(--ln-paper);
+  margin: 0;
+}
+
+.ln-askcard__a {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ln-muted);
+  margin: 0;
+  flex: 1;
+}
+
+.ln-askcard__src {
+  font-family: var(--ln-mono);
+  font-size: 0.71rem;
+  color: var(--ln-faint);
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--ln-grid);
+}
+
+/* ---------- steps ---------- */
+
+.ln-steps {
+  padding: clamp(64px, 9vw, 104px) 0;
+  background: var(--ln-ground);
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-steplist {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  gap: 32px;
+  margin: 42px 0 0;
+  padding: 0;
+}
+
+/* The numbers are real sequence information — you cannot check a source
+   before you have an answer — so they get a rule that runs through them
+   like a survey traverse. */
+.ln-step {
+  position: relative;
+  padding-top: 26px;
+  border-top: 1px solid var(--ln-edge);
+}
+
+.ln-step__n {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  font-family: var(--ln-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--ln-signal);
+  letter-spacing: 0.08em;
+  padding-top: 10px;
+}
+
+.ln-step__t {
+  font-family: var(--ln-display);
+  font-weight: 600;
+  font-size: 1.08rem;
+  letter-spacing: -0.012em;
+  margin: 14px 0 8px;
+  color: var(--ln-paper);
+}
+
+.ln-step__d {
+  font-size: 0.91rem;
+  line-height: 1.6;
+  color: var(--ln-muted);
+  margin: 0;
+}
+
+/* ---------- inside ---------- */
+
+.ln-inside {
+  padding: clamp(64px, 9vw, 104px) 0;
+  background: var(--ln-void);
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 28px 32px;
+  margin-top: 42px;
+}
+
+.ln-feat {
+  padding-left: 15px;
+  border-left: 2px solid var(--ln-edge);
+  transition: border-color 0.2s ease;
+}
+
+.ln-feat:hover {
+  border-left-color: var(--ln-signal);
+}
+
+.ln-feat__t {
+  font-family: var(--ln-display);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 7px;
+  color: var(--ln-paper);
+}
+
+.ln-feat__d {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ln-muted);
+  margin: 0;
+}
+
+/* ---------- maker ---------- */
+
+.ln-maker {
+  padding: clamp(56px, 8vw, 88px) 0;
+  background: var(--ln-ground);
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-maker__inner {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.ln-maker__photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 2px;
+  object-fit: cover;
+  border: 1px solid var(--ln-edge);
+  flex-shrink: 0;
+}
+
+.ln-maker__copy {
+  margin-top: 12px;
+}
+
+/* ---------- final ---------- */
+
+.ln-final {
+  padding: clamp(72px, 10vw, 120px) 0;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(255, 141, 58, 0.09) 0%, transparent 62%),
+    var(--ln-void);
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-final__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.ln-final__h {
+  max-width: 18ch;
+}
+
+/* ---------- anatomy of an answer ---------- */
+
+.ln-anatomy {
+  padding: clamp(64px, 9vw, 104px) 0;
+  background: var(--ln-ground);
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-anatomy__grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+  gap: 48px;
+  align-items: start;
+  margin-top: 42px;
+}
+
+/* A specimen card, in the museum-label sense: the object with its parts
+   named. The last two rows are lit because they are the argument. */
+.ln-specimen {
+  margin: 0;
+  border: 1px solid var(--ln-edge);
+  background: var(--ln-void);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ln-specimen__cap {
+  font-family: var(--ln-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ln-faint);
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--ln-grid);
+  background: var(--ln-panel);
+}
+
+.ln-specimen__row {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 16px;
+  align-items: baseline;
+  padding: 17px 18px;
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-specimen__row:last-child {
+  border-bottom: 0;
+}
+
+.ln-specimen__row--lit {
+  background: rgba(255, 141, 58, 0.05);
+  border-left: 2px solid var(--ln-signal);
+}
+
+.ln-specimen__tag {
+  font-family: var(--ln-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ln-faint);
+}
+
+.ln-specimen__tag--lit {
+  color: var(--ln-signal);
+}
+
+.ln-specimen__q {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--ln-paper);
+}
+
+.ln-specimen__result {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--ln-paper);
+}
+
+.ln-specimen__result strong {
+  font-family: var(--ln-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ln-beam);
+  font-variant-numeric: tabular-nums;
+  margin-right: 4px;
+}
+
+.ln-specimen__meta {
+  margin: 0;
+  font-family: var(--ln-mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--ln-muted);
+}
+
+.ln-anatomy__h {
+  font-family: var(--ln-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: -0.015em;
+  margin: 0 0 14px;
+  color: var(--ln-paper);
+}
+
+.ln-anatomy__p {
+  margin-top: 14px;
+}
+
+/* ---------- use cases ---------- */
+
+.ln-uses {
+  padding: clamp(64px, 9vw, 104px) 0;
+  background: var(--ln-ground);
+  background-image:
+    linear-gradient(var(--ln-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ln-grid) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center;
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-usegrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1px;
+  margin-top: 42px;
+  background: var(--ln-grid);
+  border: 1px solid var(--ln-grid);
+}
+
+.ln-use {
+  background: var(--ln-ground);
+  padding: 26px 24px;
+}
+
+.ln-use__n {
+  font-family: var(--ln-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--ln-signal);
+}
+
+.ln-use__t {
+  font-family: var(--ln-display);
+  font-weight: 600;
+  font-size: 1.08rem;
+  letter-spacing: -0.012em;
+  margin: 10px 0 8px;
+  color: var(--ln-paper);
+}
+
+.ln-use__d {
+  font-size: 0.91rem;
+  line-height: 1.62;
+  color: var(--ln-muted);
+  margin: 0;
+}
+
+/* ---------- faq ---------- */
+
+.ln-faq {
+  padding: clamp(64px, 9vw, 104px) 0;
+  background: var(--ln-ground);
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-faqlist {
+  margin-top: 38px;
+  border-top: 1px solid var(--ln-grid);
+  max-width: 860px;
+}
+
+.ln-faqitem {
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-faqitem__q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  cursor: pointer;
+  list-style: none;
+  padding: 19px 2px;
+  font-family: var(--ln-display);
+  font-weight: 600;
+  font-size: 1.04rem;
+  letter-spacing: -0.012em;
+  color: var(--ln-paper);
+  transition: color 0.18s ease;
+}
+
+.ln-faqitem__q::-webkit-details-marker {
+  display: none;
+}
+
+.ln-faqitem__q:hover {
+  color: var(--ln-signal);
+}
+
+/* A plus that becomes a minus. Drawn from two pseudo-elements rather than
+   a glyph so it stays optically centred at any font size. */
+.ln-faqitem__mark {
+  position: relative;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.ln-faqitem__mark::before,
+.ln-faqitem__mark::after {
+  content: "";
+  position: absolute;
+  background: var(--ln-signal);
+  transition: transform 0.2s ease;
+}
+
+.ln-faqitem__mark::before {
+  inset: 6px 0 auto;
+  height: 1.5px;
+}
+
+.ln-faqitem__mark::after {
+  inset: 0 6px auto auto;
+  width: 1.5px;
+  height: 14px;
+}
+
+.ln-faqitem[open] .ln-faqitem__mark::after {
+  transform: scaleY(0);
+}
+
+.ln-faqitem__a {
+  font-size: 0.95rem;
+  line-height: 1.68;
+  color: var(--ln-muted);
+  margin: 0;
+  padding: 0 40px 22px 2px;
+  max-width: 74ch;
+}
+
+/* ---------- footer ---------- */
+
+.ln-foot {
+  padding: clamp(48px, 6vw, 72px) 0 32px;
+  background: var(--ln-void);
+  font-size: 0.85rem;
+  color: var(--ln-faint);
+}
+
+.ln-foot__top {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr;
+  gap: 48px;
+  padding-bottom: 38px;
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-foot__brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-family: var(--ln-display);
+  font-weight: 700;
+  font-size: 1.04rem;
+  color: var(--ln-paper);
+  text-decoration: none;
+}
+
+.ln-foot__brand img {
+  border-radius: 6px;
+  display: block;
+}
+
+.ln-foot__blurb {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--ln-muted);
+  margin: 14px 0 16px;
+  max-width: 40ch;
+}
+
+.ln-foot__gh {
+  display: inline-block;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--ln-paper);
+  text-decoration: none;
+  padding: 7px 14px;
+  border: 1px solid var(--ln-edge);
+  border-radius: 2px;
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+
+.ln-foot__gh:hover {
+  border-color: var(--ln-signal);
+  color: var(--ln-signal);
+}
+
+/* Five columns, and they have to stay five: at minmax(148px, …) the fifth
+   overflowed the track by a few pixels and dropped onto a row of its own,
+   leaving one lonely heading under four. */
+.ln-foot__cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
+  gap: 28px 20px;
+}
+
+.ln-foot__col {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.ln-foot__h {
+  font-family: var(--ln-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ln-paper);
+  margin: 0 0 5px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-foot__col a {
+  font-size: 0.86rem;
+  color: var(--ln-muted);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.ln-foot__col a:hover {
+  color: var(--ln-signal);
+}
+
+.ln-foot__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+  align-items: baseline;
+  padding-top: 22px;
+  font-size: 0.8rem;
+}
+
+.ln-foot__attr {
+  margin-left: auto;
+  font-family: var(--ln-mono);
+  font-size: 0.7rem;
+  color: var(--ln-faint);
+}
+
+/* ---------- focus ---------- */
+
+.ln a:focus-visible,
+.ln button:focus-visible {
+  outline: 2px solid var(--ln-signal);
+  outline-offset: 3px;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 900px) {
+  .ln-bar__nav {
+    display: none;
+  }
+
+  .ln-bar__cta {
+    margin-left: auto;
+  }
+
+  .ln-source {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .ln-source__note {
+    text-align: left;
+  }
+
+  .ln-maker__inner {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .ln-anatomy__grid {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .ln-foot__top {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .ln-foot__attr {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Both of these wrapped onto a second line at phone width, which doubled
+     the height of the bar for no gain. The wordmark is "maNOWj" — the
+     product suffix is the half that can go. */
+  .ln-bar {
+    padding: 14px 20px;
+  }
+
+  .ln-bar__brand-dim {
+    display: none;
+  }
+
+  .ln-bar__cta {
+    white-space: nowrap;
+    padding: 8px 13px;
+  }
+
+  .ln-hero {
+    min-height: auto;
+  }
+
+  .ln-hero__inner {
+    padding: 110px 20px 28px;
+  }
+
+  .ln-wrap {
+    padding-inline: 20px;
+  }
+
+  .ln-hero__scrim {
+    background:
+      linear-gradient(to bottom, rgba(6, 11, 20, 0.72) 0%, rgba(6, 11, 20, 0.9) 42%, var(--ln-void) 100%);
+  }
+
+  .ln-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ln-readout__row {
+    font-size: 0.72rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ln * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* MapLibre's own canvas sits behind everything; it must never draw its
+   default focus ring or pale background through the scrim. */
+.ln-hero__map .maplibregl-canvas {
+  outline: none;
+}
+
+.ln-hero__map .maplibregl-ctrl-attrib {
+  display: none;
+}
