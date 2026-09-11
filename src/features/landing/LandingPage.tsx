@@ -276,18 +276,43 @@ function useScrollableDocument() {
   }, []);
 }
 
+const PAGE_URL = "https://www.manowj.com/ai-map-search";
+
 function useDocumentMeta() {
   useEffect(() => {
     const prevTitle = document.title;
-    const tag = document.querySelector('meta[name="description"]');
-    const prevDesc = tag?.getAttribute("content") ?? null;
+
+    /* Every tag this route overrides, with the value it had before, so
+       navigating away leaves the document describing the app again rather
+       than still wearing the landing page's identity. */
+    const overrides: Array<[Element | null, string, string]> = [
+      [document.querySelector('meta[name="description"]'), "content", PAGE_DESC],
+      [document.querySelector('meta[property="og:title"]'), "content", PAGE_TITLE],
+      [document.querySelector('meta[property="og:description"]'), "content", PAGE_DESC],
+      [document.querySelector('meta[property="og:url"]'), "content", PAGE_URL],
+      [document.querySelector('meta[name="twitter:title"]'), "content", PAGE_TITLE],
+      [document.querySelector('meta[name="twitter:description"]'), "content", PAGE_DESC],
+      /* The one that actually matters. index.html hard-codes
+         rel=canonical to the homepage, which is correct for the app and
+         wrong for every other path: left alone it tells Google this page
+         is a duplicate of "/", which is grounds for dropping it from the
+         index entirely. This route has its own URL and has to say so. */
+      [document.querySelector('link[rel="canonical"]'), "href", PAGE_URL],
+    ];
+
+    const restore = overrides.map(([el, attr, next]) => {
+      const prev = el?.getAttribute(attr) ?? null;
+      el?.setAttribute(attr, next);
+      return () => {
+        if (prev !== null) el?.setAttribute(attr, prev);
+      };
+    });
 
     document.title = PAGE_TITLE;
-    tag?.setAttribute("content", PAGE_DESC);
 
     return () => {
       document.title = prevTitle;
-      if (prevDesc !== null) tag?.setAttribute("content", prevDesc);
+      restore.forEach((fn) => fn());
     };
   }, []);
 }
