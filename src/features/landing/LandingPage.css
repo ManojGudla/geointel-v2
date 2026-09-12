@@ -255,17 +255,32 @@ html.ln-route body {
   inset: 0;
 }
 
-/* The map is a photograph of the Earth; the text has to survive on top of it
-   whatever happens to be under the camera. Two gradients rather than one flat
-   tint: a strong left-to-right wash that carries the copy, and a bottom lift
-   that seats the pills. */
+/* The map is a photograph of the Earth and the text has to survive on top of
+   it, whatever happens to be under the camera.
+
+   The balance here is easy to get wrong in one direction: the first version
+   of this ran to 0.42 alpha at 62% and only reached 0.1 at the far corner,
+   which on a 100deg line meant the visible top-right of the hero sat around
+   half-opacity. Checked against the deployed page, that buried the satellite
+   imagery almost completely, so the one thing the hero exists to show was
+   invisible and the section read as a plain dark box. The wash now falls off
+   hard past the text column: heavy to 45%, most of the way gone by 70%, and
+   barely present at the right edge. */
 .ln-hero__scrim {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(100deg, var(--ln-void) 0%, rgba(6, 11, 20, 0.92) 34%, rgba(6, 11, 20, 0.42) 62%, rgba(6, 11, 20, 0.1) 100%),
-    linear-gradient(to top, var(--ln-void) 0%, rgba(6, 11, 20, 0.3) 26%, transparent 55%);
+    linear-gradient(
+      93deg,
+      rgba(6, 11, 20, 0.95) 0%,
+      rgba(6, 11, 20, 0.88) 26%,
+      rgba(6, 11, 20, 0.6) 45%,
+      rgba(6, 11, 20, 0.24) 64%,
+      rgba(6, 11, 20, 0.08) 82%,
+      rgba(6, 11, 20, 0.03) 100%
+    ),
+    linear-gradient(to top, rgba(6, 11, 20, 0.88) 0%, rgba(6, 11, 20, 0.3) 17%, transparent 40%);
 }
 
 .ln-hero__inner {
@@ -425,6 +440,13 @@ html.ln-route body {
   font-family: var(--ln-mono);
   font-size: 0.7rem;
   color: var(--ln-faint);
+}
+
+.ln-readout__transit {
+  font-family: var(--ln-mono);
+  font-size: 0.76rem;
+  color: var(--ln-signal);
+  letter-spacing: 0.02em;
 }
 
 .ln-pills {

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="maNOWj GeoIntel">
+  <!--
+    Maskable variant. Android crops this to whatever shape the launcher uses
+    (circle, squircle, teardrop), so the background has to bleed to all four
+    edges with no rounded corners of its own, and everything that matters has
+    to sit inside the middle 80% or the crop eats it. The artwork here is the
+    same reticle scaled to ~64% and centred, which leaves room on every side.
+  -->
+  <defs>
+    <linearGradient id="tileM" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16305d"/>
+      <stop offset="1" stop-color="#0a1628"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#tileM)"/>
+
+  <g transform="translate(256 256) scale(0.64) translate(-256 -256)">
+    <g stroke="#4f7ec2" stroke-width="14" stroke-linecap="round">
+      <line x1="256" y1="74" x2="256" y2="120"/>
+      <line x1="256" y1="392" x2="256" y2="438"/>
+      <line x1="74" y1="256" x2="120" y2="256"/>
+      <line x1="392" y1="256" x2="438" y2="256"/>
+    </g>
+    <circle cx="256" cy="256" r="122" fill="none" stroke="#5b8dd6" stroke-width="15"/>
+    <circle cx="256" cy="256" r="47" fill="#ff8d3a"/>
+  </g>
+</svg>

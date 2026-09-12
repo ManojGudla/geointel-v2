@@ -243,7 +243,19 @@ function prefersReducedMotion() {
    search listing and any share card describing this page rather than the
    app. Reverted on unmount so navigating back to the map is not left
    wearing the landing page's title. */
-const PAGE_TITLE = "AI Map Search – Ask Questions About Any Location | maNOWj";
+/*
+   The title carried a dash ("AI Map Search – Ask Questions About Any
+   Location"), which is the one piece of punctuation on this page a visitor
+   sees before the page even loads, sitting in the browser tab and in the
+   search result. Retitled to something a person would write, keeping the
+   phrase the URL is built around so the page does not lose what it ranks
+   for, and using the space to say what makes it different instead of
+   restating the product category.
+
+   Changing a title does move the search listing. Google re-crawls and
+   updates it within days, the URL does not change, and nothing that points
+   at this page breaks, so this is a safe edit rather than a risky one. */
+const PAGE_TITLE = "AI Map Search that shows its sources | maNOWj GeoIntel";
 const PAGE_DESC =
   "Pick any place on Earth and ask it a real question. How many hospitals within 5 km, what is here, what the air quality is. Every answer shows its source and the date it applies to. Free, no sign-up.";
 
@@ -439,8 +451,21 @@ export function LandingPage() {
      clicking a pill or by dragging the map themselves. Continuing to yank
      the camera away from a person who is using it would be hostile. */
   const [autoplay, setAutoplay] = useState(() => !prefersReducedMotion());
+  /* Whether this tab is actually on screen. A tour that keeps flying in a
+     backgrounded tab is invisible by definition and still costs the visitor
+     a fresh set of satellite tiles every few seconds, which on a phone is
+     their mobile data and their battery paying for something nobody is
+     looking at. Someone who opens the site and leaves the tab open all day
+     should not be billed for it. */
+  const [visible, setVisible] = useState(() => !document.hidden);
   useEffect(() => {
-    if (!autoplay || !mapReady) return;
+    const onVis = () => setVisible(!document.hidden);
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+
+  useEffect(() => {
+    if (!autoplay || !mapReady || !visible) return;
     const map = mapRef.current;
     const stop = () => setAutoplay(false);
     map?.on("dragstart", stop);
@@ -455,7 +480,7 @@ export function LandingPage() {
       window.clearInterval(id);
       map?.off("dragstart", stop);
     };
-  }, [autoplay, mapReady, goTo]);
+  }, [autoplay, mapReady, visible, goTo]);
 
   const onPill = (i: number) => {
     setAutoplay(false);
@@ -529,9 +554,19 @@ export function LandingPage() {
                 <span className="ln-readout__k">Z</span>
                 <span className="ln-readout__v">{readout.zoom.toFixed(1)}</span>
               </div>
+              {/* Arrived: name the place and the source that answers for it.
+                  Mid-flight: say where it is going, because the coordinates
+                  above are somewhere over an ocean and naming either end
+                  would contradict them. */}
               <div className="ln-readout__place">
-                {stopAt(settled).place}
-                <span className="ln-readout__src">{stopAt(settled).source}</span>
+                {active === settled ? (
+                  <>
+                    {stopAt(settled).place}
+                    <span className="ln-readout__src">{stopAt(settled).source}</span>
+                  </>
+                ) : (
+                  <span className="ln-readout__transit">Flying to {stopAt(active).place}</span>
+                )}
               </div>
             </div>
           </div>
