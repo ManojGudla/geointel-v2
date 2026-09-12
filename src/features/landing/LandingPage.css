@@ -255,6 +255,16 @@ html.ln-route body {
   inset: 0;
 }
 
+/* Esri's imagery is accurate, not flattering: dense cities come back as
+   fields of grey-brown roof with very little separation in them, which under
+   a dark scrim turns to mud. A restrained grade gives the ground back some
+   depth without tipping into the oversaturated fake-satellite look, and
+   without touching anything else on the page, since it applies to the map
+   canvas alone and not to the copy sitting over it. */
+.ln-hero__map .maplibregl-canvas {
+  filter: saturate(1.22) contrast(1.1) brightness(1.04);
+}
+
 /* The map is a photograph of the Earth and the text has to survive on top of
    it, whatever happens to be under the camera.
 
@@ -486,7 +496,7 @@ html.ln-route body {
 .ln-thesis {
   padding: clamp(64px, 9vw, 104px) 0;
   background: var(--ln-ground);
-  /* The graticule. Two hairline gradients on a 64px grid, barely there —
+  /* The graticule. Two hairline gradients on a 64px grid, barely there, so
      it reads as ruled paper rather than as a pattern, which is the point. */
   background-image:
     linear-gradient(var(--ln-grid) 1px, transparent 1px),
@@ -494,6 +504,16 @@ html.ln-route body {
   background-size: 64px 64px;
   background-position: center;
   border-bottom: 1px solid var(--ln-grid);
+  /* One 64px cycle over a minute and a half, which is slow enough that you
+     never catch it moving and the section still is not quite dead. Moving
+     the background costs no layout and disturbs no text, and the
+     reduced-motion block at the bottom of this file turns it off. */
+  animation: ln-drift 96s linear infinite;
+}
+
+@keyframes ln-drift {
+  from { background-position: 0 0; }
+  to { background-position: 64px 64px; }
 }
 
 .ln-thesis__head {
@@ -547,55 +567,87 @@ html.ln-route body {
   border-bottom: 1px solid var(--ln-grid);
 }
 
-.ln-asks {
+/* Question list on the left, the answer it produces on the right. Below the
+   breakpoint they stack, list first, so the thing you tap stays above the
+   thing it changes. */
+.ln-demo {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1px;
+  grid-template-columns: minmax(300px, 1fr) minmax(320px, 1.05fr);
+  gap: 40px;
+  align-items: start;
   margin-top: 42px;
-  background: var(--ln-grid);
-  border: 1px solid var(--ln-grid);
 }
 
-/* One shared object, not eight separate cards: the gap IS the rule between
-   them, so the grid reads as a single ruled table and the cards keep the
-   same edges and baselines however many land in a row. */
-.ln-askcard {
-  background: var(--ln-ground);
-  padding: 26px 24px 22px;
+.ln-qlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ln-grid);
+}
+
+.ln-q {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: background 0.2s ease;
-}
-
-.ln-askcard:hover {
-  background: var(--ln-panel);
-}
-
-.ln-askcard__q {
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--ln-grid);
+  border-left: 2px solid transparent;
+  padding: 17px 14px 17px 16px;
+  cursor: pointer;
   font-family: var(--ln-display);
   font-weight: 600;
-  font-size: 1.06rem;
-  line-height: 1.3;
+  font-size: 1rem;
   letter-spacing: -0.012em;
-  color: var(--ln-paper);
-  margin: 0;
-}
-
-.ln-askcard__a {
-  font-size: 0.92rem;
-  line-height: 1.6;
   color: var(--ln-muted);
-  margin: 0;
-  flex: 1;
+  transition: color 0.18s ease, background 0.18s ease, border-left-color 0.18s ease, padding-left 0.18s ease;
 }
 
-.ln-askcard__src {
-  font-family: var(--ln-mono);
-  font-size: 0.71rem;
-  color: var(--ln-faint);
-  margin: 0;
-  padding-top: 12px;
+.ln-q:hover {
+  color: var(--ln-paper);
+  background: rgba(255, 255, 255, 0.02);
+  padding-left: 20px;
+}
+
+.ln-q.is-active {
+  color: var(--ln-paper);
+  border-left-color: var(--ln-signal);
+  background: var(--ln-signal-dim);
+}
+
+/* A chevron built from one rotated square corner, so there is no icon font
+   and no extra request for six of these. */
+.ln-q__arrow {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.35;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.ln-q:hover .ln-q__arrow {
+  opacity: 0.7;
+}
+
+.ln-q.is-active .ln-q__arrow {
+  opacity: 1;
+  color: var(--ln-signal);
+  transform: rotate(45deg) translate(1px, -1px);
+}
+
+.ln-ask__why {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ln-muted);
+  max-width: 72ch;
+  margin: 44px 0 0;
+  padding-top: 26px;
   border-top: 1px solid var(--ln-grid);
 }
 
@@ -616,25 +668,53 @@ html.ln-route body {
   padding: 0;
 }
 
-/* The numbers are real sequence information — you cannot check a source
-   before you have an answer — so they get a rule that runs through them
-   like a survey traverse. */
+/* The numbers are real sequence information, since you cannot check a source
+   before you have an answer, so a single line runs through all four and each
+   one sits on it as a station. Drawn as a border on the list rather than on
+   each item so it reads as one continuous traverse instead of four separate
+   rules that happen to align. */
+.ln-steplist {
+  position: relative;
+}
+
+.ln-steplist::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--ln-edge);
+}
+
 .ln-step {
   position: relative;
-  padding-top: 26px;
-  border-top: 1px solid var(--ln-edge);
+  padding-top: 30px;
+}
+
+.ln-step__marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--ln-ground);
+  border: 2px solid var(--ln-signal);
+  transition: background 0.2s ease;
+}
+
+.ln-step:hover .ln-step__marker {
+  background: var(--ln-signal);
 }
 
 .ln-step__n {
-  position: absolute;
-  top: -1px;
-  left: 0;
+  display: block;
   font-family: var(--ln-mono);
   font-size: 0.72rem;
   font-weight: 500;
   color: var(--ln-signal);
   letter-spacing: 0.08em;
-  padding-top: 10px;
 }
 
 .ln-step__t {
@@ -642,7 +722,7 @@ html.ln-route body {
   font-weight: 600;
   font-size: 1.08rem;
   letter-spacing: -0.012em;
-  margin: 14px 0 8px;
+  margin: 9px 0 8px;
   color: var(--ln-paper);
 }
 
@@ -668,14 +748,25 @@ html.ln-route body {
   margin-top: 42px;
 }
 
+/* Icon beside the text rather than above it, so this grid reads differently
+   from the use-case grid two sections up instead of repeating it. */
 .ln-feat {
-  padding-left: 15px;
-  border-left: 2px solid var(--ln-edge);
-  transition: border-color 0.2s ease;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 14px;
+  align-items: start;
 }
 
-.ln-feat:hover {
-  border-left-color: var(--ln-signal);
+.ln-feat__icon {
+  display: block;
+  color: var(--ln-beam);
+  padding-top: 1px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.ln-feat:hover .ln-feat__icon {
+  color: var(--ln-signal);
+  transform: translateY(-1px);
 }
 
 .ln-feat__t {
@@ -743,24 +834,28 @@ html.ln-route body {
   max-width: 18ch;
 }
 
-/* ---------- anatomy of an answer ---------- */
-
-.ln-anatomy {
-  padding: clamp(64px, 9vw, 104px) 0;
-  background: var(--ln-ground);
-  border-bottom: 1px solid var(--ln-grid);
-}
-
-.ln-anatomy__grid {
-  display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
-  gap: 48px;
-  align-items: start;
-  margin-top: 42px;
-}
+/* ---------- the answer specimen ---------- */
 
 /* A specimen card, in the museum-label sense: the object with its parts
    named. The last two rows are lit because they are the argument. */
+.ln-specimen {
+  animation: ln-specimen-in 0.32s ease-out both;
+}
+
+/* Replays on every pick because the card is keyed on the question. Small on
+   purpose: enough to show that something was rebuilt, not so much that
+   clicking through all six feels like waiting. */
+@keyframes ln-specimen-in {
+  from {
+    opacity: 0.45;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .ln-specimen {
   margin: 0;
   border: 1px solid var(--ln-edge);
@@ -839,17 +934,59 @@ html.ln-route body {
   color: var(--ln-muted);
 }
 
-.ln-anatomy__h {
-  font-family: var(--ln-display);
-  font-weight: 700;
-  font-size: 1.3rem;
-  letter-spacing: -0.015em;
-  margin: 0 0 14px;
-  color: var(--ln-paper);
+.ln-specimen__note {
+  margin: 0;
+  padding: 15px 18px 17px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ln-muted);
+  border-top: 1px solid var(--ln-grid);
+  background: var(--ln-panel);
 }
 
-.ln-anatomy__p {
-  margin-top: 14px;
+/* ---------- figures band ---------- */
+
+.ln-figures {
+  padding: clamp(40px, 5vw, 58px) 0;
+  background: var(--ln-ground);
+  border-bottom: 1px solid var(--ln-grid);
+}
+
+.ln-figures__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 30px 28px;
+}
+
+.ln-fig {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-left: 16px;
+  border-left: 2px solid var(--ln-signal);
+}
+
+.ln-fig__n {
+  font-family: var(--ln-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 3.4vw, 2.7rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ln-paper);
+  font-variant-numeric: tabular-nums;
+}
+
+.ln-fig__l {
+  font-size: 0.87rem;
+  line-height: 1.45;
+  color: var(--ln-muted);
+  max-width: 22ch;
+}
+
+/* ---------- icons ---------- */
+
+.ln-icon {
+  display: block;
 }
 
 /* ---------- use cases ---------- */
@@ -863,6 +1000,14 @@ html.ln-route body {
   background-size: 64px 64px;
   background-position: center;
   border-bottom: 1px solid var(--ln-grid);
+  /* Drifts the opposite way to the graticule further up the page, so the two
+     ruled sections are not visibly running the same loop. */
+  animation: ln-drift-rev 120s linear infinite;
+}
+
+@keyframes ln-drift-rev {
+  from { background-position: 64px 0; }
+  to { background-position: 0 64px; }
 }
 
 .ln-usegrid {
@@ -876,15 +1021,33 @@ html.ln-route body {
 
 .ln-use {
   background: var(--ln-ground);
-  padding: 26px 24px;
+  padding: 28px 24px 26px;
+  transition: background 0.2s ease;
 }
 
-.ln-use__n {
-  font-family: var(--ln-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
+.ln-use:hover {
+  background: var(--ln-panel);
+}
+
+/* The icon sits in its own ruled square so the six of them line up as a
+   column of marks down the grid rather than floating at the top of each
+   block at whatever height the glyph happens to be. */
+.ln-use__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--ln-edge);
+  border-radius: 2px;
   color: var(--ln-signal);
+  margin-bottom: 16px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.ln-use:hover .ln-use__icon {
+  border-color: var(--ln-signal);
+  background: var(--ln-signal-dim);
 }
 
 .ln-use__t {
@@ -1131,9 +1294,12 @@ html.ln-route body {
     gap: 20px;
   }
 
-  .ln-anatomy__grid {
+  /* Question list above the answer it rebuilds, never beside it: stacked the
+     other way round you would tap something and the thing that changed would
+     be off the top of the screen. */
+  .ln-demo {
     grid-template-columns: 1fr;
-    gap: 34px;
+    gap: 28px;
   }
 
   .ln-foot__top {

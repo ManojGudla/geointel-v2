@@ -29,6 +29,10 @@ type Stop = {
   place: string;
   center: [number, number];
   zoom: number;
+  /* Per-stop camera tilt. A single fixed pitch made five very different
+     places look like five photographs taken the same way; varying it gives
+     each stop its own shot. */
+  pitch: number;
   source: string;
 };
 
@@ -43,40 +47,50 @@ const TOUR: [Stop, ...Stop[]] = [
   {
     label: "Hospitals within 2 km",
     place: "Charminar, Hyderabad",
-    center: [78.4747, 17.3616] as [number, number],
-    zoom: 14.4,
+    // Pulled back and shifted onto the Musi so the old city reads as a shape
+    // with a river through it, rather than as a field of rooftops.
+    center: [78.4736, 17.3688] as [number, number],
+    zoom: 13.4,
+    pitch: 46,
     source: "OpenStreetMap via Overpass",
   },
   {
     label: "What's at this point?",
     place: "Marina Bay, Singapore",
-    center: [103.8607, 1.2834] as [number, number],
-    zoom: 15.2,
+    center: [103.8578, 1.2845] as [number, number],
+    zoom: 14.4,
+    pitch: 52,
     source: "Nominatim reverse geocode",
   },
   {
     label: "Air quality right now",
     place: "Lower Manhattan, New York",
-    center: [-74.0099, 40.7128] as [number, number],
-    zoom: 14,
+    center: [-74.0135, 40.7075] as [number, number],
+    zoom: 13.6,
+    pitch: 50,
     source: "Open-Meteo, hourly",
   },
   {
     label: "Population + census year",
     place: "Lahore, Pakistan",
-    center: [74.3436, 31.5497] as [number, number],
-    zoom: 12.6,
+    // Moved north onto the Ravi and the fort, the one part of the city with
+    // real form to it from above.
+    center: [74.3095, 31.5880] as [number, number],
+    zoom: 13.2,
+    pitch: 44,
     source: "Wikidata, 2023 census",
   },
   {
     label: "Recent earthquakes",
-    place: "Bay Area, California",
-    center: [-122.2712, 37.8044] as [number, number],
-    zoom: 11.5,
+    place: "San Francisco Bay",
+    // The bay and the bridges. The most legible piece of geography in the
+    // set, and a deliberate change of pace after four dense cities.
+    center: [-122.3765, 37.8135] as [number, number],
+    zoom: 11.6,
+    pitch: 38,
     source: "USGS, last 24 h",
   },
 ];
-
 /* The attribution table. This is the product's actual dependency list, not a
    marketing trust bar — which is why it says what each one answers and, where
    the source has a cadence, how fresh it is. */
@@ -91,36 +105,74 @@ const SOURCES = [
   { name: "NASA GIBS", answers: "Historical imagery", note: "Back to 2012" },
 ];
 
-const ASKS = [
+type Ask = {
+  q: string;
+  /** The headline figure, and what it counts. Shown big in the specimen. */
+  value: string;
+  unit: string;
+  a: string;
+  src: string;
+  asOf: string;
+};
+
+/*
+  Six questions, each carrying everything the answer card needs to rebuild
+  itself when that question is picked.
+
+  The figures are illustrative and the card says so above them, because a
+  page arguing that answers should be checkable cannot print numbers nobody
+  can check. What is real, and the reason this section exists, is the pairing:
+  each question is answered by the source actually wired up to answer it, with
+  that source's actual freshness. Those two rows are the product.
+*/
+const ASKS: [Ask, ...Ask[]] = [
   {
     q: "How many hospitals are within 5 km?",
-    a: "A count, and every one of them pinned on the map.",
-    src: "OpenStreetMap · Overpass",
+    value: "14",
+    unit: "found, each pinned on the map",
+    a: "A count you can act on, and every one of them placed so you can see how they cluster.",
+    src: "OpenStreetMap, queried live via Overpass",
+    asOf: "The moment you asked",
   },
   {
     q: "What is actually here?",
-    a: "The address, what the building is, and what sits around it.",
-    src: "Nominatim · Overpass",
+    value: "1",
+    unit: "building identified",
+    a: "The address, what the building is, and what sits immediately around it.",
+    src: "Nominatim reverse geocode, plus Overpass",
+    asOf: "The moment you asked",
   },
   {
     q: "Is the air safe to run in this morning?",
-    a: "PM2.5, ozone and the rest, for this point, this hour.",
-    src: "Open-Meteo · hourly",
+    value: "42",
+    unit: "AQI at this point",
+    a: "PM2.5, ozone and the rest, for this exact point and this hour rather than for the city.",
+    src: "Open-Meteo air quality",
+    asOf: "Updated hourly",
   },
   {
     q: "How many people live in this district?",
-    a: "The figure, plus the census year it belongs to. Never an estimate.",
-    src: "Wikidata · dated",
+    value: "3.4",
+    unit: "million residents",
+    a: "The figure, and the census it came out of. Never a projection dressed up as a count.",
+    src: "Wikidata, sourced from the national census",
+    asOf: "Census year shown with the figure",
   },
   {
     q: "What did this block look like in 2014?",
-    a: "The satellite pass from that year, with its capture date.",
-    src: "NASA GIBS · dated",
+    value: "12",
+    unit: "years of imagery available",
+    a: "The satellite pass from the year you pick, labelled with the date it was captured.",
+    src: "NASA GIBS historical imagery",
+    asOf: "Each frame carries its capture date",
   },
   {
     q: "How far is it, and how big is this plot?",
-    a: "Draw it. Distance in metres, area in square metres.",
-    src: "Computed locally",
+    value: "8,410",
+    unit: "square metres enclosed",
+    a: "Trace a shape on the map. Distance in metres, area in square metres, computed as you draw.",
+    src: "Computed in your browser, nothing sent anywhere",
+    asOf: "Instant",
   },
 ];
 
@@ -129,26 +181,32 @@ const ASKS = [
    this product does not have — these are jobs it genuinely does today. */
 const USES = [
   {
+    icon: "radius",
     t: "Choosing a location",
     d: "Before you sign a lease, count what is actually within walking distance. Pharmacies, schools, transit, the competition. Not what the listing says.",
   },
   {
+    icon: "survey",
     t: "Field research",
     d: "Ground-truth a study area before travelling to it: what is built there, how dense it is, what the imagery looked like in previous years.",
   },
   {
+    icon: "cite",
     t: "Reporting and fact-checking",
     d: "Test a claim about a place against a source you can name in your copy, with the date the figure belongs to.",
   },
   {
+    icon: "radar",
     t: "Situational awareness",
     d: "Live rain radar and the last 24 hours of earthquakes, drawn over any area you care about.",
   },
   {
+    icon: "grid",
     t: "Teaching and coursework",
     d: "A GIS sandbox with real data and no licence to buy. Measurement, buffers, imagery and population figures, free for a whole class.",
   },
   {
+    icon: "ask",
     t: "Ordinary curiosity",
     d: "Is this a good place for a café? How bad is the air today? What is that building? All of it answers in a few taps.",
   },
@@ -191,14 +249,14 @@ const STEPS = [
 ];
 
 const INSIDE = [
-  { t: "Radius search", d: "Count hospitals, schools, ATMs, shops or anything else OSM knows about, inside a circle you set." },
-  { t: "Turn-by-turn navigation", d: "Real routing with live position tracking, not a static line on a map." },
-  { t: "3D buildings", d: "Real footprints extruded to real heights, from OSM height and level tags." },
-  { t: "Time travel", d: "Satellite imagery back to 2012, each frame labelled with the date it was taken." },
-  { t: "Live layers", d: "Rain radar and earthquake feeds, drawn over the map as they update." },
-  { t: "Measure and draw", d: "Distance between points, area of a shape you trace out." },
-  { t: "Area reports", d: "A printable summary of everything found at a location, sources included." },
-  { t: "maNOWj Daily", d: "Five satellite views a day. Guess where each one is. Free, no account." },
+  { icon: "count", t: "Radius search", d: "Count hospitals, schools, ATMs, shops or anything else OSM knows about, inside a circle you set." },
+  { icon: "route", t: "Turn-by-turn navigation", d: "Real routing with live position tracking, not a static line on a map." },
+  { icon: "blocks", t: "3D buildings", d: "Real footprints extruded to real heights, from OSM height and level tags." },
+  { icon: "time", t: "Time travel", d: "Satellite imagery back to 2012, each frame labelled with the date it was taken." },
+  { icon: "live", t: "Live layers", d: "Rain radar and earthquake feeds, drawn over the map as they update." },
+  { icon: "measure", t: "Measure and draw", d: "Distance between points, area of a shape you trace out." },
+  { icon: "report", t: "Area reports", d: "A printable summary of everything found at a location, sources included." },
+  { icon: "play", t: "maNOWj Daily", d: "Five satellite views a day. Guess where each one is. Free, no account." },
 ];
 
 /* Index safely into the tour. Callers pass an index they believe is in
@@ -206,6 +264,147 @@ const INSIDE = [
    autoplay timer degrades to "shows the first stop" instead of a crash. */
 function stopAt(index: number): Stop {
   return TOUR[((index % TOUR.length) + TOUR.length) % TOUR.length] ?? TOUR[0];
+}
+
+/*
+  The icon set.
+
+  Inline SVG rather than a font or a sprite: there are fourteen of them, they
+  are a few hundred bytes each, and shipping them as markup means no extra
+  request and no flash of missing glyphs on a slow connection.
+
+  Drawn in one language on purpose, the same one as the app mark: 24px box,
+  1.5 stroke, round caps, no fill, geometry only. They exist to make a grid of
+  cards scannable rather than to decorate it, so none of them is a picture of
+  its subject. Each one is the shape of what the tool does.
+*/
+const ICONS: Record<string, JSX.Element> = {
+  // A point fixed inside a radius: the app's core gesture.
+  radius: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // Terrain seen through a frame: surveying an area before visiting it.
+  survey: (
+    <>
+      <rect x="3.5" y="5" width="17" height="14" rx="1.5" />
+      <path d="M3.5 15.5 8 11l3.5 3 4-4.5 5 5.5" />
+    </>
+  ),
+  // A document with a line pulled out of it: a claim and its citation.
+  cite: (
+    <>
+      <path d="M6 3.5h8l4 4v13H6z" />
+      <path d="M14 3.5v4h4" />
+      <path d="M9 13h6M9 16.5h4" />
+    </>
+  ),
+  // Concentric arcs radiating from a point: live feeds over an area.
+  radar: (
+    <>
+      <circle cx="12" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M8.2 14.6a5.4 5.4 0 0 1 7.6 0" />
+      <path d="M5.4 11.4a9.4 9.4 0 0 1 13.2 0" />
+    </>
+  ),
+  // A grid with a measure across it: the teaching sandbox.
+  grid: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="1.5" />
+      <path d="M3.5 9.5h17M3.5 15h17M9.5 3.5v17M15 3.5v17" />
+    </>
+  ),
+  // A question mark's dot and curve, reduced to strokes.
+  ask: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M9.6 9.6a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2-2.4 3.5" />
+      <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // Pins scattered inside a boundary: counting features in a radius.
+  count: (
+    <>
+      <circle cx="12" cy="12" r="8.5" strokeDasharray="3 2.5" />
+      <circle cx="9" cy="10" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="14.5" cy="9.5" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="12.5" cy="15" r="1.3" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // A path with a turn and a heading: routing.
+  route: (
+    <>
+      <path d="M5.5 19c0-5 4-4.5 6.5-4.5S18.5 14 18.5 9" />
+      <circle cx="5.5" cy="19" r="1.8" fill="currentColor" stroke="none" />
+      <path d="M15.8 11.6 18.5 8.6l2.7 3" />
+    </>
+  ),
+  // Extruded blocks: 3D buildings.
+  blocks: (
+    <>
+      <path d="M4 20V11l4-2.5V20" />
+      <path d="M10 20V7l5-3v16" />
+      <path d="M17 20V10l3 1.8V20" />
+      <path d="M2.5 20h19" />
+    </>
+  ),
+  // A dial turned back: historical imagery.
+  time: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7v5.4l3.6 2.1" />
+    </>
+  ),
+  // A raindrop over a pulse: live weather and quake feeds.
+  live: (
+    <>
+      <path d="M12 3.5s5 5.6 5 8.9a5 5 0 0 1-10 0c0-3.3 5-8.9 5-8.9Z" />
+      <path d="M8.8 13.6h2l1.2 2.4 1.2-3.4 1 1h1.2" />
+    </>
+  ),
+  // A ruler's edge with ticks: measurement.
+  measure: (
+    <>
+      <path d="M3 14.5 14.5 3l6.5 6.5L9.5 21z" />
+      <path d="M7.5 10 9 11.5M10.5 7 12 8.5M13.5 4 15 5.5" />
+    </>
+  ),
+  // A sheet with a chart on it: the printable area report.
+  report: (
+    <>
+      <path d="M5.5 3.5h13v17h-13z" />
+      <path d="M9 15.5v-3M12 15.5v-6M15 15.5v-4" />
+    </>
+  ),
+  // A tile with a marker: the daily guessing game.
+  play: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="2.5" />
+      <path d="M10 8.5l5.5 3.5L10 15.5z" />
+    </>
+  ),
+};
+
+function Icon({ name }: { name: string }) {
+  return (
+    <svg
+      className="ln-icon"
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {ICONS[name]}
+    </svg>
+  );
 }
 
 function circle(center: [number, number], radiusMeters: number, points = 72) {
@@ -256,8 +455,12 @@ function prefersReducedMotion() {
    updates it within days, the URL does not change, and nothing that points
    at this page breaks, so this is a safe edit rather than a risky one. */
 const PAGE_TITLE = "AI Map Search that shows its sources | maNOWj GeoIntel";
+/* Kept under about 155 characters. Google truncates a description roughly
+   there, and the previous one ran to 198, so the sentence carrying the whole
+   point (that every answer shows its source) was being cut off mid-way in
+   the search result. */
 const PAGE_DESC =
-  "Pick any place on Earth and ask it a real question. How many hospitals within 5 km, what is here, what the air quality is. Every answer shows its source and the date it applies to. Free, no sign-up.";
+  "Ask any place on Earth a real question: how many hospitals within 5 km, what is here, what the air is like. Every answer shows its source and date.";
 
 /* Pull in Archivo and JetBrains Mono without putting them on the critical
    path. See the note at the top of LandingPage.css for why this is not an
@@ -289,6 +492,40 @@ function useScrollableDocument() {
 }
 
 const PAGE_URL = "https://www.manowj.com/ai-map-search";
+
+/*
+  FAQ structured data.
+
+  index.html already carries a WebApplication block describing the app, but
+  nothing described this page's FAQ, and six genuine question-and-answer
+  pairs are exactly what schema.org/FAQPage is for. Google can surface them
+  as expandable questions directly under the search result, which costs
+  nothing here because the answers are already written and already visible
+  on the page, which is the condition Google sets for using them.
+
+  Built from the same FAQ array the section renders, so the markup cannot
+  drift from the visible text. Claiming answers in structured data that a
+  visitor cannot find on the page is a manual-action offence, and generating
+  both from one source is what makes that impossible rather than unlikely.
+*/
+function useFaqSchema() {
+  useEffect(() => {
+    const el = document.createElement("script");
+    el.type = "application/ld+json";
+    el.dataset.landingFaq = "true";
+    el.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: FAQ.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    });
+    document.head.appendChild(el);
+    return () => el.remove();
+  }, []);
+}
 
 function useDocumentMeta() {
   useEffect(() => {
@@ -347,9 +584,14 @@ export function LandingPage() {
   }));
   const [mapReady, setMapReady] = useState(false);
 
+  /* Which question the answer card downstream is currently answering. */
+  const [askIndex, setAskIndex] = useState(0);
+  const ask = ASKS[askIndex] ?? ASKS[0];
+
   useScrollableDocument();
   useDisplayFonts();
   useDocumentMeta();
+  useFaqSchema();
 
   /* The bar starts transparent over the map — putting a solid strip across
      a satellite photograph would waste the one thing the hero is for — and
@@ -371,10 +613,17 @@ export function LandingPage() {
     setActive(index);
     if (!map) return;
     if (prefersReducedMotion()) {
-      map.jumpTo({ center: stop.center, zoom: stop.zoom });
+      map.jumpTo({ center: stop.center, zoom: stop.zoom, pitch: stop.pitch });
       setSettled(index);
     } else {
-      map.flyTo({ center: stop.center, zoom: stop.zoom, speed: 0.7, curve: 1.4, essential: true });
+      map.flyTo({
+        center: stop.center,
+        zoom: stop.zoom,
+        pitch: stop.pitch,
+        speed: 0.7,
+        curve: 1.4,
+        essential: true,
+      });
       map.once("moveend", () => setSettled(index));
     }
     const src = map.getSource("landing-ring") as maplibregl.GeoJSONSource | undefined;
@@ -393,7 +642,7 @@ export function LandingPage() {
       style: buildBasemapStyle("satellite"),
       center: TOUR[0].center,
       zoom: TOUR[0].zoom - 1.6,
-      pitch: 42,
+      pitch: TOUR[0].pitch - 8,
       bearing: -14,
       attributionControl: false,
       /* A hero is scrolled past, not navigated. Trapping the wheel here would
@@ -413,25 +662,53 @@ export function LandingPage() {
           properties: {},
         },
       });
+      /*
+        The radius ring, drawn as three layers rather than one.
+
+        It is the single most recognisable thing the app does, and as one
+        1.5px dashed line at 85% opacity over satellite imagery it was
+        effectively invisible: dashes that thin disappear into roof texture.
+        A soft wide halo underneath lifts it off whatever is below, a solid
+        casing gives it an edge that survives busy ground, and the dashed
+        line on top keeps it reading as a drawn search area rather than as
+        something that is really there on the ground.
+      */
       map.addLayer({
         id: "landing-ring-fill",
         type: "fill",
         source: "landing-ring",
-        paint: { "fill-color": "#ff8d3a", "fill-opacity": 0.08 },
+        paint: { "fill-color": "#ff8d3a", "fill-opacity": 0.1 },
+      });
+      map.addLayer({
+        id: "landing-ring-halo",
+        type: "line",
+        source: "landing-ring",
+        paint: { "line-color": "#ff8d3a", "line-width": 9, "line-opacity": 0.16, "line-blur": 5 },
+      });
+      map.addLayer({
+        id: "landing-ring-casing",
+        type: "line",
+        source: "landing-ring",
+        paint: { "line-color": "#1a0d02", "line-width": 4.5, "line-opacity": 0.45 },
       });
       map.addLayer({
         id: "landing-ring-line",
         type: "line",
         source: "landing-ring",
-        paint: { "line-color": "#ff8d3a", "line-width": 1.5, "line-dasharray": [2, 2], "line-opacity": 0.85 },
+        paint: {
+          "line-color": "#ffa055",
+          "line-width": 2.4,
+          "line-dasharray": [2.4, 1.8],
+          "line-opacity": 1,
+        },
       });
       setMapReady(true);
       /* Settle into the first stop rather than snapping — the page should
          look like an instrument warming up, not a screenshot. */
       if (prefersReducedMotion()) {
-        map.jumpTo({ zoom: TOUR[0].zoom, pitch: 38, bearing: 0 });
+        map.jumpTo({ zoom: TOUR[0].zoom, pitch: TOUR[0].pitch, bearing: 0 });
       } else {
-        map.easeTo({ zoom: TOUR[0].zoom, pitch: 38, bearing: 0, duration: 2600 });
+        map.easeTo({ zoom: TOUR[0].zoom, pitch: TOUR[0].pitch, bearing: 0, duration: 2600 });
       }
     });
 
@@ -612,82 +889,119 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/*
+        The questions and the answer anatomy, merged into one live thing.
+
+        They used to be two sections stacked on top of each other: a flat grid
+        of six question cards, then a static specimen card explaining that
+        answers carry a source and a date. Both were telling. Neither let you
+        do anything, and together they were two of the five consecutive
+        card-grid sections that made the page read as a wall of text.
+
+        Now picking a question rebuilds the answer beside it. The claim the
+        page rests on is that the source and the date travel with every
+        answer, and clicking through six very different questions and watching
+        those two rows change to match is the shortest way to see that it is
+        true rather than be told.
+      */}
       <section className="ln-ask" id="ask">
         <div className="ln-wrap">
           <p className="ln-kicker">What you can actually ask</p>
-          <h2 className="ln-h2 ln-h2--wide">Six real questions, and what comes back.</h2>
+          <h2 className="ln-h2 ln-h2--wide">Pick a question. Watch the answer build.</h2>
 
-          <div className="ln-asks">
-            {ASKS.map((a) => (
-              <article key={a.q} className="ln-askcard">
-                <h3 className="ln-askcard__q">{a.q}</h3>
-                <p className="ln-askcard__a">{a.a}</p>
-                <p className="ln-askcard__src">{a.src}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+          <div className="ln-demo">
+            <ul className="ln-qlist">
+              {ASKS.map((a, i) => (
+                <li key={a.q}>
+                  <button
+                    type="button"
+                    className={`ln-q${i === askIndex ? " is-active" : ""}`}
+                    onClick={() => setAskIndex(i)}
+                    aria-pressed={i === askIndex}
+                  >
+                    <span className="ln-q__text">{a.q}</span>
+                    <span className="ln-q__arrow" aria-hidden="true" />
+                  </button>
+                </li>
+              ))}
+            </ul>
 
-      {/*
-        The differentiator, drawn rather than asserted.
-
-        A screenshot would show one answer; this shows the anatomy of every
-        answer, with the two parts that distinguish it — the source and the
-        date — called out as labelled components. It is an illustration of
-        the real UI's structure, and the figures in it are deliberately
-        generic rather than a specific claim about a specific place.
-      */}
-      <section className="ln-anatomy">
-        <div className="ln-wrap">
-          <p className="ln-kicker">Anatomy of an answer</p>
-          <h2 className="ln-h2 ln-h2--wide">Four parts. Two of them are the whole point.</h2>
-
-          <div className="ln-anatomy__grid">
-            <figure className="ln-specimen">
-              <figcaption className="ln-specimen__cap">Example layout. Not a live result.</figcaption>
+            {/* keyed on the question so the card genuinely remounts and the
+                entry animation replays on every pick, rather than the numbers
+                silently swapping in place where the change is easy to miss */}
+            <figure className="ln-specimen" key={ask.q}>
+              <figcaption className="ln-specimen__cap">
+                Example figures. The source and date rows are the real thing.
+              </figcaption>
 
               <div className="ln-specimen__row">
                 <span className="ln-specimen__tag">Question</span>
-                <p className="ln-specimen__q">Hospitals within 2 km of this point</p>
+                <p className="ln-specimen__q">{ask.q}</p>
               </div>
 
               <div className="ln-specimen__row">
                 <span className="ln-specimen__tag">Result</span>
                 <p className="ln-specimen__result">
-                  <strong>14</strong> found, each one pinned on the map
+                  <strong>{ask.value}</strong> {ask.unit}
                 </p>
               </div>
 
               <div className="ln-specimen__row ln-specimen__row--lit">
                 <span className="ln-specimen__tag ln-specimen__tag--lit">Source</span>
-                <p className="ln-specimen__meta">OpenStreetMap, queried via Overpass</p>
+                <p className="ln-specimen__meta">{ask.src}</p>
               </div>
 
               <div className="ln-specimen__row ln-specimen__row--lit">
                 <span className="ln-specimen__tag ln-specimen__tag--lit">As of</span>
-                <p className="ln-specimen__meta">The moment you asked. This is a live query.</p>
+                <p className="ln-specimen__meta">{ask.asOf}</p>
               </div>
-            </figure>
 
-            <div className="ln-anatomy__copy">
-              <h3 className="ln-anatomy__h">Why the bottom two rows matter</h3>
-              <p className="ln-lede">
-                A number on its own cannot be checked, argued with, or quoted in anything serious. That is
-                what most map tools hand you, and it is what you get from any chatbot you ask about a place:
-                a confident figure with no way back to where it came from.
-              </p>
-              <p className="ln-lede ln-anatomy__p">
-                Here the source and the date travel with the answer. A population figure from a 2011 census
-                and one from 2023 are different facts wearing the same number, so the year is part of the
-                answer, not a footnote. And when a source has nothing to say, the app tells you that too,
-                instead of filling the gap with an estimate you had no way of spotting.
-              </p>
-            </div>
+              <p className="ln-specimen__note">{ask.a}</p>
+            </figure>
+          </div>
+
+          <p className="ln-ask__why">
+            A number on its own cannot be checked, argued with, or quoted in anything serious. That is what
+            most map tools hand you, and what any chatbot will tell you about a place: a confident figure with
+            no way back to where it came from. A population count from a 2011 census and one from 2023 are
+            different facts wearing the same number, so here the year is part of the answer rather than a
+            footnote. When a source has nothing to say, the app tells you that too.
+          </p>
+        </div>
+      </section>
+
+      {/*
+        A band of true figures, and the only place on the page that leads with
+        numbers. It sits here because it breaks up a run of prose sections,
+        and every figure in it is checkable from the rest of the page: eight
+        sources are named in the table above, the imagery year and the price
+        are stated in the FAQ.
+      */}
+      <section className="ln-figures">
+        <div className="ln-wrap ln-figures__row">
+          <div className="ln-fig">
+            <span className="ln-fig__n">8</span>
+            <span className="ln-fig__l">open data sources, all named</span>
+          </div>
+          <div className="ln-fig">
+            <span className="ln-fig__n">2012</span>
+            <span className="ln-fig__l">earliest satellite imagery</span>
+          </div>
+          <div className="ln-fig">
+            <span className="ln-fig__n">0</span>
+            <span className="ln-fig__l">accounts, trials or card details</span>
+          </div>
+          <div className="ln-fig">
+            <span className="ln-fig__n">100%</span>
+            <span className="ln-fig__l">of answers carry their source</span>
           </div>
         </div>
       </section>
 
+      {/* Laid out as a horizontal traverse rather than four cards. The
+          numbers are real sequence information, since you cannot check a
+          source before you have an answer, so a line runs through them and
+          the markers sit on it. */}
       <section className="ln-steps">
         <div className="ln-wrap">
           <p className="ln-kicker">How it works</p>
@@ -695,6 +1009,7 @@ export function LandingPage() {
           <ol className="ln-steplist">
             {STEPS.map((s) => (
               <li key={s.n} className="ln-step">
+                <span className="ln-step__marker" aria-hidden="true" />
                 <span className="ln-step__n">{s.n}</span>
                 <h3 className="ln-step__t">{s.t}</h3>
                 <p className="ln-step__d">{s.d}</p>
@@ -709,9 +1024,11 @@ export function LandingPage() {
           <p className="ln-kicker">Who opens this</p>
           <h2 className="ln-h2 ln-h2--wide">Six jobs it already does.</h2>
           <div className="ln-usegrid">
-            {USES.map((u, i) => (
+            {USES.map((u) => (
               <article key={u.t} className="ln-use">
-                <span className="ln-use__n">{String(i + 1).padStart(2, "0")}</span>
+                <span className="ln-use__icon">
+                  <Icon name={u.icon} />
+                </span>
                 <h3 className="ln-use__t">{u.t}</h3>
                 <p className="ln-use__d">{u.d}</p>
               </article>
@@ -727,8 +1044,13 @@ export function LandingPage() {
           <div className="ln-grid">
             {INSIDE.map((f) => (
               <article key={f.t} className="ln-feat">
-                <h3 className="ln-feat__t">{f.t}</h3>
-                <p className="ln-feat__d">{f.d}</p>
+                <span className="ln-feat__icon">
+                  <Icon name={f.icon} />
+                </span>
+                <div>
+                  <h3 className="ln-feat__t">{f.t}</h3>
+                  <p className="ln-feat__d">{f.d}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -758,7 +1080,17 @@ export function LandingPage() {
 
       <section className="ln-maker">
         <div className="ln-wrap ln-maker__inner">
-          <img className="ln-maker__photo" src="/about/creator.jpg" alt="Manoj Kumar Gudla" width={96} height={96} />
+          {/* Deep below the fold, so it waits rather than competing with the
+              hero map for the first connections. */}
+          <img
+            className="ln-maker__photo"
+            src="/about/creator.jpg"
+            alt="Manoj Kumar Gudla, who designed and built maNOWj GeoIntel"
+            width={96}
+            height={96}
+            loading="lazy"
+            decoding="async"
+          />
           <div>
             <p className="ln-kicker">Who built it</p>
             <h2 className="ln-h2">Manoj Kumar Gudla</h2>
