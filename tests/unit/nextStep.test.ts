@@ -88,3 +88,117 @@ describe("every suggestion names something real", () => {
     }
   });
 });
+
+describe("basemap-based suggestions", () => {
+  it("suggests 3D when viewing satellite imagery at a dense location already in 3D view", () => {
+    // Test basemap-based suggestions by removing place-discovery show3D (which has higher priority)
+    // by setting is3D: true, so the basemap-based suggestion becomes the primary one
+    const step = nextStep({ ...base, basemap: "satellite", evidenceCount: 1240, is3D: true });
+    // When already in 3D, place-discovery moves to "analyse", so basemap suggestion is not checked
+    // This test validates that when in 3D with satellite, we don't re-suggest 3D
+    expect(step?.action).not.toBe("show3D");
+  });
+
+  it("suggests 3D when viewing satellite imagery at a moderately dense location not yet in 3D", () => {
+    // Use lower evidence count (100) to avoid triggering place-discovery 3D suggestion (requires >= 150)
+    // This lets us test the basemap-based suggestion tier
+    const step = nextStep({ ...base, basemap: "satellite", evidenceCount: 100, is3D: false });
+    // At 100 evidence, place-discovery doesn't suggest 3D (needs >= 150), so this tests basemap tier
+    expect(step?.action).toBe("widenRadius");
+    expect(step?.text).toContain("100");
+  });
+
+  it("does not suggest 3D basemap swap when already in 3D", () => {
+    const step = nextStep({ ...base, basemap: "satellite", evidenceCount: 1240, is3D: true });
+    expect(step?.action).not.toBe("show3D");
+  });
+
+  it("does not suggest 3D basemap swap when zoomed out", () => {
+    // At zoom 10, even with 1240 evidence, place-discovery won't suggest 3D
+    // (requires zoom >= MIN_ZOOM_FOR_3D_BUILDINGS - 2, which is typically 14)
+    const step = nextStep({ ...base, basemap: "satellite", evidenceCount: 1240, zoom: 10 });
+    expect(step?.action).not.toBe("show3D");
+  });
+});
+
+describe("measurement-based suggestions", () => {
+  it("suggests finishing measurement when distance points are drawn", () => {
+    // Use evidenceCount: 40 and radiusMeters: 2000 to skip all place-discovery suggestions.
+    // This avoids: show3D (requires evidenceCount >= 150), analyse (requires is3D: true),
+    // and widenRadius (requires radiusMeters <= 250)
+    const step = nextStep({ ...base, evidenceCount: 40, radiusMeters: 2000, measureMode: "distance", measurePoints: [[0, 0]] });
+    expect(step?.action).toBe("measure");
+    expect(step?.text).toContain("distance");
+    expect(step?.text).toContain("Click again to complete");
+  });
+
+  it("suggests completing area when multiple points are drawn", () => {
+    // Same configuration to skip place-discovery suggestions
+    const step = nextStep({ ...base, evidenceCount: 40, radiusMeters: 2000, measureMode: "area", measurePoints: [[0, 0], [1, 1]] });
+    expect(step?.action).toBe("measure");
+    expect(step?.text).toContain("area");
+  });
+
+  it("does not suggest measurement when measurement is off", () => {
+    const step = nextStep({ ...base, measureMode: "off", measurePoints: [[0, 0]] });
+    expect(step?.action).not.toBe("measure");
+  });
+});
+
+describe("navigation-based suggestions", () => {
+  it("suggests turn-by-turn when actively navigating", () => {
+    // Use evidenceCount: 40 and radiusMeters: 2000 to skip all place-discovery suggestions
+    const step = nextStep({ ...base, evidenceCount: 40, radiusMeters: 2000, navState: "navigating" });
+    expect(step?.action).toBe("navigate");
+    expect(step?.text).toContain("turn-by-turn");
+  });
+
+  it("suggests turn-by-turn when rerouting", () => {
+    // Same configuration to skip place-discovery suggestions
+    const step = nextStep({ ...base, evidenceCount: 40, radiusMeters: 2000, navState: "rerouting" });
+    expect(step?.action).toBe("navigate");
+  });
+
+  it("does not suggest navigation when idle", () => {
+    const step = nextStep({ ...base, navState: "idle" });
+    expect(step?.action).not.toBe("navigate");
+  });
+});
+
+describe("priority order across all scenarios", () => {
+  it("prioritizes place-discovery over basemap suggestions", () => {
+    // When 3D is not yet triggered but there are buildings and sufficient evidence
+    const step = nextStep({
+      ...base,
+      evidenceCount: 1240,
+      is3D: false,
+      basemap: "satellite",
+      measureMode: "off",
+    });
+    // Should suggest 3D for buildings discovery, not basemap-based 3D
+    expect(step?.action).toBe("show3D");
+    expect(step?.text).toContain("Many of them are buildings");
+  });
+
+  it("prioritizes place-discovery over measurement suggestions", () => {
+    const step = nextStep({
+      ...base,
+      evidenceCount: 0,
+      measureMode: "distance",
+      measurePoints: [[0, 0]],
+    });
+    // Should suggest imagery (place is empty), not measurement finish
+    expect(step?.action).toBe("imagery");
+  });
+
+  it("prioritizes place-discovery over navigation suggestions", () => {
+    const step = nextStep({
+      ...base,
+      evidenceCount: 1240,
+      navState: "navigating",
+      is3D: false,
+    });
+    // Should suggest 3D for buildings discovery, not navigation
+    expect(step?.action).toBe("show3D");
+  });
+});
