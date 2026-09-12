@@ -1,0 +1,300 @@
+/*
+  Broadcast styling for the review overlay.
+
+  Deliberately its own visual world rather than the app's: a review is a cut
+  away from the match to a different camera, and it should feel like one. Dark
+  ground, one cold accent for the tracking, and the three verdict colours
+  every cricket viewer already reads without being taught — red for out,
+  green for not out, amber for umpire's call.
+
+  Committed to a dark palette on purpose and painted explicitly, so it holds
+  whatever theme the app is in behind it.
+*/
+
+.drs {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(4, 8, 16, 0.93);
+  backdrop-filter: blur(6px);
+  animation: drs-in 0.28s ease-out both;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+@keyframes drs-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.drs__panel {
+  width: min(680px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  border: 1px solid #22304a;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #0c1524 0%, #070d18 100%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  color: #e8eefb;
+}
+
+/* ---------- header ---------- */
+
+.drs__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid #1b2740;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.drs__mark {
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: #0a1020;
+  background: #4da3ff;
+  padding: 4px 9px;
+  border-radius: 3px;
+}
+
+.drs__headtext {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: #8fa3c4;
+  font-weight: 600;
+}
+
+.drs__onfield {
+  margin-left: auto;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #8fa3c4;
+}
+
+.drs__onfield strong { color: #e8eefb; }
+
+/* ---------- "review requested" ---------- */
+
+.drs__requested {
+  padding: 54px 20px;
+  text-align: center;
+}
+
+.drs__requested-top {
+  margin: 0 0 10px;
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  animation: drs-pulse 1.1s ease-in-out infinite;
+}
+
+.drs__requested-sub {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: #7d8fae;
+}
+
+@keyframes drs-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* ---------- the two camera angles ---------- */
+
+.drs__stage {
+  padding: 14px 16px 4px;
+}
+
+.drs__stage--front {
+  display: grid;
+  place-items: center;
+}
+
+.drs__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.drs__svg--front { max-width: 300px; }
+
+.drs__ground { stroke: #33456a; stroke-width: 1.5; }
+.drs__tick { stroke: #2a3a5c; stroke-width: 1; }
+.drs__ticklabel { fill: #6f80a0; font-size: 9px; letter-spacing: 0.08em; }
+.drs__marklabel { fill: #b9c8e4; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; }
+
+.drs__stump { fill: #d7e2f5; }
+.drs__bail { fill: #9fb2d4; }
+
+/* The flight, drawn on as it is tracked. */
+.drs__path,
+.drs__path--after {
+  fill: none;
+  stroke: #4da3ff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+}
+
+.drs__path.is-live { animation: drs-draw 1.05s ease-out forwards; }
+.drs__path--after.is-live { animation: drs-draw 0.5s ease-out 0.9s forwards; }
+
+/* What would have happened. Dashed, because it did not. */
+.drs__predicted {
+  fill: none;
+  stroke: #ffb454;
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  opacity: 0;
+}
+
+.drs__predicted.is-live { animation: drs-fade 0.5s ease-out forwards; }
+
+@keyframes drs-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes drs-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.drs__pitchmark { fill: #ffd166; opacity: 0.9; }
+.drs__impactmark { fill: #ff6b6b; }
+
+.drs__mark-in { animation: drs-pop 0.32s ease-out both; }
+
+@keyframes drs-pop {
+  from { opacity: 0; transform: scale(0.6); transform-origin: center; }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.drs__ball {
+  animation: drs-pop 0.4s ease-out both;
+  stroke-width: 2;
+}
+
+.drs__ball--out { fill: rgba(255, 90, 95, 0.85); stroke: #ff5a5f; }
+.drs__ball--call { fill: rgba(255, 180, 84, 0.85); stroke: #ffb454; }
+.drs__ball--notout { fill: rgba(70, 214, 148, 0.85); stroke: #46d694; }
+
+/* ---------- the three tests ---------- */
+
+.drs__tests {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin: 14px 16px 0;
+  background: #1b2740;
+  border: 1px solid #1b2740;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.drs__test {
+  background: #0a121f;
+  padding: 11px 8px;
+  text-align: center;
+  transition: background 0.25s ease;
+}
+
+.drs__testlabel {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: #6f80a0;
+  margin-bottom: 5px;
+}
+
+.drs__testvalue {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #45536f;
+}
+
+.drs__test.is-shown.drs__test--out { background: rgba(255, 90, 95, 0.14); }
+.drs__test.is-shown.drs__test--out .drs__testvalue { color: #ff8085; }
+.drs__test.is-shown.drs__test--notout { background: rgba(70, 214, 148, 0.14); }
+.drs__test.is-shown.drs__test--notout .drs__testvalue { color: #5fe0a6; }
+.drs__test.is-shown.drs__test--call { background: rgba(255, 180, 84, 0.14); }
+.drs__test.is-shown.drs__test--call .drs__testvalue { color: #ffc470; }
+
+/* ---------- verdict ---------- */
+
+.drs__verdict {
+  margin: 16px;
+  padding: 18px;
+  border-radius: 8px;
+  text-align: center;
+  animation: drs-pop 0.35s ease-out both;
+}
+
+.drs__verdict--out { background: rgba(255, 90, 95, 0.12); border: 1px solid rgba(255, 90, 95, 0.4); }
+.drs__verdict--notout { background: rgba(70, 214, 148, 0.12); border: 1px solid rgba(70, 214, 148, 0.4); }
+
+.drs__headline {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: #9fb0cd;
+  font-weight: 700;
+}
+
+.drs__decision {
+  margin: 0 0 8px;
+  font-size: clamp(1.8rem, 7vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.drs__verdict--out .drs__decision { color: #ff6b70; }
+.drs__verdict--notout .drs__decision { color: #46d694; }
+
+.drs__reason {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #c3d0e6;
+}
+
+.drs__retained {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #8296b5;
+}
+
+@media (max-width: 520px) {
+  .drs__panel { border-radius: 8px; }
+  .drs__head { padding: 11px 13px; gap: 8px; }
+  .drs__headtext { display: none; }
+  .drs__stage { padding: 10px 10px 2px; }
+  .drs__tests { margin: 12px 10px 0; }
+  .drs__verdict { margin: 12px 10px; padding: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drs,
+  .drs__requested-top,
+  .drs__mark-in,
+  .drs__ball,
+  .drs__verdict,
+  .drs__path,
+  .drs__path--after,
+  .drs__predicted {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .drs__path,
+  .drs__path--after { stroke-dashoffset: 0; }
+  .drs__predicted { opacity: 1; }
+}

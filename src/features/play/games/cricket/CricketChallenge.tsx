@@ -20,8 +20,6 @@ import {
   commentary,
   outcomeOf,
   umpireSignal,
-  judgeDismissal,
-  reviewDecision,
   REVIEWS_PER_INNINGS,
   createSuperOver,
   playBall,
@@ -30,16 +28,42 @@ import {
   type BallResult,
   type Delivery,
   type Difficulty,
-  type Dismissal,
   type MatchState,
 } from "./timing";
+import {
+  computeTrajectory,
+  reviewLbw,
+  settleReview,
+  umpireDecision,
+  wicketsVerdict,
+  type Decision,
+  type ReviewOutcome,
+  type ReviewResult,
+  type Trajectory,
+} from "./drs";
+import { DrsReview } from "./DrsReview";
 import type { Rng } from "../../lib/random";
+
 import { RoundSummary } from "../../components/RoundSummary";
 import { Stadium } from "./Stadium";
 import { usePlayStore } from "../../progress/playStore";
 import type { AppliedRound } from "../../progress/applyRound";
 import { playTone } from "../../sound";
 import "./Cricket.css";
+
+/** A pad struck in front, an umpire's decision, and the flight that produced both. */
+interface Shout {
+  trajectory: Trajectory;
+  playedShot: boolean;
+  onField: Decision;
+  state: MatchState;
+}
+
+interface PlayingReview {
+  shout: Shout;
+  result: ReviewResult;
+  outcome: ReviewOutcome;
+}
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = { easy: "Easy", normal: "Normal", hard: "Hard" };
 
@@ -102,15 +126,31 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
     }
   }, []);
   /**
-   * DRS. One review an innings, exactly as a T20 gives you.
+   * DRS. Two reviews an innings, decided by geometry rather than a die.
    *
-   * This is the piece that turns a dismissal from a full stop into a decision.
-   * The truth is fixed when the ball is bowled, so reviewing can only reveal
-   * what happened, never change it — anything else would be a slot machine in
-   * a cricket costume. Umpire's call keeps your review, as in the real thing.
+   * Every delivery is given a real pitching point, impact point and predicted
+   * path to the stumps as it leaves the hand (see drs.ts), and a review
+   * applies the three tests of the LBW law to those coordinates. So the
+   * verdict is a fact about the ball that was bowled, and a player who
+   * watched where it pitched can tell before spending a review that it
+   * pitched outside leg and is never out. That is the whole game in it.
+   *
+   * Umpire's call keeps your review, as the real rule does, which is what
+   * makes spending one a judgement rather than a free retry.
    */
   const [reviewsLeft, setReviewsLeft] = useState(REVIEWS_PER_INNINGS);
-  const [pendingOut, setPendingOut] = useState<{ dismissal: Dismissal; state: MatchState } | null>(null);
+  /**
+   * A live LBW appeal: the ball struck the pad, the umpire has given a
+   * decision, and the player may review it. Carries the trajectory so the
+   * review reads the same flight the umpire just judged.
+   */
+  const [shout, setShout] = useState<Shout | null>(null);
+  /** A review in progress. The overlay owns the screen while this is set. */
+  const [playing, setPlaying] = useState<PlayingReview | null>(null);
+  const playingRef = useRef<PlayingReview | null>(null);
+  playingRef.current = playing;
+  /** Where the ball really went, recomputed for every delivery as it is bowled. */
+  const trajectoryRef = useRef<Trajectory | null>(null);
   const [reviewVerdict, setReviewVerdict] = useState<string | null>(null);
   /** One line about the ball just played, in a commentator's voice. */
   const [callOut, setCallOut] = useState("");
@@ -177,7 +217,8 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
       setReadsLeft(READS_PER_MATCH);
       setRead(null);
       setReviewsLeft(REVIEWS_PER_INNINGS);
-      setPendingOut(null);
+      setShout(null);
+      setPlaying(null);
       setReviewVerdict(null);
       setPhase("ready");
     },
@@ -203,13 +244,31 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
       const next = applyBall(current, ball, aimRef.current, result);
       stateRef.current = next;
 
-      // Only a ball that beat the bat can be reviewed — a caught edge is a
-      // catch, and there is nothing for ball tracking to say about it.
-      if (result.outcome === "out") {
-        const dismissal = judgeDismissal(ball, result.contact, rng);
-        setPendingOut(dismissal.reviewable && reviewsLeft > 0 ? { dismissal, state: current } : null);
+      /*
+        A wicket that beat the bat is where ball tracking has something to
+        say. A caught edge is a catch: there is nothing to review.
+
+        The split between bowled and an LBW shout comes off the trajectory
+        rather than a coin. If the ball was going to hit low and straight,
+        it beat the pad too and knocked the stumps over, and nobody reviews
+        a bowled. Anything else struck the pad on the way, which is the
+        shout — and the shout is where the geometry earns its keep, because
+        the umpire cannot see deviation after pitching and the player can
+        learn to.
+      */
+      if (result.outcome === "out" && result.contact === "miss") {
+        const t = trajectoryRef.current;
+        const bowledOutright = t !== null && wicketsVerdict(t) === "hitting" && t.impact.y < 0.25;
+
+        if (t && !bowledOutright) {
+          const playedShot = offsetMs !== null;
+          const onField = umpireDecision(t, playedShot, rng);
+          setShout({ trajectory: t, playedShot, onField, state: current });
+        } else {
+          setShout(null);
+        }
       } else {
-        setPendingOut(null);
+        setShout(null);
       }
       setReviewVerdict(null);
 
@@ -242,6 +301,11 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
     setPlanNote(note);
     setGuarding(bowlerPlan(current.history).avoid);
     deliveryRef.current = ball;
+    // Worked out now, as the ball leaves the hand, not when a review is
+    // asked for. A review that recomputed the flight at the moment it was
+    // requested could give a different answer to the one the ball actually
+    // took, which is the exact dishonesty the whole system exists to avoid.
+    trajectoryRef.current = computeTrajectory(ball, aimRef.current, rng);
     setDelivery(ball);
     setLastResult(null);
     setRead(null); // a read buys you one ball, not the whole over
@@ -299,26 +363,64 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
    * that ball is re-applied as a dot — which is what actually happens: the
    * wicket is struck off and the delivery still counts.
    */
+  /**
+   * Spends a review: runs the law over the stored trajectory, then hands the
+   * result to the replay overlay. Nothing is applied to the match until the
+   * replay has finished playing, so the player watches the decision arrive
+   * rather than being told it and then shown it.
+   */
   const review = () => {
-    if (!pendingOut) return;
-    const verdict = reviewDecision(pendingOut.dismissal);
-    setReviewVerdict(verdict.verdict);
-    if (verdict.reviewLost) setReviewsLeft((n) => n - 1);
+    if (!shout) return;
+    const result = reviewLbw(shout.trajectory, shout.playedShot);
+    const outcome = settleReview(shout.onField, result);
+    setPlaying({ shout, result, outcome });
+  };
 
-    if (verdict.notOut) {
+  /** Applies whatever the review settled on, once the replay has played out. */
+  const applyReview = useCallback(() => {
+    const p = playingRef.current;
+    if (!p) return;
+    setPlaying(null);
+    setShout(null);
+
+    if (!p.outcome.reviewRetained) setReviewsLeft((n) => Math.max(0, n - 1));
+    setReviewVerdict(`${p.outcome.headline} — ${p.result.reason}`);
+
+    // Only a NOT OUT changes the match. The wicket is struck off, the ball
+    // still counts, and the innings carries on.
+    if (p.outcome.finalDecision === "not-out") {
       const current = stateRef.current;
       const played = current ? current.history[current.history.length - 1] : undefined;
       const rewound: MatchState = {
-        ...pendingOut.state,
-        ballsBowled: pendingOut.state.ballsBowled + 1,
-        history: played ? [...pendingOut.state.history, { ...played, outcome: 0 }] : pendingOut.state.history,
+        ...p.shout.state,
+        ballsBowled: p.shout.state.ballsBowled + 1,
+        history: played ? [...p.shout.state.history, { ...played, outcome: 0 }] : p.shout.state.history,
       };
       stateRef.current = rewound;
       setState(rewound);
       setPhase(isOver(rewound) ? "done" : "result");
       setCallOut("Not out! The review saves you.");
     }
-    setPendingOut(null);
+  }, []);
+
+  /** Declining a review lets the on-field decision stand, whatever it was. */
+  const declineReview = () => {
+    if (shout && shout.onField === "not-out") {
+      // The umpire said not out and the player did not ask. The wicket the
+      // game had already applied has to come back off.
+      const current = stateRef.current;
+      const played = current ? current.history[current.history.length - 1] : undefined;
+      const rewound: MatchState = {
+        ...shout.state,
+        ballsBowled: shout.state.ballsBowled + 1,
+        history: played ? [...shout.state.history, { ...played, outcome: 0 }] : shout.state.history,
+      };
+      stateRef.current = rewound;
+      setState(rewound);
+      setPhase(isOver(rewound) ? "done" : "result");
+      setCallOut("Given not out. The appeal is turned down.");
+    }
+    setShout(null);
   };
 
   // Record the innings once.
@@ -462,21 +564,34 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
         Umpire's call keeps your review, exactly as the real rule does, which
         is what makes spending it a genuine gamble rather than a free retry.
       */}
-      {pendingOut && (
+      {shout && !playing && (
         <div className="cricket__drs" role="alert">
-          <p className="cricket__drs-head">Given out. Do you want to review?</p>
+          <p className="cricket__drs-head">
+            {shout.onField === "out" ? "Given out, LBW. Review it?" : "Turned down. Review it?"}
+          </p>
           <p className="cricket__drs-note">
-            {reviewsLeft} review{reviewsLeft === 1 ? "" : "s"} left. If the ball was hitting, you lose it.
+            {reviewsLeft} review{reviewsLeft === 1 ? "" : "s"} left. Umpire's call keeps it; a decision confirmed
+            spends it.
           </p>
           <div className="cricket__drs-actions">
-            <button type="button" className="cricket__drs-go" onClick={review}>
-              Review it
+            <button type="button" className="cricket__drs-go" onClick={review} disabled={reviewsLeft <= 0}>
+              {reviewsLeft > 0 ? "Review it" : "No reviews left"}
             </button>
-            <button type="button" className="cricket__drs-no" onClick={() => setPendingOut(null)}>
+            <button type="button" className="cricket__drs-no" onClick={declineReview}>
               Take the decision
             </button>
           </div>
         </div>
+      )}
+
+      {playing && (
+        <DrsReview
+          trajectory={playing.shout.trajectory}
+          result={playing.result}
+          outcome={playing.outcome}
+          onFieldDecision={playing.shout.onField}
+          onComplete={applyReview}
+        />
       )}
 
       {reviewVerdict && (

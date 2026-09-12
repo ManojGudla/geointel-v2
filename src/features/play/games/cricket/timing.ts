@@ -575,77 +575,22 @@ export function commentary(before: MatchState, after: MatchState, result: BallRe
  * called, so reviewing cannot change what happened — it can only reveal it.
  * Anything else would be a slot machine wearing a cricket costume.
  */
-export type UmpireTruth = "hitting" | "umpires-call" | "missing";
-
-export interface Dismissal {
-  /** Where the ball was really going, decided when it was bowled. */
-  truth: UmpireTruth;
-  /** Only a ball that beat the bat can be reviewed — a caught edge is a catch. */
-  reviewable: boolean;
-}
-
 /**
- * How likely a given delivery was really going on to hit the stumps.
+ * One review per innings became two, and the die roll that used to decide
+ * them is gone.
  *
- * Taken from the shape of the ball rather than invented: a yorker that beats
- * you is almost always hitting, a bouncer almost never is. Those are the same
- * numbers the miss logic already uses, kept consistent on purpose.
+ * What lived here was judgeDismissal/reviewDecision: a per-length
+ * probability that said "hitting", "umpire's call" or "missing", which the
+ * review then read back out. Honest about being a roll, but it meant nothing
+ * the player could see predicted the verdict, so after three reviews the
+ * counter was decoration.
+ *
+ * It is replaced by drs.ts, which gives every delivery a real pitching
+ * point, impact point and predicted path, and applies the three tests of the
+ * LBW law to those coordinates. Two reviews, because a decision only has
+ * weight when spending it can cost you the next one.
  */
-export function judgeDismissal(delivery: Delivery, contact: Contact, rng: Rng): Dismissal {
-  if (contact !== "miss") return { truth: "hitting", reviewable: false };
-
-  const hittingChance =
-    delivery.length === "yorker" ? 0.9 : delivery.length === "full" ? 0.76 : delivery.length === "good" ? 0.55 : delivery.length === "short" ? 0.22 : 0.06;
-
-  const roll = rng.next();
-  // The umpire's-call band is narrow, as it is in the real thing: it is the
-  // margin where the ball is clipping the stumps and the on-field decision
-  // stands whichever way it was given.
-  if (roll < hittingChance - 0.12) return { truth: "hitting", reviewable: true };
-  if (roll < hittingChance + 0.06) return { truth: "umpires-call", reviewable: true };
-  return { truth: "missing", reviewable: true };
-}
-
-export type ReviewOutcome = "overturned" | "upheld" | "umpires-call";
-
-export interface ReviewResult {
-  outcome: ReviewOutcome;
-  /** True when the batter survives. */
-  notOut: boolean;
-  /** Reviews are only lost when the decision stands outright. */
-  reviewLost: boolean;
-  verdict: string;
-}
-
-/** One review per innings, as in a T20. */
-export const REVIEWS_PER_INNINGS = 1;
-
-export function reviewDecision(dismissal: Dismissal): ReviewResult {
-  if (dismissal.truth === "missing") {
-    return {
-      outcome: "overturned",
-      notOut: true,
-      reviewLost: false,
-      verdict: "Ball tracking says it was missing the stumps. NOT OUT — decision overturned.",
-    };
-  }
-  if (dismissal.truth === "umpires-call") {
-    return {
-      outcome: "umpires-call",
-      notOut: false,
-      // The real rule, and the reason umpire's call matters: the decision
-      // stands, but you keep the review.
-      reviewLost: false,
-      verdict: "Umpire's call — clipping the stumps. The on-field decision stands, but you keep your review.",
-    };
-  }
-  return {
-    outcome: "upheld",
-    notOut: false,
-    reviewLost: true,
-    verdict: "Three reds. Smashing the stumps. OUT — and that is your review gone.",
-  };
-}
+export const REVIEWS_PER_INNINGS = 2;
 
 /** What the umpire signals, so the figure on screen does the right thing. */
 export type UmpireSignal = "none" | "out" | "four" | "six" | "wide-arms";
