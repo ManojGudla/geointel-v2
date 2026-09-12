@@ -3,11 +3,13 @@ import {
   analyticsAvailable,
   gtmId,
   loadTagManager,
+  enableSentry,
   readConsent,
   shouldAskConsent,
   writeConsent,
   type ConsentChoice,
 } from "./consent";
+import { useConsentUiStore } from "./consentUiStore";
 import "./ConsentBanner.css";
 
 /**
@@ -36,26 +38,50 @@ import "./ConsentBanner.css";
 export function ConsentBanner() {
   const [choice, setChoice] = useState<ConsentChoice | null>(null);
   const [ready, setReady] = useState(false);
+  const setConsentAsking = useConsentUiStore((s) => s.setAsking);
 
   useEffect(() => {
     const saved = readConsent();
     setChoice(saved);
     setReady(true);
     // A visitor who already accepted should not have to accept again.
-    const id = gtmId();
-    if (saved === "granted" && id) loadTagManager(id);
+    if (saved === "granted") {
+      const id = gtmId();
+      if (id) loadTagManager(id);
+      enableSentry().catch((e) => {
+        console.error("[consent] failed to enable Sentry", e);
+      });
+    }
   }, []);
 
   const decide = (next: ConsentChoice) => {
     writeConsent(next);
     setChoice(next);
-    const id = gtmId();
-    if (next === "granted" && id) loadTagManager(id);
+    if (next === "granted") {
+      const id = gtmId();
+      if (id) loadTagManager(id);
+      enableSentry().catch((e) => {
+        console.error("[consent] failed to enable Sentry", e);
+      });
+    }
   };
 
   // `ready` keeps the banner from flashing on screen for a visitor who
   // answered months ago, before localStorage has been read.
-  if (!ready || !analyticsAvailable() || !shouldAskConsent(choice)) return null;
+  const asking = ready && analyticsAvailable() && shouldAskConsent(choice);
+
+  // Published so the onboarding card can wait its turn. This banner sits at
+  // z-index 60 and that card at 12, so while both were up the banner covered
+  // the card's Dismiss button and a first-time visitor on a phone could not
+  // close it. See consentUiStore.ts for the measurements.
+  useEffect(() => {
+    setConsentAsking(asking);
+    // Cleared on unmount so the card is never blocked by a banner that is no
+    // longer there.
+    return () => setConsentAsking(false);
+  }, [asking, setConsentAsking]);
+
+  if (!asking) return null;
 
   return (
     /*
@@ -76,9 +102,9 @@ export function ConsentBanner() {
       <div className="consent__text">
         <p className="consent__title">Can we count this visit?</p>
         <p className="consent__body">
-          We would like to use Google Analytics to see how many people use the site and which features they open.
-          It sets cookies and sends your visit to Google. Nothing is loaded until you choose, and saying no keeps
-          the site working exactly the same.
+          We would like to use Google Analytics and Sentry to see how many people use the site, which features they open, and to catch errors that break the experience.
+          Analytics sets cookies and sends your visit to Google. Error tracking helps us fix bugs faster. Nothing is loaded until you choose, and saying no keeps
+          the site working exactly the same. See our <a href="/privacy">Privacy page</a> for details.
         </p>
       </div>
       <div className="consent__actions">

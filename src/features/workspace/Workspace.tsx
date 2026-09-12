@@ -23,6 +23,7 @@ import { SurpriseTeaser } from "@/features/surprise/SurpriseTeaser";
 import { NavigationHud } from "@/features/routing/navigation/NavigationHud";
 import { MeasureHud } from "@/features/measure/MeasureHud";
 import { CoordinateReadout } from "@/features/map/CoordinateReadout";
+import { BasemapSwitcher } from "@/features/map/BasemapSwitcher";
 import { MapOnboarding } from "@/features/onboarding/MapOnboarding";
 import { NavRail } from "@/features/shell/NavRail";
 import { SidePanel } from "@/features/shell/SidePanel";
@@ -115,6 +116,12 @@ export function Workspace() {
 
             <ErrorBoundary label="Measurement readout" variant="panel">
               <MeasureHud />
+            </ErrorBoundary>
+
+            {/* On the map, above the coordinate chip. See BasemapSwitcher.tsx
+                for why this belongs here and not only in the Layers panel. */}
+            <ErrorBoundary label="Map style" variant="panel">
+              <BasemapSwitcher />
             </ErrorBoundary>
 
             <CoordinateReadout />

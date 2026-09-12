@@ -39,6 +39,28 @@ describe("onboardingVisible", () => {
   it("hides once dismissed", () => {
     expect(onboardingVisible(false, true)).toBe(false);
   });
+
+  /*
+    The consent banner renders at z-index 60; this card at 12. While both
+    were on screen the banner covered the card's Dismiss button completely.
+    Measured against the built app: at 390px and at 768px wide,
+    document.elementFromPoint at the centre of "Dismiss" returned the consent
+    banner's own text rather than the button, so the button was unclickable.
+    A first-time visitor on a phone got a card over the map that would not
+    close, tapped it, and concluded the app was broken. Desktop was fine,
+    which is why it survived review.
+  */
+  it("waits while the consent banner is still asking", () => {
+    expect(onboardingVisible(false, false, true)).toBe(false);
+  });
+
+  it("appears once the consent question has been answered", () => {
+    expect(onboardingVisible(false, false, false)).toBe(true);
+  });
+
+  it("never reappears because consent was answered, if a place is already chosen", () => {
+    expect(onboardingVisible(true, false, false)).toBe(false);
+  });
 });
 
 describe("the two first-run surfaces are never on screen together", () => {

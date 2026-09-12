@@ -78,8 +78,11 @@
   }
 
   /* While measuring on a phone, the bottom edge belongs to the measurement
-     readout alone rather than stacking two overlays in 380px of width. */
-  .workspace__stage--measuring .coordinate-readout {
+     readout alone rather than stacking two overlays in 380px of width.
+     The map-style pill sits in the same corner and yields for the same
+     reason; you are not changing basemap mid-measurement. */
+  .workspace__stage--measuring .coordinate-readout,
+  .workspace__stage--measuring .basemap-switcher {
     display: none;
   }
 
@@ -94,8 +97,13 @@
 
      Hiding the launcher here costs nothing: it needs a selected location to
      answer anything, and while this card is up there isn't one. Both come
-     back the moment the card is dismissed or a place is chosen. */
+     back the moment the card is dismissed or a place is chosen.
+
+     The map-style pill is in that corner too and outranks the card as well,
+     so it yields on the same terms. It is back the instant the card is
+     dismissed, which is also the first moment anyone is looking for it. */
   .workspace__stage--onboarding .coordinate-readout,
+  .workspace__stage--onboarding .basemap-switcher,
   .workspace__stage--onboarding .copilot-launcher {
     display: none;
   }
