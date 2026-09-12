@@ -7,6 +7,8 @@ import { useShow3D } from "@/features/map/useShow3D";
 import { useMapStore } from "@/stores/mapStore";
 import { useGisEvidence } from "@/features/gis/useGisEvidence";
 import { totalEvidenceCount } from "@/features/gis/evidenceTotal";
+import { useNavigationStore } from "@/features/routing/navigation/navStore";
+import { selectMapPoint } from "@/features/location/selectPoint";
 import { nextStep } from "./nextStep";
 import "./QuickActions.css";
 
@@ -45,6 +47,14 @@ export function QuickActions() {
   const radiusMeters = useLocationStore((s) => s.radiusMeters);
   const setRadiusMeters = useLocationStore((s) => s.setRadiusMeters);
   const zoom = useMapStore((s) => s.zoom);
+  const basemap = useMapStore((s) => s.basemap);
+
+  // Measurement state
+  const measureMode = useMeasureStore((s) => s.mode);
+  const measurePoints = useMeasureStore((s) => s.points);
+
+  // Navigation state
+  const navState = useNavigationStore((s) => s.state);
 
   /**
    * Free: the same query the Explore panel already runs, with the same key,
@@ -58,6 +68,10 @@ export function QuickActions() {
     radiusMeters,
     is3D,
     zoom,
+    basemap,
+    measureMode,
+    measurePoints,
+    navState,
   });
 
   const runStep = () => {
@@ -77,6 +91,14 @@ export function QuickActions() {
         break;
       case "ask":
         openSection("ai");
+        break;
+      case "measure":
+        // Keep measurement active and open the tools panel to see results
+        openSection("tools");
+        break;
+      case "navigate":
+        // Open the travel panel for turn-by-turn guidance
+        openSection("travel");
         break;
     }
   };
@@ -115,6 +137,43 @@ export function QuickActions() {
 
   const needsPlace = !location;
 
+  /**
+   * Answers the question the button asks, about the place you are looking at.
+   *
+   * "What's here" and "Nearby" used to do nothing at all until a place had
+   * been selected: the press was swallowed and the search box was outlined
+   * for 1.4 seconds. Reported by more than a hundred users as the app not
+   * working, and reasonably so — you land on a map showing your city, press
+   * the most obvious button on the screen, and nothing happens.
+   *
+   * There was never a good reason for it. Both questions are about a point,
+   * and there has been a perfectly good point on screen the whole time: the
+   * centre of the current view, which is the thing the visitor is literally
+   * looking at. So pressing the button now selects that centre and answers
+   * for it, exactly as clicking the map would, down the same selectMapPoint
+   * path so the marker, the Explore panel and every downstream query behave
+   * identically however the place was chosen.
+   *
+   * The location is labelled "Map centre" rather than "Map click", because
+   * the app's whole promise is that it says where its answers come from.
+   */
+  const runHere = (action: () => void) => () => {
+    if (needsPlace) {
+      const [lon, lat] = useMapStore.getState().center;
+      // Not awaited: selectMapPoint writes a coordinate-only location
+      // synchronously and upgrades it when the reverse geocode lands, so the
+      // panel opens in this frame rather than after a network round trip.
+      void selectMapPoint(lat, lon, undefined, "Map centre");
+    }
+    action();
+  };
+
+  /**
+   * Directions is the one that still needs you to choose, and keeps the
+   * prompt. Routing to the middle of whatever you happen to be looking at is
+   * not a destination anybody meant to ask for, so guessing there would
+   * replace a dead button with a confusing answer.
+   */
   const run = (action: () => void) => () => {
     if (needsPlace) {
       promptForPlace();
@@ -134,19 +193,20 @@ export function QuickActions() {
         >
           🧭 Directions
         </button>
+        {/* No longer wearing the needs-place styling: these two answer for
+            the centre of the view when nothing is chosen, so there is no
+            such state to signal. */}
         <button
           type="button"
-          className={needsPlace ? "quick-actions__needs-place" : undefined}
-          onClick={run(() => showPlaceTab("evidence"))}
-          title={needsPlace ? "Pick a place first — this will take you to the search box" : "See what is mapped around this place, with its sources"}
+          onClick={runHere(() => showPlaceTab("evidence"))}
+          title={needsPlace ? "See what is mapped at the centre of this view, with its sources" : "See what is mapped around this place, with its sources"}
         >
           📊 What's here
         </button>
         <button
           type="button"
-          className={needsPlace ? "quick-actions__needs-place" : undefined}
-          onClick={run(() => showPlaceTab("nearby"))}
-          title={needsPlace ? "Pick a place first — this will take you to the search box" : "Find places nearby"}
+          onClick={runHere(() => showPlaceTab("nearby"))}
+          title={needsPlace ? "Find places around the centre of this view" : "Find places nearby"}
         >
           📍 Nearby
         </button>
@@ -178,9 +238,15 @@ export function QuickActions() {
         </button>
       </div>
 
+      {/* Was "to use the first three", which is no longer true and was never
+          a useful sentence: it told you what you could not do rather than
+          what you could. Only Directions needs a destination now, and the
+          line says the thing worth knowing — that the other buttons will
+          answer for whatever you have centred. */}
       {needsPlace && (
         <p className="quick-actions__hint">
-          Search for a place, or click anywhere on the map, to use the first three.
+          What's here and Nearby answer for the centre of the map. Search a place or click the map to choose a
+          different point, and to get directions.
         </p>
       )}
 

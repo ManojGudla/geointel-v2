@@ -54,9 +54,21 @@ export function coordinateOnlyLocation(lat: number, lon: number, source: string)
  * bad network it can take ten — nobody waits that long to find out whether
  * their click registered.
  */
-export async function selectMapPoint(lat: number, lon: number, signal?: AbortSignal): Promise<void> {
+export async function selectMapPoint(
+  lat: number,
+  lon: number,
+  signal?: AbortSignal,
+  /*
+    How this point came to be selected, recorded on the location so the app
+    can say where it got it. A map click is no longer the only caller: the
+    quick actions now select the centre of the current view when nothing has
+    been chosen yet, and labelling that "Map click" would be a small lie in
+    the one field whose whole job is provenance.
+  */
+  source = "Map click"
+): Promise<void> {
   const { setSelectedLocation } = useLocationStore.getState();
-  setSelectedLocation(coordinateOnlyLocation(lat, lon, "Map click"));
+  setSelectedLocation(coordinateOnlyLocation(lat, lon, source));
 
   try {
     const located = await reverseGeocode(lat, lon, signal);
@@ -72,7 +84,7 @@ export async function selectMapPoint(lat: number, lon: number, signal?: AbortSig
     const current = useLocationStore.getState().selectedLocation;
     if (!current || current.lat !== lat || current.lon !== lon) return;
     // Keep the pin. Say plainly that no name came back rather than leaving
-    // the earlier "Map click" source implying a successful lookup.
-    setSelectedLocation(coordinateOnlyLocation(lat, lon, "Map click · no address found for this point"));
+    // the earlier source implying a successful lookup.
+    setSelectedLocation(coordinateOnlyLocation(lat, lon, `${source} · no address found for this point`));
   }
 }
