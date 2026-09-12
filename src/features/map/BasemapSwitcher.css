@@ -1,0 +1,158 @@
+/*
+  Sits on the map's bottom-left, directly above the coordinate chip, which is
+  where Google, Apple and Bing all put their equivalent and therefore the
+  first place anyone looks. The right-hand bottom corner is taken by the
+  Copilot launcher and the top by the search box and quick actions, so this
+  corner is the only one both free and conventional.
+
+  Collapsed it is one pill, narrower than the coordinate chip below it. That
+  matters: the reason these controls were pulled off the map originally was
+  four full-width buttons overflowing on a phone and colliding with the
+  launcher opposite. One pill cannot do that at any width.
+*/
+.basemap-switcher {
+  position: absolute;
+  left: var(--space-3);
+  /* Clears the coordinate chip (about 26px tall) plus a gap. */
+  bottom: calc(var(--space-3) + 34px);
+  z-index: 14;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.basemap-switcher__bar {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.basemap-switcher__main,
+.basemap-switcher__more {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px var(--space-3);
+  font-size: 12px;
+  font-weight: 700;
+  transition: background 0.15s ease;
+}
+
+.basemap-switcher__main:hover,
+.basemap-switcher__more:hover {
+  background: var(--color-brand-100);
+}
+
+.basemap-switcher__more {
+  padding-inline: 8px;
+  border-left: 1px solid var(--color-border);
+}
+
+.basemap-switcher__icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.basemap-switcher__main-label {
+  white-space: nowrap;
+}
+
+/* A chevron from one rotated corner, pointing up because the menu opens
+   upward, and flipping when it is open. */
+.basemap-switcher__chevron {
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(-45deg) translate(-1px, 1px);
+  transition: transform 0.18s ease;
+}
+
+.basemap-switcher.is-open .basemap-switcher__chevron {
+  transform: rotate(135deg) translate(-1px, 1px);
+}
+
+.basemap-switcher__menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 186px;
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 10px);
+  background: color-mix(in srgb, var(--color-surface) 97%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.basemap-switcher__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+  padding: 8px var(--space-3);
+  color: var(--color-text);
+  transition: background 0.15s ease;
+}
+
+.basemap-switcher__item:hover {
+  background: var(--color-brand-100);
+}
+
+.basemap-switcher__item.is-current {
+  background: var(--color-brand-500);
+  color: #fff;
+}
+
+.basemap-switcher__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.basemap-switcher__label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.basemap-switcher__note {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.basemap-switcher__item.is-current .basemap-switcher__note {
+  color: color-mix(in srgb, #fff 78%, transparent);
+}
+
+.basemap-switcher__main:focus-visible,
+.basemap-switcher__more:focus-visible,
+.basemap-switcher__item:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: -2px;
+}
+
+@media (max-width: 900px) {
+  .basemap-switcher {
+    left: var(--space-2);
+    bottom: calc(var(--space-2) + 32px);
+  }
+
+  .basemap-switcher__menu {
+    min-width: 168px;
+  }
+}
