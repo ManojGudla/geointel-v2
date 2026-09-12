@@ -1,10 +1,16 @@
 /*
   The ground.
 
-  A fixed 4:3 stage that everything is positioned inside as a percentage, so
-  the whole scene scales together and the perspective never breaks. The one
-  hard rule: the ball's vertical travel and the batter's position must stay in
-  the same coordinate space, because that relationship IS the timing.
+  A fixed 4:3 stage that everything is positioned inside as a percentage, so the
+  whole scene scales together and the perspective never breaks. The one hard
+  rule: the ball's vertical travel and the batter's position must stay in the
+  same coordinate space, because that relationship IS the timing.
+
+  Everything that belongs to the world lives inside .stadium__camera and moves
+  with it. Everything that belongs to the player — the meter, the prompt, the
+  aim chip, the full screen button — lives outside it and never moves. That
+  split is what lets the camera push in without putting what you see out of step
+  with what you are scored on.
 */
 .stadium {
   position: relative;
@@ -13,7 +19,7 @@
   max-height: 58vh;
   overflow: hidden;
   border-radius: var(--radius-md);
-  background: #16233c;
+  background: #050a14;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), var(--shadow-md);
   cursor: pointer;
   user-select: none;
@@ -23,6 +29,41 @@
 .stadium:focus-visible {
   outline: 3px solid var(--color-brand-500);
   outline-offset: 2px;
+}
+
+/* ── The camera ─────────────────────────────────────────────────────────── */
+
+/*
+  A broadcast camera pushes in through the run-up and holds tight on the
+  delivery. Copying that is nearly free here and it is most of what makes the
+  ball feel like it is coming at you rather than shrinking down a chart.
+
+  The origin sits at the contact point, so the move tightens around the thing
+  the player is watching instead of dragging it across the frame.
+*/
+.stadium__camera {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 72%;
+  transform: scale(1);
+  transition: transform 760ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
+}
+
+.stadium--runup .stadium__camera {
+  transform: scale(1.05);
+  transition-duration: 640ms;
+}
+
+.stadium--travelling .stadium__camera {
+  transform: scale(1.08);
+  transition-duration: 900ms;
+}
+
+/* A small pull back on the result, which reads as the camera letting go. */
+.stadium--result .stadium__camera {
+  transform: scale(1.02);
+  transition-duration: 420ms;
 }
 
 .stadium__scene {
@@ -35,10 +76,18 @@
 /* ── The crowd ──────────────────────────────────────────────────────────── */
 
 /*
-  Fans are individual circles rather than a texture precisely so they can
-  react. A crowd that does nothing when the ball goes into the stand is the
-  clearest possible signal that nothing is at stake.
+  Fans are individual circles rather than a texture precisely so they can react.
+  A crowd that does nothing when the ball goes into the stand is the clearest
+  possible signal that nothing is at stake.
+
+  The slight blur is depth of field. The stands are eighty metres away; a lens
+  focused on the pitch does not hold them sharp, and the softness is read as
+  distance long before it is noticed as blur.
 */
+.stadium__crowd {
+  filter: blur(0.35px);
+}
+
 .stadium__fan {
   transform-box: fill-box;
   transform-origin: center;
@@ -48,8 +97,8 @@
   animation: fan-jump 620ms ease-in-out 2;
 }
 
-/* On a wicket the crowd goes quiet and dim instead of still — the drop in
-   light is read faster than the drop in motion. */
+/* On a wicket the crowd goes quiet and dim instead of still — the drop in light
+   is read faster than the drop in motion. */
 .stadium--crowd-groan .stadium__crowd {
   animation: crowd-hush 900ms ease-out 1;
 }
@@ -60,7 +109,7 @@
     transform: translateY(0);
   }
   40% {
-    transform: translateY(-3px);
+    transform: translateY(-2.5px);
   }
 }
 
@@ -77,6 +126,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .stadium__camera {
+    transition: none;
+    transform: none !important;
+  }
+
   .stadium--crowd-roar .stadium__fan,
   .stadium--crowd-groan .stadium__crowd,
   .stadium__bowler--running,
@@ -94,6 +148,48 @@
   overflow: visible;
 }
 
+/*
+  Every figure stands on a shadow.
+
+  This is the single cheapest thing that stops a drawn player looking pasted
+  onto the grass. Two of them, in fact: a tight dark core directly underfoot and
+  a longer, softer one thrown sideways, because a ground under four floodlights
+  gives every player more than one shadow and that is a detail anyone who has
+  watched a night match recognises without being able to name.
+*/
+.stadium__fielder::before,
+.stadium__bowler::before,
+.stadium__batter::before,
+.stadium__umpire::before,
+.stadium__runner::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  width: 78%;
+  height: 11%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(2, 10, 6, 0.55), rgba(2, 10, 6, 0) 70%);
+  pointer-events: none;
+}
+
+.stadium__fielder::after,
+.stadium__bowler::after,
+.stadium__batter::after,
+.stadium__umpire::after {
+  content: "";
+  position: absolute;
+  left: 38%;
+  bottom: -2px;
+  width: 100%;
+  height: 9%;
+  transform: translateX(-50%) skewX(-38deg);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(2, 10, 6, 0.3), rgba(2, 10, 6, 0) 72%);
+  pointer-events: none;
+}
+
 .stadium__fielders {
   position: absolute;
   inset: 0;
@@ -101,31 +197,34 @@
 }
 
 /*
-  Fielders shrink with depth. Not a real projection — a real one would make the
-  deep fielders four pixels tall — but enough that the eye reads the ground as
-  receding rather than flat.
+  Fielders shrink with depth. Not a true projection — a real one would make the
+  deep fielders four pixels tall — but a continuous falloff rather than the two
+  fixed sizes it used to have, so the field recedes instead of arriving in a
+  near size and a far size. Width, height and opacity all come from the depth,
+  set inline in Stadium.tsx.
 */
 .stadium__fielder {
   position: absolute;
-  width: 26px;
-  height: 39px;
   transform: translate(-50%, -100%);
-  opacity: 0.92;
-  transition: left 600ms var(--ease-standard), top 600ms var(--ease-standard);
+  transition: left 600ms var(--ease-standard), top 600ms var(--ease-standard),
+    width 600ms var(--ease-standard), height 600ms var(--ease-standard);
 }
 
-.stadium__fielder--deep {
-  width: 17px;
-  height: 26px;
-  opacity: 0.78;
-}
+/*
+  Every figure is sized as a percentage of the stage rather than in pixels.
 
+  Pixels were a real bug, not a nicety: the scene is drawn in a viewBox that
+  scales to its container while the players were fixed, so inside a narrow panel
+  the batter grew until he filled the pitch and on a wide screen he shrank to a
+  pin. A 40x60 figure that is W% wide is 2W% tall on a 4:3 stage, which is where
+  every pair of numbers below comes from.
+*/
 .stadium__bowler {
   position: absolute;
   left: 50%;
   top: 44%;
-  width: 30px;
-  height: 45px;
+  width: 3.1%;
+  height: 6.2%;
   transform: translate(-50%, -100%);
   pointer-events: none;
 }
@@ -148,20 +247,41 @@
 }
 
 /*
+  A slip fielder on the lens.
+
+  One figure in the near foreground, thrown out of focus and dropped into
+  shadow, gives the eye a near reference to measure the distance to the pitch
+  against — which is the whole trick behind why a photograph of a cricket ground
+  looks deep and a diagram of one does not. Cropped hard at the off-side edge so
+  it frames the shot and never sits between the player and the ball.
+*/
+.stadium__near {
+  position: absolute;
+  left: 97%;
+  top: 122%;
+  width: 21.7%;
+  height: 43.4%;
+  transform: translate(-50%, -100%);
+  filter: blur(2.2px) brightness(0.3) saturate(0.5);
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+/*
   The striker's stumps.
 
-  Reported as "where is the wickets" — they were 46px of pale line at the
-  bottom edge, behind the batter, and effectively invisible. They are what the
-  bowler is aiming at and what breaks when you miss, so they have to be the
-  clearest object on the near half of the ground.
+  Reported as "where is the wickets" — they were 46px of pale line at the bottom
+  edge, behind the batter, and effectively invisible. They are what the bowler
+  is aiming at and what breaks when you miss, so they have to be among the
+  clearest objects on the near half of the ground.
 */
 .stadium__stumps {
   position: absolute;
   left: 50%;
   top: 86%;
-  width: 58px;
-  height: 87px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  width: 6.7%;
+  height: 13.4%;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6));
   transform: translate(-50%, -100%);
   pointer-events: none;
 }
@@ -169,14 +289,14 @@
 .stadium__batter {
   position: absolute;
   /* Beside the stumps, not in front of them — a right-hander stands outside
-     off, and covering the wicket is what made it impossible to find. */
+     leg, and covering the wicket is what made it impossible to find. */
   left: 40%;
-  top: 88%;
-  width: 52px;
-  height: 78px;
+  top: 87%;
+  width: 7.3%;
+  height: 14.6%;
   transform: translate(-50%, -100%);
   pointer-events: none;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
 }
 
 /* ── The ball ───────────────────────────────────────────────────────────── */
@@ -185,18 +305,20 @@
   Position is set inline from the animation frame rather than by a CSS
   transition, because the timing is measured against the wall clock and a
   transition would put what you see out of step with what you are being scored
-  on. The seam is the detail that makes it read as a cricket ball.
+  on. The seam and the specular highlight are what make it read as a lacquered
+  cricket ball rather than a red dot.
 */
 .stadium__ball {
   position: absolute;
   left: 50%;
-  width: 30px;
-  height: 30px;
+  width: 2.3%;
+  aspect-ratio: 1;
   border-radius: 50%;
   background:
-    linear-gradient(90deg, transparent 46%, #f6f1e4 46%, #f6f1e4 54%, transparent 54%),
-    radial-gradient(circle at 35% 30%, #e15a4a 0%, #b4271b 60%, #7d160e 100%);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 26%),
+    linear-gradient(90deg, transparent 45%, #f6f1e4 45%, #f6f1e4 55%, transparent 55%),
+    radial-gradient(circle at 38% 32%, #e8604d 0%, #b4271b 58%, #6d120b 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55), 0 0 14px rgba(255, 120, 90, 0.35);
   pointer-events: none;
   will-change: top, transform;
 }
@@ -207,8 +329,8 @@
   position: absolute;
   left: 58%;
   top: 92%;
-  width: 30px;
-  height: 45px;
+  width: 3.1%;
+  height: 6.2%;
   transform: translate(-50%, -100%);
   pointer-events: none;
   animation: run-through 900ms ease-in-out 1;
@@ -249,8 +371,8 @@
   position: absolute;
   left: 15%;
   top: 78%;
-  width: 30px;
-  height: 45px;
+  width: 3.1%;
+  height: 6.2%;
   transform: translate(-50%, -100%);
   pointer-events: none;
   transition: transform 200ms var(--ease-standard);
@@ -276,6 +398,32 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
+/* ── The lens ───────────────────────────────────────────────────────────── */
+
+/*
+  A vignette and a little grain, over the world and under the controls.
+
+  Neither is a cricket detail; both are camera details, and that is exactly the
+  point. A frame that falls off at the corners and carries a trace of noise
+  reads as something shot rather than something plotted, and it costs two
+  gradients.
+*/
+.stadium__lens {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 76% 82% at 50% 56%, rgba(0, 0, 0, 0) 52%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.stadium__lens::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+}
+
 /* ── Overlays ───────────────────────────────────────────────────────────── */
 
 .stadium__prompt {
@@ -285,7 +433,7 @@
   bottom: 0;
   padding: var(--space-2);
   text-align: center;
-  background: linear-gradient(transparent, rgba(6, 12, 24, 0.86));
+  background: linear-gradient(transparent, rgba(4, 9, 18, 0.9));
   color: #fff;
   font-size: var(--text-sm);
   font-weight: 700;
@@ -319,30 +467,9 @@
   font-weight: 800;
 }
 
-
 @media (max-width: 560px) {
   .stadium {
     max-height: 48vh;
-  }
-
-  .stadium__batter {
-    width: 48px;
-    height: 72px;
-  }
-
-  .stadium__fielder {
-    width: 19px;
-    height: 29px;
-  }
-
-  .stadium__fielder--deep {
-    width: 13px;
-    height: 20px;
-  }
-
-  .stadium__ball {
-    width: 24px;
-    height: 24px;
   }
 }
 
@@ -352,16 +479,16 @@
   The moment of contact.
 
   A timing game needs impact to be unmistakable ON THE FRAME it happens. A
-  number appearing under the pitch a beat later is not that — by then the
-  player has already stopped looking. The flash is sized and coloured by how
-  the ball was struck, so a six reads as a six before a word is read.
+  number appearing under the pitch a beat later is not that — by then the player
+  has already stopped looking. The flash is sized and coloured by how the ball
+  was struck, so a six reads as a six before a word is read.
 */
 .stadium__impact {
   position: absolute;
   left: 50%;
   top: 74%;
-  width: 40px;
-  height: 40px;
+  width: 4.2%;
+  aspect-ratio: 1;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -406,11 +533,12 @@
 .stadium__trail {
   position: absolute;
   left: 50%;
-  width: 30px;
-  height: 30px;
+  width: 2.3%;
+  aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, rgba(225, 90, 74, 0.9), rgba(125, 22, 14, 0.2) 70%, transparent);
+  background: radial-gradient(circle at 35% 30%, rgba(232, 96, 77, 0.9), rgba(109, 18, 11, 0.2) 70%, transparent);
   pointer-events: none;
+  filter: blur(0.6px);
 }
 
 .stadium__confetti {
@@ -479,25 +607,24 @@
   background: rgba(6, 12, 24, 0.8);
 }
 
-
 /* ── The contact band and the timing meter ──────────────────────────────── */
 
 /*
   The band across the pitch where the shot is played.
 
-  The old flat-pitch version had one and the stadium dropped it, which is the
-  whole of "where to hit". It glows as the ball enters the scoring window, so
-  the pitch itself says NOW — a player watching the ball never has to look
-  away to the meter.
+  Cut to the strip's own perspective rather than drawn as a straight bar, so it
+  reads as light falling on the pitch instead of a rule floating over it. It
+  glows as the ball enters the scoring window, so the pitch itself says NOW — a
+  player watching the ball never has to look away to the meter.
 */
 .stadium__zone {
   position: absolute;
-  left: 31%;
-  right: 31%;
-  top: 74%;
-  height: 10px;
-  border-radius: 3px;
-  background: linear-gradient(90deg, rgba(255, 214, 107, 0.15), rgba(255, 214, 107, 0.85), rgba(255, 214, 107, 0.15));
+  left: 39%;
+  right: 39%;
+  top: 73.4%;
+  height: 1.5%;
+  clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%);
+  background: linear-gradient(90deg, rgba(255, 214, 107, 0.1), rgba(255, 214, 107, 0.8), rgba(255, 214, 107, 0.1));
   pointer-events: none;
   transition: opacity 80ms linear;
 }
@@ -507,15 +634,13 @@
 
   Drawn from the same millisecond windows the scoring uses, so it is not an
   illustration of the timing — it IS the timing. Sitting above the prompt bar
-  where the eye already is when the ball arrives.
+  where the eye already is when the ball arrives, and outside the camera so the
+  push-in never moves it.
 */
 .stadium__meter {
   position: absolute;
   left: 10%;
   right: 10%;
-  /* Its own strip under the play. It used to sit at 13% and was drawn straight
-     across the batter and the stumps — hiding the two things the player is
-     trying to look at, in order to show them a bar about looking at them. */
   bottom: 11%;
   display: flex;
   flex-direction: column;
@@ -554,8 +679,8 @@
   box-shadow: 0 0 10px 2px rgba(255, 214, 107, 0.8);
 }
 
-/* The marker is a hard vertical line, not a dot: an edge is far easier to
-   judge against a boundary than a blob. */
+/* The marker is a hard vertical line, not a dot: an edge is far easier to judge
+   against a boundary than a blob. */
 .stadium__meter-mark {
   position: absolute;
   top: -2px;
@@ -579,11 +704,6 @@
 }
 
 @media (max-width: 560px) {
-  .stadium__stumps {
-    width: 58px;
-    height: 87px;
-  }
-
   .stadium__meter {
     left: 6%;
     right: 6%;
