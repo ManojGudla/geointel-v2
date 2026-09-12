@@ -132,8 +132,22 @@
 
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#12294f" />
-    <link rel="icon" href="/icons/icon-192.png" type="image/png" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <!--
+      Icons, in the order browsers actually want them.
+
+      /favicon.ico is here because browsers and crawlers request that exact
+      path whether or not anything links to it, and there was no such file:
+      every one of those requests was a 404. The ICO carries 16, 32 and 48px
+      frames so Windows and older browsers pick their own size instead of
+      downscaling one bitmap badly.
+
+      The PNG links below win in modern browsers, which prefer a declared
+      type and size over the .ico.
+    -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/icons/icon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
   </head>
   <body>
     <div id="root">

@@ -36,9 +36,15 @@ describe("consent gates the tag", () => {
   });
 
   it("never asks when there is nothing to consent to", () => {
-    // With no container configured the site behaves exactly as it did before,
-    // which is what makes it safe to ship this code before the ID exists.
+    // With nothing configured the site behaves exactly as it did before,
+    // which is what makes it safe to ship this code before the IDs exist.
+    //
+    // Both variables have to be blanked, not just the container id. Error
+    // tracking is a second thing that phones out and so a second reason to
+    // ask, and a developer with a DSN in their own .env.local was getting a
+    // banner out of a test that had only cleared the GTM half.
     vi.stubEnv("VITE_GTM_ID", "");
+    vi.stubEnv("VITE_SENTRY_DSN", "");
     expect(shouldAskConsent(null)).toBe(false);
     vi.unstubAllEnvs();
   });
@@ -46,11 +52,42 @@ describe("consent gates the tag", () => {
   it("treats a placeholder or malformed id as not configured", () => {
     // A half-finished environment variable must not ship a broken tag and a
     // banner asking permission for something that cannot work.
+    vi.stubEnv("VITE_SENTRY_DSN", "");
     for (const bad of ["   ", "TODO", "G-ABC123", "GTM_123", "your-id-here"]) {
       vi.stubEnv("VITE_GTM_ID", bad);
       expect(shouldAskConsent(null), bad).toBe(false);
-      vi.unstubAllEnvs();
     }
+    vi.unstubAllEnvs();
+  });
+
+  it("asks when only error tracking is configured", () => {
+    // Sentry alone is still a third party receiving data about the visit, so
+    // it earns the banner on its own. This is the case that shipped broken:
+    // the banner checked the container id only, so a site with error
+    // tracking and no analytics asked nobody anything and reported errors
+    // regardless of what the visitor would have said.
+    vi.stubEnv("VITE_GTM_ID", "");
+    vi.stubEnv("VITE_SENTRY_DSN", "https://abc123@o123.ingest.us.sentry.io/456");
+    expect(shouldAskConsent(null)).toBe(true);
+    vi.unstubAllEnvs();
+  });
+
+  it("treats a malformed Sentry DSN as not configured", () => {
+    // Same promise as the GTM case above, for the same reason: a DSN that
+    // cannot initialise must not put a consent banner in front of anyone.
+    vi.stubEnv("VITE_GTM_ID", "");
+    for (const bad of [
+      "   ",
+      "TODO",
+      "your-dsn-here",
+      "http://abc@host/1", // not https
+      "https://o123.ingest.sentry.io/456", // no key
+      "https://abc123@o123.ingest.sentry.io", // no project id
+    ]) {
+      vi.stubEnv("VITE_SENTRY_DSN", bad);
+      expect(shouldAskConsent(null), bad).toBe(false);
+    }
+    vi.unstubAllEnvs();
   });
 
   it("stops asking once a choice is made, including a refusal", () => {

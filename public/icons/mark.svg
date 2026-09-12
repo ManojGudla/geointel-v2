@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="maNOWj GeoIntel">
+  <!--
+    The mark: a surveyor's reticle.
+
+    It replaces a glossy stock globe that carried a swoosh and a map pin at
+    once, which is three clichés of this category stacked on one tile and
+    looked like clipart. This draws the thing the app actually does instead:
+    you pick an exact point, you set a radius around it, and everything the
+    app answers is about what falls inside that ring. Ticks, ring, point.
+
+    Built to survive 16px. No gradients on the artwork, no fine detail, no
+    text. At favicon size the ring and the amber centre still read as a
+    target; only the edge ticks drop away, and they are the least of it.
+  -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16305d"/>
+      <stop offset="1" stop-color="#0a1628"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="114" fill="url(#tile)"/>
+
+  <!-- Reticle ticks: four marks closing in on the point from the edges. -->
+  <g stroke="#4f7ec2" stroke-width="14" stroke-linecap="round">
+    <line x1="256" y1="74" x2="256" y2="120"/>
+    <line x1="256" y1="392" x2="256" y2="438"/>
+    <line x1="74" y1="256" x2="120" y2="256"/>
+    <line x1="392" y1="256" x2="438" y2="256"/>
+  </g>
+
+  <!-- The radius ring. -->
+  <circle cx="256" cy="256" r="122" fill="none" stroke="#5b8dd6" stroke-width="15"/>
+
+  <!-- The point itself, in the one accent colour the brand spends. -->
+  <circle cx="256" cy="256" r="47" fill="#ff8d3a"/>
+</svg>

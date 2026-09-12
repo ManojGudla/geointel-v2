@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useTheme } from "@/hooks/useTheme";
@@ -63,9 +63,16 @@ export default function App() {
   // and the app rendered the plain map, so anyone following "see our Privacy
   // page" landed on a map with no privacy page in sight. The panel is a
   // modal rather than a route, so the honest fix is to open it on arrival.
-  if (pathname === "/privacy") {
-    usePrivacyStore.getState().open();
-  }
+  //
+  // In an effect, not inline in the render. Writing to a store during render
+  // is a side effect in the middle of a pure function: React renders this
+  // component twice in StrictMode and re-renders it whenever the maintenance
+  // poll lands, so the inline version fired repeatedly and could ask a
+  // mounted PrivacyPanel to update while App was still rendering. Once, after
+  // mount, is what was actually meant.
+  useEffect(() => {
+    if (pathname === "/privacy") usePrivacyStore.getState().open();
+  }, [pathname]);
 
   // The landing page. Also deliberately outside the maintenance gate: it is
   // a description of the product, it calls no data endpoint, and a visitor

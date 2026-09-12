@@ -36,12 +36,22 @@ export function gtmId(): string | null {
   return id;
 }
 
-/** The Sentry DSN, from the environment. Not a secret — it ships in the page. */
+/**
+ * The Sentry DSN, from the environment. Not a secret: it ships in the page.
+ *
+ * Shape-checked for the same reason gtmId() is. A DSN is a URL of the form
+ * https://<key>@<host>/<project-id>, and anything else cannot possibly
+ * initialise. Without this check a half-finished env var (a "TODO", a
+ * copied placeholder, a DSN pasted with the trailing project id missing)
+ * counted as "analytics is configured", which put a consent banner in front
+ * of every visitor asking permission for a thing that was then going to
+ * fail. Asking for consent you cannot honour is worse than not asking.
+ */
 export function sentryDsn(): string | null {
   const raw = import.meta.env.VITE_SENTRY_DSN as string | undefined;
   const dsn = raw?.trim();
-  // A blank or placeholder value must behave exactly like "not configured"
   if (!dsn) return null;
+  if (!/^https:\/\/[^@/\s]+@[^/\s]+\/\d+$/.test(dsn)) return null;
   return dsn;
 }
 
@@ -104,22 +114,31 @@ export function loadTagManager(id: string, doc: Document = document): boolean {
 }
 
 /**
- * Enable Sentry error tracking once user consents.
+ * Initialize Sentry error tracking once user consents.
  * This mirrors the privacy-first approach of Tag Manager:
- * Sentry is initialized but disabled until the user opts in.
+ * Nothing loads until the user opts in.
  */
-export function enableSentry(): boolean {
+export async function enableSentry(): Promise<boolean> {
   if (sentryEnabled) return false;
   sentryEnabled = true;
 
   try {
-    const Sentry = (window as any).__SENTRY__;
-    if (Sentry?.getCurrentClient?.()?.getOptions) {
-      const client = Sentry.getCurrentClient();
-      client?.getOptions && (client.getOptions().enabled = true);
+    // Dynamically import Sentry to avoid loading it before consent
+    const Sentry = await import("@sentry/react");
+    const dsn = sentryDsn();
+
+    if (dsn) {
+      Sentry.init({
+        dsn,
+        environment: import.meta.env.MODE,
+        tracesSampleRate: 0.1,
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      });
     }
-  } catch {
-    // Sentry not loaded or disabled, continue silently
+  } catch (error) {
+    // Sentry not configured or import failed, continue silently
+    console.error("[sentry] initialization failed", error);
   }
   return true;
 }
