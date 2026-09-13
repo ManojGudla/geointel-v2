@@ -41,25 +41,25 @@ describe("onboardingVisible", () => {
   });
 
   /*
-    The consent banner renders at z-index 60; this card at 12. While both
-    were on screen the banner covered the card's Dismiss button completely.
-    Measured against the built app: at 390px and at 768px wide,
-    document.elementFromPoint at the centre of "Dismiss" returned the consent
-    banner's own text rather than the button, so the button was unclickable.
-    A first-time visitor on a phone got a card over the map that would not
-    close, tapped it, and concluded the app was broken. Desktop was fine,
-    which is why it survived review.
+    The regression this replaces.
+
+    This card used to take a third input and hide itself while the consent
+    banner was asking. Consent is asked on the FIRST visit, which is the only
+    visit this card is for, so in production it never appeared to anyone seeing
+    the app for the first time: they got a map, a search box, a row of
+    unexplained buttons and a legal notice, and several of them said they could
+    not work out what the application was for.
+
+    The overlap it was avoiding is now handled in layout (the banner is one
+    line pinned to the bottom edge; the card reserves space for it), so the
+    rule here is simply that a brand-new visitor sees the explanation.
   */
-  it("waits while the consent banner is still asking", () => {
-    expect(onboardingVisible(false, false, true)).toBe(false);
+  it("shows on a first visit, while the consent banner is also up", () => {
+    expect(onboardingVisible(false, false)).toBe(true);
   });
 
-  it("appears once the consent question has been answered", () => {
-    expect(onboardingVisible(false, false, false)).toBe(true);
-  });
-
-  it("never reappears because consent was answered, if a place is already chosen", () => {
-    expect(onboardingVisible(true, false, false)).toBe(false);
+  it("stays hidden once a place is chosen, whatever else is on screen", () => {
+    expect(onboardingVisible(true, false)).toBe(false);
   });
 });
 

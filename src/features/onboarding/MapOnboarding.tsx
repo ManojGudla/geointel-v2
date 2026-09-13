@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocationStore } from "@/stores/locationStore";
-import { useOnboardingStore, useOnboardingVisible } from "./onboardingVisibility";
+import { useConsentAsking, useOnboardingStore, useOnboardingVisible } from "./onboardingVisibility";
 import { useMapStore } from "@/stores/mapStore";
 import { useSearchStore } from "@/stores/searchStore";
 import { useShellStore } from "@/stores/shellStore";
@@ -35,10 +35,10 @@ interface Example {
 
 const EXAMPLES: Example[] = [
   { icon: "📍", label: "Find Charminar", place: { name: "Charminar, Hyderabad", lat: 17.361664, lon: 78.474663 } },
-  { icon: "🏥", label: "Hospitals within 2 km", question: "hospitals within 2 km" },
-  { icon: "☕", label: "Is this a good place for a café?", question: "is this a good place for a restaurant" },
-  { icon: "🏫", label: "Schools within 1 km", question: "schools within 1 km" },
-  { icon: "🧭", label: "What's within 800 m?", question: "what is within 800 m" },
+  { icon: "🏥", label: "Hospitals · 2 km", question: "hospitals within 2 km" },
+  { icon: "☕", label: "Good spot for a café?", question: "is this a good place for a restaurant" },
+  { icon: "🏫", label: "Schools · 1 km", question: "schools within 1 km" },
+  { icon: "🧭", label: "What's within 800 m", question: "what is within 800 m" },
 ];
 
 export function MapOnboarding() {
@@ -52,6 +52,13 @@ export function MapOnboarding() {
   // Shared rather than local: the September teaser has to know whether this
   // card is up, or the two overlap. See onboardingVisibility.ts.
   const visible = useOnboardingVisible();
+  /*
+    Not a condition on showing this card — it used to be, and that meant the
+    card never appeared on a first visit, which is the only visit it is for.
+    It is spacing: while the banner is up, the card sits higher so the two
+    cannot overlap and the Dismiss button stays clickable.
+  */
+  const consentAsking = useConsentAsking();
   const dismiss = useOnboardingStore((s) => s.dismiss);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -97,12 +104,25 @@ export function MapOnboarding() {
   };
 
   return (
-    <div className="onboarding" role="region" aria-label="Getting started">
+    <div className={`onboarding${consentAsking ? " onboarding--above-consent" : ""}`} role="region" aria-label="Getting started">
       <div className="onboarding__card">
+        {/*
+          The way out, pinned.
+
+          The footer at the bottom of this card carries a Dismiss button too,
+          but the card can be taller than a phone screen leaves room for, and
+          anything at the bottom of a scrolling card can be below the fold. The
+          one control this screen must never hide is the way to close it, so it
+          also lives here, in the corner where everybody already looks for it,
+          where no amount of content below can push it off.
+        */}
+        <button type="button" className="onboarding__close" onClick={dismiss} aria-label="Close">
+          ✕
+        </button>
         <h1 className="onboarding__headline">
           Understand any place.
           <br />
-          Analyze any area.
+          Analyse any area.
         </h1>
         <p className="onboarding__sub">Search a location, click anywhere on the map, or type what you want to find.</p>
 
