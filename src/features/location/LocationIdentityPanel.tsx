@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useLocationStore } from "@/stores/locationStore";
 import "./LocationIdentityPanel.css";
+import { track } from "@/services/analytics";
+import { useMapStore } from "@/stores/mapStore";
+import { useShellStore } from "@/stores/shellStore";
+import { useIntelTabStore } from "@/stores/intelTabStore";
+import { useUiStore } from "@/stores/uiStore";
+import { buildShareUrl as shareUrl } from "@/features/share/viewState";
 
 function formatCoord(value: number): string {
   return value.toFixed(6);
@@ -24,6 +30,7 @@ export function LocationIdentityPanel() {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(coordsText);
+      track("result_link_copied", { surface: "location-identity" });
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -36,6 +43,10 @@ export function LocationIdentityPanel() {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        // Fired after the sheet resolves, not before it opens: a share that
+        // the person cancelled is not a share, and counting it would quietly
+        // inflate the one number this product's growth actually depends on.
+        track("result_shared", { surface: "location-identity", method: "native" });
       } catch {
         // User cancelled the native share sheet — not an error.
       }
@@ -93,7 +104,40 @@ export function LocationIdentityPanel() {
   );
 }
 
+/**
+ * The link this button produces.
+ *
+ * It used to be `?lat=..&lon=..` — a pin, and nothing else. So sharing a result
+ * sent the coordinates the result came from rather than the result: the person
+ * opening it got the default map at the default zoom with no radius and no
+ * panel, and had to rebuild the interesting part themselves. Mostly they would
+ * not bother, and the whole reason to share was gone.
+ *
+ * It now reads the live state out of the stores at the moment the button is
+ * pressed, so the link carries the view. Defaults are passed in and omitted
+ * from the query string, which keeps a plain place share short.
+ *
+ * See features/share/viewState.ts for the format.
+ */
 function buildShareUrl(location: { lat: number; lon: number }): string {
-  const base = typeof window !== "undefined" ? window.location.origin : "";
-  return `${base}/?lat=${location.lat}&lon=${location.lon}`;
+  const map = useMapStore.getState();
+  const { radiusMeters } = useLocationStore.getState();
+  const { section, open } = useShellStore.getState();
+  const { tab } = useIntelTabStore.getState();
+  const defaultRadius = useUiStore.getState().defaultRadiusMeters;
+
+  return shareUrl(
+    {
+      lat: location.lat,
+      lon: location.lon,
+      zoom: map.zoom,
+      basemap: map.basemap,
+      radiusMeters,
+      // A closed panel is a deliberate state, and reopening it for the
+      // recipient would be putting them somewhere the sender was not.
+      section: open ? section : undefined,
+      tab: open && section === "place" ? tab : undefined,
+    },
+    { zoom: 12, radiusMeters: defaultRadius }
+  );
 }

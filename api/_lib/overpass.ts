@@ -159,7 +159,27 @@ export async function runOverpassQuery(query: string): Promise<OverpassElement[]
       }
       decided = true;
       const errors = outcomes.map((o) => o.error).filter((e): e is string => !!e);
-      reject(new Error(errors.length ? `All Overpass mirrors failed: ${errors.join(" | ")}` : "All Overpass endpoints failed."));
+      /*
+        Logged in full, reported in summary.
+
+        `errors` holds one entry per mirror, each naming the mirror's URL and
+        the HTTP status it returned, and that string was travelling all the
+        way into the 502 body that the browser renders. It told any visitor
+        which third-party endpoints this app depends on and exactly how they
+        were failing, which is reconnaissance handed over for free and is of
+        no use whatsoever to the person reading it.
+
+        The detail still goes to the server log, where it is genuinely needed
+        for debugging. What crosses the wire is the count.
+      */
+      console.error("[overpass] all mirrors failed:", errors.join(" | "));
+      reject(
+        new Error(
+          errors.length
+            ? `All ${errors.length} OpenStreetMap data mirrors failed to respond.`
+            : "All OpenStreetMap data mirrors failed to respond."
+        )
+      );
     };
 
     const attempt = (endpoint: string) => {

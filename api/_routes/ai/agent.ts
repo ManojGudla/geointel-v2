@@ -5,6 +5,7 @@ import { checkDurableLimit } from "../../_lib/rateLimit.js";
 
 import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
 import { searchKnowledgeBase } from "../../_lib/kb.js";
+import { fenceRules, makeFence, sanitizeField, sanitizeNumber } from "../../_lib/untrusted.js";
 import type { AgentKind, CopilotContext } from "../../../src/types/ai.js";
 
 const VALID_KINDS: AgentKind[] = ["search", "gis", "property", "navigation", "travel", "makeMyTrip"];
@@ -26,25 +27,35 @@ const AGENT_FOCUS: Record<AgentKind, string> = {
 function buildDataBlock(context: AgentRequestBody["context"] | undefined, kind: AgentKind): string {
   if (!context) return "No location is currently selected in the app.";
   const lines: string[] = [];
-  if (context.locationName) lines.push(`Location: ${context.locationName}`);
-  if (context.address) lines.push(`Address: ${context.address}`);
+  /*
+    Every value here comes off a caller-controlled HTTP body, and all of it is
+    about to sit inside the system message. See api/_lib/untrusted.ts.
+  */
+  const name = sanitizeField(context.locationName, 200);
+  if (name) lines.push(`Location: ${name}`);
+  const address = sanitizeField(context.address, 300);
+  if (address) lines.push(`Address: ${address}`);
   if (context.searchResults?.length) {
-    lines.push(`Search results shown: ${context.searchResults.map((r) => r.displayName).join(" | ")}`);
+    lines.push(`Search results shown: ${context.searchResults.slice(0, 10).map((r) => sanitizeField(r.displayName, 160)).join(" | ")}`);
   }
   if (context.property) {
     lines.push(
-      `Property classification: ${context.property.classification ?? "unknown"} (confidence ${context.property.confidence ?? 0}%, trust: ${context.property.trust ?? "unavailable"})`
+      `Property classification: ${sanitizeField(context.property.classification, 60) || "unknown"} (confidence ${sanitizeNumber(context.property.confidence ?? 0)}%, trust: ${sanitizeField(context.property.trust, 30) || "unavailable"})`
     );
-    if (context.property.reasoning) lines.push(`Property reasoning: ${context.property.reasoning}`);
+    const reasoning = sanitizeField(context.property.reasoning, 600);
+    if (reasoning) lines.push(`Property reasoning: ${reasoning}`);
   }
   if (context.gis) {
-    if (context.gis.radiusMeters) lines.push(`GIS evidence radius: ${context.gis.radiusMeters}m`);
-    if (context.gis.counts) lines.push(`GIS counts: ${JSON.stringify(context.gis.counts)}`);
-    if (context.gis.scores) lines.push(`GIS scores: ${JSON.stringify(context.gis.scores)}`);
+    if (context.gis.radiusMeters) lines.push(`GIS evidence radius: ${sanitizeNumber(context.gis.radiusMeters)}m`);
+    if (context.gis.counts) lines.push(`GIS counts: ${sanitizeField(JSON.stringify(context.gis.counts), 600)}`);
+    if (context.gis.scores) lines.push(`GIS scores: ${sanitizeField(JSON.stringify(context.gis.scores), 600)}`);
   }
-  if (context.weather) lines.push(`Weather: ${context.weather.temperatureC ?? "?"}°C, ${context.weather.condition ?? "unknown"}`);
+  if (context.weather)
+    lines.push(`Weather: ${sanitizeNumber(context.weather.temperatureC)}°C, ${sanitizeField(context.weather.condition, 60) || "unknown"}`);
   if (context.nearbyTopCategories?.length) {
-    lines.push(`Nearby: ${context.nearbyTopCategories.map((c) => `${c.count} ${c.category}`).join(", ")}`);
+    lines.push(
+      `Nearby: ${context.nearbyTopCategories.slice(0, 12).map((c) => `${sanitizeNumber(c.count)} ${sanitizeField(c.category, 40)}`).join(", ")}`
+    );
   }
   // Only mention the route at all when it's actually relevant: the
   // navigation agent's whole focus is the active route, so it always needs
@@ -62,13 +73,23 @@ function buildDataBlock(context: AgentRequestBody["context"] | undefined, kind: 
     lines.push("Active route: none set.");
   }
   if (context.officials?.length) {
+    /*
+      The highest-stakes field in the block.
+
+      The system prompt below tells the model this list is the ONLY source of
+      truth for an official's name. That instruction is what made an unescaped
+      version dangerous: a forged entry would not merely be repeated, it would
+      be laundered into an authoritative claim about a real public office, with
+      the guardrail itself vouching for it.
+    */
     lines.push(
       "Officials/authorities:\n" +
         context.officials
+          .slice(0, 20)
           .map((o) =>
             o.status === "verified"
-              ? `- [${o.level}] ${o.role}: ${o.name} (source: ${o.sourceLabel ?? "unknown"}${o.since ? `, since ${o.since}` : ""})`
-              : `- [${o.level}] ${o.role}: Unable to verify`
+              ? `- [${sanitizeField(o.level, 40)}] ${sanitizeField(o.role, 80)}: ${sanitizeField(o.name, 120)} (source: ${sanitizeField(o.sourceLabel, 80) || "unknown"}${o.since ? `, since ${sanitizeField(o.since, 20)}` : ""})`
+              : `- [${sanitizeField(o.level, 40)}] ${sanitizeField(o.role, 80)}: Unable to verify`
           )
           .join("\n")
     );
@@ -100,6 +121,11 @@ const handler: ApiHandler = async (req, res) => {
     return err(res, 413, "Too much context sent with this request.");
   }
   const dataBlock = buildDataBlock(body.context, kind).slice(0, 4_000);
+  /*
+    Matters more here than on the Copilot route: an agent request carries no
+    question at all, so this block IS the entire prompt. See untrusted.ts.
+  */
+  const fence = makeFence("DATA");
   const kbHits = await searchKnowledgeBase(AGENT_FOCUS[kind], 2);
   const kbBlock = kbHits.length ? kbHits.map((h) => `### ${h.title}\n${h.content}`).join("\n\n") : "";
 
@@ -116,7 +142,7 @@ const handler: ApiHandler = async (req, res) => {
         "If asked who built or developed this app, say Manoj Kumar Gudla built it. If asked personal questions about him unrelated to this app, " +
         "politely decline rather than guessing. If the data includes an 'Officials/authorities' section, treat those as the ONLY source of truth for " +
         "government officials' names — never state such a name from your own memory, and say 'Unable to verify' if a role isn't listed there.\n\n" +
-        `CURRENT LOCATION DATA:\n${dataBlock}` +
+        `${fenceRules(fence)}\n\nCURRENT LOCATION DATA:\n${fence.wrap(dataBlock)}` +
         (kbBlock ? `\n\nRELEVANT KNOWLEDGE BASE:\n${kbBlock}` : ""),
     },
     { role: "user", content: `Run the ${kind} intelligence agent on the current data.` },

@@ -1,6 +1,7 @@
 import { reverseGeocode } from "@/services/geocode";
 import { useLocationStore } from "@/stores/locationStore";
 import type { Location } from "@/types/location";
+import { track } from "@/services/analytics";
 
 /**
  * Turns a raw {lat, lon} — from a map click, a pasted coordinate, a "use my
@@ -79,6 +80,10 @@ export async function selectMapPoint(
     const current = useLocationStore.getState().selectedLocation;
     if (!current || current.lat !== lat || current.lon !== lon) return;
     setSelectedLocation(located);
+    // The activation event. Everything downstream in this app needs a place to
+    // be selected first, so the ratio of visitors to place_opened is the single
+    // clearest measure of whether the first screen is working.
+    track("place_opened", { source: source ?? "unknown" });
   } catch {
     if (signal?.aborted) return;
     const current = useLocationStore.getState().selectedLocation;

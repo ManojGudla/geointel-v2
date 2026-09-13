@@ -58,14 +58,45 @@ describe("runOverpassQuery mirror racing", () => {
     vi.unstubAllGlobals();
   });
 
-  it("still throws a descriptive error when every mirror genuinely fails", async () => {
+  /*
+    This used to assert that the THROWN message named the mirror and its HTTP
+    status. It did, and that string travelled all the way into the 502 body the
+    browser renders — gis, nearby, buildings, poi-evidence and live all put
+    `error.message` in the response. So every visitor who hit an Overpass
+    outage was handed a list of this app's third-party endpoints and exactly
+    how each was failing: reconnaissance given away for free, and of no use
+    whatsoever to the person reading it.
+
+    The requirement the old test was really protecting is that the detail is
+    not LOST, and it is not — it goes to the server log, where debugging
+    actually happens. So this now checks both halves: the detail is recorded,
+    and it is not in what the caller sees.
+  */
+  it("logs which mirror failed and why, without putting it in the thrown message", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => ({ ok: false, status: 502, text: async () => "" }))
     );
+    const logged: string[] = [];
+    const spy = vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
+      logged.push(args.map(String).join(" "));
+    });
 
-    await expect(runOverpassQuery("[out:json];out;")).rejects.toThrow(/returned HTTP 502/);
+    await expect(runOverpassQuery("[out:json];out;")).rejects.toThrow(/mirrors failed to respond/);
 
+    // The operator still gets the endpoint and the status.
+    const log = logged.join("\n");
+    expect(log).toMatch(/overpass/i);
+    expect(log).toMatch(/502/);
+
+    // The visitor gets neither.
+    await runOverpassQuery("[out:json];out;").catch((e: unknown) => {
+      const message = e instanceof Error ? e.message : String(e);
+      expect(message).not.toMatch(/https?:\/\//);
+      expect(message).not.toMatch(/502/);
+    });
+
+    spy.mockRestore();
     vi.unstubAllGlobals();
   });
 
@@ -206,7 +237,7 @@ describe("runOverpassQuery mirror racing", () => {
     );
 
     const start = Date.now();
-    await expect(runOverpassQuery("[out:json];out;")).rejects.toThrow(/All Overpass mirrors failed/);
+    await expect(runOverpassQuery("[out:json];out;")).rejects.toThrow(/mirrors failed to respond/);
 
     // Full coverage is preserved for the degraded case...
     expect(calls).toHaveLength(6);
@@ -224,16 +255,25 @@ describe("runOverpassQuery mirror racing", () => {
    * was no way to tell which of the 6 mirrors those came from. Every failure
    * reason in the combined error must now name its own endpoint.
    */
-  it("names the endpoint even for a raw network failure that carries no endpoint in its own message", async () => {
+  it("names the endpoint in the log even for a raw network failure that carries no endpoint of its own", async () => {
+    // A bare "fetch failed" tells an operator nothing about WHICH mirror died.
+    // That attribution is the whole point of this test; it now lives in the
+    // log rather than in the message the browser receives.
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => {
         throw new Error("fetch failed");
       })
     );
+    const logged: string[] = [];
+    const spy = vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
+      logged.push(args.map(String).join(" "));
+    });
 
-    await expect(runOverpassQuery("[out:json];out;")).rejects.toThrow(/overpass-api\.de.*: fetch failed/);
+    await expect(runOverpassQuery("[out:json];out;")).rejects.toThrow(/mirrors failed to respond/);
+    expect(logged.join("\n")).toMatch(/overpass-api\.de.*fetch failed/);
 
+    spy.mockRestore();
     vi.unstubAllGlobals();
   });
 

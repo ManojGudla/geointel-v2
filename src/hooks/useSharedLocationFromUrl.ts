@@ -1,85 +1,109 @@
 import { useEffect } from "react";
 import { useLocationStore } from "@/stores/locationStore";
+import { useMapStore } from "@/stores/mapStore";
+import { useShellStore } from "@/stores/shellStore";
+import { useIntelTabStore } from "@/stores/intelTabStore";
 import { reverseGeocode } from "@/services/geocode";
+import { decodeViewState, VIEW_PARAMS } from "@/features/share/viewState";
+import { track } from "@/services/analytics";
 
 /**
- * Makes the "🔗 Share" button (LocationIdentityPanel.tsx) actually work.
+ * Opening a shared link, and putting back everything it carried.
  *
- * That button already built a real link — `${origin}/?lat=..&lon=..` — and
- * sent it through the native share sheet or clipboard. But nothing in the
- * app ever read those query params back on load, so opening a shared link
- * just landed on the plain homepage with no location selected: a real bug
- * (this feature LOOKED live — it produced and shared a URL — but the other
- * half, restoring state from it, was never wired up), not a "planned"
- * feature. This is that missing half: on first load, if `lat`/`lon` are in
- * the URL, resolve them the same way "Use My Current Location" does
- * (reverse-geocode for a real address; fall back to a bare coordinate pair
- * if the provider is unreachable, never blocking on it) and select that
- * location — then strip the params so the URL doesn't keep re-triggering
- * this on every reload or interfere with the app's own navigation.
+ * This hook used to read `lat` and `lon` and nothing else, because that was all
+ * a share link contained. It now restores the whole view — zoom, basemap,
+ * radius, which panel and tab were open, and the question that produced the
+ * result — so a link recreates what the sender was looking at rather than the
+ * coordinates underneath it. See features/share/viewState.ts for the format and
+ * for why every field is validated rather than clamped.
+ *
+ * Old links keep working unchanged. A URL with only `lat` and `lon` decodes to
+ * a view with no optional fields, and every restore below is conditional, so a
+ * link shared last month behaves exactly as it did then.
+ *
+ * ORDER MATTERS HERE, and it is the one thing easy to get wrong.
+ *
+ * The map camera is requested BEFORE the reverse geocode is awaited. The
+ * geocode is a network call to a rate-limited free service and can take
+ * seconds or fail outright; making the camera wait on it would leave a person
+ * who followed a link to a specific street staring at the default world view
+ * until an unrelated request came back. The position is already known from the
+ * URL — nothing about showing it depends on knowing its address.
+ *
+ * The panel state is restored AFTER the location is set, because setting a
+ * location fires watchLocationForPanel, which force-opens Explore on the
+ * transition from "nothing selected" to "something selected". Restoring the
+ * panel first would have it immediately overwritten, and the bug would look
+ * like "the section parameter does nothing sometimes" — sometimes, because it
+ * would depend on whether the geocode resolved before or after.
  */
 export function useSharedLocationFromUrl() {
   const setSelectedLocation = useLocationStore((s) => s.setSelectedLocation);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const latParam = params.get("lat");
-    const lonParam = params.get("lon");
-    if (latParam === null || lonParam === null) return;
+    const view = decodeViewState(window.location.search);
+    if (!view) return;
 
-    const lat = Number(latParam);
-    const lon = Number(lonParam);
-    /**
-     * Range, not just finiteness.
-     *
-     * `Number.isFinite` happily passes ?lat=999. MapLibre's LngLat throws on
-     * any latitude outside ±90, and that throw happens inside an effect with
-     * no try/catch — so React unmounts the map AND every panel and shows the
-     * error boundary, which does not self-recover. A link is the easiest
-     * thing in the world to hand someone, so `?lat=999&lon=0` was a one-click
-     * way to break the whole workspace for whoever opened it.
-     */
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
-    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return;
+    // Everything that does not need the network happens now, in the same tick
+    // the page opens.
+    if (view.basemap) useMapStore.getState().setBasemap(view.basemap);
+    useMapStore.getState().requestCamera({ center: [view.lon, view.lat], zoom: view.zoom ?? 15 });
+    if (view.radiusMeters !== undefined) useLocationStore.getState().setRadiusMeters(view.radiusMeters);
 
-    // Strip immediately (not after the fetch resolves) so a slow/failed
-    // reverse-geocode can't leave the shared coordinates sitting in the
-    // address bar indefinitely, and a page refresh doesn't re-share the
-    // same point back into a fresh session.
+    /*
+      Stripped immediately, not after the geocode resolves.
+
+      A slow or failed lookup would otherwise leave the shared coordinates
+      sitting in the address bar indefinitely, and a refresh would re-trigger
+      the whole restore against a session that has already moved on.
+    */
     const url = new URL(window.location.href);
-    url.searchParams.delete("lat");
-    url.searchParams.delete("lon");
+    for (const key of VIEW_PARAMS) url.searchParams.delete(key);
     window.history.replaceState({}, "", url.toString());
 
+    track("map_opened", {
+      source: "shared-link",
+      // Whether a link carried a real view or just a pin is the measure of
+      // whether this feature is doing anything. No coordinates, no question
+      // text — see services/analytics.ts.
+      restoredView: Boolean(view.zoom || view.basemap || view.radiusMeters || view.section || view.question),
+    });
+
+    const applyPanel = () => {
+      if (view.section) useShellStore.getState().openSection(view.section);
+      if (view.tab) useIntelTabStore.getState().setTab(view.tab);
+    };
+
     let cancelled = false;
-    reverseGeocode(lat, lon)
+    reverseGeocode(view.lat, view.lon)
       .then((location) => {
-        if (!cancelled) setSelectedLocation(location);
+        if (cancelled) return;
+        setSelectedLocation(location);
+        applyPanel();
       })
       .catch(() => {
         if (cancelled) return;
-        // Same honest fallback DirectionsPanel's "Use My Current Location"
-        // uses — a real, usable point with no invented address, rather than
-        // silently dropping the shared location because reverse geocoding
-        // happened to fail.
+        // A real, usable point with no invented address, rather than silently
+        // dropping the shared location because a free geocoder happened to be
+        // rate-limited at that moment.
         setSelectedLocation({
-          lat,
-          lon,
-          displayName: `${lat.toFixed(5)}, ${lon.toFixed(5)}`,
+          lat: view.lat,
+          lon: view.lon,
+          displayName: `${view.lat.toFixed(5)}, ${view.lon.toFixed(5)}`,
           name: "Shared location",
           address: {},
           source: "Shared link",
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         });
+        applyPanel();
       });
 
     return () => {
       cancelled = true;
     };
-    // Intentionally empty deps — this reads window.location.search exactly
-    // once, on first mount, the same "read once, this SPA never navigates
-    // between paths" pattern App.tsx already uses for the /admin pathname
-    // check right above where this hook is called.
+    // Intentionally empty deps — this reads window.location.search exactly once
+    // on first mount, the same "read once, this SPA never navigates between
+    // paths" pattern App.tsx uses for its pathname check.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

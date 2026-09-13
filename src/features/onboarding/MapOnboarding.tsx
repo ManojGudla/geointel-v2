@@ -9,6 +9,7 @@ import { parseMapCommand } from "@/features/ai/mapCommands";
 import type { AnalysisRequest } from "@/features/analysis/runAnalysis";
 import { reverseGeocode } from "@/services/geocode";
 import "./MapOnboarding.css";
+import { track } from "@/services/analytics";
 
 /**
  * What a first-time visitor sees before they have done anything.
@@ -65,6 +66,7 @@ export function MapOnboarding() {
   if (!visible) return null;
 
   const pickPlace = async (place: NonNullable<Example["place"]>) => {
+    track("onboarding_example_used", { kind: "place" });
     setBusy(place.name);
     setQuery(place.name);
     // Shown immediately from known coordinates; the reverse lookup only
@@ -84,6 +86,7 @@ export function MapOnboarding() {
   const askQuestion = async (question: string) => {
     const command = parseMapCommand(question);
     if (!command) return;
+    track("onboarding_example_used", { kind: "question", operation: command.operation });
     setBusy(question);
     setQuery(question);
 

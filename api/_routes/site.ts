@@ -84,11 +84,23 @@ interface SiteResult {
 }
 
 /**
- * One query for everything, rather than six.
+ * One request, but two separate result sets, and the separation is a bug fix
+ * rather than tidiness.
  *
- * Overpass charges by the request as much as by the work, and the free
- * mirrors rate-limit on request count. Every clause below is anchored to the
- * same `around:`, so this is one round trip.
+ * The first version put all seven clauses in one union and capped the output
+ * at 400 elements. Overpass applies that cap to the union as a whole, ordered
+ * by element id — not by the order the clauses are written. Named road
+ * segments outnumber construction sites by a wide margin in any built-up area,
+ * and a single street is routinely mapped as a dozen ways, so in a dense city
+ * the road segments alone can exceed the cap. The construction and land-status
+ * records would then be silently truncated away.
+ *
+ * That failure is invisible and it is the worst possible one for this feature:
+ * the panel would confidently report "0 under construction" for a street with
+ * three tower cranes on it, because the answer was cut off rather than empty.
+ *
+ * So development gets its own `out` with its own budget, and roads get theirs.
+ * Still one round trip, which is what actually matters to the free mirrors.
  *
  * `out tags center` gives the tags plus a representative point without the
  * full geometry — this panel lists things, it does not draw them, and asking
@@ -98,7 +110,6 @@ export function buildSiteQuery(lat: number, lon: number, radius: number): string
   const a = `(around:${radius},${lat},${lon})`;
   return `[out:json][timeout:30];
 (
-  way["highway"]["name"]${a};
   way["highway"="construction"]${a};
   way["proposed:highway"]${a};
   way["building"="construction"]${a};
@@ -106,7 +117,9 @@ export function buildSiteQuery(lat: number, lon: number, radius: number): string
   way["landuse"~"^(construction|brownfield|greenfield)$"]${a};
   relation["landuse"~"^(construction|brownfield|greenfield)$"]${a};
 );
-out tags center 400;`;
+out tags center 250;
+way["highway"]["name"]${a};
+out tags center 600;`;
 }
 
 /**

@@ -38,6 +38,7 @@ import { useSharedLocationFromUrl } from "@/hooks/useSharedLocationFromUrl";
 import { useLocationPanelSync } from "@/hooks/useLocationPanelSync";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ConsentBanner } from "@/features/analytics/ConsentBanner";
+import { NotFoundPage } from "@/features/notfound/NotFoundPage";
 
 /**
  * App.tsx is layout orchestration only: header, workspace composition, and
@@ -57,6 +58,22 @@ export default function App() {
   // that's a deliberate choice elsewhere) — /admin is a plain pathname
   // check, read once since this SPA never navigates between paths itself.
   const [pathname] = useState(() => window.location.pathname.replace(/\/+$/, "") || "/");
+
+  /**
+   * Every path this application actually serves.
+   *
+   * Declared as a set rather than implied by the chain of `if`s below, because
+   * the chain had no final `else`: an unmatched path fell through all of it and
+   * rendered the map workspace with HTTP 200. That made /pricing, /maps/london
+   * and /asdfgh all look like real pages to a crawler, each answering 200 with
+   * byte-identical HTML — infinite duplicate content from a single bad inbound
+   * link. Adding a branch to the bottom of the chain would have fixed today's
+   * version and silently broken again the next time somebody added a route and
+   * forgot; a set that every branch is checked against cannot drift apart from
+   * the branches.
+   */
+  const KNOWN_PATHS = new Set(["/", "/ai-map-search", "/status", "/admin", "/privacy"]);
+  const isKnownPath = KNOWN_PATHS.has(pathname);
 
   // The consent banner and the landing page footer both link to /privacy,
   // but there was never a route behind it: the SPA rewrite served index.html
@@ -86,6 +103,16 @@ export default function App() {
         </Suspense>
       </ErrorBoundary>
     );
+  }
+
+  /*
+    Ahead of the maintenance gate on purpose: a page that does not exist does
+    not start existing during a maintenance window, and answering a nonsense
+    URL with the maintenance page would be a second wrong answer on top of the
+    first.
+  */
+  if (!isKnownPath) {
+    return <NotFoundPage pathname={pathname} />;
   }
 
   // Deliberately NOT behind the maintenance gate below: when the app is in

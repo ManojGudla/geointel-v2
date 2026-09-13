@@ -5,6 +5,7 @@ import { useLocationStore } from "@/stores/locationStore";
 import { fetchSite, type SiteFeature, type SiteFeatureKind } from "@/services/site";
 import { portalGroups } from "./portals";
 import "./SitePanel.css";
+import { track } from "@/services/analytics";
 
 /**
  * Site and development.
@@ -229,7 +230,13 @@ export function SitePanel() {
               <ul className="site__portals">
                 {group.portals.map((p) => (
                   <li key={p.url}>
-                    <a className="site__portal" href={p.url} target="_blank" rel="noopener noreferrer">
+                    <a
+                      className="site__portal"
+                      href={p.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => track("portal_opened", { portal: p.label, group: group.title })}
+                    >
                       <span className="site__portal-label">
                         {p.label}
                         <span className="site__portal-out" aria-hidden="true">

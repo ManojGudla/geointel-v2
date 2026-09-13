@@ -1,7 +1,7 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
 import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
-import { TtlCache, RateLimiter } from "../_lib/cache.js";
+import { TtlCache, RateLimiter, fetchWithTimeout } from "../_lib/cache.js";
 
 /**
  * When was this satellite picture taken?
@@ -121,7 +121,15 @@ async function queryLayer(layer: number, lat: number, lon: number): Promise<Foot
     `&outFields=SRC_DATE,SAMP_RES,SRC_RES,NICE_DESC,NICE_NAME,MinMapLevel,MaxMapLevel` +
     `&returnGeometry=false&f=json`;
 
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
+  /*
+    A bare fetch() here was the only outbound call in this API with no
+    timeout. Esri is generally quick, but a hung connection has no natural
+    end: the request would sit open until the serverless platform killed the
+    whole invocation, holding a function slot and leaving the caller watching
+    a spinner with no error to show. Eight seconds matches weather.ts, the
+    other fast third-party lookup.
+  */
+  const response = await fetchWithTimeout(url, { headers: { Accept: "application/json" } }, 8_000);
   if (!response.ok) throw new Error(`Esri imagery metadata layer ${layer} returned HTTP ${response.status}.`);
   const body = (await response.json()) as { features?: Array<{ attributes?: Footprint }>; error?: unknown };
   if (body.error) throw new Error(`Esri imagery metadata layer ${layer} returned an error.`);
