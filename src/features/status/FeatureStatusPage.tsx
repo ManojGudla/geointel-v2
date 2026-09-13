@@ -4,6 +4,7 @@ import { FEATURE_STATUS, countByStatus, totalFeatureCount, type FeatureStatus } 
 import { useMotionPreference } from "@/hooks/useMotionPreference";
 import { overlayFade, panelRise } from "@/lib/motionVariants";
 import "./FeatureStatusPage.css";
+import { useDialog } from "@/hooks/useDialog";
 
 const STATUS_LABEL: Record<FeatureStatus, string> = {
   live: "Live",
@@ -27,6 +28,13 @@ function StatusBadge({ status }: { status: FeatureStatus }) {
 export function FeatureStatusPage() {
   const isOpen = useFeatureStatusStore((s) => s.isOpen);
   const close = useFeatureStatusStore((s) => s.close);
+  /*
+    Makes this behave like the role="dialog" it declares: Escape closes it,
+    focus moves in on open and cycles inside, and goes back to whatever opened
+    it on close. See hooks/useDialog.ts — none of that was happening before,
+    and Tab walked straight out into the map behind this panel.
+  */
+  const dialogRef = useDialog({ open: isOpen, onClose: close });
   const motionEnabled = useMotionPreference();
   const counts = countByStatus();
   const total = totalFeatureCount();
@@ -87,7 +95,7 @@ export function FeatureStatusPage() {
     if (!isOpen) return null;
     return (
       <div className="feature-status-overlay" onClick={close}>
-        <div className="feature-status" role="dialog" aria-label="Feature status" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="feature-status" role="dialog" aria-label="Feature status" onClick={(e) => e.stopPropagation()}>
           {content}
         </div>
       </div>
@@ -98,7 +106,7 @@ export function FeatureStatusPage() {
     <AnimatePresence>
       {isOpen && (
         <motion.div className="feature-status-overlay" onClick={close} {...overlayFade}>
-          <motion.div className="feature-status" role="dialog" aria-label="Feature status" onClick={(e) => e.stopPropagation()} {...panelRise}>
+          <motion.div ref={dialogRef} className="feature-status" role="dialog" aria-label="Feature status" onClick={(e) => e.stopPropagation()} {...panelRise}>
             {content}
           </motion.div>
         </motion.div>
