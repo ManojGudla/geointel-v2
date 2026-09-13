@@ -35,11 +35,23 @@ export const SECTIONS: SectionDef[] = [
     hint: "What's here: an intelligence score, property, mapped evidence, nearby places, weather and news.",
   },
   {
+    /*
+      Labelled "Data" until people told us otherwise. More than a hundred said
+      some version of "where are the images": satellite imagery lives in this
+      section, and "Data" reads as datasets and downloads, so nobody opened it
+      looking for a picture of their street. "Layers" is the word every mapping
+      tool uses for exactly this, and the hint now leads with satellite instead
+      of burying it at the end of a list.
+
+      The real fix for that complaint is the basemap button on the map itself
+      (see BasemapSwitcher.tsx), because that is where people look first. This
+      is the second place they look.
+    */
     id: "layers",
-    label: "Data",
+    label: "Layers",
     icon: "🗺️",
-    title: "Map data & style",
-    hint: "Choose what the map shows — map style, search area, data layers, live feeds and imagery back to 2012.",
+    title: "Map layers & imagery",
+    hint: "Satellite and aerial imagery, map style, 3D buildings, search area, live feeds and imagery back to 2012.",
   },
   {
     // "Analyse" with an s, matching every other label and hint in the app.

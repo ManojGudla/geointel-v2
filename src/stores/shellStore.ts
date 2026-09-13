@@ -38,8 +38,15 @@ export type ShellSection = "place" | "layers" | "tools" | "ai" | "travel";
  * is the one section with something to say before anything is selected:
  * basemaps, 3D, data layers, imagery. Opening on an empty Explore panel
  * would prove the old argument right.
+ *
+ * The threshold was 1200px, which is wider than most laptops and every tablet,
+ * so in practice the panel was shut for nearly everyone and the complaint it
+ * was meant to fix went on being made. 900px is where this app's own CSS
+ * already switches the rail into a bottom tab bar, so above it there is a
+ * side rail and room for a panel beside the map, and below it there is not.
+ * One number for one decision, rather than two that disagree.
  */
-const DESKTOP_MIN_WIDTH = 1200;
+const DESKTOP_MIN_WIDTH = 900;
 
 function isWideScreen(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return false;

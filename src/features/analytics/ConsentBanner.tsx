@@ -38,6 +38,8 @@ import "./ConsentBanner.css";
 export function ConsentBanner() {
   const [choice, setChoice] = useState<ConsentChoice | null>(null);
   const [ready, setReady] = useState(false);
+  /** The full disclosure, collapsed by default. See the note in the markup. */
+  const [details, setDetails] = useState(false);
   const setConsentAsking = useConsentUiStore((s) => s.setAsking);
 
   useEffect(() => {
@@ -100,12 +102,32 @@ export function ConsentBanner() {
     */
     <aside className="consent" aria-label="Analytics choice" aria-live="polite">
       <div className="consent__text">
-        <p className="consent__title">Can we count this visit?</p>
-        <p className="consent__body">
-          We would like to use Google Analytics and Sentry to see how many people use the site, which features they open, and to catch errors that break the experience.
-          Analytics sets cookies and sends your visit to Google. Error tracking helps us fix bugs faster. Nothing is loaded until you choose, and saying no keeps
-          the site working exactly the same. See our <a href="/privacy">Privacy page</a> for details.
+        {/*
+          One line, not a paragraph.
+
+          The full version ran to about ninety words and took the bottom third
+          of a phone screen. It was the FIRST thing a new visitor met, before
+          they had seen the map do anything, and it pushed everything that
+          explains the app below the fold. Nothing is hidden by shortening it:
+          the whole disclosure is one tap away and the Privacy page is still
+          linked. What changed is that the visitor now meets the product first
+          and the paperwork second, which is the right order.
+        */}
+        <p className="consent__line">
+          Can we count this visit? Analytics and error tracking only, nothing loads until you choose.{" "}
+          <button type="button" className="consent__more" onClick={() => setDetails((v) => !v)} aria-expanded={details}>
+            {details ? "Less" : "Details"}
+          </button>
         </p>
+
+        {details && (
+          <p className="consent__body">
+            We would like to use Google Analytics and Sentry to see how many people use the site, which features they
+            open, and to catch errors that break the experience. Analytics sets cookies and sends your visit to Google.
+            Error tracking helps us fix bugs faster. Saying no keeps the site working exactly the same. See our{" "}
+            <a href="/privacy">Privacy page</a> for details.
+          </p>
+        )}
       </div>
       <div className="consent__actions">
         <button type="button" className="consent__btn consent__btn--no" onClick={() => decide("denied")}>

@@ -37,25 +37,35 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
  * including by ignoring it entirely and clicking the map, which its own copy
  * invites. Pure, so the mutual-exclusion rule is testable without React.
  *
- * `consentAsking` is the third input and the reason this signature changed.
- * The consent banner renders at z-index 60 against this card's 12, so while
- * both were on screen the banner covered this card's Dismiss button outright:
- * at phone and tablet widths, elementFromPoint at the centre of "Dismiss"
- * returned the banner, and the button could not be clicked at all. A visitor
- * was left with a card over the map that would not close.
+ * This used to take a third input, `consentAsking`, and hide the card while
+ * the consent banner was up. The reasoning was sound and the result was the
+ * worst bug on the first screen: consent is asked on the FIRST visit, which is
+ * the only visit where this card matters, so the one surface that explains
+ * what this application is never appeared to anyone seeing it for the first
+ * time. What a new visitor actually met was a map, a search box, a row of
+ * unexplained buttons and a legal notice. Several people said they could not
+ * work out what the app was for, and this is why.
  *
- * Waiting is the fix rather than restacking, because restacking just moves
- * which one is covered, and because asking someone two things at once on
- * their first screen is the thing people described as overwhelming. One
- * question, then one card.
+ * The collision it was avoiding was real — the banner covered this card's
+ * Dismiss button — but it was a layout problem and it is fixed in layout: the
+ * banner is now one line pinned to the bottom edge, and this card is centred
+ * with the banner's height reserved beneath it. Neither hides the other, and
+ * the visitor gets the explanation on the visit that needs it.
  */
-export function onboardingVisible(hasLocation: boolean, dismissed: boolean, consentAsking = false): boolean {
-  return !hasLocation && !dismissed && !consentAsking;
+export function onboardingVisible(hasLocation: boolean, dismissed: boolean): boolean {
+  return !hasLocation && !dismissed;
 }
 
 export function useOnboardingVisible(): boolean {
   const location = useLocationStore((s) => s.selectedLocation);
   const dismissed = useOnboardingStore((s) => s.dismissed);
-  const consentAsking = useConsentUiStore((s) => s.asking);
-  return onboardingVisible(Boolean(location), dismissed, consentAsking);
+  return onboardingVisible(Boolean(location), dismissed);
+}
+
+/**
+ * Whether the consent banner is currently asking, so the card can leave room
+ * for it rather than wait for it. Read by MapOnboarding for spacing only.
+ */
+export function useConsentAsking(): boolean {
+  return useConsentUiStore((s) => s.asking);
 }
