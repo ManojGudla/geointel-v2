@@ -47,6 +47,11 @@ const SystemStatusPage = lazy(() => import("@/features/status/SystemStatusPage")
    for a landing page they will never see, and nobody landing on the marketing
    page should download the whole workspace to read it. */
 const LandingPage = lazy(() => import("@/features/landing/LandingPage").then((m) => ({ default: m.LandingPage })));
+/* The city pages. Split out for the same reason as the landing page: somebody
+   who opens the app itself should never pay to download a page they will not
+   see, and somebody arriving on a city page from a search result should not
+   download the whole workspace to read it. */
+const CityPage = lazy(() => import("@/features/city/CityPage").then((m) => ({ default: m.CityPage })));
 import { MaintenancePage } from "@/features/maintenance/MaintenancePage";
 import { useMaintenanceStore } from "@/stores/maintenanceStore";
 import { usePrivacyStore } from "@/stores/privacyStore";
@@ -56,6 +61,7 @@ import { useLocationPanelSync } from "@/hooks/useLocationPanelSync";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ConsentBanner } from "@/features/analytics/ConsentBanner";
 import { NotFoundPage } from "@/features/notfound/NotFoundPage";
+import { CITY_BY_SLUG, CITY_PATHS } from "@/data/cities";
 
 /**
  * App.tsx is layout orchestration only: header, workspace composition, and
@@ -89,7 +95,7 @@ export default function App() {
    * forgot; a set that every branch is checked against cannot drift apart from
    * the branches.
    */
-  const KNOWN_PATHS = new Set(["/", "/ai-map-search", "/status", "/admin", "/privacy"]);
+  const KNOWN_PATHS = new Set(["/", "/ai-map-search", "/status", "/admin", "/privacy", ...CITY_PATHS]);
   const isKnownPath = KNOWN_PATHS.has(pathname);
 
   // The consent banner and the landing page footer both link to /privacy,
@@ -120,6 +126,25 @@ export default function App() {
         </Suspense>
       </ErrorBoundary>
     );
+  }
+
+  /*
+    Outside the maintenance gate, like the landing page: these pages are read
+    by people arriving from a search engine, they degrade to text when the data
+    APIs are down, and answering a maintenance screen to a visitor who found us
+    through a search result wastes the only first impression we get.
+  */
+  if (pathname.startsWith("/maps/")) {
+    const city = CITY_BY_SLUG.get(pathname.slice("/maps/".length));
+    if (city) {
+      return (
+        <ErrorBoundary label={`${city.name} page`} variant="page">
+          <Suspense fallback={<div className="app-loading">Loading…</div>}>
+            <CityPage city={city} />
+          </Suspense>
+        </ErrorBoundary>
+      );
+    }
   }
 
   /*
