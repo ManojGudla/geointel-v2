@@ -5,6 +5,7 @@ import { overlayFade, panelRise } from "@/lib/motionVariants";
 import { FEATURE_STATUS } from "@/data/featureStatus";
 import { useFeatureStatusStore } from "@/stores/featureStatusStore";
 import "./AboutPanel.css";
+import { useDialog } from "@/hooks/useDialog";
 
 const LIVE_COUNT = FEATURE_STATUS.flatMap((c) => c.items).filter((i) => i.status === "live").length;
 const TOTAL_COUNT = FEATURE_STATUS.flatMap((c) => c.items).length;
@@ -22,6 +23,13 @@ const CREATOR_YOUTUBE_URL = "https://www.youtube.com/@maNOWj_Official";
 export function AboutPanel() {
   const isOpen = useAboutStore((s) => s.isOpen);
   const close = useAboutStore((s) => s.close);
+  /*
+    Makes this behave like the role="dialog" it declares: Escape closes it,
+    focus moves in on open and cycles inside, and goes back to whatever opened
+    it on close. See hooks/useDialog.ts — none of that was happening before,
+    and Tab walked straight out into the map behind this panel.
+  */
+  const dialogRef = useDialog({ open: isOpen, onClose: close });
   const openFeatureStatus = useFeatureStatusStore((s) => s.open);
   const motionEnabled = useMotionPreference();
 
@@ -78,7 +86,7 @@ export function AboutPanel() {
     if (!isOpen) return null;
     return (
       <div className="about-overlay" onClick={close}>
-        <div className="about-panel" role="dialog" aria-label="About maNOWj GeoIntel" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="about-panel" role="dialog" aria-label="About maNOWj GeoIntel" onClick={(e) => e.stopPropagation()}>
           {body}
         </div>
       </div>
@@ -89,7 +97,7 @@ export function AboutPanel() {
     <AnimatePresence>
       {isOpen && (
         <motion.div className="about-overlay" onClick={close} {...overlayFade}>
-          <motion.div className="about-panel" role="dialog" aria-label="About maNOWj GeoIntel" onClick={(e) => e.stopPropagation()} {...panelRise}>
+          <motion.div ref={dialogRef} className="about-panel" role="dialog" aria-label="About maNOWj GeoIntel" onClick={(e) => e.stopPropagation()} {...panelRise}>
             {body}
           </motion.div>
         </motion.div>

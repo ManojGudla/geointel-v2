@@ -6,6 +6,7 @@ import { AGENT_DEFINITIONS } from "@/types/ai";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
 import { overlayFade, panelRise } from "@/lib/motionVariants";
 import "./HelpGuide.css";
+import { useDialog } from "@/hooks/useDialog";
 
 type Section = "map" | "intelligence" | "agents" | "planning" | "account" | "roadmap";
 
@@ -27,6 +28,13 @@ const SECTIONS: Array<{ id: Section; label: string; icon: string }> = [
 export function HelpGuide() {
   const isOpen = useHelpStore((s) => s.isOpen);
   const close = useHelpStore((s) => s.close);
+  /*
+    Makes this behave like the role="dialog" it declares: Escape closes it,
+    focus moves in on open and cycles inside, and goes back to whatever opened
+    it on close. See hooks/useDialog.ts — none of that was happening before,
+    and Tab walked straight out into the map behind this panel.
+  */
+  const dialogRef = useDialog({ open: isOpen, onClose: close });
   const [section, setSection] = useState<Section>("map");
   const motionEnabled = useMotionPreference();
 
@@ -34,7 +42,7 @@ export function HelpGuide() {
     if (!isOpen) return null;
     return (
       <div className="help-guide-overlay" onClick={close}>
-        <div className="help-guide" role="dialog" aria-label="Help & Guide" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="help-guide" role="dialog" aria-label="Help & Guide" onClick={(e) => e.stopPropagation()}>
           <HelpGuideBody section={section} setSection={setSection} close={close} />
         </div>
       </div>

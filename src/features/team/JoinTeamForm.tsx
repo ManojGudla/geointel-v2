@@ -5,6 +5,7 @@ import { submitTeamApplication } from "@/services/team";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
 import { overlayFade, panelRise } from "@/lib/motionVariants";
 import "./JoinTeamForm.css";
+import { useDialog } from "@/hooks/useDialog";
 
 const INTERESTS: Array<{ id: string; label: string }> = [
   { id: "engineering", label: "Engineering" },
@@ -48,6 +49,14 @@ export function JoinTeamForm() {
     close();
     reset();
   };
+
+  /*
+    Makes this behave like the role="dialog" it declares: Escape closes it,
+    focus moves in on open and cycles inside, and goes back to whatever opened
+    it on close. See hooks/useDialog.ts — none of that was happening before,
+    and Tab walked straight out into the map behind this panel.
+  */
+  const dialogRef = useDialog({ open: isOpen, onClose: handleClose });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +137,7 @@ export function JoinTeamForm() {
     if (!isOpen) return null;
     return (
       <div className="join-team-overlay" onClick={handleClose}>
-        <div className="join-team-form" role="dialog" aria-label="Join our team" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="join-team-form" role="dialog" aria-label="Join our team" onClick={(e) => e.stopPropagation()}>
           {body}
         </div>
       </div>
@@ -139,7 +148,7 @@ export function JoinTeamForm() {
     <AnimatePresence>
       {isOpen && (
         <motion.div className="join-team-overlay" onClick={handleClose} {...overlayFade}>
-          <motion.div className="join-team-form" role="dialog" aria-label="Join our team" onClick={(e) => e.stopPropagation()} {...panelRise}>
+          <motion.div ref={dialogRef} className="join-team-form" role="dialog" aria-label="Join our team" onClick={(e) => e.stopPropagation()} {...panelRise}>
             {body}
           </motion.div>
         </motion.div>

@@ -6,6 +6,7 @@ import { useWeatherEffectStore } from "@/features/weather/effects/weatherEffectS
 import { useMotionPreference } from "@/hooks/useMotionPreference";
 import { overlayFade, panelRise } from "@/lib/motionVariants";
 import "./SettingsPanel.css";
+import { useDialog } from "@/hooks/useDialog";
 
 const RADIUS_PRESETS = [100, 250, 500, 1000, 2000, 5000];
 
@@ -30,6 +31,13 @@ const ANIMATION_OPTIONS: Array<{ id: AnimationIntensity; label: string }> = [
 export function SettingsPanel() {
   const isOpen = useSettingsStore((s) => s.isOpen);
   const close = useSettingsStore((s) => s.close);
+  /*
+    Makes this behave like the role="dialog" it declares: Escape closes it,
+    focus moves in on open and cycles inside, and goes back to whatever opened
+    it on close. See hooks/useDialog.ts — none of that was happening before,
+    and Tab walked straight out into the map behind this panel.
+  */
+  const dialogRef = useDialog({ open: isOpen, onClose: close });
   const motionEnabled = useMotionPreference();
 
   const units = useUiStore((s) => s.units);
@@ -165,7 +173,7 @@ export function SettingsPanel() {
     if (!isOpen) return null;
     return (
       <div className="settings-overlay" onClick={close}>
-        <div className="settings-panel" role="dialog" aria-label="Settings" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="settings-panel" role="dialog" aria-label="Settings" onClick={(e) => e.stopPropagation()}>
           {content}
         </div>
       </div>
@@ -176,7 +184,7 @@ export function SettingsPanel() {
     <AnimatePresence>
       {isOpen && (
         <motion.div className="settings-overlay" onClick={close} {...overlayFade}>
-          <motion.div className="settings-panel" role="dialog" aria-label="Settings" onClick={(e) => e.stopPropagation()} {...panelRise}>
+          <motion.div ref={dialogRef} className="settings-panel" role="dialog" aria-label="Settings" onClick={(e) => e.stopPropagation()} {...panelRise}>
             {content}
           </motion.div>
         </motion.div>
