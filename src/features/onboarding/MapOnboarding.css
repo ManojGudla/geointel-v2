@@ -61,8 +61,10 @@
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
-  width: 36px;
-  height: 36px;
+  /* The way out of the first screen. It was 36px, which is small for the one
+     control this card must never make hard to hit. */
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border: 1px solid var(--color-border);
@@ -98,7 +100,7 @@
 
 .onboarding__headline {
   margin: 0;
-  padding-right: 44px;
+  padding-right: 52px;
   font-size: 28px;
   line-height: 1.2;
   font-weight: 800;
@@ -123,7 +125,11 @@
 */
 .onboarding__examples {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  /* 134, not 148. At 360px the card's content box is 302px, so two 148px
+     columns plus the gap needed 304 and the grid silently fell back to one
+     column — the examples stacked five deep and pushed the card's own footer
+     under the consent banner. Measured at 360px, not guessed. */
+  grid-template-columns: repeat(auto-fit, minmax(134px, 1fr));
   gap: var(--space-2);
   margin-top: var(--space-1);
 }
@@ -206,8 +212,17 @@
     font-size: var(--text-sm);
   }
 
+  /*
+    44px, measured rather than assumed.
+
+    Rendering the real app at 360px and reading every button's bounding box
+    found these at 40 — under the 44px both Apple and Google give as the
+    minimum reliable touch target, on the single screen a brand-new visitor
+    meets first. Four pixels sounds like nothing and is the difference between
+    a tap that works and one that lands next to the button.
+  */
   .onboarding__examples button {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   /*

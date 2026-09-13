@@ -136,6 +136,11 @@
 }
 
 .app-header__icon-btn {
+  /* Measured at 360px: these rendered 40x40. On a phone the header collapses
+     these to icon-only, so 40px is the entire target for search, theme and
+     the overflow menu. */
+  min-height: 44px;
+  min-width: 44px;
   background: transparent;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -303,8 +308,11 @@
   }
 
   .app-header__icon-btn {
-    min-height: 40px;
-    min-width: 40px;
+    /* 44, not 40. The rule directly above hides .app-header__btn-label at this
+       width, so on a phone these are icon-only buttons and this box is the
+       entire target for search, theme and the overflow menu. */
+    min-height: 44px;
+    min-width: 44px;
     justify-content: center;
     padding: var(--space-2);
   }
