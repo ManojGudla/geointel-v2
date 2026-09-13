@@ -1,0 +1,119 @@
+/*
+  The 404.
+
+  Deliberately plain and deliberately short. This page exists to tell somebody
+  they are in the wrong place and get them out of it; anything that slows that
+  down is working against it. No map, no imagery, nothing that needs to load.
+*/
+
+.notfound {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5) var(--space-4);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.notfound__card {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.notfound__eyebrow {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+.notfound__title {
+  margin: 0;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.notfound__body {
+  margin: 0;
+  max-width: 58ch;
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--color-text-muted);
+}
+
+/* A pasted URL can be arbitrarily long and have no spaces in it, which is the
+   classic way a 404 page ends up scrolling sideways on a phone. */
+.notfound__path {
+  display: inline-block;
+  max-width: 100%;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.notfound__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.notfound__btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.notfound__btn:hover {
+  border-color: var(--color-brand-500);
+  color: var(--color-brand-700);
+}
+
+.notfound__btn--primary {
+  border-color: var(--color-brand-600);
+  background: var(--color-brand-600);
+  color: #fff;
+}
+
+.notfound__btn--primary:hover {
+  background: var(--color-brand-700);
+  color: #fff;
+}
+
+.notfound__links {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3) 0 0;
+  border-top: 1px solid var(--color-border);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.notfound__links a {
+  color: var(--color-text-muted);
+}
+
+.notfound__links a:hover {
+  color: var(--color-brand-600);
+}

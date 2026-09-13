@@ -13,6 +13,7 @@ import { useRunAnalysis } from "@/features/analysis/useRunAnalysis";
 import type { AnalysisRequest } from "@/features/analysis/runAnalysis";
 import type { SearchSuggestion } from "@/types/location";
 import "./SearchBar.css";
+import { track } from "@/services/analytics";
 
 async function selectSuggestion(
   suggestion: SearchSuggestion,
@@ -221,12 +222,24 @@ export function SearchBar() {
     // Nominatim will happily return something for "hospitals within 5 km",
     // and picking that would answer a question nobody asked.
     if (parseMapCommand(query)) {
+      // Length, never the text. A search string is free-form and routinely
+      // contains a home address; its length is enough to tell a typo from a
+      // real question.
+      track("search_started", { kind: "question", queryLength: query.length });
       void askTheMap();
       return;
     }
 
     const target = suggestions[highlighted] ?? suggestions[0];
-    if (target) choose(target);
+    if (target) {
+      track("search_started", { kind: "place", queryLength: query.length, resultCount: suggestions.length });
+      choose(target);
+    } else {
+      // A submitted search with nothing to choose is a failed search, and this
+      // is the event that turns "people are not finding things" from a hunch
+      // into a list of queries to fix.
+      track("search_failed", { kind: "place", queryLength: query.length });
+    }
   };
 
   const handleUseMyLocation = () => geolocation.locate();

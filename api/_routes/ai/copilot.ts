@@ -5,6 +5,7 @@ import { checkDurableLimit } from "../../_lib/rateLimit.js";
 
 import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
 import { searchKnowledgeBase } from "../../_lib/kb.js";
+import { fenceRules, makeFence, sanitizeField, sanitizeNumber } from "../../_lib/untrusted.js";
 import type { CopilotContext } from "../../../src/types/ai.js";
 
 interface CopilotRequestBody {
@@ -12,42 +13,73 @@ interface CopilotRequestBody {
   context?: CopilotContext;
 }
 
+/*
+  Every value below arrives in an HTTP body the caller controls, and every one
+  of them used to be pasted into the SYSTEM message unchanged. See
+  api/_lib/untrusted.ts for why that is the one place untrusted text must never
+  go, and what the fence around this block now does.
+
+  sanitizeField also caps each value. The overall block is sliced to 4000
+  characters afterwards, but a per-field cap matters on its own: without it a
+  single enormous location name could push every other fact out of the block,
+  which is a quieter way to manipulate the answer than injecting an order.
+*/
 function buildDataBlock(context?: CopilotContext): string {
   if (!context || (!context.locationName && !context.property && !context.gis)) {
     return "No location is currently selected in the app.";
   }
   const lines: string[] = [];
-  if (context.locationName) lines.push(`Location: ${context.locationName}`);
-  if (context.address) lines.push(`Address: ${context.address}`);
+  const name = sanitizeField(context.locationName, 200);
+  if (name) lines.push(`Location: ${name}`);
+  const address = sanitizeField(context.address, 300);
+  if (address) lines.push(`Address: ${address}`);
   if (context.property) {
     lines.push(
-      `Property classification: ${context.property.classification ?? "unknown"} ` +
-        `(confidence ${context.property.confidence ?? 0}%, trust: ${context.property.trust ?? "unavailable"})`
+      `Property classification: ${sanitizeField(context.property.classification, 60) || "unknown"} ` +
+        `(confidence ${sanitizeNumber(context.property.confidence ?? 0)}%, trust: ${sanitizeField(context.property.trust, 30) || "unavailable"})`
     );
-    if (context.property.reasoning) lines.push(`Property reasoning: ${context.property.reasoning}`);
+    const reasoning = sanitizeField(context.property.reasoning, 600);
+    if (reasoning) lines.push(`Property reasoning: ${reasoning}`);
   }
   if (context.gis) {
-    if (context.gis.radiusMeters) lines.push(`GIS evidence radius: ${context.gis.radiusMeters}m`);
-    if (context.gis.counts) lines.push(`GIS counts: ${JSON.stringify(context.gis.counts)}`);
-    if (context.gis.scores) lines.push(`GIS scores: ${JSON.stringify(context.gis.scores)}`);
+    if (context.gis.radiusMeters) lines.push(`GIS evidence radius: ${sanitizeNumber(context.gis.radiusMeters)}m`);
+    // JSON.stringify of a plain counts/scores object cannot carry a role
+    // marker past the fence, but it can carry arbitrary keys, so it is capped.
+    if (context.gis.counts) lines.push(`GIS counts: ${sanitizeField(JSON.stringify(context.gis.counts), 600)}`);
+    if (context.gis.scores) lines.push(`GIS scores: ${sanitizeField(JSON.stringify(context.gis.scores), 600)}`);
   }
-  if (context.weather) lines.push(`Weather: ${context.weather.temperatureC ?? "?"}°C, ${context.weather.condition ?? "unknown"}`);
+  if (context.weather)
+    lines.push(`Weather: ${sanitizeNumber(context.weather.temperatureC)}\u00b0C, ${sanitizeField(context.weather.condition, 60) || "unknown"}`);
   if (context.nearbyTopCategories?.length) {
-    lines.push(`Nearby: ${context.nearbyTopCategories.map((c) => `${c.count} ${c.category}`).join(", ")}`);
+    lines.push(
+      `Nearby: ${context.nearbyTopCategories
+        .slice(0, 12)
+        .map((c) => `${sanitizeNumber(c.count)} ${sanitizeField(c.category, 40)}`)
+        .join(", ")}`
+    );
   }
   if (context.route) {
     lines.push(
-      `Active route: ${context.route.mode ?? "?"}, ${context.route.distanceMeters ?? "?"}m, ${context.route.durationSeconds ?? "?"}s`
+      `Active route: ${sanitizeField(context.route.mode, 20) || "?"}, ${sanitizeNumber(context.route.distanceMeters)}m, ${sanitizeNumber(context.route.durationSeconds)}s`
     );
   }
   if (context.officials?.length) {
+    /*
+      The highest-stakes field in the whole block.
+
+      The system prompt tells the model these are the only source of truth for
+      an official's name, so a forged entry here would be laundered into an
+      authoritative-sounding claim about a real public office. Fencing and
+      sanitising both apply, and the list is capped at twenty.
+    */
     lines.push(
       "Officials/authorities:\n" +
         context.officials
+          .slice(0, 20)
           .map((o) =>
             o.status === "verified"
-              ? `- [${o.level}] ${o.role}: ${o.name} (source: ${o.sourceLabel ?? "unknown"}${o.since ? `, since ${o.since}` : ""})`
-              : `- [${o.level}] ${o.role}: Unable to verify`
+              ? `- [${sanitizeField(o.level, 40)}] ${sanitizeField(o.role, 80)}: ${sanitizeField(o.name, 120)} (source: ${sanitizeField(o.sourceLabel, 80) || "unknown"}${o.since ? `, since ${sanitizeField(o.since, 20)}` : ""})`
+              : `- [${sanitizeField(o.level, 40)}] ${sanitizeField(o.role, 80)}: Unable to verify`
           )
           .join("\n")
     );
@@ -88,6 +120,14 @@ const handler: ApiHandler = async (req, res) => {
     return err(res, 413, "Too much context sent with this question.");
   }
   const dataBlock = buildDataBlock(body.context).slice(0, 4_000);
+  /*
+    A fresh, unguessable fence per request.
+
+    The block above is assembled from fields the caller controls. Sanitising
+    removes the obvious tricks; this is what stops the text escaping its
+    container and being read as a new set of rules. See api/_lib/untrusted.ts.
+  */
+  const fence = makeFence("DATA");
   const kbHits = await searchKnowledgeBase(question, 3);
   const kbBlock = kbHits.length ? kbHits.map((h) => `### ${h.title}\n${h.content}`).join("\n\n") : "No knowledge base articles matched this question.";
 
@@ -112,7 +152,7 @@ const handler: ApiHandler = async (req, res) => {
         "answer ONLY from the 'Officials/authorities' lines in the data below, if present. NEVER state a person's name for a government role from your own training data or memory, " +
         "even if you believe you know it and even if directly asked to guess — officeholders change and an unverified name could be wrong or out of date. " +
         "If the officials data doesn't include the role asked about, or shows 'Unable to verify', say plainly that it can't be verified right now and point the user to the Official / Authority Intelligence panel in the app.\n\n" +
-        `CURRENT LOCATION DATA:\n${dataBlock}\n\nKNOWLEDGE BASE:\n${kbBlock}`,
+        `${fenceRules(fence)}\n\nCURRENT LOCATION DATA:\n${fence.wrap(dataBlock)}\n\nKNOWLEDGE BASE:\n${kbBlock}`,
     },
     { role: "user", content: question },
   ];

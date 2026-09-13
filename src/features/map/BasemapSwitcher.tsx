@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMapStore, type Basemap } from "@/stores/mapStore";
 import "./BasemapSwitcher.css";
+import { track } from "@/services/analytics";
 
 /**
  * Basemap switching, on the map, where people look for it.
@@ -80,6 +81,7 @@ export function BasemapSwitcher() {
               className={`basemap-switcher__item${basemap === o.id ? " is-current" : ""}`}
               aria-pressed={basemap === o.id}
               onClick={() => {
+                track("basemap_changed", { to: o.id, surface: "map-menu" });
                 setBasemap(o.id);
                 setOpen(false);
               }}
@@ -100,7 +102,13 @@ export function BasemapSwitcher() {
         <button
           type="button"
           className="basemap-switcher__main"
-          onClick={() => setBasemap(alternate)}
+          onClick={() => {
+            // Worth its own event: this control exists because more than a
+            // hundred people said they could not find satellite imagery, and
+            // this number is how we find out whether it worked.
+            track("basemap_changed", { to: alternate, surface: "map" });
+            setBasemap(alternate);
+          }}
           title={`Switch the map to ${alternateDef.label.toLowerCase()}`}
         >
           <span className="basemap-switcher__icon" aria-hidden="true">

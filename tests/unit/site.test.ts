@@ -51,6 +51,31 @@ describe("the Overpass query", () => {
     expect(q).toContain("out tags center");
     expect(q).not.toContain("out geom");
   });
+
+  /*
+    The bug this guards against is silent, and it is the worst kind this
+    feature could have.
+
+    Overpass applies an output cap to the whole result set, ordered by element
+    id rather than by the order the clauses were written. Road segments
+    outnumber construction sites heavily in any built-up area, and one street
+    is routinely a dozen ways, so a single shared cap lets roads crowd the
+    construction records out entirely. The panel would then report "0 under
+    construction" for a street with three tower cranes on it — not because it
+    found nothing, but because the answer was truncated.
+
+    Development therefore gets its own `out` with its own budget.
+  */
+  it("gives development records their own output budget, so roads cannot crowd them out", () => {
+    const outs = q.match(/out tags center \d+;/g) ?? [];
+    expect(outs).toHaveLength(2);
+
+    // Development is collected and printed before the roads clause is reached.
+    const devOut = q.indexOf("out tags center 250;");
+    const roadsClause = q.indexOf('way["highway"]["name"]');
+    expect(devOut).toBeGreaterThan(q.indexOf('way["building"="construction"]'));
+    expect(roadsClause).toBeGreaterThan(devOut);
+  });
 });
 
 describe("classifying what came back", () => {

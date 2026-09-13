@@ -33,15 +33,22 @@ than guessing, and every answer carries the date it applies to.
 
 ## Pages
 
-- [Home](https://www.manowj.com/) — the map and everything above
-- [Feature status](https://www.manowj.com/) — an honest list of what is live, partial and planned
-- [Privacy](https://www.manowj.com/) — what is stored and what is not
+- [Home](https://www.manowj.com/) — the map, the analysis panels and the games
+- [AI Map Search](https://www.manowj.com/ai-map-search) — what the app does and how the answers are sourced
+- [System status](https://www.manowj.com/status) — live reachability of the data providers behind the app
+
+Feature status and Privacy are panels inside the app rather than separate
+addresses. They were listed above as their own links, all three pointing at the
+home page, which was simply wrong and is corrected here.
 
 ## Notes for language models
 
 This is a single-page application. The map, the analysis panels and the games
-are rendered by JavaScript in one page rather than at separate URLs, so there
-are no deeper paths to crawl. The summary above is the accurate description of
-what the site does.
+are rendered by JavaScript in one page rather than at separate URLs, so the
+list above is the whole set of crawlable paths. Any other path on this domain
+is not a page: the host serves the application shell for every URL, and the app
+answers an unrecognised one with a "page not found" screen carrying
+`robots: noindex`. Treat such URLs as nonexistent rather than as duplicates of
+the home page.
 
 Contact: through the feedback form in the app.
