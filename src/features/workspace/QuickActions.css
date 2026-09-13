@@ -26,7 +26,7 @@
   color: var(--color-text);
   cursor: pointer;
   white-space: nowrap;
-  min-height: 36px;
+  min-height: 44px;
 }
 
 .quick-actions button:hover:not(:disabled) {
@@ -80,7 +80,7 @@
 
   .quick-actions button {
     flex: 0 0 auto;
-    min-height: 40px;
+    min-height: 44px;
   }
 }
 
@@ -151,6 +151,6 @@
   }
 
   .quick-actions__next-go {
-    min-height: 36px;
+    min-height: 44px;
   }
 }

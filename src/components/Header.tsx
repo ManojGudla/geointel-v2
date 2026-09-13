@@ -123,6 +123,16 @@ export function Header() {
             type="button"
             className="app-header__icon-btn app-header__icon-btn--ghost app-header__search-btn"
             onClick={openPalette}
+            /*
+              aria-label as well as title, and this is not belt-and-braces.
+
+              App.css hides .app-header__btn-label below 900px, so on every
+              phone this is an emoji inside a box. `title` is a tooltip: most
+              screen readers do not announce it reliably, and it never appears
+              on touch at all. Without an aria-label the button's accessible
+              name on a phone is the magnifying-glass emoji, or nothing.
+            */
+            aria-label="Search and commands"
             title="Search & commands (Ctrl/Cmd+K)"
           >
             <span aria-hidden="true">🔍</span>
@@ -135,6 +145,7 @@ export function Header() {
             type="button"
             className="app-header__icon-btn app-header__icon-btn--ghost"
             onClick={cycleTheme}
+            aria-label={`Theme: ${theme}. Activate to change it.`}
             title={`Theme: ${theme}. Click to change.`}
           >
             <span aria-hidden="true">{THEME_ICON[theme]}</span>
@@ -148,6 +159,7 @@ export function Header() {
               type="button"
               className="app-header__icon-btn app-header__icon-btn--ghost"
               onClick={() => setMoreOpen((v) => !v)}
+              aria-label="More options"
               aria-haspopup="menu"
               aria-expanded={moreOpen}
               title="More"
@@ -200,6 +212,7 @@ export function Header() {
           type="button"
           className="app-header__icon-btn app-header__icon-btn--primary app-header__cta"
           onClick={openJoinTeam}
+          aria-label="Join our team"
           title="Join our team"
         >
           <span aria-hidden="true">🤝</span> Join Our Team

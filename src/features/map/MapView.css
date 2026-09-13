@@ -81,4 +81,18 @@
     /* Clear of the floating search row above it. */
     margin-top: 62px;
   }
+
+  /*
+    MapLibre ships its controls at 29px square.
+
+    That is its default, not a decision anyone here made, and it is well under
+    a usable touch target — measured at 360px, the compass and fullscreen
+    buttons were 29x29. They are the only two map controls left on a phone
+    (zoom is hidden in favour of pinch), so they are the whole of the map's
+    button surface and they have to be hittable.
+  */
+  .maplibregl-ctrl-group button {
+    width: 44px;
+    height: 44px;
+  }
 }
