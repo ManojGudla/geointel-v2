@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Small on purpose, and honest about why.
+  Every URL here is a real page with content of its own, and that is the whole
+  editorial rule for this file.
 
-  This is a single-page app with two pages worth indexing. Listing invented
-  URLs to pad a sitemap does nothing except waste crawl budget on pages that
-  answer 200 with the same HTML.
+  It would be trivial to generate a thousand entries by crossing city names with
+  feature names. That is exactly what search engines have spent fifteen years
+  learning to discount, and thin pages do not merely fail to rank — they drag
+  down the pages that would otherwise have. Eight cities written properly is a
+  better bet than eighty written by a loop, and adding the ninth means writing
+  the ninth.
 
-  /status was listed here and should not have been. Its canonical tag says
-  https://www.manowj.com/ (it inherits index.html's, having no per-route
-  metadata of its own), so the sitemap was asking a crawler to index a URL
-  that then tells it to index a different one. A sitemap entry and a canonical
-  tag that disagree is a contradiction a search engine resolves by trusting
-  neither. It is a machine-readable dependency dashboard rather than a page
-  anybody searches for, so it comes out of the sitemap; nothing stops it being
-  reached or crawled.
-
-  lastmod added: without it a crawler has no way to tell a page that changed
-  today from one untouched for a year, and re-fetches on its own schedule.
+  /status is deliberately absent. It has no per-route metadata, so its canonical
+  tag still points at the home page, and a sitemap entry that disagrees with a
+  canonical tag is a contradiction a crawler resolves by trusting neither. It is
+  a dependency dashboard rather than something anyone searches for. Nothing
+  stops it being reached or crawled.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -35,5 +33,55 @@
     <lastmod>2026-09-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+
+  <!-- City pages. Hand-written geography, live figures with their sources. -->
+  <url>
+    <loc>https://www.manowj.com/maps/hyderabad</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/maps/bengaluru</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/maps/mumbai</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/maps/delhi</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/maps/chennai</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/maps/pune</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/maps/kolkata</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/maps/visakhapatnam</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

@@ -1,0 +1,305 @@
+/*
+  A city page.
+
+  Built as a document rather than as an application screen, because that is what
+  it is: somebody arriving from a search result wants to read something and then
+  decide whether to open the map. It carries no map engine, no panels and no
+  chrome, which keeps it fast — and speed is not a nicety on a page whose only
+  job is to be found and to convert a stranger.
+*/
+
+.city {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+.city__head,
+.city__main,
+.city__footer {
+  width: min(880px, 100%);
+  margin: 0 auto;
+  padding-inline: var(--space-4);
+}
+
+.city__head {
+  padding-block: var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.city__crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-3);
+}
+
+.city__crumbs a {
+  color: var(--color-text-muted);
+}
+
+.city__title {
+  margin: 0 0 var(--space-2);
+  font-size: clamp(1.7rem, 5vw, 2.5rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.city__lede {
+  margin: 0;
+  max-width: 62ch;
+  font-size: var(--text-md);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.city__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.city__btn {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.city__btn:hover {
+  border-color: var(--color-brand-500);
+  color: var(--color-brand-700);
+}
+
+.city__btn--primary {
+  border-color: var(--color-brand-600);
+  background: var(--color-brand-600);
+  color: #fff;
+}
+
+.city__btn--primary:hover {
+  background: var(--color-brand-700);
+  color: #fff;
+}
+
+/* ── Sections ───────────────────────────────────────────────────────────── */
+
+.city__main {
+  padding-block: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 40px);
+}
+
+.city__section h2 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.city__prose {
+  margin: 0 0 var(--space-3);
+  max-width: 68ch;
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+.city__prose strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.city__prose--small {
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+
+/* ── Figures ────────────────────────────────────────────────────────────── */
+
+.city__figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+.city__figure {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.city__figure-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+.city__figure-value {
+  font-size: clamp(1.3rem, 3.5vw, 1.7rem);
+  font-weight: 800;
+  line-height: 1.15;
+  /* Figures across four cards should line up digit for digit. */
+  font-variant-numeric: tabular-nums;
+}
+
+.city__figure-value--small {
+  font-size: var(--text-md);
+}
+
+.city__figure-value--muted {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text-faint);
+}
+
+/* The source line. Small, but it is the thing that makes the number above it
+   worth anything, so it is never hidden behind a tooltip. */
+.city__figure-note {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-faint);
+}
+
+/* ── Counts ─────────────────────────────────────────────────────────────── */
+
+.city__counts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--space-2);
+}
+
+.city__count {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.city__count-value {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.city__count-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* ── Questions ──────────────────────────────────────────────────────────── */
+
+.city__questions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.city__question {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.city__question:hover {
+  border-color: var(--color-brand-500);
+  background: var(--color-brand-100);
+  color: var(--color-brand-700);
+}
+
+/* ── Other cities ───────────────────────────────────────────────────────── */
+
+.city__others {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-2);
+}
+
+.city__others a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 58px;
+  justify-content: center;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.city__others a:hover {
+  border-color: var(--color-brand-500);
+}
+
+.city__others strong {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.city__others span {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.city__section--sources {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.city__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.city__footer a {
+  color: var(--color-text-muted);
+}
