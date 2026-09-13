@@ -1,0 +1,313 @@
+/*
+  Site and development.
+
+  Two blocks with a hard visual break between them, because they are two
+  different kinds of claim: the top block is data this app fetched and can
+  stand behind, the bottom is a directory of other people's portals. Styling
+  them identically would blur exactly the line the copy works to draw.
+*/
+
+.site {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.site__block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.site__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.site__title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.site__subtitle {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.site__blurb,
+.site__caution {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+/* The honesty paragraph is set apart rather than run in with the rest: it is
+   the one thing in this panel a reader must not skim past. */
+.site__caution {
+  padding: var(--space-3);
+  border-left: 3px solid var(--color-warning, #d97706);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* ── Radius ─────────────────────────────────────────────────────────────── */
+
+.site__radius {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.site__radius button {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: 0;
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.site__radius button + button {
+  border-left: 1px solid var(--color-border);
+}
+
+.site__radius button.is-active {
+  background: var(--color-brand-600);
+  color: #fff;
+}
+
+/* ── Counts ─────────────────────────────────────────────────────────────── */
+
+.site__counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-2);
+}
+
+.site__counts span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.site__counts strong {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Construction and development ───────────────────────────────────────── */
+
+.site__features,
+.site__roads,
+.site__portals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.site__feature {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+/* Work happening now reads warm; land only scheduled for it reads cool. A
+   reader should be able to tell those apart without reading a word. */
+.site__feature--build {
+  border-left-color: #d97706;
+}
+
+.site__feature--plan {
+  border-left-color: var(--color-brand-500);
+}
+
+.site__feature-icon {
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.site__feature-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.site__feature-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.site__feature-meta {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.site__feature-link {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text-faint);
+  text-decoration: none;
+}
+
+.site__feature-link:hover {
+  color: var(--color-brand-600);
+  text-decoration: underline;
+}
+
+/* ── Road names ─────────────────────────────────────────────────────────── */
+
+.site__road {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.site__road:last-child {
+  border-bottom: 0;
+}
+
+.site__road-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.site__road-meta {
+  flex: 0 0 auto;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.site__more {
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.site__more:hover {
+  border-color: var(--color-brand-500);
+  color: var(--color-brand-700);
+}
+
+/* ── Portals ────────────────────────────────────────────────────────────── */
+
+.site__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.site__portal {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease-standard),
+    background var(--duration-fast) var(--ease-standard);
+}
+
+.site__portal:hover {
+  border-color: var(--color-brand-500);
+  background: var(--color-brand-100);
+}
+
+.site__portal-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-brand-700);
+}
+
+.site__portal-out {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.site__portal-note {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* Caveats are the reason this directory is trustworthy, so they are visible
+   rather than tucked into a title attribute nobody hovers on a phone. */
+.site__portal-caveat {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #b45309;
+}
+
+.site__source {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-faint);
+}
+
+.site__source a {
+  color: inherit;
+}
+
+@media (max-width: 560px) {
+  .site__road {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .site__road-meta {
+    text-align: left;
+  }
+}

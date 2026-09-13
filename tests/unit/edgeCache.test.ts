@@ -66,6 +66,10 @@ const MUST_CACHE = [
   "officials.ts",
   "poi-evidence.ts",
   "population.ts",
+  // Roads and construction status for a point. Public geographic data keyed
+  // only by the snapped coordinates, and the heaviest Overpass query in the
+  // app — the edge cache is what keeps it off the free mirrors.
+  "site.ts",
   "weather.ts",
 ];
 

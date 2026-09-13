@@ -8,6 +8,7 @@ import { GISEvidencePanel } from "@/features/gis/GISEvidencePanel";
 import { WeatherPanel } from "@/features/weather/WeatherPanel";
 import { NewsPanel } from "@/features/news/NewsPanel";
 import { NearbyPanel } from "@/features/nearby/NearbyPanel";
+import { SitePanel } from "@/features/site/SitePanel";
 import { OfficialsPanel } from "@/features/officials/OfficialsPanel";
 import "./IntelligencePanel.css";
 
@@ -18,8 +19,13 @@ import "./IntelligencePanel.css";
 // Travel is no longer a tab here — it has its own entry on the workspace
 // rail, because a headline feature buried behind the fifth tab of another
 // panel is a feature nobody finds.
+// "Site & plans" sits second rather than last. It answers the question people
+// arrive with most often after "where is this" — what is on this land, what is
+// being built on it, and who holds the records — and a tab at the far right of
+// a five-tab row is a tab nobody presses.
 const TABS: Array<{ id: IntelTab; label: string }> = [
   { id: "overview", label: "Overview" },
+  { id: "site", label: "Site & plans" },
   { id: "evidence", label: "Evidence" },
   { id: "live", label: "Weather & News" },
   { id: "nearby", label: "Nearby" },
@@ -75,6 +81,11 @@ export function IntelligencePanel() {
               <OfficialsPanel />
             </ErrorBoundary>
           </>
+        )}
+        {tab === "site" && (
+          <ErrorBoundary label="Site and development" variant="panel">
+            <SitePanel />
+          </ErrorBoundary>
         )}
         {tab === "evidence" && (
           <ErrorBoundary label="GIS evidence" variant="panel">

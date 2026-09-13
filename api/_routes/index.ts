@@ -14,6 +14,7 @@ import poiEvidence from "./poi-evidence.js";
 import population from "./population.js";
 import reverseGeocode from "./reverse-geocode.js";
 import routeHandler from "./route.js";
+import site from "./site.js";
 import status from "./status.js";
 import teamApply from "./team-apply.js";
 import weather from "./weather.js";
@@ -58,6 +59,7 @@ export const ROUTES: Record<string, ApiHandler> = {
   population,
   "reverse-geocode": reverseGeocode,
   route: routeHandler,
+  site,
   status,
   "team-apply": teamApply,
   weather,
