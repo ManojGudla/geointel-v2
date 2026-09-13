@@ -3,12 +3,6 @@ import { Header } from "@/components/Header";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useTheme } from "@/hooks/useTheme";
 import { Workspace } from "@/features/workspace/Workspace";
-import { FeedbackForm } from "@/features/feedback/FeedbackForm";
-import { HelpGuide } from "@/features/help/HelpGuide";
-import { SettingsPanel } from "@/features/settings/SettingsPanel";
-import { FeatureStatusPage } from "@/features/status/FeatureStatusPage";
-import { JoinTeamForm } from "@/features/team/JoinTeamForm";
-import { AboutPanel } from "@/features/about/AboutPanel";
 /**
  * Code-split, deliberately.
  *
@@ -20,6 +14,29 @@ import { AboutPanel } from "@/features/about/AboutPanel";
  * phone on mobile data needs. Suspense fallbacks are `null` because each of
  * these renders nothing until it's opened anyway.
  */
+/*
+  These six were eager, and all six render `null` until someone opens them.
+
+  Every one is a modal behind a click — feedback, help, settings, the feature
+  list, the join form, about. Their code, their CSS and their share of
+  framer-motion were all downloaded, parsed and executed by every visitor
+  before the map could draw, to render nothing. On a phone on mobile data that
+  is the whole of a first impression spent on screens the visitor has not asked
+  for and most will never open.
+
+  The Suspense fallback is `null` for the same reason it is on the others
+  below: a closed modal already renders nothing, so there is nothing to show
+  while it loads.
+*/
+const FeedbackForm = lazy(() => import("@/features/feedback/FeedbackForm").then((m) => ({ default: m.FeedbackForm })));
+const HelpGuide = lazy(() => import("@/features/help/HelpGuide").then((m) => ({ default: m.HelpGuide })));
+const SettingsPanel = lazy(() => import("@/features/settings/SettingsPanel").then((m) => ({ default: m.SettingsPanel })));
+const FeatureStatusPage = lazy(() =>
+  import("@/features/status/FeatureStatusPage").then((m) => ({ default: m.FeatureStatusPage }))
+);
+const JoinTeamForm = lazy(() => import("@/features/team/JoinTeamForm").then((m) => ({ default: m.JoinTeamForm })));
+const AboutPanel = lazy(() => import("@/features/about/AboutPanel").then((m) => ({ default: m.AboutPanel })));
+
 const AreaReport = lazy(() => import("@/features/report/AreaReport").then((m) => ({ default: m.AreaReport })));
 const PlayHub = lazy(() => import("@/features/play/PlayHub").then((m) => ({ default: m.PlayHub })));
 const PrivacyPanel = lazy(() => import("@/features/privacy/PrivacyPanel").then((m) => ({ default: m.PrivacyPanel })));
@@ -165,27 +182,39 @@ export default function App() {
       </main>
 
       <ErrorBoundary label="Feedback" variant="panel">
-        <FeedbackForm />
+        <Suspense fallback={null}>
+          <FeedbackForm />
+        </Suspense>
       </ErrorBoundary>
 
       <ErrorBoundary label="Help guide" variant="panel">
-        <HelpGuide />
+        <Suspense fallback={null}>
+          <HelpGuide />
+        </Suspense>
       </ErrorBoundary>
 
       <ErrorBoundary label="Settings" variant="panel">
-        <SettingsPanel />
+        <Suspense fallback={null}>
+          <SettingsPanel />
+        </Suspense>
       </ErrorBoundary>
 
       <ErrorBoundary label="Feature status" variant="panel">
-        <FeatureStatusPage />
+        <Suspense fallback={null}>
+          <FeatureStatusPage />
+        </Suspense>
       </ErrorBoundary>
 
       <ErrorBoundary label="Join our team" variant="panel">
-        <JoinTeamForm />
+        <Suspense fallback={null}>
+          <JoinTeamForm />
+        </Suspense>
       </ErrorBoundary>
 
       <ErrorBoundary label="About" variant="panel">
-        <AboutPanel />
+        <Suspense fallback={null}>
+          <AboutPanel />
+        </Suspense>
       </ErrorBoundary>
 
       <ErrorBoundary label="Area report" variant="panel">

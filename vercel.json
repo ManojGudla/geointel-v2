@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/((?!api/|assets/|sw\\.js|recovery\\.js|manifest\\.json|robots\\.txt|sitemap\\.xml|llms\\.txt|og-image\\.png|favicon\\.ico|logo\\.png|logo-mark\\.png|google[0-9a-f]+\\.html|icons/).*)",
+      "source": "/((?!api/|assets/|sw\\.js|recovery\\.js|manifest\\.json|robots\\.txt|sitemap\\.xml|llms\\.txt|og-image\\.jpg|og-image\\.png|favicon\\.ico|logo\\.png|logo-mark\\.png|google[0-9a-f]+\\.html|icons/).*)",
       "destination": "/index.html"
     }
   ],

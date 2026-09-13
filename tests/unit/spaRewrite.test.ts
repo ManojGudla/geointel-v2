@@ -50,7 +50,7 @@ describe("SPA rewrite", () => {
     // scraper an HTML page where an image should be — the link preview then
     // renders with no picture and nothing explains why. Same for robots and
     // the sitemap: Google would read HTML as a directives file.
-    for (const p of ["/robots.txt", "/sitemap.xml", "/og-image.png", "/icons/icon-192.png"]) {
+    for (const p of ["/robots.txt", "/sitemap.xml", "/og-image.jpg", "/icons/icon-192.png"]) {
       expect(rewrites(p)).toBe(false);
     }
   });
