@@ -84,4 +84,53 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+
+  <!--
+    Comparisons. Six, not twenty-eight.
+
+    Eight cities make twenty-eight possible pairs, and listing them all would be
+    exactly the programmatic bulk that gets discounted — most of those twenty-
+    eight are comparisons nobody has ever wanted to read. These six are ones
+    people genuinely search for. The other twenty-two still render and are still
+    indexable if a crawler finds them; they are simply not advertised.
+
+    Each is listed in one ordering only. Both orderings of a pair render, and
+    both declare this same canonical, so the two can never compete.
+  -->
+  <url>
+    <loc>https://www.manowj.com/compare/bengaluru-vs-chennai</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/compare/bengaluru-vs-delhi</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/compare/bengaluru-vs-hyderabad</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/compare/chennai-vs-hyderabad</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/compare/delhi-vs-mumbai</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/compare/mumbai-vs-pune</loc>
+    <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>

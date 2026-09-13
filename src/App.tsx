@@ -52,6 +52,7 @@ const LandingPage = lazy(() => import("@/features/landing/LandingPage").then((m)
    see, and somebody arriving on a city page from a search result should not
    download the whole workspace to read it. */
 const CityPage = lazy(() => import("@/features/city/CityPage").then((m) => ({ default: m.CityPage })));
+const ComparePage = lazy(() => import("@/features/compare/ComparePage").then((m) => ({ default: m.ComparePage })));
 import { MaintenancePage } from "@/features/maintenance/MaintenancePage";
 import { useMaintenanceStore } from "@/stores/maintenanceStore";
 import { usePrivacyStore } from "@/stores/privacyStore";
@@ -62,6 +63,7 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ConsentBanner } from "@/features/analytics/ConsentBanner";
 import { NotFoundPage } from "@/features/notfound/NotFoundPage";
 import { CITY_BY_SLUG, CITY_PATHS } from "@/data/cities";
+import { FEATURED_PAIR_PATHS, parsePairSlug } from "@/features/compare/comparePairs";
 
 /**
  * App.tsx is layout orchestration only: header, workspace composition, and
@@ -95,8 +97,24 @@ export default function App() {
    * forgot; a set that every branch is checked against cannot drift apart from
    * the branches.
    */
-  const KNOWN_PATHS = new Set(["/", "/ai-map-search", "/status", "/admin", "/privacy", ...CITY_PATHS]);
-  const isKnownPath = KNOWN_PATHS.has(pathname);
+  /*
+    Comparison paths are matched by parsing rather than by membership: eight
+    cities make twenty-eight valid pairs in two orderings each, and listing all
+    fifty-six here would be a list nobody maintains. Only the featured ones are
+    named, so the 404 check below can still recognise the rest — see the
+    /compare/ branch.
+  */
+  const KNOWN_PATHS = new Set([
+    "/",
+    "/ai-map-search",
+    "/status",
+    "/admin",
+    "/privacy",
+    ...CITY_PATHS,
+    ...FEATURED_PAIR_PATHS,
+  ]);
+  const comparePair = pathname.startsWith("/compare/") ? parsePairSlug(pathname.slice("/compare/".length)) : null;
+  const isKnownPath = KNOWN_PATHS.has(pathname) || comparePair !== null;
 
   // The consent banner and the landing page footer both link to /privacy,
   // but there was never a route behind it: the SPA rewrite served index.html
@@ -123,6 +141,16 @@ export default function App() {
       <ErrorBoundary label="Landing page" variant="page">
         <Suspense fallback={<div className="app-loading">Loading…</div>}>
           <LandingPage />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
+  if (comparePair) {
+    return (
+      <ErrorBoundary label="Comparison page" variant="page">
+        <Suspense fallback={<div className="app-loading">Loading…</div>}>
+          <ComparePage pair={comparePair} />
         </Suspense>
       </ErrorBoundary>
     );

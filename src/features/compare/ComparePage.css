@@ -1,0 +1,258 @@
+/*
+  A comparison page.
+
+  Built on the same skeleton as a city page and deliberately not sharing its
+  stylesheet: the two have one element in common that behaves completely
+  differently — a table, which is the only thing on this site that legitimately
+  needs to scroll sideways on a phone.
+*/
+
+.cmp {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+.cmp__head,
+.cmp__main,
+.cmp__footer {
+  width: min(880px, 100%);
+  margin: 0 auto;
+  padding-inline: var(--space-4);
+}
+
+.cmp__head {
+  padding-block: var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cmp__crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-3);
+}
+
+.cmp__crumbs a {
+  color: var(--color-text-muted);
+}
+
+.cmp__title {
+  margin: 0 0 var(--space-2);
+  font-size: clamp(1.7rem, 5vw, 2.5rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.cmp__lede {
+  margin: 0;
+  max-width: 64ch;
+  font-size: var(--text-md);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.cmp__lede strong {
+  color: var(--color-text);
+}
+
+.cmp__main {
+  padding-block: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 40px);
+}
+
+.cmp__section h2 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.cmp__prose {
+  margin: 0 0 var(--space-3);
+  max-width: 68ch;
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+.cmp__prose--small {
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+
+/* ── The table ──────────────────────────────────────────────────────────── */
+
+/*
+  The one element on this site allowed to scroll sideways, in its own container
+  so the page body never does. Three columns of figures cannot be made to fit
+  360px without either truncating a number or shrinking it past legibility, and
+  both of those are worse than a scroll the reader controls.
+*/
+.cmp__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.cmp__table {
+  width: 100%;
+  min-width: 460px;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.cmp__caption {
+  caption-side: bottom;
+  padding: var(--space-3);
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: left;
+  color: var(--color-text-faint);
+}
+
+.cmp__table th,
+.cmp__table td {
+  padding: var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.cmp__table thead th {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  background: var(--color-surface-2);
+  /* The two city names have to stay visible while the table scrolls, or the
+     reader loses track of which column they are reading. */
+  position: sticky;
+  top: 0;
+}
+
+.cmp__table tbody th {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.cmp__table tbody tr:last-child th,
+.cmp__table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.cmp__cell {
+  display: table-cell;
+}
+
+.cmp__value {
+  display: block;
+  font-weight: 700;
+  /* Two columns of figures the reader is comparing digit by digit. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Visibly different from a number, because "not published" is an answer and
+   must never be mistaken for a small one. */
+.cmp__value--none {
+  font-weight: 500;
+  color: var(--color-text-faint);
+}
+
+.cmp__note {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+/* ── Geography ──────────────────────────────────────────────────────────── */
+
+.cmp__geos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.cmp__geo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.cmp__geo h3 {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.cmp__geo-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.cmp__btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cmp__btn:hover {
+  border-color: var(--color-brand-500);
+  color: var(--color-brand-700);
+}
+
+.cmp__btn--primary {
+  border-color: var(--color-brand-600);
+  background: var(--color-brand-600);
+  color: #fff;
+}
+
+.cmp__btn--primary:hover {
+  background: var(--color-brand-700);
+  color: #fff;
+}
+
+.cmp__section--sources {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.cmp__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.cmp__footer a {
+  color: var(--color-text-muted);
+}
