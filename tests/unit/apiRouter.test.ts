@@ -52,6 +52,7 @@ describe("API router", () => {
       "population",
       "reverse-geocode",
       "route",
+      "site",
       "status",
       "team-apply",
       "weather",

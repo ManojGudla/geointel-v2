@@ -8,7 +8,7 @@ import { create } from "zustand";
  * panel, so it now has its own entry on the workspace rail — see
  * features/shell/sections.ts.
  */
-export type IntelTab = "overview" | "evidence" | "live" | "nearby";
+export type IntelTab = "overview" | "site" | "evidence" | "live" | "nearby";
 
 interface IntelTabState {
   tab: IntelTab;
