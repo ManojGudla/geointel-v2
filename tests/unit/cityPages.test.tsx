@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { render, cleanup, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CITIES, CITY_BY_SLUG, CITY_PATHS } from "../../src/data/cities";
+import { FEATURED_PAIR_PATHS } from "../../src/features/compare/comparePairs";
 
 /**
  * These pages exist for one reason: before them, the site had two indexable
@@ -105,7 +106,10 @@ describe("the sitemap and the routes agree", () => {
     // A sitemap entry for a URL that 404s or that disowns itself via canonical
     // is a contradiction a crawler resolves by trusting neither.
     const locs = [...sitemap.matchAll(/<loc>https:\/\/www\.manowj\.com(\/[^<]*)<\/loc>/g)].map((m) => m[1]!);
-    const known = new Set(["/", "/ai-map-search", ...CITY_PATHS]);
+    // Comparison pages were added after this test and it failed, which is the
+    // whole reason it exists: a URL reaches the sitemap only once somebody has
+    // stated, here, that it is a real page.
+    const known = new Set(["/", "/ai-map-search", ...CITY_PATHS, ...FEATURED_PAIR_PATHS]);
     for (const loc of locs) expect(known.has(loc), loc).toBe(true);
   });
 
