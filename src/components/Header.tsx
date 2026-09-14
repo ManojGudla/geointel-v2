@@ -9,6 +9,8 @@ import { useTeamStore } from "@/stores/teamStore";
 import { useAboutStore } from "@/stores/aboutStore";
 import { usePrivacyStore } from "@/stores/privacyStore";
 import { useGamesStore } from "@/stores/gamesStore";
+import { SecretGate } from "@/features/secret/SecretGate";
+import { isTriggered, recordTap } from "@/features/secret/secretGesture";
 
 const THEME_ICON: Record<ThemeMode, string> = { system: "🖥️", light: "☀️", dark: "🌙" };
 
@@ -98,10 +100,42 @@ export function Header() {
     setTheme(next);
   };
 
+  /*
+    Taps live in a ref, not in state, for two reasons. Re-rendering the whole
+    header on every tap of a gesture that usually goes nowhere is waste; and
+    setting `gateOpen` from inside a state updater would be a side effect in a
+    function React is entitled to call more than once.
+  */
+  const [gateOpen, setGateOpen] = useState(false);
+  const markTaps = useRef<number[]>([]);
+
+  const onMarkTap = () => {
+    markTaps.current = recordTap(markTaps.current, Date.now());
+    if (isTriggered(markTaps.current)) {
+      markTaps.current = [];
+      setGateOpen(true);
+    }
+  };
+
   return (
+    <>
     <header className="app-header">
       <div className="app-header__brand">
-        <span className="app-header__mark" aria-hidden="true">🌐</span>
+        {/*
+          The mark carries the hidden owner entrance — three taps inside about
+          a second. A single tap does nothing at all, so the page behaves
+          exactly as before for everyone who does not know the gesture. See
+          features/secret/secretGesture.ts for why it is not a single click,
+          and for the difference between hiding the door and locking it.
+        */}
+        <button
+          type="button"
+          className="app-header__mark"
+          onClick={onMarkTap}
+          aria-label="maNOWj GeoIntel"
+        >
+          <span aria-hidden="true">🌐</span>
+        </button>
         {/* Two spellings of the name, one shown at a time by CSS. On a phone
             the header has to fit in a single row beside the controls, and
             the full lockup plus tagline was taking four stacked rows —
@@ -152,8 +186,39 @@ export function Header() {
             <span className="app-header__btn-label">{theme === "system" ? "Auto" : theme === "light" ? "Light" : "Dark"}</span>
           </button>
 
-          {/* Help / Settings / Features / Feedback live behind one compact
-              overflow menu instead of four more top-level buttons. */}
+          {/*
+            "How it works" is top level, and it is the exception to the rule
+            above rather than a hole in it.
+
+            Everything else here was tucked behind "More" to stop six
+            equal-weight buttons reading as clutter, and that was the right
+            call for six things nobody urgently needs. It was the wrong call
+            for this one. The reported problem with this product, repeatedly,
+            is that people open it and cannot work out what it does or where
+            anything is — and the answer to precisely that question was the
+            second item inside a menu behind a "⋯" glyph. Someone who does not
+            know how an app works does not go hunting in its overflow menu;
+            they leave.
+
+            The label says "How it works" rather than "Help" because Help is
+            where you go when something is broken, and nothing is broken —
+            they just have not been told what this is yet. Below 900px App.css
+            drops the label and it becomes a "?" on its own, which is still
+            visible, which is the entire point.
+          */}
+          <button
+            type="button"
+            className="app-header__icon-btn app-header__icon-btn--ghost"
+            onClick={openHelp}
+            aria-label="How it works — a guide to this application"
+            title="How it works"
+          >
+            <span aria-hidden="true">❓</span>
+            <span className="app-header__btn-label">How it works</span>
+          </button>
+
+          {/* Settings / Features / Feedback live behind one compact overflow
+              menu instead of three more top-level buttons. */}
           <div className="app-header__more" ref={moreRef}>
             <button
               type="button"
@@ -175,9 +240,8 @@ export function Header() {
                 <button type="button" role="menuitem" className="app-header__menu-item--mobile" onClick={() => runFromMenu(openJoinTeam)}>
                   <span aria-hidden="true">🤝</span> Join Our Team
                 </button>
-                <button type="button" role="menuitem" onClick={() => runFromMenu(openHelp)}>
-                  <span aria-hidden="true">❓</span> Help &amp; Guide
-                </button>
+                {/* Help is no longer duplicated here — it is a visible
+                    control in the row above, for the reason given there. */}
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openFeatureStatus)}>
                   <span aria-hidden="true">📋</span> Features
                 </button>
@@ -230,5 +294,11 @@ export function Header() {
         </span>
       </div>
     </header>
+
+    {/* A sibling of the header, not a child: the scrim is position:fixed, and
+        a fixed element inside an ancestor that ever gains a transform or a
+        filter is positioned against that ancestor instead of the viewport. */}
+    <SecretGate open={gateOpen} onClose={() => setGateOpen(false)} />
+    </>
   );
 }

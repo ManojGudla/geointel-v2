@@ -9,9 +9,12 @@ import {
 } from "@/services/maintenance";
 import { fetchAdminSubmissions, type FeedbackSubmission, type TeamApplicationSubmission } from "@/services/adminSubmissions";
 import { ApiUnavailableError } from "@/services/apiClient";
+/* The session key moved to its own module when a second way in was added —
+   the hidden entrance behind the header logo writes the same slot, and two
+   copies of the string is how you get a gate that succeeds into a dashboard
+   that then asks for the key again. */
+import { clearAdminKey, readAdminKey, writeAdminKey } from "./adminSession";
 import "./AdminDashboard.css";
-
-const SESSION_KEY = "geointel.adminKey";
 
 function formatTimestamp(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -58,13 +61,7 @@ export function AdminDashboard() {
   const displayName = useUiStore((s) => s.displayName);
 
   const [keyInput, setKeyInput] = useState("");
-  const [adminKey, setAdminKey] = useState<string | null>(() => {
-    try {
-      return sessionStorage.getItem(SESSION_KEY);
-    } catch {
-      return null;
-    }
-  });
+  const [adminKey, setAdminKey] = useState<string | null>(() => readAdminKey());
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
 
@@ -102,11 +99,7 @@ export function AdminDashboard() {
       const result = await fetchMaintenanceState(key);
       if (result.adminKeyValid) {
         setAdminKey(key);
-        try {
-          sessionStorage.setItem(SESSION_KEY, key);
-        } catch {
-          // Non-fatal — the key just won't survive a tab reload.
-        }
+        writeAdminKey(key);
         setMaintenance(result.maintenance);
         setForm(formFromState(result.maintenance));
         setType(result.maintenance.type);
@@ -135,11 +128,7 @@ export function AdminDashboard() {
         // The key stopped working (e.g. rotated on the server) — drop back
         // to the passphrase form rather than showing stale/wrong data.
         setAdminKey(null);
-        try {
-          sessionStorage.removeItem(SESSION_KEY);
-        } catch {
-          /* non-fatal */
-        }
+        clearAdminKey();
         return;
       }
       setMaintenance(result.maintenance);

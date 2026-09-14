@@ -33,6 +33,7 @@ import { CopilotPanel } from "@/features/ai/CopilotPanel";
 import { CopilotLauncher } from "@/features/ai/CopilotLauncher";
 import { CommandPalette } from "@/features/command/CommandPalette";
 import { useMeasureStore } from "@/stores/measureStore";
+import { useShellStore } from "@/stores/shellStore";
 import { useOnboardingVisible } from "@/features/onboarding/onboardingVisibility";
 import "./Workspace.css";
 
@@ -66,6 +67,10 @@ export function Workspace() {
   // Same treatment as measuring below: the card owns the bottom edge while
   // it is up. See Workspace.css.
   const onboarding = useOnboardingVisible();
+  // Below 900px the panel is a bottom sheet rising off the same edge the
+  // coordinate chip and map-style pill sit on, so those two yield while it is
+  // up — the same bargain measuring and onboarding already strike below.
+  const panelOpen = useShellStore((s) => s.open);
 
   return (
     <div className="workspace">
@@ -84,7 +89,7 @@ export function Workspace() {
           <div
             className={`workspace__stage${measuring ? " workspace__stage--measuring" : ""}${
               onboarding ? " workspace__stage--onboarding" : ""
-            }`}
+            }${panelOpen ? " workspace__stage--sheeted" : ""}`}
             ref={stageRef}
           >
             <ErrorBoundary label="Map" variant="panel">

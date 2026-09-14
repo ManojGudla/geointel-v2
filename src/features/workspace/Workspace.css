@@ -107,6 +107,43 @@
   .workspace__stage--onboarding .copilot-launcher {
     display: none;
   }
+
+  /*
+    And once more for the bottom sheet, which rises off the same edge.
+
+    All three of these are anchored to the stage's bottom: the coordinate chip
+    at space-2, the map-style pill just above it, and the Ask launcher at
+    roughly 60px. The sheet's lowest rest position is 34% of the stage, so
+    every one of them is inside its footprint — and the launcher (z-index 19)
+    outranks the sheet (18), so it would not even be politely hidden behind
+    it; it would paint on top of a panel it has nothing to do with.
+
+    Hiding them costs little. The sheet that replaced them carries the map
+    style controls in Layers and an "Ask me" button in AI, and all three
+    return the instant the sheet is dismissed — which is also the first moment
+    anyone goes looking for them.
+  */
+  .workspace__stage--sheeted .coordinate-readout,
+  .workspace__stage--sheeted .basemap-switcher,
+  .workspace__stage--sheeted .copilot-launcher {
+    display: none;
+  }
+
+  /*
+    The getting-started card stands down too, for a different reason.
+
+    It is anchored to this same bottom edge at z-index 12, under the sheet's
+    18. With the sheet up it was neither readable nor dismissable — just the
+    top inch of a second panel poking out above the first, which on a 390px
+    screen reads as the layout having broken rather than as two surfaces.
+
+    Opening a panel IS the engagement this card exists to prompt, so once
+    that has happened the card has served its purpose. It returns if the
+    sheet is closed again without a place having been chosen.
+  */
+  .workspace__stage--sheeted .onboarding {
+    display: none;
+  }
 }
 
 /*

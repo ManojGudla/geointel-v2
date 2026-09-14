@@ -47,6 +47,8 @@ export function SearchBar() {
   const query = useSearchStore((s) => s.query);
   const setQuery = useSearchStore((s) => s.setQuery);
   const addRecentSearch = useSearchStore((s) => s.addRecentSearch);
+  const recentSearches = useSearchStore((s) => s.recentSearches);
+  const clearRecentSearches = useSearchStore((s) => s.clearRecentSearches);
   const setSelectedLocation = useLocationStore((s) => s.setSelectedLocation);
 
   /**
@@ -334,6 +336,55 @@ export function SearchBar() {
             ↵
           </span>
         </button>
+      )}
+
+      {/*
+        Recent places, shown when the box is focused and still empty.
+
+        These were already being written to the browser on every single
+        search — the store has persisted them since the day it was written —
+        and nothing anywhere in this application ever read them back. That is
+        the worst of both outcomes: a returning visitor got no benefit
+        whatsoever from it, and their search history quietly accumulated in
+        storage with no way to see it and no way to clear it, on a site that
+        asks permission before it counts a page view.
+
+        So it is shown, and it can be cleared. Either one alone would have
+        been half a fix: displaying a history nobody can delete is worse than
+        not keeping one, and deleting a history nobody can see fixes a
+        problem the user never knew they had.
+
+        Not a `role="listbox"`: the combobox above points `aria-controls` at
+        the results list, and a second listbox claiming the same relationship
+        gives a screen reader two answers to one question. These are plain
+        buttons, which is what they are.
+      */}
+      {open && query.trim().length === 0 && recentSearches.length > 0 && (
+        <div className="search-bar__recent">
+          <div className="search-bar__recent-head">
+            <span className="search-bar__recent-title">Recent</span>
+            <button
+              type="button"
+              className="search-bar__recent-clear"
+              /* preventDefault on mousedown, or the input's blur closes this
+                 before the click ever lands. */
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={clearRecentSearches}
+            >
+              Clear
+            </button>
+          </div>
+          <ul className="search-bar__suggestions" aria-label="Recent searches">
+            {recentSearches.map((s) => (
+              <li key={`recent-${s.displayName}-${s.lat}-${s.lon}`}>
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => choose(s)}>
+                  <strong>{s.name}</strong>
+                  <span>{s.displayName}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {open && suggestions.length > 0 && (

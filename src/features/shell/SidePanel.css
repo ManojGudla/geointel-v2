@@ -53,12 +53,74 @@
   color: var(--color-text);
 }
 
+/*
+  The panel's one scrolling region — and, measured, the reason people report
+  they cannot find the features on a desktop.
+
+  On a 1440x900 MacBook the Layers section is 1877px of content in a 695px
+  window: 1182px of it, nearly two thirds, is below the fold. That on its own
+  would be fine. What is not fine is that there was no scrollbar — measured
+  offsetWidth minus clientWidth came back as 0, because both macOS and modern
+  Windows use overlay scrollbars that are completely invisible until the
+  moment something scrolls. So the panel looked like it ended at "Map data",
+  and everything past it — live feeds, imagery back to 2012, the whole lower
+  half of the section — may as well not have shipped.
+
+  Two fixes, both permanent rather than on-hover:
+
+  1. A real scrollbar with reserved space (scrollbar-gutter), so its presence
+     is a standing fact about the panel rather than a reward for scrolling.
+  2. Scrolling shadows. The two `local` gradients are painted in the content's
+     coordinate space and scroll away with it; the two `scroll` radials stay
+     pinned to the viewport of this box. The result is a soft edge that
+     appears at whichever end has more content and vanishes when you reach it
+     — so "there is more below" is visible without hovering, without JS, and
+     without a scroll event listener firing sixty times a second.
+*/
 .side-panel__body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
+
+  /* Reserved at all times, so content does not jump sideways the moment a
+     section grows long enough to need it. */
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+
+  /* Derived from the text colour so it reads as an edge in both themes: a
+     dark haze on a light surface, a light one on a dark surface. */
+  --scroll-shade: color-mix(in srgb, var(--color-text) 18%, transparent);
+  background:
+    linear-gradient(var(--color-surface) 30%, transparent) top / 100% 28px no-repeat local,
+    linear-gradient(transparent, var(--color-surface) 70%) bottom / 100% 28px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, var(--scroll-shade), transparent) top / 100% 12px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, var(--scroll-shade), transparent) bottom / 100% 12px no-repeat scroll;
+}
+
+/* Chrome and Safari ignore scrollbar-width/color on older versions, so the
+   same bar is drawn explicitly. Without this, the Windows machines this was
+   reported from get the invisible overlay bar back. */
+.side-panel__body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.side-panel__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.side-panel__body::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  /* The border is the surface colour, which insets the thumb without needing
+     a narrower track. */
+  border: 3px solid var(--color-surface);
+  border-radius: 999px;
+}
+
+.side-panel__body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-faint);
 }
 
 .side-panel__stack {
@@ -107,26 +169,102 @@
   box-shadow: var(--shadow-md);
 }
 
-/* Phones: the panel becomes a sheet over the map rather than a column beside
-   it — there is no room for both, and the map has to stay the primary
-   object. It is dismissible from the same rail button that opened it, so
-   getting back to a clear map never requires hunting for a close control. */
+/* The grip belongs to the sheet. On desktop the panel is a fixed column with
+   nothing to resize, so it is removed rather than merely hidden: a focusable
+   button that cannot be seen is a dead stop for anyone tabbing through. */
+.side-panel__grip {
+  display: none;
+}
+
+/*
+  Phones and small tablets: the panel becomes a bottom sheet.
+
+  This used to be `position: absolute; inset: 0` — a full-screen overlay. On a
+  map application that meant tapping "Layers" replaced the map with a list of
+  controls FOR the map, and nothing on screen connected the two. It is the
+  most plausible explanation for the report that people open this on a phone
+  and cannot work out what it is.
+
+  The sheet never takes the whole column — `full` stops at 94%, see
+  DETENT_FRACTION in sheet.ts — so there is always map above it and the
+  relationship between the control and the thing it controls stays visible.
+*/
 @media (max-width: 900px) {
   .side-panel {
     position: absolute;
-    inset: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
     width: auto;
+    /* React sets the real height inline from the current detent; this is the
+       value for the frame before it does, and the floor if JS never runs. */
+    height: 62%;
+    max-height: 94%;
     border-right: none;
+    border-top: 1px solid var(--color-border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: var(--shadow-lg);
+    /* Square-cornered children must not poke out through the rounded top. */
+    overflow: hidden;
     z-index: 18;
+    transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* While a finger is down the height IS the finger's position. Animating
+     toward it would lag the drag by the whole transition duration, which
+     reads as the sheet being stuck to treacle. */
+  .side-panel--dragging {
+    transition: none;
+  }
+
+  .side-panel__grip {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    /* The visible bar is 4px tall. The target around it is 44px, because the
+       bar is what people aim at and the target is what they actually hit. */
+    height: 44px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    cursor: grab;
+    /* Without this the browser claims the vertical gesture for scrolling and
+       the sheet never receives a single pointermove. */
+    touch-action: none;
+  }
+
+  .side-panel__grip:active {
+    cursor: grabbing;
+  }
+
+  .side-panel__grip-bar {
+    width: 40px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-border-strong);
   }
 
   .side-panel__head {
-    padding: var(--space-3);
+    /* The grip already provides the gap above the title. */
+    padding: 0 var(--space-3) var(--space-3);
   }
 
   .side-panel__close {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Someone who has asked their system to stop animating still gets every
+   detent — the sheet simply arrives at the new height instead of travelling
+   to it. Declared after the sheet block so it wins. */
+@media (prefers-reduced-motion: reduce) {
+  .side-panel {
+    transition: none;
   }
 }
 

@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
+
+    <!--
+      iOS Safari scans page text for things that look like phone numbers and
+      silently turns them into tel: links. On most sites that is a convenience.
+      On this one the page is full of coordinate pairs, distances and census
+      years — "17.3850, 78.4867" and "250 m" are exactly the shapes it looks
+      for — and the result is blue underlined data that dials when tapped.
+    -->
+    <meta name="format-detection" content="telephone=no" />
+
+    <!--
+      Explicit crawler directives.
+
+      The default when this tag is absent is already index,follow, so this is
+      not about permission. It is the three limits after it that matter:
+      without max-image-preview:large Google shows a thumbnail rather than a
+      full-width image in results, and the snippet caps are what allow a
+      result to carry more than a truncated line. For a site whose pages are
+      answers to questions, the snippet IS the pitch.
+    -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <title>maNOWj GeoIntel</title>
     <meta name="description" content="Pick a place, ask a question, get a real answer. How many hospitals within 5 km? What's here? Every answer shows its source and its date. Built by Manoj Kumar Gudla." />
 
@@ -57,6 +78,9 @@
     <meta name="twitter:title" content="maNOWj GeoIntel — Pick a place. Ask a question. Get a real answer." />
     <meta name="twitter:description" content="How many hospitals within 5 km? What's here? A map that answers real questions and shows its sources." />
     <meta name="twitter:image" content="https://www.manowj.com/og-image.jpg" />
+    <!-- og:image:alt has had one since it was added; its Twitter counterpart
+         had not, so the card was an unlabelled image to a screen reader. -->
+    <meta name="twitter:image:alt" content="maNOWj GeoIntel — pick a place, ask a question, get a real answer." />
     <!-- tokens.css already names "Inter" first in --font-sans; it was
          silently falling back to the OS default (Segoe UI/system-ui)
          because the font was never actually loaded. Preconnect + a
