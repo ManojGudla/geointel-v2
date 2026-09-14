@@ -1,6 +1,7 @@
 import { createRng, localDateKey } from "../../lib/random";
 import { haversineKm } from "../../data/world";
 import { DAILY_LOCATIONS, byDifficulty, type DailyLocation } from "./dailyLocations";
+import { PLAY_URL } from "@/features/play/share";
 
 /**
  * The Daily Challenge: five places, the same five for everyone, one run a day.
@@ -210,7 +211,7 @@ export function shareText(results: RoundResult[], dateKey: string, streak: numbe
     grid,
   ];
   if (streak > 1) lines.push(`🔥 ${streak} day streak`);
-  lines.push("https://www.manowj.com");
+  lines.push(PLAY_URL);
   return lines.join("\n");
 }
 

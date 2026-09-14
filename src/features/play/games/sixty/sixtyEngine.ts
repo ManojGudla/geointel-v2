@@ -1,6 +1,7 @@
 import { COUNTRIES, haversineKm, type Country } from "../../data/world";
 import { createRng, type Rng } from "../../lib/random";
 import { buildQuiz, type QuizQuestion } from "../quiz/quizEngine";
+import { PLAY_URL } from "@/features/play/share";
 
 /**
  * 60 Seconds — one minute, as many questions as you can take.
@@ -231,7 +232,7 @@ export function shareText(state: SixtyState, best: number): string {
     `🔥 ${state.longestStreak} best streak · ${accuracy(state)}% accurate · ${state.correct}/${state.answered}`,
   ];
   if (state.score >= best && state.score > 0) lines.push("New personal best");
-  lines.push("https://www.manowj.com");
+  lines.push(PLAY_URL);
   return lines.join("\n");
 }
 

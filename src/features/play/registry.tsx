@@ -1,17 +1,23 @@
 import type { ReactNode } from "react";
-import { DailyChallenge } from "./games/daily/DailyChallenge";
 import { UltimateTicTacToe } from "./games/ultimate/UltimateTicTacToe";
-import { CountryHunt } from "./games/country/CountryHunt";
-import { PinThePlace } from "./games/pin/PinThePlace";
-import { MapRace } from "./games/mapRace/MapRace";
 import { QuizGame } from "./games/quiz/QuizGame";
 import { CricketChallenge } from "./games/cricket/CricketChallenge";
-import { SpotTheChange } from "./games/change/SpotTheChange";
 import { SixtySeconds } from "./games/sixty/SixtySeconds";
 import { Impostor } from "./games/arcade/Impostor";
 import { RealOrFake } from "./games/arcade/RealOrFake";
 import { CrackTheCode } from "./games/arcade/CrackTheCode";
 import { PatternBreaker } from "./games/arcade/PatternBreaker";
+/*
+  These four were finished, tested and then never listed here, so nothing in
+  the app could reach them — src/features/play/games/{whereAmI,findit,
+  fourInARow,memory} were referenced by no file outside themselves. Each one
+  was played end to end in a browser before being added, because the promise
+  below is that every entry is playable, and a card that opens onto a broken
+  game is worse than a game nobody knew about.
+*/
+import { FindIt } from "./games/findit/FindIt";
+import { FourInARow } from "./games/fourInARow/FourInARow";
+import { GeoMemory } from "./games/memory/GeoMemory";
 import { registerGameCount } from "./progress/playStore";
 
 /**
@@ -65,26 +71,6 @@ export interface GameEntry {
 
 export const GAMES: GameEntry[] = [
   {
-    id: "daily",
-    title: "maNOWj Daily",
-    tagline: "Five satellite views. One guess each. Same five for everyone, once a day.",
-    icon: "🛰️",
-    categories: ["trending", "geo", "quick"],
-    duration: "5 min",
-    scored: true,
-    render: ({ onBackToHub }) => <DailyChallenge onBackToHub={onBackToHub} />,
-  },
-  {
-    id: "country-hunt",
-    title: "Country Hunt",
-    tagline: "Name a country, click where it is. Hints available, for a price.",
-    icon: "🗺️",
-    categories: ["trending", "geo"],
-    duration: "4 min",
-    scored: true,
-    render: ({ onBackToHub }) => <CountryHunt onBackToHub={onBackToHub} />,
-  },
-  {
     id: "tic-tac-toe",
     title: "Ultimate Tic-Tac-Toe",
     tagline: "Nine boards. Your move decides where your opponent plays next.",
@@ -93,26 +79,6 @@ export const GAMES: GameEntry[] = [
     duration: "3–8 min",
     scored: false,
     render: ({ onBackToHub }) => <UltimateTicTacToe onBackToHub={onBackToHub} />,
-  },
-  {
-    id: "pin-the-place",
-    title: "Pin the Place",
-    tagline: "Click where you think it is. Scored on how close you got.",
-    icon: "📍",
-    categories: ["trending", "geo"],
-    duration: "3 min",
-    scored: true,
-    render: ({ onBackToHub }) => <PinThePlace onBackToHub={onBackToHub} />,
-  },
-  {
-    id: "map-race",
-    title: "Map Race",
-    tagline: "Sixty seconds. Find as many places as you can.",
-    icon: "⚡",
-    categories: ["trending", "geo", "quick"],
-    duration: "1 min",
-    scored: true,
-    render: ({ onBackToHub }) => <MapRace onBackToHub={onBackToHub} />,
   },
   {
     id: "world-quiz",
@@ -190,23 +156,6 @@ export const GAMES: GameEntry[] = [
     render: ({ onBackToHub }) => <PatternBreaker onBackToHub={onBackToHub} />,
   },
   {
-    /**
-     * The only game here built on this product's own data rather than a quiz
-     * bank: the images are live NASA GIBS tiles at the two dates named on
-     * screen, from the same archive the Data tab exposes. That is also why it
-     * sits under "geo" rather than "quiz" — the question is what you can see,
-     * not what you already know.
-     */
-    id: "spot-the-change",
-    title: "Spot the Change",
-    tagline: "Two satellite views of the same place, years apart. Work out what happened.",
-    icon: "🛰️",
-    categories: ["trending", "geo", "quiz"],
-    duration: "4 min",
-    scored: true,
-    render: ({ onBackToHub }) => <SpotTheChange onBackToHub={onBackToHub} />,
-  },
-  {
     id: "cricket",
     title: "Cricket Challenge",
     tagline: "Time your shot as the ball comes at you. Three overs to chase.",
@@ -215,6 +164,38 @@ export const GAMES: GameEntry[] = [
     duration: "3 min",
     scored: true,
     render: ({ onBackToHub }) => <CricketChallenge onBackToHub={onBackToHub} />,
+  },
+  {
+    id: "find-it",
+    title: "Find It",
+    tagline: "Spot the one that matches before the clock does. Three mistakes and the run is over.",
+    icon: "👀",
+    categories: ["quick", "casual"],
+    duration: "2 min",
+    scored: true,
+    render: ({ onBackToHub }) => <FindIt onBackToHub={onBackToHub} />,
+  },
+  {
+    id: "geo-memory",
+    title: "Geo Memory",
+    tagline: "Flip two flags; matching pairs stay up. The clock starts on your first flip, not before.",
+    icon: "🃏",
+    categories: ["quiz", "casual"],
+    duration: "3 min",
+    scored: true,
+    render: ({ onBackToHub }) => <GeoMemory onBackToHub={onBackToHub} />,
+  },
+  {
+    // Not scored: it is a two-player board game with a win or a draw, and a
+    // points total on the card would promise a number this game never gives.
+    id: "four-in-a-row",
+    title: "Four in a Row",
+    tagline: "Drop your colour and line up four. Against the computer at three strengths, or a friend beside you.",
+    icon: "🔴",
+    categories: ["casual"],
+    duration: "5 min",
+    scored: false,
+    render: ({ onBackToHub }) => <FourInARow onBackToHub={onBackToHub} />,
   },
 ];
 

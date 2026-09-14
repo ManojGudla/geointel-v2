@@ -62,7 +62,26 @@ export function SpatialAnalysisPanel() {
     }).catch(() => undefined);
   };
 
-  if (!location) {
+  /*
+    An answer outranks the empty state, and the order these two were checked
+    in was the whole bug.
+
+    askTheMap() in SearchBar deliberately runs from the centre of the map when
+    nothing is selected — that is exactly what makes "schools within 1 km"
+    work on the very first screen, before anyone has picked a place — and it
+    then sends the user here, because its own comment says "the answer renders
+    in Analyze, so that is where the user is taken". But this guard ran first
+    and returned "Select a location", so the answer that had just been
+    computed and stored was replaced by an instruction to do the thing the
+    user had just done.
+
+    Reported as: "after clicking anything it moves to analyse, and in analyse
+    there is only the measurement and area tool." That is precisely right —
+    the answer was there the whole time, behind this early return.
+  */
+  const hasAnswer = result !== null || status === "running" || status === "error";
+
+  if (!location && !hasAnswer) {
     // An empty state is a teaching opportunity, not a locked door. It names
     // the two ways forward and what becomes possible afterwards, so someone
     // who lands here knows what they're missing out on rather than only
@@ -86,6 +105,20 @@ export function SpatialAnalysisPanel() {
 
   return (
     <div className="analysis">
+      {/*
+        Where the number came from. An analysis run from the map centre is a
+        real answer, but it is an answer about a different point than the one
+        somebody might assume, so it says so rather than letting the reader
+        guess. It also names the one thing that is unavailable until a place
+        is picked, which is running a new one from these controls.
+      */}
+      {!location && (
+        <p className="analysis__origin-note">
+          Measured from the <strong>centre of the map</strong>, because no place is selected yet. Search a place above, or
+          click anywhere on the map, to analyse a specific point.
+        </p>
+      )}
+
       <div className="analysis__ops" role="group" aria-label="Analysis type">
         {OPERATIONS.map((op) => (
           <button key={op.id} type="button" className={operation === op.id ? "active" : ""} onClick={() => setOperation(op.id)} aria-pressed={operation === op.id}>
@@ -157,7 +190,16 @@ export function SpatialAnalysisPanel() {
       )}
 
       <div className="analysis__actions">
-        <button type="button" className="analysis__run" onClick={() => void submit()} disabled={status === "running"}>
+        {/* Disabled without a location rather than hidden: submit() already
+            returns early in that case, and a button that silently does
+            nothing is worse than one that explains why it can't. */}
+        <button
+          type="button"
+          className="analysis__run"
+          onClick={() => void submit()}
+          disabled={status === "running" || !location}
+          title={location ? undefined : "Pick a place on the map first"}
+        >
           {status === "running" ? "Running…" : "Run analysis"}
         </button>
         {result && (

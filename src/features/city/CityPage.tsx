@@ -50,9 +50,27 @@ const COUNT_CATEGORIES = [
 
 const COUNT_RADIUS = 5000;
 
+/**
+ * The canonical URL for a city page — always on www.manowj.com, whatever host
+ * served the request.
+ *
+ * This used to read `window.location.origin`, and that is a quietly expensive
+ * mistake. This app is reachable on at least two hosts: www.manowj.com, and
+ * the manowj-geointel.vercel.app address Vercel assigns and keeps live. An
+ * origin-derived canonical means that if a crawler ever reaches a city page on
+ * the vercel.app host, the page tells it "the canonical version of this is the
+ * vercel.app one" — so the two hosts compete as duplicates, on exactly the
+ * pages this site is trying to rank, and the authority splits between them.
+ *
+ * Naming the one preferred host is the entire job of rel=canonical; deriving
+ * it from wherever you happen to be defeats the point. ComparePage already
+ * hardcodes it, which is why comparison pages were never exposed to this and
+ * city pages were.
+ */
+const CANONICAL_ORIGIN = "https://www.manowj.com";
+
 function cityUrl(slug: string): string {
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://www.manowj.com";
-  return `${origin}/maps/${slug}`;
+  return `${CANONICAL_ORIGIN}/maps/${slug}`;
 }
 
 export function CityPage({ city }: Props) {

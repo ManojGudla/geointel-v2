@@ -5,7 +5,25 @@ export interface AiMessage {
   content: string;
 }
 
-export type AiResult = { ok: true; content: string; model: string } | { ok: false; error: string };
+export type AiResult =
+  | {
+      ok: true;
+      content: string;
+      /**
+       * The model that ACTUALLY answered, as the provider reported it — not
+       * the slug we asked for. Those are routinely different: the default
+       * `openrouter/free` is a router, not a model, and OpenRouter picks a
+       * free model at random from what is available at that moment. So two
+       * runs of the same agent, a minute apart, can be answered by two
+       * different models of very different quality, and reporting the
+       * requested slug would have told the reader "openrouter/free" both
+       * times — a label that names no model at all.
+       */
+      model: string;
+      /** What we asked for. Kept apart from `model` so the two can differ. */
+      requestedModel: string;
+    }
+  | { ok: false; error: string };
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -22,7 +40,7 @@ export async function getAiCompletion(
   opts: { model?: string; maxTokens?: number; temperature?: number } = {}
 ): Promise<AiResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = opts.model || process.env.OPENROUTER_MODEL || "openrouter/free";
+  const requestedModel = opts.model || process.env.OPENROUTER_MODEL || "openrouter/free";
 
   if (!apiKey) {
     return { ok: false, error: "AI features aren't configured yet — an OPENROUTER_API_KEY is needed on the server." };
@@ -40,7 +58,7 @@ export async function getAiCompletion(
           "X-Title": "maNOWj GeoIntel",
         },
         body: JSON.stringify({
-          model,
+          model: requestedModel,
           messages,
           max_tokens: opts.maxTokens ?? 700,
           temperature: opts.temperature ?? 0.3,
@@ -71,12 +89,25 @@ export async function getAiCompletion(
       return { ok: false, error: `The AI provider is temporarily unavailable (HTTP ${response.status}).` };
     }
 
-    const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const data = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+      /*
+        This field was being parsed away and thrown out, which is the whole
+        bug. OpenRouter names the model that served the request here; when
+        the request asked for a router slug rather than a model, this is the
+        ONLY place the real answer appears.
+      */
+      model?: string;
+    };
     const content = data.choices?.[0]?.message?.content?.trim();
     if (!content) {
       return { ok: false, error: "The AI provider returned an empty response." };
     }
-    return { ok: true, content, model };
+    // Fall back to the requested slug only if the provider didn't say — an
+    // unknown model is better reported as the thing we asked for than as
+    // nothing at all, but it must never overwrite what the provider reports.
+    const served = typeof data.model === "string" && data.model.trim() ? data.model.trim() : requestedModel;
+    return { ok: true, content, model: served, requestedModel };
   } catch (error) {
     console.error("[ai] request failed", error);
     return { ok: false, error: "The AI provider is temporarily unavailable." };

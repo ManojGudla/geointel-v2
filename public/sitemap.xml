@@ -6,9 +6,10 @@
   It would be trivial to generate a thousand entries by crossing city names with
   feature names. That is exactly what search engines have spent fifteen years
   learning to discount, and thin pages do not merely fail to rank — they drag
-  down the pages that would otherwise have. Eight cities written properly is a
-  better bet than eighty written by a loop, and adding the ninth means writing
-  the ninth.
+  down the pages that would otherwise have. So the count here grows one written
+  page at a time: adding the thirteenth city means researching and writing the
+  thirteenth, and a place with no real geography to describe does not get one.
+  See src/data/cities.ts for the bar an entry has to clear.
 
   /status is deliberately absent. It has no per-route metadata, so its canonical
   tag still points at the home page, and a sitemap entry that disagrees with a
@@ -84,15 +85,40 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://www.manowj.com/maps/gurugram</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/maps/ahmedabad</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/maps/kochi</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/maps/indore</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
 
   <!--
-    Comparisons. Six, not twenty-eight.
+    Comparisons. Nine, not sixty-six.
 
-    Eight cities make twenty-eight possible pairs, and listing them all would be
-    exactly the programmatic bulk that gets discounted — most of those twenty-
-    eight are comparisons nobody has ever wanted to read. These six are ones
-    people genuinely search for. The other twenty-two still render and are still
-    indexable if a crawler finds them; they are simply not advertised.
+    Twelve cities make sixty-six possible pairs, and that ratio is the point:
+    pairs grow as the square of the cities, so "list them all" gets worse every
+    time a city is added. Most of the sixty-six are comparisons nobody has ever
+    wanted to read. These nine are ones people genuinely search for. The other
+    fifty-seven still render and are still indexable if a crawler finds them;
+    they are simply not advertised.
 
     Each is listed in one ordering only. Both orderings of a pair render, and
     both declare this same canonical, so the two can never compete.
@@ -130,6 +156,24 @@
   <url>
     <loc>https://www.manowj.com/compare/mumbai-vs-pune</loc>
     <lastmod>2026-09-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/compare/delhi-vs-gurugram</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/compare/hyderabad-vs-pune</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.manowj.com/compare/bengaluru-vs-mumbai</loc>
+    <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>

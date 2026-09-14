@@ -4,6 +4,7 @@ import { playTone } from "../../sound";
 import { buildScoreCard, shareScoreCard } from "../../share/shareCard";
 import { buildCodeGame, puzzlePoints } from "./puzzles";
 import "./arcade.css";
+import { PLAY_URL } from "@/features/play/share";
 
 /**
  * Crack the Code — deduce a symbol's value from a system of equations.
@@ -89,7 +90,7 @@ export function CrackTheCode({ onBackToHub }: { onBackToHub: () => void }) {
         { label: "Your best", value: Math.max(best, score).toLocaleString() },
       ],
     });
-    const outcome = await shareScoreCard(card, `maNOWj Crack the Code — ${score.toLocaleString()}\nhttps://www.manowj.com`);
+    const outcome = await shareScoreCard(card, `maNOWj Crack the Code — ${score.toLocaleString()}\n${PLAY_URL}`);
     setShared(outcome === "downloaded" ? "Saved as an image" : outcome === "shared" ? "Shared" : null);
     if (outcome !== "cancelled") window.setTimeout(() => setShared(null), 2600);
   };

@@ -45,12 +45,17 @@ export function canonicalPairSlug(one: string, two: string): string {
 /**
  * The pairs that go in the sitemap.
  *
- * Eight cities make twenty-eight possible comparisons. Listing all of them
- * would be exactly the programmatic bulk the brief warns against and search
- * engines discount — and most of those twenty-eight are comparisons nobody has
- * ever wanted to read. These six are ones people genuinely search for, so they
- * are the ones pushed. The other twenty-two still work, still render, and are
- * still indexable if a crawler finds them; they are simply not advertised.
+ * Twelve cities make sixty-six possible comparisons, and that ratio is the
+ * point: the number of pairs grows as the square of the number of cities, so
+ * "list them all" gets worse every time a city is added. Most of the
+ * sixty-six are comparisons nobody has ever wanted to read — Kochi versus
+ * Indore is not a question anyone types.
+ *
+ * The nine below are ones people genuinely search for, so they are the ones
+ * advertised in the sitemap. The other fifty-seven still parse, still render
+ * and are still indexable if a crawler finds them; they are simply not
+ * pushed. That is the difference between a page existing and a page being
+ * promoted, and it is the whole defence against programmatic bulk here.
  */
 export const FEATURED_PAIRS: Array<[string, string]> = [
   ["hyderabad", "bengaluru"],
@@ -59,6 +64,13 @@ export const FEATURED_PAIRS: Array<[string, string]> = [
   ["mumbai", "pune"],
   ["hyderabad", "chennai"],
   ["bengaluru", "delhi"],
+  // Added with the second batch of cities. Each of these is a comparison
+  // people genuinely type — "Gurgaon vs Delhi" in particular is one of the
+  // higher-volume relocation searches in the country, and the two places
+  // differ in exactly the ways this page can show with live data.
+  ["delhi", "gurugram"],
+  ["hyderabad", "pune"],
+  ["bengaluru", "mumbai"],
 ];
 
 export const FEATURED_PAIR_PATHS = FEATURED_PAIRS.map(([a, b]) => `/compare/${canonicalPairSlug(a, b)}`);

@@ -1,5 +1,6 @@
 import { FACTS, factsByTruth, type Fact } from "../../data/facts";
 import { createRng } from "../../lib/random";
+import { PLAY_URL } from "@/features/play/share";
 
 /**
  * The two games built on the sourced claim bank.
@@ -121,7 +122,7 @@ export function realOrFakeShare(streak: number, best: number): string {
   const lines = [
     `maNOWj Impossible or Real — ${streak} in a row`,
     streak >= best && streak > 0 ? "New personal best" : "",
-    "https://www.manowj.com",
+    PLAY_URL,
   ];
   return lines.filter(Boolean).join("\n");
 }
@@ -130,7 +131,7 @@ export function impostorShare(score: number, found: number, rounds: number): str
   return [
     `maNOWj The Impostor — ${score.toLocaleString()}`,
     `Caught ${found} of ${rounds}`,
-    "https://www.manowj.com",
+    PLAY_URL,
   ].join("\n");
 }
 

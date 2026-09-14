@@ -51,13 +51,66 @@ describe("the city data itself", () => {
   });
 
   it("gives every city its own hand-written geography", () => {
-    // Eight paragraphs that differ only in a name would be a doorway page
-    // whatever the values are.
+    // Paragraphs that differ only in a name would be a doorway page whatever
+    // the values are.
     const texts = CITIES.map((c) => c.geography);
     expect(new Set(texts).size).toBe(CITIES.length);
     for (const c of CITIES) {
       expect(c.geography.length).toBeGreaterThan(180);
       expect(c.landmarks.length).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  it("gives every city its own meta description too", () => {
+    /*
+      The geography was always per-city, but every summary used to read
+      "Explore {City} on an interactive map and ask questions about any part of
+      it" — one string, twelve times, differing by a proper noun. That string is
+      the meta description, so the set of pages this site is trying to rank
+      carried a duplicate description on every one of them, which is the same
+      templating mistake the geography rule exists to prevent, made in the field
+      search engines actually read.
+    */
+    const summaries = CITIES.map((c) => c.summary);
+    expect(new Set(summaries).size).toBe(CITIES.length);
+
+    for (const c of CITIES) {
+      expect(c.summary, c.slug).toContain(c.name);
+      // Long enough to be a real description, short enough not to be cut off
+      // in a result. Google truncates around 155-160 characters.
+      expect(c.summary.length, c.slug).toBeGreaterThan(90);
+      expect(c.summary.length, c.slug).toBeLessThan(175);
+    }
+
+    // The specific shape that was wrong, banned by name so it cannot return.
+    for (const c of CITIES) {
+      expect(c.summary, c.slug).not.toMatch(/^Explore .+ on an interactive map and ask questions about any part of it/);
+    }
+  });
+
+  it("does not place two cities on top of each other", () => {
+    /*
+      The copy-paste guard, and it nearly caught me: a source read as "72°58′E"
+      for Ahmedabad where the real value is 72.58°E — a difference of about
+      forty kilometres, which would have centred that city's map in open
+      farmland east of it. Coordinates being "inside India" is not enough; they
+      also have to be somewhere different from each other.
+    */
+    for (let i = 0; i < CITIES.length; i += 1) {
+      for (let j = i + 1; j < CITIES.length; j += 1) {
+        const a = CITIES[i]!;
+        const b = CITIES[j]!;
+        const apart = Math.hypot(a.lat - b.lat, a.lon - b.lon);
+        /*
+          0.1 degrees is roughly 11km. Deliberately loose: this is a guard
+          against a duplicated or mistyped coordinate, not a policy on how far
+          apart two cities must be. Delhi and Gurugram are about 25km apart and
+          are genuinely separate cities in separate states — a stricter
+          threshold would fail on a legitimate pair, which is how a useful test
+          turns into one people delete.
+        */
+        expect(apart, `${a.slug} and ${b.slug} share a coordinate`).toBeGreaterThan(0.1);
+      }
     }
   });
 
@@ -106,9 +159,11 @@ describe("the sitemap and the routes agree", () => {
     // A sitemap entry for a URL that 404s or that disowns itself via canonical
     // is a contradiction a crawler resolves by trusting neither.
     const locs = [...sitemap.matchAll(/<loc>https:\/\/www\.manowj\.com(\/[^<]*)<\/loc>/g)].map((m) => m[1]!);
-    // Comparison pages were added after this test and it failed, which is the
-    // whole reason it exists: a URL reaches the sitemap only once somebody has
-    // stated, here, that it is a real page.
+    /*
+      Comparison pages were added after this test and it failed, which is the
+      whole reason it exists: a URL reaches the sitemap only once somebody has
+      stated, here, that it is a real page.
+    */
     const known = new Set(["/", "/ai-map-search", ...CITY_PATHS, ...FEATURED_PAIR_PATHS]);
     for (const loc of locs) expect(known.has(loc), loc).toBe(true);
   });
@@ -148,8 +203,18 @@ describe("a rendered city page", () => {
     document.head.appendChild(link);
 
     const view = await renderCity("hyderabad");
+    /*
+      The production host, not the test runner's. This assertion used to expect
+      "http://localhost:3000/maps/hyderabad", because the page built its
+      canonical from window.location.origin — so the test faithfully encoded a
+      real bug. This app answers on www.manowj.com AND on the
+      manowj-geointel.vercel.app address Vercel keeps live, and a canonical
+      derived from the current origin tells a crawler that whichever host it
+      happened to reach is the canonical one. The two then compete as
+      duplicates on the pages this site most wants to rank.
+    */
     expect(document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href).toBe(
-      "http://localhost:3000/maps/hyderabad"
+      "https://www.manowj.com/maps/hyderabad"
     );
 
     // And it must hand the tag back, or navigating away leaves the whole app

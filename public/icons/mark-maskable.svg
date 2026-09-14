@@ -1,28 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="maNOWj GeoIntel">
   <!--
-    Maskable variant. Android crops this to whatever shape the launcher uses
-    (circle, squircle, teardrop), so the background has to bleed to all four
-    edges with no rounded corners of its own, and everything that matters has
-    to sit inside the middle 80% or the crop eats it. The artwork here is the
-    same reticle scaled to ~64% and centred, which leaves room on every side.
+    The maskable variant, for Android home screens.
+
+    Full-bleed square with no corner radius, because the launcher applies
+    its own mask and a pre-rounded tile inside one leaves corner gaps. The
+    letters are set smaller so they stay inside the safe zone — the central
+    circle of 80% diameter — whatever shape the phone crops to.
   -->
   <defs>
-    <linearGradient id="tileM" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#16305d"/>
-      <stop offset="1" stop-color="#0a1628"/>
+    <linearGradient id="tileMask" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#1d3f77"/>
+      <stop offset="0.52" stop-color="#12294f"/>
+      <stop offset="1" stop-color="#091426"/>
     </linearGradient>
   </defs>
 
-  <rect width="512" height="512" fill="url(#tileM)"/>
+  <rect width="512" height="512" fill="url(#tileMask)"/>
 
-  <g transform="translate(256 256) scale(0.64) translate(-256 -256)">
-    <g stroke="#4f7ec2" stroke-width="14" stroke-linecap="round">
-      <line x1="256" y1="74" x2="256" y2="120"/>
-      <line x1="256" y1="392" x2="256" y2="438"/>
-      <line x1="74" y1="256" x2="120" y2="256"/>
-      <line x1="392" y1="256" x2="438" y2="256"/>
+  <g transform="translate(132.00 310.30) scale(0.15404 -0.15404)">
+    <path d="M857 702V0H686V421L529 0H391L233 422V0H62V702H264L461 216L656 702Z" fill="#eef3fc"/>
+    <g transform="translate(848 0)">
+      <path d="M528 480Q509 515 473.5 533.5Q438 552 390 552Q307 552 257.0 497.5Q207 443 207 352Q207 255 259.5 200.5Q312 146 404 146Q467 146 510.5 178.0Q554 210 574 270H357V396H729V237Q710 173 664.5 118.0Q619 63 549.0 29.0Q479 -5 391 -5Q287 -5 205.5 40.5Q124 86 78.5 167.0Q33 248 33 352Q33 456 78.5 537.5Q124 619 205.0 664.5Q286 710 390 710Q516 710 602.5 649.0Q689 588 717 480Z" fill="#ff9440"/>
     </g>
-    <circle cx="256" cy="256" r="122" fill="none" stroke="#5b8dd6" stroke-width="15"/>
-    <circle cx="256" cy="256" r="47" fill="#ff8d3a"/>
   </g>
 </svg>

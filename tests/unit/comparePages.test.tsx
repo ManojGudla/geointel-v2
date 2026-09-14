@@ -113,11 +113,20 @@ describe("the sitemap", () => {
     }
   });
 
-  it("does not list all twenty-eight possible pairs", () => {
-    // Eight cities make twenty-eight combinations. Most are comparisons nobody
-    // has ever wanted to read, and bulk like that gets a site discounted.
+  it("advertises only a small fraction of the possible pairs", () => {
+    /*
+      The number of pairs grows as the square of the number of cities, so a
+      fixed cap goes stale the moment a city is added. What must stay true is
+      the ratio: the sitemap promotes the handful of comparisons people
+      actually search, not the combinatorial set.
+    */
+    const cityCount = CITY_BY_SLUG.size;
+    const possiblePairs = (cityCount * (cityCount - 1)) / 2;
     const locs = [...sitemap.matchAll(/\/compare\//g)];
-    expect(locs.length).toBeLessThan(10);
+
+    expect(locs.length).toBeLessThan(possiblePairs / 4);
+    // And an absolute ceiling, so this cannot be satisfied by adding cities.
+    expect(locs.length).toBeLessThanOrEqual(12);
   });
 });
 
