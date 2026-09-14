@@ -194,3 +194,37 @@
     --duration-slow: 0ms;
   }
 }
+
+/*
+  ── Breakpoints ─────────────────────────────────────────────────────────────
+
+  These cannot be tokens: a custom property is resolved against an element,
+  and a media query is evaluated before there is one, so `@media (max-width:
+  var(--bp-md))` is not a thing CSS can do. They are documented here anyway,
+  because this file is where someone looks for a layout decision, and two
+  numbers that live in twenty-six stylesheets need somewhere to be written
+  down once.
+
+  There are exactly two, and every piece of application UI uses only these:
+
+    900px   The shell split. Above it: a labelled rail beside the map with
+            room for a 380px panel column. Below it: the rail becomes a
+            bottom tab bar and the panel becomes a bottom sheet (see
+            sheet.ts). shellStore.ts and useSheet.ts both hold this same
+            number in TypeScript, where a media query cannot reach — change
+            one and you must change all three, or there is a band of widths
+            where the rail has moved and the panel has not.
+
+    640px   Phone. Multi-column content collapses to one column, side-by-side
+            controls stack, generous padding tightens.
+
+  Three further values exist and are deliberate exceptions, each used by
+  exactly one component whose content dictates its own reflow point rather
+  than the page's: 720px in the printable area report, 700px in the change
+  game, 520px in the DRS review. 560px is shared by the play/game surfaces,
+  whose boards are square and hit their limit earlier than text does.
+
+  Anything outside that set is sprawl. tests/unit/breakpoints.test.ts fails
+  the build for a new one, so this stays true rather than merely being
+  asserted here.
+*/

@@ -69,16 +69,41 @@
   gap: var(--space-3);
 }
 
+/*
+  The brand mark is a <button>, and it looks exactly as it did as a <span>.
+
+  It carries the hidden owner entrance (see features/secret/secretGesture.ts),
+  which means it has to be a real button: keyboard-reachable, focusable, and
+  announced. What it must NOT do is look like one — a visitor seeing a
+  clickable logo would expect it to go home, and the whole point of the
+  gesture is that nothing about the page changes for anyone who does not
+  already know it is there. So every button default is reset back to what the
+  span rendered, and only :focus-visible reveals it, which is correct: a
+  keyboard user landing on an invisible focus stop is a worse bug than a
+  slightly discoverable door.
+*/
 .app-header__mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
+  padding: 0;
+  border: none;
   border-radius: var(--radius-md);
   font-size: 20px;
+  font-family: inherit;
+  line-height: 1;
   background: linear-gradient(135deg, var(--color-brand-600), var(--color-brand-400));
   box-shadow: var(--shadow-sm);
+  /* The default cursor, not a pointer: a pointer would advertise it. */
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-header__mark:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
 }
 
 .app-header__wordmark {

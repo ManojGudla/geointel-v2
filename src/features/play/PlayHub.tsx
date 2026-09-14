@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useGamesStore } from "@/stores/gamesStore";
+import { useDialog } from "@/hooks/useDialog";
 import { usePlayStore } from "./progress/playStore";
 import { levelProgress } from "./progress/xp";
 import { ACHIEVEMENTS } from "./progress/achievements";
@@ -24,6 +25,16 @@ export function PlayHub() {
   const close = useGamesStore((s) => s.close);
   const requestedGame = useGamesStore((s) => s.activeGame);
   const clearRequested = useGamesStore((s) => s.backToHub);
+
+  /*
+    This declares aria-modal="true", and the focus half of that promise was
+    not being kept — Tab walked straight out of the hub into the map behind
+    it. The Escape half already works and is untouched: the layered handler
+    below listens on `window` in the CAPTURE phase and stops propagation, so
+    it runs before this hook's listener ever sees the key, and "step back one
+    level" still beats "close everything".
+  */
+  const dialogRef = useDialog({ open: isOpen, onClose: close });
 
   const [view, setView] = useState<View>({ kind: "hub" });
   const [category, setCategory] = useState<CategoryId | "all">("all");
@@ -85,7 +96,7 @@ export function PlayHub() {
   };
 
   return (
-    <div className="play" role="dialog" aria-modal="true" aria-label="maNOWj PLAY">
+    <div ref={dialogRef} className="play" role="dialog" aria-modal="true" aria-label="maNOWj PLAY">
       <div className="play__sheet">
         <header className="play__head">
           <div className="play__title">

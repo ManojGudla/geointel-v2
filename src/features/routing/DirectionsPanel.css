@@ -238,14 +238,16 @@
   cursor: not-allowed;
 }
 
-.directions-panel__modes {
-  display: flex;
-  gap: var(--space-2);
-}
+/* A second `.directions-panel__modes` rule stood here, byte for byte
+   identical to the one near the top of this file — it set nothing the
+   original had not already set. Removed rather than merged: there was
+   nothing in it to merge. */
 
 .directions-panel__modes button {
   flex: 1;
-  min-height: 42px;
+  /* Was 42px. Two pixels short of the 44px minimum touch target, for no
+     reason, on a control people press while holding a phone. */
+  min-height: 44px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);

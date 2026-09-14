@@ -1,6 +1,8 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useShellStore } from "@/stores/shellStore";
 import { SECTION_BY_ID } from "./sections";
+import { useIsSheetLayout, useSheet } from "./useSheet";
+import { detentLabel } from "./sheet";
 import { IntelligencePanel } from "@/features/workspace/IntelligencePanel";
 import { RadiusSelector } from "@/features/gis/RadiusSelector";
 import { GISLayerManager } from "@/features/gis/GISLayerManager";
@@ -37,12 +39,45 @@ export function SidePanel() {
   const openCopilot = useAiStore((s) => s.openCopilot);
   const location = useLocationStore((s) => s.selectedLocation);
   const openReport = useReportStore((s) => s.open);
+  /*
+    Below 900px this panel is a bottom sheet rather than a column, and the
+    map stays visible above it. See sheet.ts for why that matters more here
+    than it would in most applications.
+  */
+  const isSheet = useIsSheetLayout();
+  const sheet = useSheet(isSheet, closePanel);
 
   if (!open) return null;
   const def = SECTION_BY_ID.get(section);
 
   return (
-    <aside className="side-panel" aria-label={def?.title ?? "Workspace"}>
+    <aside
+      ref={sheet.sheetRef}
+      className={`side-panel${isSheet ? " side-panel--sheet" : ""}${
+        sheet.dragging ? " side-panel--dragging" : ""
+      }`}
+      aria-label={def?.title ?? "Workspace"}
+      /* Desktop leaves this undefined so the stylesheet's fixed column wins. */
+      style={sheet.fraction === null ? undefined : { height: `${(sheet.fraction * 100).toFixed(2)}%` }}
+    >
+      {/*
+        The grip. Rendered at every width but only visible in sheet layout,
+        where it is the control that resizes and closes the panel.
+
+        It is a real <button>, so it is reachable and operable from a keyboard
+        — arrow keys step the same three heights a finger drags between. A
+        grip that answers only to a pointer is a control that exists for touch
+        users and for nobody else.
+      */}
+      <button
+        type="button"
+        className="side-panel__grip"
+        aria-label={`${detentLabel(sheet.detent)}. Drag or use the arrow keys to resize, tap to cycle.`}
+        {...sheet.gripProps}
+      >
+        <span className="side-panel__grip-bar" aria-hidden="true" />
+      </button>
+
       <header className="side-panel__head">
         <div>
           <h2 className="side-panel__title">{def?.title}</h2>
@@ -133,10 +168,10 @@ export function SidePanel() {
             <section className="side-panel__group">
               <h3 className="side-panel__group-title">Ask a question in words</h3>
               <p className="side-panel__group-note">
-                Ask maNOWj answers in plain language using the location, evidence and weather currently loaded.
+                Ask me anything in plain language using the location, evidence and weather currently loaded.
               </p>
               <button type="button" className="side-panel__cta" onClick={openCopilot}>
-                💬 Ask maNOWj
+                💬 Ask me
               </button>
             </section>
             <section className="side-panel__group">

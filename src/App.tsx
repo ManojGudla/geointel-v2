@@ -61,6 +61,15 @@ import { useSharedLocationFromUrl } from "@/hooks/useSharedLocationFromUrl";
 import { useLocationPanelSync } from "@/hooks/useLocationPanelSync";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ConsentBanner } from "@/features/analytics/ConsentBanner";
+import { LazyPanel } from "@/components/LazyPanel";
+import { useFeedbackStore } from "@/stores/feedbackStore";
+import { useHelpStore } from "@/stores/helpStore";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { useFeatureStatusStore } from "@/stores/featureStatusStore";
+import { useTeamStore } from "@/stores/teamStore";
+import { useAboutStore } from "@/stores/aboutStore";
+import { useReportStore } from "@/stores/reportStore";
+import { useGamesStore } from "@/stores/gamesStore";
 import { NotFoundPage } from "@/features/notfound/NotFoundPage";
 import { CITY_BY_SLUG, CITY_PATHS } from "@/data/cities";
 import { FEATURED_PAIR_PATHS, parsePairSlug } from "@/features/compare/comparePairs";
@@ -78,6 +87,22 @@ export default function App() {
   useKeyboardShortcuts();
   const maintenance = useMaintenanceStore((s) => s.state);
   const lastChecked = useMaintenanceStore((s) => s.lastChecked);
+
+  /*
+    Whether each modal panel has been opened. Read here rather than inside
+    each panel because the decision being made is "should this code be
+    downloaded at all", and a component cannot make that decision about
+    itself — by the time it runs, it has already arrived.
+  */
+  const feedbackOpen = useFeedbackStore((s) => s.isOpen);
+  const helpOpen = useHelpStore((s) => s.isOpen);
+  const settingsOpen = useSettingsStore((s) => s.isOpen);
+  const featureStatusOpen = useFeatureStatusStore((s) => s.isOpen);
+  const teamOpen = useTeamStore((s) => s.isOpen);
+  const aboutOpen = useAboutStore((s) => s.isOpen);
+  const reportOpen = useReportStore((s) => s.isOpen);
+  const gamesOpen = useGamesStore((s) => s.isOpen);
+  const privacyOpen = usePrivacyStore((s) => s.isOpen);
 
   // No router in this app (see plugins/vite-plugin-api.ts's comment on why
   // that's a deliberate choice elsewhere) — /admin is a plain pathname
@@ -234,59 +259,58 @@ export default function App() {
         </ErrorBoundary>
       </main>
 
-      <ErrorBoundary label="Feedback" variant="panel">
-        <Suspense fallback={null}>
-          <FeedbackForm />
-        </Suspense>
-      </ErrorBoundary>
+      {/*
+        Every one of these is downloaded the first time it is opened, and not
+        before. They were all already `React.lazy`, which split the chunks but
+        decided nothing about when they arrive — mounted unconditionally, each
+        fetched its code on page load and then rendered null because its store
+        said closed. Measured: 1.55 MB of JavaScript to show a map, 209 KB of
+        it the games hub. See components/LazyPanel.tsx.
+      */}
+      <LazyPanel label="Feedback" isOpen={feedbackOpen}>
+        <FeedbackForm />
+      </LazyPanel>
 
-      <ErrorBoundary label="Help guide" variant="panel">
-        <Suspense fallback={null}>
-          <HelpGuide />
-        </Suspense>
-      </ErrorBoundary>
+      <LazyPanel label="Help guide" isOpen={helpOpen}>
+        <HelpGuide />
+      </LazyPanel>
 
-      <ErrorBoundary label="Settings" variant="panel">
-        <Suspense fallback={null}>
-          <SettingsPanel />
-        </Suspense>
-      </ErrorBoundary>
+      <LazyPanel label="Settings" isOpen={settingsOpen}>
+        <SettingsPanel />
+      </LazyPanel>
 
-      <ErrorBoundary label="Feature status" variant="panel">
-        <Suspense fallback={null}>
-          <FeatureStatusPage />
-        </Suspense>
-      </ErrorBoundary>
+      <LazyPanel label="Feature status" isOpen={featureStatusOpen}>
+        <FeatureStatusPage />
+      </LazyPanel>
 
-      <ErrorBoundary label="Join our team" variant="panel">
-        <Suspense fallback={null}>
-          <JoinTeamForm />
-        </Suspense>
-      </ErrorBoundary>
+      <LazyPanel label="Join our team" isOpen={teamOpen}>
+        <JoinTeamForm />
+      </LazyPanel>
 
-      <ErrorBoundary label="About" variant="panel">
-        <Suspense fallback={null}>
-          <AboutPanel />
-        </Suspense>
-      </ErrorBoundary>
+      <LazyPanel label="About" isOpen={aboutOpen}>
+        <AboutPanel />
+      </LazyPanel>
 
-      <ErrorBoundary label="Area report" variant="panel">
-        <Suspense fallback={null}>
-          <AreaReport />
-        </Suspense>
-      </ErrorBoundary>
+      <LazyPanel label="Area report" isOpen={reportOpen}>
+        <AreaReport />
+      </LazyPanel>
 
-      <ErrorBoundary label="maNOWj PLAY" variant="panel">
-        <Suspense fallback={null}>
-          <PlayHub />
-          <ConsentBanner />
-        </Suspense>
-      </ErrorBoundary>
+      <LazyPanel label="maNOWj PLAY" isOpen={gamesOpen}>
+        <PlayHub />
+      </LazyPanel>
 
-      <ErrorBoundary label="Privacy and security" variant="panel">
-        <Suspense fallback={null}>
-          <PrivacyPanel />
-        </Suspense>
+      <LazyPanel label="Privacy and security" isOpen={privacyOpen}>
+        <PrivacyPanel />
+      </LazyPanel>
+
+      {/*
+        Moved out of the games boundary, where it had no business being. It is
+        not lazy, it has nothing to do with PlayHub, and sharing that Suspense
+        meant the one surface a first-time visitor must see could be held back
+        by a 209 KB chunk of games loading beside it.
+      */}
+      <ErrorBoundary label="Cookie consent" variant="silent">
+        <ConsentBanner />
       </ErrorBoundary>
 
       <footer className="app-footer">

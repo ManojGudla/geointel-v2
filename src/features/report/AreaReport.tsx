@@ -7,6 +7,7 @@ import { analyzeProperty } from "@/features/property/propertyAnalyzer";
 import { fetchWeather } from "@/services/intel";
 import { aqiBand, useAirQuality } from "@/features/live/useLiveLayers";
 import { formatCoordinateLabel, formatDms } from "@/features/search/coordinateSearch";
+import { useDialog } from "@/hooks/useDialog";
 import "./AreaReport.css";
 
 /**
@@ -34,6 +35,16 @@ export function AreaReport() {
   const air = useAirQuality();
   const analysis = useAnalysisStore((s) => s.result);
 
+  /*
+    This declares aria-modal="true", which is a promise to assistive
+    technology that focus has moved in, Tab stays inside, and Escape closes.
+    None of the three was happening: a screen-reader user opening the report
+    was still focused on the button behind it and could tab straight out into
+    a map the report was covering. Seven other dialogs in this app already
+    use this hook; this one was missed. See hooks/useDialog.ts.
+  */
+  const dialogRef = useDialog({ open: isOpen, onClose: close });
+
   const weather = useQuery({
     queryKey: ["weather", location?.lat, location?.lon],
     queryFn: ({ signal }) => fetchWeather(location!.lat, location!.lon, signal),
@@ -49,7 +60,7 @@ export function AreaReport() {
   const generatedAt = new Date();
 
   return (
-    <div className="report-overlay" role="dialog" aria-modal="true" aria-label="Area report">
+    <div ref={dialogRef} className="report-overlay" role="dialog" aria-modal="true" aria-label="Area report">
       <div className="report-sheet">
         <div className="report-toolbar">
           <button type="button" onClick={() => window.print()} className="report-toolbar__print">

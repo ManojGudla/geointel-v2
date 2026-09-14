@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { usePrivacyStore } from "@/stores/privacyStore";
+import { useDialog } from "@/hooks/useDialog";
 import { SECTIONS, NOT_YET } from "./privacyFacts";
 import "./PrivacyPanel.css";
 
@@ -18,6 +19,14 @@ export function PrivacyPanel() {
   const isOpen = usePrivacyStore((s) => s.isOpen);
   const close = usePrivacyStore((s) => s.close);
 
+  /*
+    This declares aria-modal="true". Escape was already handled below, but
+    the other half of that promise — focus moves in, Tab stays inside, focus
+    returns on close — was not: a keyboard user could tab straight out of
+    this panel into the map it was covering. See hooks/useDialog.ts.
+  */
+  const dialogRef = useDialog({ open: isOpen, onClose: close });
+
   useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -33,7 +42,7 @@ export function PrivacyPanel() {
   if (!isOpen) return null;
 
   return (
-    <div className="privacy" role="dialog" aria-modal="true" aria-label="Privacy and security">
+    <div ref={dialogRef} className="privacy" role="dialog" aria-modal="true" aria-label="Privacy and security">
       <div className="privacy__sheet">
         <header className="privacy__head">
           <div>

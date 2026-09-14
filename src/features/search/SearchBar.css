@@ -322,3 +322,75 @@
   font-size: 11px;
   color: var(--color-text-faint);
 }
+
+/*
+  Recent places.
+
+  The history behind this panel was already being written on every search and
+  read by nothing — see the note in SearchBar.tsx. The panel is the container
+  here, and the list inside it drops the border, radius and shadow it would
+  otherwise draw for itself, so the two read as one surface rather than a box
+  inside a box.
+*/
+.search-bar__recent {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.search-bar__recent .search-bar__suggestions {
+  position: static;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  max-height: 260px;
+}
+
+.search-bar__recent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.search-bar__recent-title {
+  font-size: var(--text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-faint);
+}
+
+.search-bar__recent-clear {
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.search-bar__recent-clear:hover,
+.search-bar__recent-clear:focus-visible {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+@media (max-width: 900px) {
+  /* Under a thumb, in a sheet. */
+  .search-bar__recent-clear {
+    min-height: 44px;
+  }
+}
