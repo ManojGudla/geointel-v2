@@ -5,16 +5,31 @@ import { ApiUnavailableError } from "@/services/apiClient";
 import { formatAiText } from "@/lib/formatAiText";
 import { aiAttribution } from "@/lib/formatAiMeta";
 import { agentSubject, stalenessNotice } from "./agentSubject";
+import { readinessNotice } from "./agentReadiness";
+import type { ContextPending } from "./useCopilotContext";
 import type { AgentDefinition, CopilotContext } from "@/types/ai";
 import "./AgentCard.css";
 
-export function AgentCard({ definition, context }: { definition: AgentDefinition; context: CopilotContext }) {
+const NOTHING_PENDING: ContextPending = { gis: false, weather: false, nearby: false, route: false, officials: false };
+
+export function AgentCard({
+  definition,
+  context,
+  pending = NOTHING_PENDING,
+}: {
+  definition: AgentDefinition;
+  context: CopilotContext;
+  pending?: ContextPending;
+}) {
   const run = useAiStore((s) => s.agentRuns[definition.kind]);
   const setAgentRun = useAiStore((s) => s.setAgentRun);
   const location = useLocationStore((s) => s.selectedLocation);
 
   const subject = agentSubject(location);
   const stale = run.status === "done" ? stalenessNotice(run.subject, subject) : null;
+  // Null once this agent's own sources have landed. See agentReadiness.ts
+  // for why it is per-agent rather than "wait for everything".
+  const waiting = location ? readinessNotice(definition.kind, pending) : null;
 
   const handleRun = async () => {
     // Queued until the AI request gate actually lets this one out — see
@@ -45,7 +60,17 @@ export function AgentCard({ definition, context }: { definition: AgentDefinition
       <p className="agent-card__description">{definition.description}</p>
 
       {run.status === "idle" &&
-        (location ? (
+        (waiting ? (
+          /*
+            Asking now would spend a request on a half-empty context and
+            leave the "I wasn't given that data" answer sitting on the card
+            after the data arrived. Named, not a bare "Loading…", because a
+            spinner with no subject is indistinguishable from a broken card.
+          */
+          <span className="agent-card__status">
+            <span className="async-panel__spinner" aria-hidden="true" /> {waiting}
+          </span>
+        ) : location ? (
           <button type="button" onClick={handleRun}>
             Run
           </button>
@@ -73,7 +98,7 @@ export function AgentCard({ definition, context }: { definition: AgentDefinition
       {run.status === "error" && (
         <>
           <p className="agent-card__error">{run.error}</p>
-          <button type="button" onClick={handleRun} disabled={!location}>
+          <button type="button" onClick={handleRun} disabled={!location || !!waiting}>
             Retry
           </button>
         </>
@@ -105,8 +130,11 @@ export function AgentCard({ definition, context }: { definition: AgentDefinition
             only has to supply the verb. Disabled with nothing selected, for
             the same reason the idle card has no Run button at all.
           */}
-          <button type="button" className="agent-card__rerun" onClick={handleRun} disabled={!location}>
-            {stale && location ? "Run for this place" : "Run again"}
+          <button type="button" className="agent-card__rerun" onClick={handleRun} disabled={!location || !!waiting}>
+            {/* Re-running mid-load would reproduce the original bug exactly.
+                A radius change makes a new query key, so the evidence really
+                is absent again rather than merely refreshing. */}
+            {waiting ? waiting : stale && location ? "Run for this place" : "Run again"}
           </button>
         </>
       )}
