@@ -45,6 +45,13 @@ export interface CopilotMessage {
   content: string;
   sources?: string[];
   isError?: boolean;
+  /**
+   * For an assistant answer: the model that actually wrote it, as the
+   * provider reported it, and when. Absent on the user's own messages and on
+   * error messages, which the app wrote itself.
+   */
+  model?: string;
+  generatedAt?: string;
 }
 
 export type AgentKind = "search" | "gis" | "property" | "navigation" | "travel" | "makeMyTrip";

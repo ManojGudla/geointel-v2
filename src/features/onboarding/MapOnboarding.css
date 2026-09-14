@@ -10,7 +10,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-4);
+  /*
+    The top value is the floating search column's footprint, reserved.
+
+    This card is centred in the stage, and the search box and action row are
+    positioned over the same stage at the top. On a 1080p screen there is
+    enough height that the two never meet, which is why this survived. On
+    anything shorter they do — measured, the card's heading sat UNDER the
+    action row's hint text at 1366x768 (68px of overlap), 1280x800 (52px),
+    1536x864 (20px) and two more. Those are the two commonest laptop
+    resolutions there are, so most desktop visitors were reading the sentence
+    that explains this product through a box sitting on top of it.
+
+    Two things made it worse than a near miss. The card is centred, so every
+    pixel of height the window loses moves it up half a pixel. And the
+    `--above-consent` padding-bottom below shoves a centred child up by half
+    its value again — and that only applies on a first visit, which is the
+    one visit this card is shown on.
+
+    Reserving the space here rather than moving the card keeps the design
+    ("centred over the map") and simply centres it in the part of the map
+    that is actually free.
+  */
+  padding: 184px var(--space-4) var(--space-4);
   z-index: 12;
   transition: padding-bottom var(--duration-slow) var(--ease-standard);
   /* The container never eats a click; only the card itself does. */

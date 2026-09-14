@@ -4,6 +4,7 @@ import { playTone } from "../../sound";
 import { buildScoreCard, shareScoreCard } from "../../share/shareCard";
 import { buildPatternGame, puzzlePoints } from "./puzzles";
 import "./arcade.css";
+import { PLAY_URL } from "@/features/play/share";
 
 /**
  * Pattern Breaker — continue the sequence, against a clock.
@@ -133,7 +134,7 @@ export function PatternBreaker({ onBackToHub }: { onBackToHub: () => void }) {
         { label: "Your best", value: Math.max(best, score).toLocaleString() },
       ],
     });
-    const outcome = await shareScoreCard(card, `maNOWj Pattern Breaker — ${score.toLocaleString()}\nhttps://www.manowj.com`);
+    const outcome = await shareScoreCard(card, `maNOWj Pattern Breaker — ${score.toLocaleString()}\n${PLAY_URL}`);
     setShared(outcome === "downloaded" ? "Saved as an image" : outcome === "shared" ? "Shared" : null);
     if (outcome !== "cancelled") window.setTimeout(() => setShared(null), 2600);
   };

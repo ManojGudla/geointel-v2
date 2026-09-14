@@ -51,6 +51,38 @@ describe("public URLs", () => {
     expect(wrong).toEqual([]);
   });
 
+  it("never derives a canonical URL from the host that served the page", () => {
+    /*
+      The runtime half of the same rule, and the half that was missing.
+
+      The checks above read static files. But the canonical tag on a city page
+      is set at runtime by usePageMeta, and CityPage used to build the URL from
+      `window.location.origin`. This app answers on at least two hosts —
+      www.manowj.com and the manowj-geointel.vercel.app address Vercel keeps
+      live — so a crawler reaching a city page on the second one was told that
+      the vercel.app URL was the canonical version of it. Two hosts then
+      compete as duplicates of each other on precisely the pages this site is
+      trying to rank.
+
+      Naming the single preferred host is the whole job of rel=canonical.
+      Deriving it from wherever the request happened to land defeats it.
+    */
+    const pages = ["src/features/city/CityPage.tsx", "src/features/compare/ComparePage.tsx"];
+    for (const path of pages) {
+      const source = read(path)
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        /*
+          Line comments, but not the "//" in a URL. A naive /\/\/.*$/ turns
+          `url: "https://www.manowj.com/"` into `url: "https:` and then this
+          test reports that the file never names the canonical host — which is
+          exactly what it did on the first run.
+        */
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      expect(source, `${path} derives its canonical from the current origin`).not.toMatch(/window\.location\.origin/);
+      expect(source, `${path} does not name the canonical host`).toContain(`https://${CANONICAL_HOST}`);
+    }
+  });
+
   it("actually found URLs to check", () => {
     // Otherwise the test above passes on an empty list — and this rule only
     // matters because these URLs exist.

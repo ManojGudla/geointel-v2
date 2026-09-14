@@ -20,6 +20,23 @@ export class ApiUnavailableError extends Error {
 
 type ApiEnvelope<T> = ({ ok: true } & T) | { ok: false; error: string; code?: string };
 
+/**
+ * The endpoint's name, without its arguments.
+ *
+ * Every failure message below used to interpolate the whole `path`, and for
+ * /api/nearby that query string carries the user's latitude and longitude. So
+ * a dropped connection put someone's coordinates into a sentence on their
+ * screen — a sentence they might then paste into a bug report or a support
+ * message — in an application whose analytics deliberately refuse anything
+ * coordinate-shaped (see services/analytics.ts).
+ *
+ * The endpoint on its own is enough to diagnose any of these. The arguments
+ * never added anything a developer could act on.
+ */
+function endpointName(path: string): string {
+  return path.split("?")[0] || path;
+}
+
 // Every panel (Weather, News, Overview, Evidence, Nearby, Travel...) renders
 // its loading state via AsyncPanel until this promise settles. Without a
 // client-side bound, a request that never resolves — a stalled connection,
@@ -55,10 +72,10 @@ async function request<T>(path: string, init: RequestInit, signal?: AbortSignal,
     response = await fetch(path, { ...init, signal: controller.signal });
   } catch (error) {
     if (timedOut) {
-      throw new Error(`${path} timed out after ${timeoutMs / 1000}s. Check your connection and try again.`);
+      throw new Error(`${endpointName(path)} timed out after ${timeoutMs / 1000}s. Check your connection and try again.`);
     }
     if ((error as Error).name === "AbortError") throw error;
-    throw new Error(`Network request to ${path} failed.`);
+    throw new Error(`Could not reach ${endpointName(path)}. Check your connection and try again.`);
   } finally {
     clearTimeout(timer);
     if (signal) signal.removeEventListener("abort", onCallerAbort);
@@ -68,7 +85,7 @@ async function request<T>(path: string, init: RequestInit, signal?: AbortSignal,
   try {
     payload = (await response.json()) as ApiEnvelope<T>;
   } catch {
-    throw new Error(`${path} returned a non-JSON response (HTTP ${response.status}).`);
+    throw new Error(`${endpointName(path)} returned an unexpected response (HTTP ${response.status}).`);
   }
 
   if (!payload.ok) {
@@ -77,7 +94,7 @@ async function request<T>(path: string, init: RequestInit, signal?: AbortSignal,
 
   if (!response.ok) {
     // ok:true but a non-2xx status would be an inconsistent handler bug, not an outage.
-    throw new Error(`${path} returned HTTP ${response.status}.`);
+    throw new Error(`${endpointName(path)} returned HTTP ${response.status}.`);
   }
 
   const { ok: _ok, ...rest } = payload as { ok: true } & T;

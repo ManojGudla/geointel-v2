@@ -110,13 +110,13 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "💯",
     check: (s) => (s.flags["quiz:perfect"] ?? 0) >= 1,
   },
-  {
-    id: "race-ten",
-    title: "Quick Off the Mark",
-    requirement: "Score 10+ in Map Race",
-    icon: "⚡",
-    check: (s) => best(s, "map-race") >= 10,
-  },
+  /*
+    "Quick Off the Mark" (score 10+ in Map Race) and "Daily Habit" (finish 5
+    Daily Challenges) were removed with the map-based games. An achievement
+    whose game is no longer in the hub cannot be earned by anyone, ever — it
+    just sits in the list making the total unreachable, which is the same
+    broken promise as a game card that does not open.
+  */
   {
     id: "cricket-fifty",
     title: "Half Century",
@@ -162,13 +162,6 @@ export const ACHIEVEMENTS: Achievement[] = [
     requirement: "Play 7 days in a row",
     icon: "🗓️",
     check: (s) => s.longestStreak >= 7,
-  },
-  {
-    id: "daily-5",
-    title: "Daily Habit",
-    requirement: "Finish 5 Daily Challenges",
-    icon: "🎁",
-    check: (s) => s.dailyCompleted >= 5,
   },
 ];
 

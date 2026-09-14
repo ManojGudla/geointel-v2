@@ -111,6 +111,16 @@
   color: var(--color-text-faint);
 }
 
+/* Who wrote the answer, and when. `anywhere` because a provider slug is one
+   long unbroken token and this panel is narrow on a phone. */
+.copilot-panel__attribution {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 11px;
+  color: var(--color-text-faint);
+  overflow-wrap: anywhere;
+}
+
 .copilot-panel__form {
   display: flex;
   gap: var(--space-2);

@@ -22,11 +22,17 @@ export async function askCopilot(
   question: string,
   context: CopilotContext,
   signal?: AbortSignal
-): Promise<{ answer: string; sources: string[]; model: string }> {
+): Promise<{ answer: string; sources: string[]; model: string; generatedAt?: string }> {
   // priority: a person is watching this one send box, so it goes ahead of
   // any agent cards already queued up behind it.
   return aiGate.run(
-    () => apiPost<{ answer: string; sources: string[]; model: string }>("/api/ai/copilot", { question, context }, signal, AI_REQUEST_TIMEOUT_MS),
+    () =>
+      apiPost<{ answer: string; sources: string[]; model: string; generatedAt?: string }>(
+        "/api/ai/copilot",
+        { question, context },
+        signal,
+        AI_REQUEST_TIMEOUT_MS
+      ),
     { priority: true }
   );
 }

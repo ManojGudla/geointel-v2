@@ -1,15 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useDialog } from "@/hooks/useDialog";
 import { usePlayStore } from "./progress/playStore";
 import { levelProgress } from "./progress/xp";
 import { ACHIEVEMENTS } from "./progress/achievements";
 import { CATEGORIES, GAMES, findGame, type CategoryId } from "./registry";
-import { dailyChallengeFor, friendlyDate, renderDaily } from "./daily";
-import { localDateKey } from "./lib/random";
 import "./PlayHub.css";
 
-type View = { kind: "hub" } | { kind: "game"; id: string } | { kind: "daily" } | { kind: "profile" };
+type View = { kind: "hub" } | { kind: "game"; id: string } | { kind: "profile" };
 
 /**
  * maNOWj PLAY — the games section.
@@ -43,9 +41,6 @@ export function PlayHub() {
   const soundEnabled = usePlayStore((s) => s.soundEnabled);
   const setSoundEnabled = usePlayStore((s) => s.setSoundEnabled);
 
-  const today = localDateKey();
-  const daily = useMemo(() => dailyChallengeFor(today), [today]);
-  const dailyDone = stats.lastDailyDate === today;
 
   // The header/command palette can ask for a specific game by id.
   useEffect(() => {
@@ -89,7 +84,6 @@ export function PlayHub() {
   const activeGame = view.kind === "game" ? findGame(view.id) : undefined;
 
   const subtitle = () => {
-    if (view.kind === "daily") return daily.description;
     if (activeGame) return activeGame.tagline;
     if (view.kind === "profile") return "Everything you've earned, kept on this device.";
     return "Take a break. Your map, layers and analysis stay exactly as you left them.";
@@ -128,7 +122,6 @@ export function PlayHub() {
 
         <div className="play__body">
           {view.kind === "game" && activeGame && activeGame.render({ onBackToHub: backToHub })}
-          {view.kind === "daily" && renderDaily(daily, backToHub)}
           {view.kind === "profile" && <Profile />}
 
           {view.kind === "hub" && (
@@ -150,21 +143,6 @@ export function PlayHub() {
                   🏆 <strong>{unlockedCount}</strong>/{ACHIEVEMENTS.length}
                 </span>
               </button>
-
-              <section className="play-daily">
-                <div className="play-daily__text">
-                  <span className="play-daily__label">Daily Challenge · {friendlyDate(daily.date)}</span>
-                  <strong>{daily.title}</strong>
-                  <p>{daily.description}</p>
-                </div>
-                {/* Not "Play again": the Daily is deliberately one run a day,
-                    and the game refuses a second. A button promising a replay
-                    it will not give is worse than no button. */}
-                <button type="button" className="play-btn play-btn--primary" onClick={() => setView({ kind: "daily" })}>
-                  {dailyDone ? "See today's result" : "Play today's"}
-                </button>
-                {dailyDone && <span className="play-daily__done">Done today ✓</span>}
-              </section>
 
               <nav className="play-categories" aria-label="Game categories">
                 <button type="button" className={category === "all" ? "active" : ""} onClick={() => setCategory("all")}>
@@ -251,10 +229,8 @@ function Profile() {
           <dt>Longest streak</dt>
           <dd>{stats.longestStreak}</dd>
         </div>
-        <div>
-          <dt>Dailies done</dt>
-          <dd>{stats.dailyCompleted}</dd>
-        </div>
+        {/* "Dailies done" stood here. It counted a game the hub no longer
+            offers, so it could only ever read zero for anyone new. */}
         <div>
           <dt>Games played</dt>
           <dd>{played.length}</dd>

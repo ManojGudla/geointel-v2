@@ -160,7 +160,15 @@ const handler: ApiHandler = async (req, res) => {
   const result = await getAiCompletion(messages, { maxTokens: 500 });
   if (!result.ok) return err(res, 502, result.error, "AI_UNAVAILABLE");
 
-  ok(res, { answer: result.content, sources: kbHits.map((h) => h.title), model: result.model });
+  // `model` is the model that ACTUALLY answered (see api/_lib/ai.ts) — with
+  // the default `openrouter/free` router that is a different model run to
+  // run, so it is the only honest thing to put under an answer.
+  ok(res, {
+    answer: result.content,
+    sources: kbHits.map((h) => h.title),
+    model: result.model,
+    generatedAt: new Date().toISOString(),
+  });
 };
 
 export default withMaintenanceGuard(handler);

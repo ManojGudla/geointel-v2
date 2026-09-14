@@ -1,37 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="maNOWj GeoIntel">
   <!--
-    The mark: a surveyor's reticle.
+    The MG monogram.
 
-    It replaces a glossy stock globe that carried a swoosh and a map pin at
-    once, which is three clichés of this category stacked on one tile and
-    looked like clipart. This draws the thing the app actually does instead:
-    you pick an exact point, you set a radius around it, and everything the
-    app answers is about what falls inside that ring. Ticks, ring, point.
+    Letters are Poppins Bold converted to outlines rather than set as <text>:
+    this file is rasterised by browsers, crawlers and phone launchers, and not
+    one of them can be relied on to have the font.
 
-    Built to survive 16px. No gradients on the artwork, no fine detail, no
-    text. At favicon size the ring and the amber centre still read as a
-    target; only the edge ticks drop away, and they are the least of it.
+    Two colours, and that is the point rather than decoration. An all-white
+    "MG" on a blue tile is precisely what Google draws for a site whose icon
+    it cannot find — so a mark that looked like that would be indistinguishable
+    from having no mark at all. The amber G is the one accent this brand
+    spends, and it gives the tile a colour signature that survives at 16px,
+    well past the size where the letterforms stop being legible.
+
+    Sized against the size it is actually seen at. A favicon in a search result
+    is 16 pixels: the cap height here is 36% of the tile, which is
+    5.7px at that size, and the stroke weights of Poppins Bold hold up at
+    it. The previous mark drew a ring at a 15/512 stroke — 0.47px at 16px —
+    which did not thin, it smeared.
   -->
   <defs>
-    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#16305d"/>
-      <stop offset="1" stop-color="#0a1628"/>
+    <linearGradient id="tile" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#1d3f77"/>
+      <stop offset="0.52" stop-color="#12294f"/>
+      <stop offset="1" stop-color="#091426"/>
     </linearGradient>
   </defs>
 
   <rect width="512" height="512" rx="114" fill="url(#tile)"/>
+  <rect x="2" y="2" width="508" height="508" rx="112" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="4"/>
 
-  <!-- Reticle ticks: four marks closing in on the point from the edges. -->
-  <g stroke="#4f7ec2" stroke-width="14" stroke-linecap="round">
-    <line x1="256" y1="74" x2="256" y2="120"/>
-    <line x1="256" y1="392" x2="256" y2="438"/>
-    <line x1="74" y1="256" x2="120" y2="256"/>
-    <line x1="392" y1="256" x2="438" y2="256"/>
+  <g transform="translate(46.00 347.96) scale(0.26087 -0.26087)">
+    <path d="M857 702V0H686V421L529 0H391L233 422V0H62V702H264L461 216L656 702Z" fill="#eef3fc"/>
+    <g transform="translate(848 0)">
+      <path d="M528 480Q509 515 473.5 533.5Q438 552 390 552Q307 552 257.0 497.5Q207 443 207 352Q207 255 259.5 200.5Q312 146 404 146Q467 146 510.5 178.0Q554 210 574 270H357V396H729V237Q710 173 664.5 118.0Q619 63 549.0 29.0Q479 -5 391 -5Q287 -5 205.5 40.5Q124 86 78.5 167.0Q33 248 33 352Q33 456 78.5 537.5Q124 619 205.0 664.5Q286 710 390 710Q516 710 602.5 649.0Q689 588 717 480Z" fill="#ff9440"/>
+    </g>
   </g>
-
-  <!-- The radius ring. -->
-  <circle cx="256" cy="256" r="122" fill="none" stroke="#5b8dd6" stroke-width="15"/>
-
-  <!-- The point itself, in the one accent colour the brand spends. -->
-  <circle cx="256" cy="256" r="47" fill="#ff8d3a"/>
 </svg>

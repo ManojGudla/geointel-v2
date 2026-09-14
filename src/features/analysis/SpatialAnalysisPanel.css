@@ -353,3 +353,25 @@
   line-height: 1.5;
   color: var(--color-brand-700);
 }
+
+/*
+  Where the number came from.
+
+  An analysis run from the map centre is a real answer, but about a different
+  point than a reader might assume, so it is labelled rather than left to be
+  guessed at. Styled as a quiet note, not a warning: nothing has gone wrong.
+*/
+.analysis__origin-note {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--color-brand-400);
+  border-radius: var(--radius-sm);
+  background: var(--color-brand-100);
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.analysis__origin-note strong {
+  color: var(--color-text);
+}

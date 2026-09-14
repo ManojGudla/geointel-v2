@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { AgentSubject } from "@/features/ai/agentSubject";
 import type { AgentKind, AgentResult, CopilotMessage } from "@/types/ai";
 
 // "queued" is distinct from "running" on purpose: AI calls now pass through
@@ -6,7 +7,21 @@ import type { AgentKind, AgentResult, CopilotMessage } from "@/types/ai";
 // clicks can't trip the provider's rate limit, which means a card can be
 // waiting its turn without a request actually being in flight yet. Showing
 // "Running…" for that would be a small lie about what the app is doing.
-type AgentRunState = { status: "idle" | "queued" | "running" | "done" | "error"; result?: AgentResult; error?: string };
+export type AgentRunState = {
+  status: "idle" | "queued" | "running" | "done" | "error";
+  result?: AgentResult;
+  error?: string;
+  /**
+   * The place this run was about, captured when the request was SENT.
+   *
+   * Not when the answer arrived: the context is serialised into the request
+   * at click time, so an answer that lands after the user has moved on is
+   * still an answer about where they were. Recording it at arrival would
+   * relabel it as being about the new place — which is the misattribution
+   * this field exists to prevent. See agentSubject.ts.
+   */
+  subject?: AgentSubject;
+};
 
 interface AiState {
   isCopilotOpen: boolean;

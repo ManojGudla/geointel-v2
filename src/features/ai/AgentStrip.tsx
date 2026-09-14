@@ -5,12 +5,16 @@ import { AgentCard } from "./AgentCard";
 import "./AgentStrip.css";
 
 /**
- * A persistent, always-visible row of AI agent cards directly below the map
- * — so running an agent never requires finding the "AI Agents" tab first.
- * Shares the same AgentCard/useCopilotContext as AgentCenter (the full grid
- * still lives in the Intelligence panel's "AI Agents" tab for a larger,
- * side-by-side view); this is the same six agents, just surfaced somewhere
- * they're immediately visible and usable without extra navigation.
+ * The six AI agent cards, in the workspace panel's "Ask" section (🤖 on the
+ * rail), below Ask maNOWj and the report.
+ *
+ * This is the only place they render. Two earlier arrangements are gone and
+ * the comment here described both of them: a full grid in an Intelligence
+ * panel "AI Agents" tab (removed — see IntelligencePanel.tsx), and a strip
+ * below the map (removed because it sat under the page fold, where in
+ * practice nobody found it — see AgentStrip.css). A comment pointing at
+ * features that no longer exist is worse than no comment: the Help & Guide
+ * was still telling people to "scroll below the map" to find these.
  */
 export function AgentStrip() {
   const location = useLocationStore((s) => s.selectedLocation);

@@ -12,6 +12,7 @@ import {
   yearsApart,
 } from "./changeEngine";
 import "./change.css";
+import { PLAY_URL } from "@/features/play/share";
 
 /**
  * Spot the Change — two satellite views of the same place, years apart.
@@ -186,7 +187,7 @@ export function SpotTheChange({ onBackToHub }: { onBackToHub: () => void }) {
         { label: "Your best", value: Math.max(best, score).toLocaleString() },
       ],
     });
-    const outcome = await shareScoreCard(card, `maNOWj Spot the Change — ${score.toLocaleString()}\nhttps://www.manowj.com`);
+    const outcome = await shareScoreCard(card, `maNOWj Spot the Change — ${score.toLocaleString()}\n${PLAY_URL}`);
     setShared(outcome === "downloaded" ? "Saved as an image" : outcome === "shared" ? "Shared" : null);
     if (outcome !== "cancelled") window.setTimeout(() => setShared(null), 2600);
   };

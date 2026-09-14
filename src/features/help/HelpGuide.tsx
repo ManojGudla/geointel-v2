@@ -116,7 +116,7 @@ function HelpGuideBody({ section, setSection, close }: { section: Section; setSe
               <>
                 <h3>Ask maNOWj & AI Agents</h3>
                 <p>Click "✨ Ask maNOWj" (bottom-right of the map) to ask a free-text question about the selected location — it answers only from the real data already loaded (property analysis, GIS evidence, weather, nearby places, and the Official / Authority Intelligence data described in the Location Intelligence tab) plus a knowledge base about how GeoIntel itself works. If you ask about a government official and the app hasn't verified a name for that role, it says so rather than answering from its own memory — officeholders change, and a name it merely "recalls" could be wrong.</p>
-                <p>Scroll below the map for the AI Agents strip — six focused agents, each reading the same real on-screen data from its own angle:</p>
+                <p>Open <strong>🤖 Ask</strong> in the workspace rail for the AI Agents — six focused agents, each reading the same real on-screen data from its own angle:</p>
                 <ul>
                   {AGENT_DEFINITIONS.map((a) => (
                     <li key={a.kind}>
@@ -124,6 +124,7 @@ function HelpGuideBody({ section, setSection, close }: { section: Section; setSe
                     </li>
                   ))}
                 </ul>
+                <p>Every answer says which model wrote it and at what time. That isn't decoration: on the free tier the request goes to a router that picks whichever free model is available at that moment, so running the same agent twice can genuinely give you two different authors of two different standards. If an answer looks weak, "Run again" is worth a try — and the line underneath tells you whether you got a different model the second time.</p>
                 <p>Neither Ask maNOWj nor any agent invents facts about a location. Both need a one-time free setup (a Supabase project and an OpenRouter key) — until that's configured, they show a plain "not configured yet" message.</p>
               </>
             )}

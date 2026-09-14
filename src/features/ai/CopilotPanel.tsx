@@ -8,6 +8,7 @@ import { useCopilotContext } from "./useCopilotContext";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
 import { panelRiseFromBottom } from "@/lib/motionVariants";
 import { formatAiText } from "@/lib/formatAiText";
+import { aiAttribution } from "@/lib/formatAiMeta";
 import { contextSummary, copilotSuggestions } from "./copilotSuggestions";
 import { useGisUiStore } from "@/stores/gisUiStore";
 import { useMapStore } from "@/stores/mapStore";
@@ -41,8 +42,8 @@ export function CopilotPanel() {
     setAsking(true);
 
     try {
-      const { answer, sources } = await askCopilot(trimmed, context);
-      addMessage({ role: "assistant", content: answer, sources });
+      const { answer, sources, model, generatedAt } = await askCopilot(trimmed, context);
+      addMessage({ role: "assistant", content: answer, sources, model, generatedAt });
     } catch (error) {
       const message =
         error instanceof ApiUnavailableError
@@ -95,6 +96,11 @@ export function CopilotPanel() {
           <div key={i} className={`copilot-panel__message copilot-panel__message--${m.role}${m.isError ? " copilot-panel__message--error" : ""}`}>
             <p>{m.role === "assistant" && !m.isError ? formatAiText(m.content) : m.content}</p>
             {m.sources && m.sources.length > 0 && <span className="copilot-panel__sources">Sources: {m.sources.join(", ")}</span>}
+            {/* Attribution on the answer, not on the question and not on an
+                error this app wrote itself. */}
+            {m.role === "assistant" && !m.isError && m.model && (
+              <span className="copilot-panel__attribution">{aiAttribution(m.model, m.generatedAt)}</span>
+            )}
           </div>
         ))}
         {isAsking && (
