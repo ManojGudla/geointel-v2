@@ -1,6 +1,6 @@
 import { AGENT_DEFINITIONS } from "@/types/ai";
 import { useLocationStore } from "@/stores/locationStore";
-import { useCopilotContext } from "./useCopilotContext";
+import { useCopilotContextState } from "./useCopilotContext";
 import { AgentCard } from "./AgentCard";
 import "./AgentStrip.css";
 
@@ -18,7 +18,7 @@ import "./AgentStrip.css";
  */
 export function AgentStrip() {
   const location = useLocationStore((s) => s.selectedLocation);
-  const context = useCopilotContext();
+  const { context, pending } = useCopilotContextState();
 
   return (
     <div className="agent-strip">
@@ -31,7 +31,7 @@ export function AgentStrip() {
       <div className="agent-strip__row">
         {AGENT_DEFINITIONS.map((def) => (
           <div className="agent-strip__item" key={def.kind}>
-            <AgentCard definition={def} context={context} />
+            <AgentCard definition={def} context={context} pending={pending} />
           </div>
         ))}
       </div>
