@@ -46,6 +46,28 @@ export async function getAiCompletion(
     return { ok: false, error: "AI features aren't configured yet — an OPENROUTER_API_KEY is needed on the server." };
   }
 
+  /*
+    NOTHING OPTIONAL GOES IN THIS BODY.
+
+    A `reasoning: { exclude: true }` was added here to stop reasoning models
+    reciting the system prompt back at the reader, and it took the whole AI
+    layer down. OpenRouter does not ignore a parameter no endpoint supports
+    and it does not answer 400 — it answers *404, "No endpoints found that
+    support the provided ... value"*, and the guard written for this only
+    retried on 400. With `openrouter/free` routing to a different model each
+    request, that turned an optional flag into a coin-flip on whether any
+    answer came back at all.
+
+    It was not even aimed at the right thing. `exclude` governs the separate
+    `reasoning` field; the leak actually observed was inside `content`, which
+    that parameter does not touch. The fix that works is on the display side
+    — stripLeakedReasoning() in src/lib/formatAiText.ts — and it needs no
+    cooperation from the provider.
+
+    So: model, messages, max_tokens, temperature. Every one of those is
+    supported by every chat endpoint. Anything beyond them has to be worth
+    losing every answer from a model that doesn't implement it.
+  */
   try {
     const response = await fetchWithTimeout(
       OPENROUTER_URL,
@@ -85,6 +107,20 @@ export async function getAiCompletion(
       }
       if (response.status === 429) {
         return { ok: false, error: "The AI provider's rate limit or free-tier quota was hit. Try again later, or use a different model/key." };
+      }
+      /*
+        The status that took this whole layer down once, so it now names
+        itself instead of hiding inside "temporarily unavailable". OpenRouter
+        answers 404 for "no endpoint can serve this request as asked" — a
+        model slug that no longer exists, or a request parameter no provider
+        for that model supports. Neither is temporary and neither is fixed by
+        waiting, so the message has to point at the configuration.
+      */
+      if (response.status === 404) {
+        return {
+          ok: false,
+          error: `No AI endpoint matched this request — check the OPENROUTER_MODEL setting ("${requestedModel}"). This is a configuration problem, not an outage.`,
+        };
       }
       return { ok: false, error: `The AI provider is temporarily unavailable (HTTP ${response.status}).` };
     }
