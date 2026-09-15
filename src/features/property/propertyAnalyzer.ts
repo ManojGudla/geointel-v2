@@ -44,14 +44,40 @@ export function analyzeProperty(evidence: GISEvidence): PropertyAnalysis {
 
   const margin = topScore - secondScore;
   const isMixed = topScore > 0 && margin < topScore * 0.25;
-  const classification: PropertyClassification = topScore === 0 ? "Vacant / Unknown" : isMixed ? "Mixed Use" : classificationMap[topKey];
+  const areaClassification: PropertyClassification =
+    topScore === 0 ? "Vacant / Unknown" : isMixed ? "Mixed Use" : classificationMap[topKey];
 
-  // Confidence blends how dominant the top category is over the runner-up
-  // with how much evidence exists overall — a 2-vs-0 feature count and a
-  // 40-vs-5 feature count shouldn't read as equally confident.
+  /*
+    The feature at the point wins.
+
+    This panel is called Property Intelligence and prints a confidence figure
+    against a specific address, so it has to answer "what is this property",
+    not "what is this neighbourhood mostly made of". Those are different
+    questions and the app was answering the second while presenting the
+    first. Waverock in Hyderabad, a commercial office complex, came back
+    RESIDENTIAL at 68% because forty houses within 250m outscored it.
+
+    When a mapped feature sits on the point, it IS the property and the
+    surroundings are context. A house inside a business district is still a
+    house, which is the right answer and the one this rule gives.
+  */
+  const subject = evidence.subject ?? null;
+  const classification: PropertyClassification = subject ? classificationMap[subject.category] : areaClassification;
+
+  /*
+    Confidence now means one thing: how sure are we about THIS property.
+
+    With a subject we know what it is, and the only open question is whether
+    the surroundings back it up. Without one we are inferring from the area,
+    which deserves a hard ceiling no amount of nearby evidence can lift: a
+    guess from context is never as good as reading the label.
+  */
   const dominance = topScore === 0 ? 0 : Math.min(1, margin / topScore);
   const volumeFactor = Math.min(1, totalEvidence / MIN_EVIDENCE_FOR_CONFIDENCE);
-  const confidence = Math.round(dominance * 0.6 * 100 + volumeFactor * 0.4 * 100);
+  const areaAgrees = subject ? classificationMap[topKey] === classification : false;
+  const confidence = subject
+    ? Math.round(70 + (areaAgrees ? 25 : 10) * volumeFactor)
+    : Math.min(60, Math.round(dominance * 0.6 * 100 + volumeFactor * 0.4 * 100));
 
   const evidenceLines: string[] = [];
   if (counts.shops) evidenceLines.push(`${counts.shops} mapped shop${counts.shops === 1 ? "" : "s"}`);
@@ -71,18 +97,43 @@ export function analyzeProperty(evidence: GISEvidence): PropertyAnalysis {
   // rather than reusing the "concentrated in vacant / unknown features"
   // phrasing this used to fall into (which reads as nonsense — you can't be
   // "concentrated in" a classification that means "no classification").
-  const reasoning =
-    topScore === 0
-      ? `${totalEvidence} feature${totalEvidence === 1 ? " is" : "s are"} mapped within ${evidence.radiusMeters}m, but none carry a specific-enough OpenStreetMap tag (shop, office, amenity, tourism, transit, or a typed building) to classify — for example a bare 'building=yes' with nothing else nearby.`
-      : isMixed
-        ? `The mapped evidence within ${evidence.radiusMeters}m is closely split between multiple use types, with no single category clearly dominant.`
-        : `The mapped evidence within ${evidence.radiusMeters}m is concentrated in ${classification.toLowerCase()} features relative to other categories.`;
+  /*
+    Say which question was answered.
+
+    The old text always described the radius ("the mapped evidence within
+    250m is concentrated in residential features") while the headline above
+    it read as a statement about the building. Both halves were individually
+    defensible and together they misled.
+  */
+  const subjectName = subject?.name ? `"${subject.name}"` : `a ${subject?.kind}`;
+  const reasoning = subject
+    ? `OpenStreetMap has ${subjectName} mapped ${subject.distanceMeters <= 5 ? "at this point" : `${subject.distanceMeters}m from this point`}, tagged as ${subject.kind}. That is what this classification describes. The ${totalEvidence} features within ${evidence.radiusMeters}m are the surrounding area, and they ${areaAgrees ? "agree with it" : `lean ${areaClassification.toLowerCase()}`}.`
+    : topScore === 0
+      ? `${totalEvidence} feature${totalEvidence === 1 ? " is" : "s are"} mapped within ${evidence.radiusMeters}m, but none carry a specific-enough OpenStreetMap tag (shop, office, amenity, tourism, transit, or a typed building) to classify. A bare 'building=yes' with nothing else nearby is the usual case.`
+      : `Nothing is mapped at this exact point, so this describes the area rather than the building: the evidence within ${evidence.radiusMeters}m ${isMixed ? "is closely split between several use types" : `leans ${classification.toLowerCase()}`}. Click directly on a building for a reading of that building.`;
+
+  /*
+    The badge now means what it says.
+
+    "VERIFIED" used to be awarded for totalEvidence >= 3, so it meant
+    "Overpass returned at least three things nearby" and nothing at all
+    about whether the classification was right. It was the strongest word on
+    the panel attached to the weakest claim, and it is what turned a wrong
+    answer into a confidently wrong one. It is now earned only when there is
+    a named mapped feature at the point to point at.
+  */
+  const trust = subject ? "verified" : totalEvidence === 0 ? "unavailable" : "inferred";
 
   return {
     classification,
     confidence,
-    trust: totalEvidence < 3 ? "inferred" : "verified",
-    evidence: evidenceLines,
+    trust,
+    evidence: subject
+      ? [
+          `${subject.name ? `${subject.name}: ` : ""}${subject.kind}, mapped ${subject.distanceMeters <= 5 ? "at this point" : `${subject.distanceMeters}m away`}`,
+          ...evidenceLines,
+        ]
+      : evidenceLines,
     reasoning,
     scores,
     sources: ["OpenStreetMap / Overpass"],

@@ -59,6 +59,20 @@ export interface GISEvidence {
     landmark: number;
     transport: number;
   };
+  /**
+   * The mapped feature at the point itself, when there is one within 35m.
+   *
+   * This is the property. Everything in `counts` and `scores` is the area
+   * around it, which is why a commercial tower used to be classified
+   * Residential: the 40 houses within 250m outvoted it. When this is
+   * present the classification comes from it and can be checked by name.
+   */
+  subject?: {
+    name?: string;
+    kind: string;
+    category: "commercial" | "residential" | "industrial" | "institutional" | "landmark" | "transport";
+    distanceMeters: number;
+  } | null;
   features: GISFeature[];
   source: string;
   fetchedAt: string;
