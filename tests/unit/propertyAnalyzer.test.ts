@@ -23,7 +23,24 @@ describe("analyzeProperty", () => {
     expect(result.trust).toBe("unavailable");
   });
 
-  it("classifies a commercial-dominant area as Commercial with high confidence", () => {
+  it("classifies a commercial-dominant area as Commercial, but only as an inference", () => {
+    /*
+      This test used to end `expect(result.trust).toBe("verified")`, and that
+      assertion was the bug written down.
+
+      "verified" was awarded whenever three or more features turned up
+      anywhere in the radius. It meant "Overpass returned some things
+      nearby" and said nothing whatever about whether the classification was
+      right — so it sat, in capital letters, on top of answers that were
+      wrong. Waverock, a commercial office complex in Hyderabad, was labelled
+      RESIDENTIAL · VERIFIED at 68% confidence, and users in three countries
+      reported the same shape of error.
+
+      There is no subject feature in this fixture: nothing is mapped at the
+      point, only around it. So the honest label is "inferred", and the
+      confidence is capped, because reading the area is not the same as
+      reading the building. See tests/unit/propertySubject.test.ts.
+    */
     const result = analyzeProperty(
       evidence({
         counts: { buildings: 40, shops: 30, offices: 15, residential: 2, industrial: 0, institutional: 1, amenities: 10, tourism: 0, transport: 0 },
@@ -32,7 +49,20 @@ describe("analyzeProperty", () => {
     );
     expect(result.classification).toBe("Commercial");
     expect(result.confidence).toBeGreaterThan(50);
+    expect(result.trust).toBe("inferred");
+  });
+
+  it("earns 'verified' only when a mapped feature sits on the point", () => {
+    const result = analyzeProperty(
+      evidence({
+        counts: { buildings: 40, shops: 30, offices: 15, residential: 2, industrial: 0, institutional: 1, amenities: 10, tourism: 0, transport: 0 },
+        scores: { commercial: 95, residential: 4, institutional: 3, industrial: 0, landmark: 0, transport: 0 },
+        subject: { name: "Wave Rock Tower 2.3", kind: "office building", category: "commercial", distanceMeters: 3 },
+      })
+    );
     expect(result.trust).toBe("verified");
+    // And the badge is backed by something the reader can go and check.
+    expect(result.reasoning).toContain("Wave Rock Tower 2.3");
   });
 
   it("classifies a closely-split area as Mixed Use rather than picking a false winner", () => {
