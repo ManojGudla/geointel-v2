@@ -132,10 +132,10 @@ describe("what may be sent to the provider", () => {
     expect(sent.reasoning).toBeUndefined();
   });
 
-  it("makes exactly one request, so a slow model cannot blow the client's timeout", async () => {
+  it("makes exactly one request when the first answer is usable", async () => {
     /*
-      The retry that went with the reasoning flag could double a 25s request
-      against a client that gives up at 35s (src/services/ai.ts).
+      The retry budget is for bad rolls, not for every call: two 15s attempts
+      have to fit inside the client's 35s abort (src/services/ai.ts).
     */
     const spy = vi.fn(async () => okResponse);
     vi.stubGlobal("fetch", spy);
@@ -152,9 +152,89 @@ describe("what may be sent to the provider", () => {
     const result = await getAiCompletion([{ role: "user", content: "hi" }], { model: "some/model:free" });
     expect(result.ok).toBe(false);
     if (!result.ok) {
+      // Names the CONFIGURED slug, not the free router it fell through to —
+      // otherwise it sends the reader to change a value they never set.
       expect(result.error).toContain("some/model:free");
       expect(result.error).toMatch(/configuration/i);
       expect(result.error).not.toMatch(/temporarily/i);
     }
+  });
+});
+
+describe("a bad roll from the free model router", () => {
+  /**
+   * Reported live, on one location at one moment: Travel Intelligence and
+   * Make My Trip both showed "The AI provider returned an empty response",
+   * while the Navigation agent returned a genuinely good paragraph written
+   * by poolside/laguna-xs-2.1. Nothing was down. `openrouter/free` is a
+   * router that picks a free model at RANDOM per request, and those two
+   * requests drew a reasoning model that spent its whole token budget
+   * thinking and returned empty content.
+   *
+   * Against random routing, the effective answer to a bad roll is to roll
+   * again — not to report failure to someone who can only press the same
+   * button themselves.
+   */
+  const ORIGINAL_ENV = { ...process.env };
+  beforeEach(() => {
+    process.env = { ...ORIGINAL_ENV, OPENROUTER_API_KEY: "test-key" };
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    process.env = { ...ORIGINAL_ENV };
+  });
+
+  const empty = { ok: true, status: 200, json: async () => ({ model: "some/reasoner:free", choices: [{ message: { content: "" } }] }) };
+  const good = {
+    ok: true,
+    status: 200,
+    json: async () => ({ model: "poolside/laguna-xs-2.1:free", choices: [{ message: { content: "Paayilis road is a residential area with 53 nearby buildings." } }] }),
+  };
+
+  it("re-rolls when a model returns nothing, and reports the one that answered", async () => {
+    const spy = vi.fn().mockResolvedValueOnce(empty).mockResolvedValueOnce(good);
+    vi.stubGlobal("fetch", spy);
+
+    const result = await getAiCompletion([{ role: "user", content: "hi" }], { model: "some/reasoner:free" });
+
+    expect(result.ok).toBe(true);
+    expect(spy).toHaveBeenCalledTimes(2);
+    // The retry goes to the router, which is what makes it a different model.
+    const [, second] = spy.mock.calls[1] as unknown as [string, { body: string }];
+    expect(JSON.parse(second.body).model).toBe("openrouter/free");
+    if (result.ok) expect(result.model).toBe("poolside/laguna-xs-2.1:free");
+  });
+
+  it("gives up after one re-roll rather than hammering the free tier", async () => {
+    const spy = vi.fn(async () => empty);
+    vi.stubGlobal("fetch", spy);
+    const result = await getAiCompletion([{ role: "user", content: "hi" }]);
+    expect(spy).toHaveBeenCalledTimes(2);
+    expect(result.ok).toBe(false);
+    // And says something the reader can act on.
+    if (!result.ok) expect(result.error).toMatch(/Run again/i);
+  });
+
+  it("never re-rolls a rejected key or a rate limit", async () => {
+    /*
+      A second request cannot fix either, and for a rate limit it actively
+      makes things worse by spending more of a quota that is already gone.
+    */
+    for (const status of [401, 403, 429]) {
+      const spy = vi.fn(async () => ({ ok: false, status, text: async () => "no" }));
+      vi.stubGlobal("fetch", spy);
+      const result = await getAiCompletion([{ role: "user", content: "hi" }]);
+      expect(result.ok, `status ${status}`).toBe(false);
+      expect(spy, `status ${status}`).toHaveBeenCalledTimes(1);
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("re-rolls a 5xx, which is one provider having a bad moment", async () => {
+    const spy = vi.fn().mockResolvedValueOnce({ ok: false, status: 502, text: async () => "bad gateway" }).mockResolvedValueOnce(good);
+    vi.stubGlobal("fetch", spy);
+    const result = await getAiCompletion([{ role: "user", content: "hi" }]);
+    expect(result.ok).toBe(true);
+    expect(spy).toHaveBeenCalledTimes(2);
   });
 });
