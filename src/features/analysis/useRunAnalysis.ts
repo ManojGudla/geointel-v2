@@ -5,6 +5,7 @@ import { useLocationStore } from "@/stores/locationStore";
 import { useMapStore } from "@/stores/mapStore";
 import { runAnalysis, zoomForRadius, type AnalysisRequest } from "./runAnalysis";
 import { layerLabels, layersForRequest } from "./layerSync";
+import { useUiStore } from "@/stores/uiStore";
 
 /**
  * The one way an analysis is run, from anywhere in the app.
@@ -27,6 +28,7 @@ import { layerLabels, layersForRequest } from "./layerSync";
  * because the user can see the contradiction.
  */
 export function useRunAnalysis() {
+  const units = useUiStore((s) => s.units);
   const { setRunning, setResult, setError } = useAnalysisStore();
   const setRadiusMeters = useLocationStore((s) => s.setRadiusMeters);
   const showLayers = useGisUiStore((s) => s.showLayers);
@@ -44,7 +46,7 @@ export function useRunAnalysis() {
         const layers = layersForRequest(request);
         if (layers.length) showLayers(layers);
 
-        const result = await runAnalysis(request);
+        const result = await runAnalysis(request, units);
         setResult({ ...result, layersUsed: layerLabels(layers) });
         requestCamera({ center: [request.origin.lon, request.origin.lat], zoom: zoomForRadius(request.radiusMeters) });
         return result;

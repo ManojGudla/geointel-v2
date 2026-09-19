@@ -12,7 +12,8 @@ import { AnalysisResultView } from "@/features/analysis/AnalysisResultView";
 import { describeCommand, parseMapCommand, type MapCommand } from "./mapCommands";
 import { describeSettingCommand, parseSettingCommand, type SettingCommand } from "./settingCommands";
 import { useWeatherEffectStore } from "@/features/weather/effects/weatherEffectStore";
-import { formatDistance } from "@/features/measure/measureMath";
+import { formatDistance } from "@/features/map/geo";
+import { useUiStore } from "@/stores/uiStore";
 import type { NearbyCategory } from "@/types/intel";
 import "./MapCommandBar.css";
 
@@ -63,6 +64,7 @@ function toRequest(command: MapCommand, origin: { lat: number; lon: number }): A
  * doesn't change it at all.
  */
 export function MapCommandBar() {
+  const units = useUiStore((s) => s.units);
   const location = useLocationStore((s) => s.selectedLocation);
   const setWeatherEffects = useWeatherEffectStore((s) => s.setEnabled);
   const setIs3D = useMapStore((s) => s.set3D);
@@ -160,7 +162,7 @@ export function MapCommandBar() {
       // actually did rather than describing themselves in the abstract.
       labels = [
         "Understanding your question",
-        request.operation === "nearest" ? "Searching outward from this point" : `Setting the search area to ${formatDistance(request.radiusMeters)}`,
+        request.operation === "nearest" ? "Searching outward from this point" : `Setting the search area to ${formatDistance(request.radiusMeters, units)}`,
         layers.length ? `Showing ${layers.join(", ")}` : "No extra layers needed",
         "Querying mapped features",
         "Preparing the result",

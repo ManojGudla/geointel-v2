@@ -19,7 +19,6 @@ import { SearchBar } from "@/features/search/SearchBar";
  */
 const MapView = lazy(() => import("@/features/map/MapView").then((m) => ({ default: m.MapView })));
 import { WeatherEffectsLayer } from "@/features/weather/effects/WeatherEffectsLayer";
-import { SurpriseTeaser } from "@/features/surprise/SurpriseTeaser";
 import { NavigationHud } from "@/features/routing/navigation/NavigationHud";
 import { MeasureHud } from "@/features/measure/MeasureHud";
 import { CoordinateReadout } from "@/features/map/CoordinateReadout";
@@ -143,9 +142,22 @@ export function Workspace() {
               <NavigationHud />
             </ErrorBoundary>
 
-            <ErrorBoundary label="Note" variant="silent">
-              <SurpriseTeaser />
-            </ErrorBoundary>
+            {/*
+              The surprise teaser is deliberately not rendered.
+
+              It told visitors "Something special is waiting for you.
+              September 25" and there was no implementation of any surprise
+              anywhere in the repository, so the date could only ever arrive
+              and pass with nothing behind it. Worse, daysUntilSurprise()
+              rolls to the following year once the date passes, so the card
+              would return every September, for 31 days, indefinitely. On an
+              application left to run unattended that is not one broken
+              promise, it is an annual one.
+
+              The feature is intact under src/features/surprise/ and its
+              tests still pass. To bring it back when there is something real
+              to reveal: import SurpriseTeaser and restore this element.
+            */}
 
             <ErrorBoundary label="Ask maNOWj" variant="panel">
               <CopilotLauncher />

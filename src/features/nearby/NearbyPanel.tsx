@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AsyncPanel } from "@/components/AsyncPanel";
-import { fetchNearby } from "@/services/intel";
+import { fetchNearbyResult } from "@/services/intel";
 import { formatDistance } from "@/features/map/geo";
 import { useLocationStore } from "@/stores/locationStore";
 import { useRouteStore } from "@/stores/routeStore";
@@ -50,7 +50,7 @@ export function NearbyPanel() {
 
   const query = useQuery({
     queryKey: ["nearby", location?.lat, location?.lon, category],
-    queryFn: ({ signal }) => fetchNearby(location!.lat, location!.lon, 1500, category, signal),
+    queryFn: ({ signal }) => fetchNearbyResult(location!.lat, location!.lon, 1500, category, signal),
     enabled: !!location,
     staleTime: 5 * 60 * 1000,
   });
@@ -66,10 +66,28 @@ export function NearbyPanel() {
         ))}
       </div>
 
-      <AsyncPanel query={query} label="Nearby places" isEmpty={(items) => items.length === 0} idleMessage="Select a location to see nearby places.">
-        {(items) => (
+      <AsyncPanel
+        query={query}
+        label="Nearby places"
+        isEmpty={(result) => result.items.length === 0}
+        idleMessage="Select a location to see nearby places."
+      >
+        {(result) => (
+          <>
+            {/*
+              Say it, rather than quietly answering a different question.
+              Where OpenStreetMap coverage is thin the server widens the
+              search once instead of returning nothing, and a reader who
+              asked about 1.5km deserves to know these results are from 5.
+            */}
+            {result.widened && (
+              <p className="nearby-panel__widened">
+                Nothing was mapped within {(result.requestedRadiusMeters / 1000).toFixed(1)} km, so this searched{" "}
+                {(result.radiusMeters / 1000).toFixed(0)} km instead.
+              </p>
+            )}
           <ul className="nearby-panel__list">
-            {items.slice(0, 20).map((item) => (
+            {result.items.slice(0, 20).map((item) => (
               <li key={item.id}>
                 {/* The whole row is the target, not a small icon beside it:
                     these are read and tapped on a phone. */}
@@ -83,9 +101,15 @@ export function NearbyPanel() {
               </li>
             ))}
           </ul>
+          </>
         )}
       </AsyncPanel>
-      <p className="nearby-panel__source">Source: OpenStreetMap / Overpass, within 1.5km</p>
+      {/* The radius here used to be hard-coded at 1.5km, which stopped being
+          true the moment the server learned to widen the search. It now
+          reports whatever was actually searched. */}
+      <p className="nearby-panel__source">
+        Source: OpenStreetMap / Overpass, within {((query.data?.radiusMeters ?? 1500) / 1000).toFixed(1)} km
+      </p>
     </div>
   );
 }

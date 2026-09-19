@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAnalysisStore } from "@/stores/analysisStore";
-import { formatDistance } from "@/features/measure/measureMath";
+import { formatDistance } from "@/features/map/geo";
+import { useUiStore } from "@/stores/uiStore";
 import "./SpatialAnalysisPanel.css";
 
 /**
@@ -13,6 +14,7 @@ import "./SpatialAnalysisPanel.css";
  * one answer.
  */
 export function AnalysisResultView() {
+  const units = useUiStore((s) => s.units);
   const result = useAnalysisStore((s) => s.result);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -80,7 +82,7 @@ export function AnalysisResultView() {
           {result.points.slice(0, 25).map((point) => (
             <li key={point.id}>
               <span>{point.label}</span>
-              <strong>{formatDistance(point.distanceMeters)}</strong>
+              <strong>{formatDistance(point.distanceMeters, units)}</strong>
             </li>
           ))}
         </ol>

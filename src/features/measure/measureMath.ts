@@ -13,13 +13,12 @@ export function computeAreaSquareMeters(points: Array<[number, number]>): number
   return turf.area(turf.polygon([ring]));
 }
 
-export function formatDistance(meters: number): string {
-  if (meters >= 1000) return `${(meters / 1000).toFixed(2)} km`;
-  return `${Math.round(meters)} m`;
-}
+/*
+  formatDistance and formatArea used to live here, and that was the problem:
+  a second pair of formatters with the same names as the ones in
+  src/features/map/geo.ts, neither taking a unit preference. Every caller
+  that imported from here silently ignored the reader's Imperial setting.
 
-export function formatArea(squareMeters: number): string {
-  if (squareMeters >= 1_000_000) return `${(squareMeters / 1_000_000).toFixed(2)} km²`;
-  if (squareMeters >= 10_000) return `${(squareMeters / 10_000).toFixed(2)} ha`;
-  return `${Math.round(squareMeters)} m²`;
-}
+  They now live in geo.ts, which is the module that already knew about
+  units. This file keeps only what it is for: the turf maths.
+*/

@@ -2,7 +2,7 @@ import type { AnalysisPoint, AnalysisResult } from "@/stores/analysisStore";
 import type { NearbyCategory } from "@/types/intel";
 import { fetchNearby } from "@/services/intel";
 import { fetchGISEvidence } from "@/services/gis";
-import { formatDistance } from "@/features/measure/measureMath";
+import { formatDistance } from "@/features/map/geo";
 import { bearingDegrees, compassPoint, nearest, scoreBand, weightedScore, within } from "./spatialMath";
 import { buildFactors, SUITABILITY_PRESETS } from "./suitability";
 import { categoryLabel } from "./categories";
@@ -40,7 +40,18 @@ function toPoints(items: Awaited<ReturnType<typeof fetchNearby>>): AnalysisPoint
   }));
 }
 
-export async function runAnalysis(request: AnalysisRequest): Promise<AnalysisResult> {
+/**
+ * `units` is threaded in rather than read from a store because this function
+ * is pure and has no React context. It defaults to metric so a caller that
+ * genuinely has no preference to hand still gets sensible output, but every
+ * real caller passes the reader's setting: these strings end up in analysis
+ * results a person reads beside Directions, and the two disagreeing about
+ * miles and kilometres is exactly the bug this change exists to close.
+ */
+export async function runAnalysis(
+  request: AnalysisRequest,
+  units: "metric" | "imperial" = "metric"
+): Promise<AnalysisResult> {
   const { origin, radiusMeters } = request;
 
   if (request.operation === "buffer") {
@@ -52,13 +63,13 @@ export async function runAnalysis(request: AnalysisRequest): Promise<AnalysisRes
 
     return {
       kind: "buffer",
-      title: `${formatDistance(radiusMeters)} buffer`,
+      title: `${formatDistance(radiusMeters, units)} buffer`,
       origin,
       bufferMeters: radiusMeters,
       points: inside,
       stats: [
         { label: "Places inside", value: String(inside.length) },
-        { label: "Radius", value: formatDistance(radiusMeters) },
+        { label: "Radius", value: formatDistance(radiusMeters, units) },
         { label: "Categories present", value: String(byCategory.size) },
         ...[...byCategory.entries()]
           .sort((a, b) => b[1] - a[1])
@@ -76,14 +87,14 @@ export async function runAnalysis(request: AnalysisRequest): Promise<AnalysisRes
 
     return {
       kind: "within",
-      title: `${categoryLabel(category)} within ${formatDistance(radiusMeters)}`,
+      title: `${categoryLabel(category)} within ${formatDistance(radiusMeters, units)}`,
       origin,
       bufferMeters: radiusMeters,
       points: inside,
       stats: [
         { label: "Found", value: String(inside.length) },
-        { label: "Closest", value: inside[0] ? formatDistance(inside[0].distanceMeters) : "-" },
-        { label: "Furthest", value: inside.length ? formatDistance(inside[inside.length - 1]!.distanceMeters) : "-" },
+        { label: "Closest", value: inside[0] ? formatDistance(inside[0].distanceMeters, units) : "-" },
+        { label: "Furthest", value: inside.length ? formatDistance(inside[inside.length - 1]!.distanceMeters, units) : "-" },
       ],
       note: "Results are features tagged in OpenStreetMap. Somewhere unmapped will not appear here.",
     };
@@ -101,7 +112,7 @@ export async function runAnalysis(request: AnalysisRequest): Promise<AnalysisRes
         title: `Nearest ${label}`,
         origin,
         points: [],
-        stats: [{ label: "Found", value: `None within ${formatDistance(NEAREST_SEARCH_RADIUS_METERS)}` }],
+        stats: [{ label: "Found", value: `None within ${formatDistance(NEAREST_SEARCH_RADIUS_METERS, units)}` }],
         note: "Nothing of this kind is mapped within 10 km in OpenStreetMap. That may mean none exists, or that it isn't mapped yet.",
       };
     }
@@ -118,7 +129,7 @@ export async function runAnalysis(request: AnalysisRequest): Promise<AnalysisRes
       ],
       stats: [
         { label: "Name", value: closest.label },
-        { label: "Straight-line distance", value: formatDistance(closest.distanceMeters) },
+        { label: "Straight-line distance", value: formatDistance(closest.distanceMeters, units) },
         { label: "Direction", value: `${compassPoint(bearing)} (${Math.round(bearing)}°)` },
       ],
       note: "Straight-line distance, not travel distance. Use Directions for a road route.",
@@ -141,7 +152,7 @@ export async function runAnalysis(request: AnalysisRequest): Promise<AnalysisRes
     bufferMeters: radiusMeters,
     points: toPoints(competitors),
     stats: [
-      { label: "Assessment radius", value: formatDistance(radiusMeters) },
+      { label: "Assessment radius", value: formatDistance(radiusMeters, units) },
       { label: "Existing similar facilities", value: String(competitors.length) },
       { label: "Mapped features considered", value: String(evidence.features.length) },
     ],

@@ -114,20 +114,55 @@ const handler: ApiHandler = async (req, res) => {
   const categories = category ? [category] : Object.keys(CATEGORY_FILTERS);
   const filters = categories.flatMap((c) => CATEGORY_FILTERS[c]!);
 
-  const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)},${radius},${categories.join(",")}`;
-  let elements = cache.get(cacheKey);
+  /**
+   * One widening, and only when the first search genuinely found nothing.
+   *
+   * OpenStreetMap coverage is wildly uneven. In a dense city a 1 km search
+   * returns more than anyone can read; across rural Canada, the American
+   * interior, or any thinly-mapped region, the same search returns an empty
+   * array and the panel says nothing is nearby. That is a true statement
+   * about a 1 km circle and a useless one about the place, and it is what
+   * users outside dense cities actually experience.
+   *
+   * Strictly bounded, because Overpass is volunteer-run and this route is
+   * public: the retry happens at most once, only on a zero-length result
+   * (never on an error, where a second query just doubles the load on a
+   * service already struggling), and never when the caller already asked for
+   * a radius at or above the widened one. The response reports which radius
+   * the results actually came from, so the UI can say so rather than quietly
+   * changing the question it answered.
+   */
+  const WIDENED_RADIUS_METERS = 5000;
+  const shouldWiden = radius < WIDENED_RADIUS_METERS;
 
-  if (!elements) {
-    try {
-      const clauses = filters.map((f) => `nwr(around:${radius},${lat},${lon})${overpassClause(f)};`).join("\n");
-      const query = `[out:json][timeout:20];(${clauses});out center tags;`;
-      elements = await runOverpassQuery(query);
-      cache.set(cacheKey, elements);
-    } catch (error) {
-      console.error("[api/nearby]", error);
-      const reason = error instanceof Error ? error.message : "unknown reason";
-      return err(res, 502, `Nearby places are temporarily unavailable (${reason}).`, "PROVIDER_UNAVAILABLE");
+  const searchAt = async (metres: number): Promise<OverpassElement[]> => {
+    const key = `${lat.toFixed(4)},${lon.toFixed(4)},${metres},${categories.join(",")}`;
+    const hit = cache.get(key);
+    if (hit) return hit;
+    const clauses = filters.map((f) => `nwr(around:${metres},${lat},${lon})${overpassClause(f)};`).join("\n");
+    const found = await runOverpassQuery(`[out:json][timeout:20];(${clauses});out center tags;`);
+    cache.set(key, found);
+    return found;
+  };
+
+  let elements: OverpassElement[];
+  let searchedRadius = radius;
+  let widened = false;
+
+  try {
+    elements = await searchAt(radius);
+    if (elements.length === 0 && shouldWiden) {
+      const wider = await searchAt(WIDENED_RADIUS_METERS);
+      if (wider.length > 0) {
+        elements = wider;
+        searchedRadius = WIDENED_RADIUS_METERS;
+        widened = true;
+      }
     }
+  } catch (error) {
+    console.error("[api/nearby]", error);
+    const reason = error instanceof Error ? error.message : "unknown reason";
+    return err(res, 502, `Nearby places are temporarily unavailable (${reason}).`, "PROVIDER_UNAVAILABLE");
   }
 
   const items = elements
@@ -151,7 +186,17 @@ const handler: ApiHandler = async (req, res) => {
     .sort((a, b) => a.distanceMeters - b.distanceMeters)
     .slice(0, 60);
 
-  ok(res, { items, source: "OpenStreetMap / Overpass", radiusMeters: radius });
+  ok(res, {
+    items,
+    source: "OpenStreetMap / Overpass",
+    // The radius the results actually came from, which is not always the one
+    // that was asked for. `requestedRadiusMeters` is kept alongside it so the
+    // UI can tell the reader the search was widened rather than silently
+    // answering a different question.
+    radiusMeters: searchedRadius,
+    requestedRadiusMeters: radius,
+    widened,
+  });
 };
 
 export default withMaintenanceGuard(withEdgeCache(21600)(handler));

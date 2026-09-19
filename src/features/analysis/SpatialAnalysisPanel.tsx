@@ -5,9 +5,10 @@ import { useRunAnalysis } from "./useRunAnalysis";
 import { factorLabel, SUITABILITY_PRESETS } from "./suitability";
 import { CATEGORY_LABELS } from "./categories";
 import { AnalysisResultView } from "./AnalysisResultView";
-import { formatDistance } from "@/features/measure/measureMath";
+import { formatDistance } from "@/features/map/geo";
 import type { NearbyCategory } from "@/types/intel";
 import "./SpatialAnalysisPanel.css";
+import { useUiStore } from "@/stores/uiStore";
 
 type Operation = "buffer" | "within" | "nearest" | "suitability";
 
@@ -32,6 +33,7 @@ const DISTANCES = [500, 1000, 2000, 5000, 10000];
  * beyond queries that are already cached for six hours.
  */
 export function SpatialAnalysisPanel() {
+  const units = useUiStore((s) => s.units);
   const location = useLocationStore((s) => s.selectedLocation);
   const { result, status, error, clear } = useAnalysisStore();
   const run = useRunAnalysis();
@@ -160,7 +162,7 @@ export function SpatialAnalysisPanel() {
           <select value={distance} onChange={(e) => setDistance(Number(e.target.value))}>
             {DISTANCES.map((d) => (
               <option key={d} value={d}>
-                {formatDistance(d)}
+                {formatDistance(d, units)}
               </option>
             ))}
           </select>

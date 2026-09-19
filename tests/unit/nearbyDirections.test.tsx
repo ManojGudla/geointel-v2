@@ -25,11 +25,21 @@ const HERE = {
   source: "OpenStreetMap / Nominatim",
 };
 
+const ITEMS = [
+  { id: "1", name: "Domino's", category: "restaurants", lat: 17.42, lon: 78.348, distanceMeters: 98, tags: {} },
+  { id: "2", name: "Being Hungry", category: "restaurants", lat: 17.4205, lon: 78.3485, distanceMeters: 164, tags: {} },
+];
+
 vi.mock("../../src/services/intel", () => ({
-  fetchNearby: vi.fn(async () => [
-    { id: "1", name: "Domino's", category: "restaurants", lat: 17.42, lon: 78.348, distanceMeters: 98, tags: {} },
-    { id: "2", name: "Being Hungry", category: "restaurants", lat: 17.4205, lon: 78.3485, distanceMeters: 164, tags: {} },
-  ]),
+  fetchNearby: vi.fn(async () => ITEMS),
+  // The panel takes the fuller result now, so it can tell the reader when
+  // the server widened the search because nothing was mapped nearby.
+  fetchNearbyResult: vi.fn(async () => ({
+    items: ITEMS,
+    radiusMeters: 1500,
+    requestedRadiusMeters: 1500,
+    widened: false,
+  })),
 }));
 
 function renderPanel() {
