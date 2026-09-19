@@ -116,7 +116,7 @@
 }
 
 .uttt__board--O .uttt__claim {
-  color: var(--color-accent-violet);
+  color: var(--color-player-o);
 }
 
 .uttt__claim--draw {
@@ -156,7 +156,7 @@
 }
 
 .uttt__cell--O {
-  color: var(--color-accent-violet);
+  color: var(--color-player-o);
 }
 
 /* Classic mode: one board, much larger. */

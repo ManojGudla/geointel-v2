@@ -81,11 +81,11 @@
   gap: 6px;
   font-size: var(--text-sm);
   font-weight: 700;
-  color: var(--color-warning, #b45309);
+  color: var(--color-warning, var(--color-warning));
 }
 
 .maintenance-page__status-value--emergency {
-  color: var(--color-danger, #dc2626);
+  color: var(--color-danger, var(--color-danger));
 }
 
 .maintenance-page__status-dot {
@@ -102,5 +102,5 @@
 }
 
 .maintenance-page--emergency .maintenance-page__card {
-  border-color: var(--color-danger, #dc2626);
+  border-color: var(--color-danger, var(--color-danger));
 }

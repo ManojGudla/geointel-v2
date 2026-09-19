@@ -85,8 +85,8 @@
 }
 
 .admin-dashboard__badge--live {
-  background: var(--color-success-bg, #dcfce7);
-  color: var(--color-success, #16a34a);
+  background: var(--color-success-bg);
+  color: var(--color-success, var(--color-success));
 }
 
 .admin-dashboard__badge--maintenance {
@@ -122,14 +122,18 @@
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   border: none;
-  background: #111827;
+  /* Was #111827, a near-black that is darker than the dark-theme surface it
+     sits on, so the button lost its edge entirely and read as a hole in the
+     banner. The brand ramp is deliberately theme-invariant, so it keeps the
+     same weight against both grounds. */
+  background: var(--color-brand-700);
   color: #fff;
   font-weight: 700;
   cursor: pointer;
 }
 
 .admin-dashboard__error {
-  color: var(--color-danger, #dc2626);
+  color: var(--color-danger, var(--color-danger));
   font-size: var(--text-sm);
   margin: 0 0 var(--space-3);
 }
@@ -224,7 +228,7 @@
 }
 
 .admin-dashboard__danger {
-  background: #dc2626 !important;
+  background: var(--color-danger) !important;
   border-color: transparent !important;
   color: #fff !important;
 }

@@ -224,8 +224,8 @@
 }
 
 .analysis__score--moderate {
-  border-color: #e0a825;
-  background: rgba(224, 168, 37, 0.12);
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
 }
 
 .analysis__score--weak,

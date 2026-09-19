@@ -183,14 +183,14 @@
 }
 
 .arc__opt--right {
-  border-color: #1a8a5f;
-  background: #1a8a5f;
+  border-color: var(--color-success);
+  background: var(--color-success);
   color: #fff;
 }
 
 .arc__opt--wrong {
-  border-color: #d7342b;
-  background: #d7342b;
+  border-color: var(--color-danger);
+  background: var(--color-danger);
   color: #fff;
 }
 

@@ -42,18 +42,71 @@
 
 .nearby-panel__list li {
   display: flex;
+}
+
+/* The row is the button. 44px is the minimum comfortable touch target, and
+   these rows are read on a phone more than anywhere else. */
+.nearby-panel__list li button {
+  flex: 1;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+  min-height: 44px;
   padding: var(--space-2) var(--space-3);
   background: var(--color-bg);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
+  font-family: inherit;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+}
+
+.nearby-panel__list li button:hover,
+.nearby-panel__list li button:focus-visible {
+  background: var(--color-brand-100);
+  border-color: var(--color-brand-400);
+}
+
+.nearby-panel__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nearby-panel__list li strong {
   color: var(--color-text-muted);
   font-weight: 600;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The affordance. Hidden until the row is hovered or focused on a pointer
+   device, so twenty rows do not read as twenty buttons, but always visible
+   on touch, where there is no hover to reveal it. */
+.nearby-panel__go {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-brand-600);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.nearby-panel__list li button:hover .nearby-panel__go,
+.nearby-panel__list li button:focus-visible .nearby-panel__go {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .nearby-panel__go {
+    opacity: 1;
+  }
 }
 
 .nearby-panel__source {

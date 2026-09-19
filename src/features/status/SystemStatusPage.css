@@ -46,14 +46,14 @@
 }
 
 .system-status__overall--operational {
-  border-color: #1a8a5f;
-  background: rgba(26, 138, 95, 0.08);
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
 }
 
 .system-status__overall--degraded,
 .system-status__overall--not_configured {
-  border-color: #e0a825;
-  background: rgba(224, 168, 37, 0.1);
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
 }
 
 .system-status__overall--down {
@@ -92,12 +92,12 @@
 }
 
 .system-status__dot--operational {
-  background: #1a8a5f;
+  background: var(--color-success);
 }
 
 .system-status__dot--degraded,
 .system-status__dot--not_configured {
-  background: #e0a825;
+  background: var(--color-warning);
 }
 
 .system-status__dot--down {

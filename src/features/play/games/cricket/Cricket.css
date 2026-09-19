@@ -171,7 +171,7 @@
 /* The last over turns the required rate red. Nothing else changes — the
    colour is the whole signal, and it only ever means one thing. */
 .cricket__need--death strong {
-  color: #dc2626;
+  color: var(--color-danger);
 }
 
 .cricket__commentary {
@@ -212,9 +212,9 @@
   flex-direction: column;
   gap: 6px;
   padding: var(--space-3);
-  border: 2px solid #f59e0b;
+  border: 2px solid var(--color-warning);
   border-radius: var(--radius-md);
-  background: rgba(245, 158, 11, 0.12);
+  background: var(--color-warning-bg);
 }
 
 .cricket__drs-head {
@@ -241,7 +241,7 @@
   padding: 0 var(--space-4);
   border: none;
   border-radius: var(--radius-md);
-  background: #b45309;
+  background: var(--color-warning);
   color: #fff;
   font-size: var(--text-sm);
   font-weight: 800;

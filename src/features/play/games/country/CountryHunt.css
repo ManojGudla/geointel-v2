@@ -121,7 +121,7 @@
 .hunt__hint-cost {
   padding: 2px 6px;
   border-radius: 999px;
-  background: var(--color-accent-amber);
+  background: var(--color-warning);
   color: #3a2a00;
   font-variant-numeric: tabular-nums;
   font-size: 11px;
@@ -234,7 +234,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.hunt__review-score em { font-style: normal; color: var(--color-accent-amber); }
+.hunt__review-score em { font-style: normal; color: var(--color-warning); }
 
 .hunt__note,
 .hunt__caveat {

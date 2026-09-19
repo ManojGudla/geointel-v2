@@ -57,12 +57,50 @@ export function useAirQuality() {
  * Returned as a label plus a colour so the UI never invents its own
  * thresholds for what counts as "bad air".
  */
-export function aqiBand(aqi: number | null): { label: string; color: string } {
-  if (aqi === null) return { label: "Unknown", color: "#8b93a7" };
-  if (aqi <= 20) return { label: "Good", color: "#1a8a5f" };
-  if (aqi <= 40) return { label: "Fair", color: "#6fbf4b" };
-  if (aqi <= 60) return { label: "Moderate", color: "#e0a825" };
-  if (aqi <= 80) return { label: "Poor", color: "#e07325" };
-  if (aqi <= 100) return { label: "Very poor", color: "#c82828" };
-  return { label: "Extremely poor", color: "#8b1a4a" };
+/**
+ * Readable ink for a given band colour.
+ *
+ * The badge painted every band white, and two of the six are light: "Fair"
+ * (#6fbf4b) and "Moderate" (#e0a825) put white text at roughly 2.2:1, well
+ * under the 4.5:1 floor, so the label was near-invisible in both themes on
+ * exactly the readings a person is most likely to be checking.
+ *
+ * The band colours themselves are published by the EEA and are not ours to
+ * adjust, so the text moves instead. Relative luminance per WCAG, with the
+ * threshold at the point where dark ink overtakes white.
+ */
+export function readableInkOn(hex: string): string {
+  const channel = (v: number) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  const n = parseInt(hex.replace("#", ""), 16);
+  const luminance =
+    0.2126 * channel((n >> 16) & 255) + 0.7152 * channel((n >> 8) & 255) + 0.0722 * channel(n & 255);
+
+  /*
+    Both candidates measured properly, against their own luminance.
+
+    The first version compared white against a hypothetical PURE black while
+    actually painting #101828, which overstated the dark option: the "Good"
+    band picked dark ink and landed at 4.09:1, under the floor, having been
+    scored as 4.85. Black rather than the app's ink token for the same
+    reason: on the darkest band it is the only one of the two that clears
+    4.5, and these pills sit on their own colour rather than on a themed
+    surface, so there is nothing for a token to stay in step with.
+  */
+  const againstWhite = 1.05 / (luminance + 0.05);
+  const againstBlack = (luminance + 0.05) / 0.05;
+  return againstWhite >= againstBlack ? "#ffffff" : "#000000";
+}
+
+export function aqiBand(aqi: number | null): { label: string; color: string; textColor: string } {
+  const band = (label: string, color: string) => ({ label, color, textColor: readableInkOn(color) });
+  if (aqi === null) return band("Unknown", "#8b93a7");
+  if (aqi <= 20) return band("Good", "#1a8a5f");
+  if (aqi <= 40) return band("Fair", "#6fbf4b");
+  if (aqi <= 60) return band("Moderate", "#e0a825");
+  if (aqi <= 80) return band("Poor", "#e07325");
+  if (aqi <= 100) return band("Very poor", "#c82828");
+  return band("Extremely poor", "#8b1a4a");
 }

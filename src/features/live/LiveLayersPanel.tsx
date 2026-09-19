@@ -129,7 +129,7 @@ export function LiveLayersPanel() {
         <div className="live-layers__aqi-head">
           <strong>💨 Air quality here</strong>
           {air.data?.europeanAqi != null && (
-            <span className="live-layers__aqi-badge" style={{ background: band.color }}>
+            <span className="live-layers__aqi-badge" style={{ background: band.color, color: band.textColor }}>
               {Math.round(air.data.europeanAqi)} · {band.label}
             </span>
           )}

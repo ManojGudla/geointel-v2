@@ -4,6 +4,7 @@ import { AsyncPanel } from "@/components/AsyncPanel";
 import { fetchNearby } from "@/services/intel";
 import { formatDistance } from "@/features/map/geo";
 import { useLocationStore } from "@/stores/locationStore";
+import { useRouteStore } from "@/stores/routeStore";
 import { useUiStore } from "@/stores/uiStore";
 import type { NearbyCategory } from "@/types/intel";
 import "./NearbyPanel.css";
@@ -28,6 +29,24 @@ export function NearbyPanel() {
   const [category, setCategory] = useState<NearbyCategory>("restaurants");
   const location = useLocationStore((s) => s.selectedLocation);
   const units = useUiStore((s) => s.units);
+  const setFrom = useRouteStore((s) => s.setFrom);
+  const openDirections = useRouteStore((s) => s.openPanel);
+
+  /*
+    A list of places with distances and nothing to click was a dead end: it
+    told you Domino's is 98m away and then left you to type "Domino's" into
+    the Directions panel yourself. The distance is the promise that the app
+    knows where this is, so the row has to be able to act on it.
+
+    `from` is set to the place currently being explored rather than the
+    user's GPS position, because the distances in this list are measured
+    from that point. A route starting somewhere else would contradict the
+    number printed beside it.
+  */
+  const directionsTo = (place: { name: string; lat: number; lon: number }) => {
+    if (location) setFrom(location);
+    openDirections({ lat: place.lat, lon: place.lon, name: place.name, displayName: place.name });
+  };
 
   const query = useQuery({
     queryKey: ["nearby", location?.lat, location?.lon, category],
@@ -52,8 +71,15 @@ export function NearbyPanel() {
           <ul className="nearby-panel__list">
             {items.slice(0, 20).map((item) => (
               <li key={item.id}>
-                <span>{item.name}</span>
-                <strong>{formatDistance(item.distanceMeters, units)}</strong>
+                {/* The whole row is the target, not a small icon beside it:
+                    these are read and tapped on a phone. */}
+                <button type="button" onClick={() => directionsTo(item)} aria-label={`Directions to ${item.name}`}>
+                  <span className="nearby-panel__name">{item.name}</span>
+                  <strong>{formatDistance(item.distanceMeters, units)}</strong>
+                  <span className="nearby-panel__go" aria-hidden="true">
+                    Directions
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
