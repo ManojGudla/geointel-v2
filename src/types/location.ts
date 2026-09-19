@@ -24,7 +24,14 @@ export interface Location extends Coordinates {
     /** ISO 3166-2 subdivision code, e.g. "US-CA", "IN-TG", when Nominatim provides one at this precision. */
     stateCode?: string;
   };
-  timezone?: string;
+  /*
+    Deliberately absent. This used to hold
+    Intl.DateTimeFormat().resolvedOptions().timeZone, which is the READER's
+    timezone, and Location Identity printed it as a property of the searched
+    place. A real timezone for the point comes from Open-Meteo instead (see
+    WeatherData.timezone); when that is unavailable the panel says so rather
+    than substituting the reader's.
+  */
   /** Data source label for transparency, e.g. "OpenStreetMap / Nominatim". */
   source: string;
 }

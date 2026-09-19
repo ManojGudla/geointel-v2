@@ -93,7 +93,6 @@ export function useSharedLocationFromUrl() {
           name: "Shared location",
           address: {},
           source: "Shared link",
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         });
         applyPanel();
       });

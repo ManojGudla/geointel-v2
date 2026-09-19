@@ -8,12 +8,21 @@ import { RealOrFake } from "./games/arcade/RealOrFake";
 import { CrackTheCode } from "./games/arcade/CrackTheCode";
 import { PatternBreaker } from "./games/arcade/PatternBreaker";
 /*
-  These four were finished, tested and then never listed here, so nothing in
-  the app could reach them — src/features/play/games/{whereAmI,findit,
-  fourInARow,memory} were referenced by no file outside themselves. Each one
-  was played end to end in a browser before being added, because the promise
-  below is that every entry is playable, and a card that opens onto a broken
-  game is worse than a game nobody knew about.
+  Three of these four were finished, tested and then never listed here, so
+  nothing in the app could reach them: findit, fourInARow and memory were
+  referenced by no file outside themselves. Each was played end to end in a
+  browser before being added, because the promise below is that every entry
+  is playable, and a card that opens onto a broken game is worse than a game
+  nobody knew about.
+
+  whereAmI is NOT one of them and must not be added back. It is a map-guessing
+  game, and every map-based game was unlisted on purpose: whereAmI, mapRace,
+  pin, country, change and the Daily Challenge. Their code was deliberately
+  kept rather than deleted, so an automated pass looking for "components that
+  exist but nothing renders" will keep reporting all six as a bug. It is not
+  a bug. One such audit already did exactly that and nearly restored games
+  that had been removed on request, which is why this note now says so
+  plainly rather than leaving the omission to be inferred.
 */
 import { FindIt } from "./games/findit/FindIt";
 import { FourInARow } from "./games/fourInARow/FourInARow";

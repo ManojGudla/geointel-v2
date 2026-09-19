@@ -36,6 +36,19 @@ function describeCode(code: number): string {
 }
 
 interface OpenMeteoResponse {
+  /*
+    The real timezone of the queried point, which this handler already asks
+    for (`timezone=auto` below) and then parsed away.
+
+    That discarded field is why Location Identity showed the VIEWER's
+    timezone: with nothing real to display, every Location was constructed
+    with Intl.DateTimeFormat().resolvedOptions().timeZone, so somebody in
+    Hyderabad looking up Toronto saw IST in a row headed Toronto. It looked
+    exactly like every sourced figure beside it, which made it the one place
+    in the product making a geographic claim it could not support.
+  */
+  timezone?: string;
+  timezone_abbreviation?: string;
   current?: {
     temperature_2m: number;
     apparent_temperature: number;
@@ -115,6 +128,9 @@ const handler: ApiHandler = async (req, res) => {
         minC: daily.temperature_2m_min[i]!,
         condition: describeCode(daily.weather_code[i]!),
       })),
+      // The point's own timezone, not the reader's. See OpenMeteoResponse.
+      timezone: data.timezone,
+      timezoneAbbreviation: data.timezone_abbreviation,
       source: "Open-Meteo",
       fetchedAt: new Date().toISOString(),
     },

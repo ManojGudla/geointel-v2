@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchWeather } from "@/services/intel";
 import { useLocationStore } from "@/stores/locationStore";
 import "./LocationIdentityPanel.css";
 import { track } from "@/services/analytics";
@@ -15,6 +17,20 @@ function formatCoord(value: number): string {
 export function LocationIdentityPanel() {
   const location = useLocationStore((s) => s.selectedLocation);
   const [copied, setCopied] = useState(false);
+
+  /*
+    The timezone of the PLACE, which only Open-Meteo knows.
+
+    Same query key and options as every other weather caller, so TanStack
+    serves it from the one cached response rather than making a second
+    request for one string.
+  */
+  const weather = useQuery({
+    queryKey: ["weather", location?.lat, location?.lon],
+    queryFn: ({ signal }) => fetchWeather(location!.lat, location!.lon, signal),
+    enabled: !!location,
+    staleTime: 10 * 60 * 1000,
+  });
 
   if (!location) {
     return (
@@ -61,7 +77,18 @@ export function LocationIdentityPanel() {
     ["State", location.address.state],
     ["Country", location.address.country],
     ["Postal code", location.address.postcode],
-    ["Timezone", location.timezone],
+    /*
+      Three honest states and no fourth. A real IANA zone for this point, a
+      plain "Loading" while the one shared weather request is in flight, or
+      "Unavailable" when the provider did not return one. What it must never
+      show again is the reader's own timezone, which is what stood here and
+      read exactly like a fact about the place.
+    */
+    [
+      "Timezone",
+      weather.data?.timezone ??
+        (weather.isLoading ? "Loading…" : weather.isError ? "Unavailable" : undefined),
+    ],
   ];
 
   return (

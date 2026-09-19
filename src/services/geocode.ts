@@ -63,6 +63,5 @@ export async function reverseGeocode(lat: number, lon: number, signal?: AbortSig
     name: location.name,
     address: location.address,
     source: location.source,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   };
 }

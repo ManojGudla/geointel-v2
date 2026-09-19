@@ -14,6 +14,14 @@ export interface WeatherData {
   sunrise?: string;
   sunset?: string;
   forecast: Array<{ date: string; maxC: number; minC: number; condition: string }>;
+  /**
+   * IANA timezone of the queried point, from Open-Meteo. Optional because a
+   * cached response may predate it, and because a value that is absent must
+   * read as "unavailable" rather than silently falling back to the reader's
+   * own timezone, which is the bug this field exists to end.
+   */
+  timezone?: string;
+  timezoneAbbreviation?: string;
   source: string;
   fetchedAt: string;
 }

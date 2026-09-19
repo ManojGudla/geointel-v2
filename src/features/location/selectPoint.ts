@@ -41,7 +41,6 @@ export function coordinateOnlyLocation(lat: number, lon: number, source: string)
     name: "Dropped pin",
     address: {},
     source,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   };
 }
 

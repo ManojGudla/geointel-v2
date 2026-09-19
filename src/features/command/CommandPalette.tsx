@@ -17,6 +17,8 @@ import { useAboutStore } from "@/stores/aboutStore";
 import { usePrivacyStore } from "@/stores/privacyStore";
 import { useShellStore } from "@/stores/shellStore";
 import { useGamesStore } from "@/stores/gamesStore";
+import { useReportStore } from "@/stores/reportStore";
+import { FEATURED_PAIR_PATHS } from "@/features/compare/comparePairs";
 import "./CommandPalette.css";
 
 interface Command {
@@ -40,13 +42,16 @@ interface Command {
 }
 
 /**
- * Ctrl/Cmd+K spotlight. Every enabled command drives a real store action —
- * the same ones QuickActions.tsx already uses — never a dead button. Items
- * for features not built yet (Compare Locations, Generate Report) are shown
- * disabled and labeled "coming soon"; items that ARE built but need a
- * selected location first are labeled "pick a location first" instead — see
- * the `requiresLocation` note on the Command type above for why that
- * distinction matters.
+ * Ctrl/Cmd+K spotlight. Every enabled command drives a real store action,
+ * the same ones QuickActions.tsx already uses, never a dead button.
+ *
+ * There are no "coming soon" entries left. Compare Locations and Generate
+ * Report were both listed that way long after they shipped, so the palette
+ * understated the product to anyone who opened it. Anything genuinely not
+ * built belongs on the Feature Status page, not in a list of things you can
+ * press. Items that ARE built but need a selected location first are
+ * labeled "pick a location first" and focus the search box, which is the
+ * real next step rather than a dead end.
  */
 export function CommandPalette() {
   const isOpen = useCommandPaletteStore((s) => s.isOpen);
@@ -65,6 +70,7 @@ export function CommandPalette() {
   const openPrivacy = usePrivacyStore((s) => s.open);
   const openSection = useShellStore((s) => s.openSection);
   const openGames = useGamesStore((s) => s.open);
+  const openReport = useReportStore((s) => s.open);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -146,10 +152,36 @@ export function CommandPalette() {
       { id: "privacy", label: "Privacy & security", icon: "🔒", available: true, run: () => openPrivacy() },
       { id: "about", label: "About", icon: "ℹ️", available: true, run: () => openAbout() },
       { id: "games", label: "maNOWj PLAY: games", icon: "🎮", available: true, run: () => openGames() },
-      { id: "compare", label: "Compare locations", icon: "⚖️", available: false, run: () => {} },
-      { id: "report", label: "Generate report", icon: "📄", available: false, run: () => {} },
+      /*
+        Both of these were listed as unavailable with an empty handler and a
+        "coming soon" label, and both had shipped. ComparePage is routed at
+        /compare/<pair> and the report has a working button in the side
+        panel. The palette was telling people the product was smaller than
+        it is, which is the opposite of the mistake this file was written to
+        avoid, and it survived because nothing rechecks a `false` once it is
+        written down.
+      */
+      {
+        id: "compare",
+        label: "Compare two cities",
+        icon: "⚖️",
+        available: true,
+        run: () => {
+          window.location.href = FEATURED_PAIR_PATHS[0] ?? "/";
+        },
+      },
+      {
+        id: "report",
+        label: "Generate area report",
+        icon: "📄",
+        // Same gate as the side panel's own button: the report describes a
+        // place, so it needs one picked first.
+        available: !!location,
+        requiresLocation: true,
+        run: () => openReport(),
+      },
     ],
-    [location, openDirections, setIntelTab, openSection, openCopilot, toggle3D, setMeasureMode, openFeedback, openHelp, openSettings, openFeatureStatus, openAbout, openPrivacy, openGames]
+    [location, openDirections, setIntelTab, openSection, openCopilot, toggle3D, setMeasureMode, openFeedback, openHelp, openSettings, openFeatureStatus, openAbout, openPrivacy, openGames, openReport]
   );
 
   const filtered = commands.filter((c) => c.label.toLowerCase().includes(query.toLowerCase()));
@@ -197,7 +229,15 @@ export function CommandPalette() {
             >
               <span aria-hidden="true">{c.icon}</span>
               {c.label}
-              {!c.available && <em>{c.requiresLocation ? "pick a location first" : "coming soon"}</em>}
+              {/*
+                One reason to be unavailable, and it is always actionable.
+                This used to fall back to "coming soon" for anything else,
+                which is how two shipped features spent months advertised as
+                unbuilt. There is no "anything else" now: a command that
+                cannot be run belongs on the Feature Status page rather than
+                in a list of things you can press.
+              */}
+              {!c.available && <em>pick a location first</em>}
             </button>
           </li>
         ))}
