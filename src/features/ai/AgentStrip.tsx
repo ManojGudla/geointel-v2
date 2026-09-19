@@ -25,7 +25,7 @@ export function AgentStrip() {
       <div className="agent-strip__head">
         <strong>AI Agents</strong>
         <span className="agent-strip__hint">
-          {location ? `${AGENT_DEFINITIONS.length} agents — scroll down for all of them` : "Select a location on the map to run them."}
+          {location ? `${AGENT_DEFINITIONS.length} agents. Scroll down for all of them` : "Select a location on the map to run them."}
         </span>
       </div>
       <div className="agent-strip__row">

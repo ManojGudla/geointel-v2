@@ -139,7 +139,7 @@ async function resolvePlusCode(
     if (!decoded) return null;
     return [
       {
-        displayName: found.context ? `${found.code} — ${found.context}` : `Plus Code ${found.code}`,
+        displayName: found.context ? `${found.code}, ${found.context}` : `Plus Code ${found.code}`,
         name: found.code,
         lat: decoded.lat,
         lon: decoded.lon,
@@ -169,7 +169,7 @@ async function resolvePlusCode(
   if (!decoded) return null;
   return [
     {
-      displayName: found.context ? `${found.code} — ${found.context}` : `Plus Code ${found.code}`,
+      displayName: found.context ? `${found.code}, ${found.context}` : `Plus Code ${found.code}`,
       name: found.code,
       lat: decoded.lat,
       lon: decoded.lon,

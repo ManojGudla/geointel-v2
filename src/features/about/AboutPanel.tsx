@@ -48,13 +48,14 @@ export function AboutPanel() {
         </span>
         <div>
           <p className="about-panel__name">maNOWj GeoIntel</p>
-          <p className="about-panel__tagline">Geospatial Intelligence Platform</p>
+          <p className="about-panel__tagline">Maps, data and sources for any place</p>
         </div>
       </div>
 
       <p className="about-panel__desc">
-        A location-intelligence app combining live GIS evidence, property analysis, routing, weather, and AI-driven insights — built with real
-        provider integrations (OpenStreetMap, Overpass, Nominatim, Open-Meteo, Wikidata, OpenRouter) rather than mocked or fabricated data.
+        A location-intelligence app combining live GIS evidence, property analysis, routing, weather, and an AI that writes summaries only from
+        the data already loaded on screen. It is built with real provider integrations (OpenStreetMap, Overpass, Nominatim, Open-Meteo, Wikidata,
+        OpenRouter) rather than mocked or fabricated data.
         {" "}
         <button type="button" className="about-panel__link" onClick={openFeatureStatus}>
           {LIVE_COUNT} of {TOTAL_COUNT} tracked features are live today
@@ -78,7 +79,7 @@ export function AboutPanel() {
         </div>
       </div>
 
-      <p className="about-panel__version">Built iteratively in verified passes — real integrations, checked before each release.</p>
+      <p className="about-panel__version">Every provider integration is checked against its live API before each release.</p>
     </>
   );
 

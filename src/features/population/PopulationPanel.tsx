@@ -67,7 +67,7 @@ export function PopulationPanel() {
 
       {!query.isPending && !query.isError && !data && (
         <p className="population__empty">
-          No published population figure for this area. Many rural and less-mapped places have none — that is a gap in the
+          No published population figure for this area. Many rural and less-mapped places have none. That is a gap in the
           data, not a population of zero.
         </p>
       )}
@@ -96,7 +96,7 @@ export function PopulationPanel() {
               500 m radius selected reads a whole city's population as the
               population of their block. */}
           <p className="population__caveat">
-            This is the figure for {data.place} as a whole — not for the {radiusLabel} area you have selected.
+            This is the figure for {data.place} as a whole, not for the {radiusLabel} area you have selected.
             {isOld ? ` It is from ${data.year}, so the real figure today is likely higher.` : ""}
           </p>
 
@@ -110,7 +110,7 @@ export function PopulationPanel() {
                 </a>
               </>
             )}
-            . Population is never live — it comes from censuses and official estimates.
+            . Population is never live. It comes from censuses and official estimates.
           </p>
         </>
       )}

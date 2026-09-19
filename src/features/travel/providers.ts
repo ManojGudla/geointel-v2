@@ -48,7 +48,7 @@ export function flightLinks(origin: string, destination: string): ProviderLink[]
     {
       label: "Skyscanner",
       url: "https://www.skyscanner.net/",
-      note: "Skyscanner needs airport codes to prefill — search your route there",
+      note: "Skyscanner needs airport codes to prefill (search your route there)",
     },
   ];
 }
@@ -60,7 +60,7 @@ export function trainLinks(origin: string, destination: string): ProviderLink[] 
     {
       label: "IRCTC",
       url: "https://www.irctc.co.in/nget/train-search",
-      note: "opens IRCTC's train search — sign-in required to book",
+      note: "opens IRCTC's train search (sign-in required to book)",
     },
     {
       label: "ConfirmTkt",
@@ -97,7 +97,7 @@ export function movieLinks(city: string): ProviderLink[] {
     {
       label: "District",
       url: "https://www.district.in/",
-      note: "opens District — search your city there",
+      note: "opens District (search your city there)",
     },
   ];
 }

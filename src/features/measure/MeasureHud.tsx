@@ -28,7 +28,7 @@ export function MeasureHud() {
         {points.length === 0
           ? "Click the map to place your first point."
           : needsMorePoints
-            ? `${points.length} of 3 points — one more closes the shape.`
+            ? `${points.length} of 3 points. One more closes the shape.`
             : `${points.length} point${points.length === 1 ? "" : "s"}. Click to add more.`}
       </p>
 

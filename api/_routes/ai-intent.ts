@@ -128,7 +128,7 @@ const handler: ApiHandler = async (req, res) => {
   const question = typeof body?.question === "string" ? body.question.trim() : "";
 
   if (!question) return err(res, 400, "A 'question' string is required.");
-  if (question.length > 300) return err(res, 400, "That question is too long to interpret — try a shorter one.");
+  if (question.length > 300) return err(res, 400, "That question is too long to interpret. Try a shorter one.");
 
   const rate = await checkDurableLimit("ai", getClientIp(req), AI_LIMIT_WINDOW_MS, AI_LIMIT_MAX);
   if (!rate.allowed) return err(res, 429, "Too many AI requests. Please slow down.", "RATE_LIMITED");
@@ -152,7 +152,7 @@ const handler: ApiHandler = async (req, res) => {
     return err(
       res,
       422,
-      "That question couldn't be turned into a map operation. Try naming what to find and how far — for example, \"hospitals within 5 km\".",
+      "That question couldn't be turned into a map operation. Try naming what to find and how far (for example, \"hospitals within 5 km\").",
       "NOT_UNDERSTOOD"
     );
   }

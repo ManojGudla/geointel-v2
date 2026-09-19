@@ -61,7 +61,7 @@ export function MapControls() {
         aria-pressed={is3D}
         title={is3D ? "Flatten the map back to 2D" : "Tilt the map and zoom in far enough for building shapes to load"}
       >
-        {is3D ? "🏙️ 3D is on — switch back to 2D" : "🏙️ Show 3D buildings"}
+        {is3D ? "🏙️ 3D is on: switch back to 2D" : "🏙️ Show 3D buildings"}
       </button>
     </div>
   );

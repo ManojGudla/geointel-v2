@@ -1,7 +1,7 @@
 {
   "name": "maNOWj GeoIntel",
   "short_name": "GeoIntel",
-  "description": "Location intelligence for better decisions.",
+  "description": "A map that answers questions about a place, and shows the source for every answer.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b1220",

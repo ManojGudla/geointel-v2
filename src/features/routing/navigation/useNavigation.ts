@@ -149,7 +149,7 @@ export function useNavigation() {
           setError("Location permission was denied. Allow it in your browser's site settings to navigate.");
         } else if (error.code === error.POSITION_UNAVAILABLE) {
           setState("unavailable");
-          setError("Your position isn't available right now — GPS may be blocked indoors.");
+          setError("Your position isn't available right now. GPS may be blocked indoors.");
         } else {
           setState("unavailable");
           setError("Couldn't get your location in time. Try again outdoors or near a window.");

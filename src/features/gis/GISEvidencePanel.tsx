@@ -90,7 +90,7 @@ export function GISEvidencePanel() {
             {showWhy && (
               <div className="gis-evidence-panel__why">
                 <p>
-                  Scores are computed from real, currently-mapped OpenStreetMap features within {evidence.radiusMeters}m — shops and
+                  Scores are computed from real, currently-mapped OpenStreetMap features within {evidence.radiusMeters}m. Shops and
                   offices weight toward commercial, residential buildings and landuse toward residential, schools/hospitals/civic
                   buildings toward institutional, tourism features (attractions, monuments, museums, hotels) toward landmark, and
                   railway/bus/transit features toward transport.
@@ -102,7 +102,7 @@ export function GISEvidencePanel() {
                   <strong>Source:</strong> {evidence.source}, fetched {new Date(evidence.fetchedAt).toLocaleTimeString()}
                 </p>
                 <p className="gis-evidence-panel__limitation">
-                  Limitation: OpenStreetMap coverage varies by area — sparse mapping can under-count real features.
+                  Limitation: OpenStreetMap coverage varies by area. Sparse mapping can under-count real features.
                 </p>
               </div>
             )}

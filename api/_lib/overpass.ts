@@ -216,7 +216,7 @@ export async function runOverpassQuery(query: string): Promise<OverpassElement[]
           }
 
           if (!hasPlausibleReplicaTimestamp(data)) {
-            throw new Error(`${endpoint} returned a response with no valid replica timestamp — likely a corrupted/empty mirror`);
+            throw new Error(`${endpoint} returned a response with no valid replica timestamp, likely a corrupted/empty mirror`);
           }
 
           outcomes.push({ endpoint, ok: true, elements: data.elements });

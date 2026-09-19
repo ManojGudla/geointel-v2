@@ -126,7 +126,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "Three huge stone tombs on a desert plateau, with a modern city stopping dead at their edge.",
       "A few kilometres west of a river that flows north into the Mediterranean through a wide green delta.",
     ],
-    fact: "The city of Cairo now reaches right up to the plateau — from above you can see suburbs ending and desert beginning in a single street.",
+    fact: "The city of Cairo now reaches right up to the plateau. From above you can see suburbs ending and desert beginning in a single street.",
   },
   {
     id: "palm-jumeirah",
@@ -158,7 +158,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "A perfect green rectangle cut out of a dense street grid on a long narrow island.",
       "The island sits between two tidal rivers on an Atlantic coast, at the mouth of the Hudson.",
     ],
-    fact: "The rectangle was laid out in 1857, before the streets around it existed — the grid was built to meet the park, not the other way round.",
+    fact: "The rectangle was laid out in 1857, before the streets around it existed. The grid was built to meet the park, not the other way round.",
   },
   {
     id: "venice",
@@ -222,7 +222,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "A cluster of white shell-shaped roofs on a small headland inside a deep branching harbour.",
       "The harbour is a drowned river valley on the south-east coast of the smallest continent.",
     ],
-    fact: "The shells are all sections of one sphere — the solution that finally made the roof buildable after years of failed designs.",
+    fact: "The shells are all sections of one sphere: the solution that finally made the roof buildable after years of failed designs.",
   },
   {
     id: "colosseum",
@@ -302,7 +302,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "A statue on a bare rocky summit inside a forest, overlooking a harbour city wedged between mountains and beaches.",
       "Portuguese sailors reached the bay below in January 1502 and mistook it for a river mouth.",
     ],
-    fact: "The statue stands on Corcovado inside Tijuca Forest — one of the largest urban forests in the world, replanted by hand in the 1860s.",
+    fact: "The statue stands on Corcovado inside Tijuca Forest, one of the largest urban forests in the world, replanted by hand in the 1860s.",
   },
 
   // ── Tier 2 — solvable by reasoning about the shape ─────────────────────
@@ -400,7 +400,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "A terraced open pit several kilometres wide, spiralling down into a mountainside like a stadium.",
       "It is just west of a city built beside a very large inland salt lake.",
     ],
-    fact: "One of the largest excavations ever made by people — a terraced pit roughly four kilometres across and a kilometre deep.",
+    fact: "One of the largest excavations ever made by people: a terraced pit roughly four kilometres across and a kilometre deep.",
   },
   {
     id: "salar-uyuni",
@@ -464,7 +464,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "A city grid where every single block has its corners cut off at 45 degrees, making octagonal junctions.",
       "A Mediterranean port on the north-east coast of the Iberian peninsula, below the Pyrenees.",
     ],
-    fact: "Every block has its corners cut off at 45 degrees — designed in 1859 so that horse-drawn trams could turn.",
+    fact: "Every block has its corners cut off at 45 degrees, designed in 1859 so that horse-drawn trams could turn.",
   },
   {
     id: "bosphorus",
@@ -528,7 +528,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "Hundreds of steep limestone towers rising straight out of a shallow blue-green bay.",
       "The bay opens onto the Gulf of Tonkin, in the north of a long thin country facing the South China Sea.",
     ],
-    fact: "Around 1,600 limestone towers — the remains of a landscape that dissolved over millions of years, leaving only the hardest cores.",
+    fact: "Around 1,600 limestone towers: the remains of a landscape that dissolved over millions of years, leaving only the hardest cores.",
   },
   {
     id: "iguazu",
@@ -560,7 +560,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "A river more than a kilometre wide drops into a single narrow crack, then zig-zags away down a chain of old gorges.",
       "The river is the Zambezi, and the far bank belongs to Zambia.",
     ],
-    fact: "The river drops into a zig-zag of old gorges — each one a former waterfall that cut backwards along a crack in the rock.",
+    fact: "The river drops into a zig-zag of old gorges, each one a former waterfall that cut backwards along a crack in the rock.",
   },
   {
     id: "grand-prismatic",
@@ -592,7 +592,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "Concentric half-rings of water wrapped around an old harbour front, with narrow blocks packed between them.",
       "Dug in the 1600s by a trading city that sits below sea level near the North Sea.",
     ],
-    fact: "The concentric half-rings were dug in the 17th century as a single planned expansion — a ring road, a sewer and a dock all at once.",
+    fact: "The concentric half-rings were dug in the 17th century as a single planned expansion: a ring road, a sewer and a dock all at once.",
   },
   {
     id: "singapore-marina",
@@ -754,7 +754,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "Extremely wide, almost empty boulevards between enormous white marble buildings, with desert starting right at the edge of town.",
       "It sits on a narrow strip of oasis between the Karakum desert and the mountains of the Iranian border.",
     ],
-    fact: "Rebuilt in white marble on a scale that is obvious from orbit — wide empty boulevards between very large buildings.",
+    fact: "Rebuilt in white marble on a scale that is obvious from orbit: wide empty boulevards between very large buildings.",
   },
   {
     id: "yakutsk",
@@ -850,7 +850,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "White sand dunes with hundreds of blue-green rainwater lagoons sitting in the hollows between them, right behind a tropical coast.",
       "It is on the northern Atlantic shore of South America's largest country, a little south of the equator.",
     ],
-    fact: "A desert-looking dune field that fills with rainwater lagoons every wet season — sand and lakes in the same photograph.",
+    fact: "A desert-looking dune field that fills with rainwater lagoons every wet season: sand and lakes in the same photograph.",
   },
   {
     id: "perito-moreno",
@@ -882,7 +882,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
       "A long isolated island of limestone plateaus with white dune fields along the north coast and almost no green.",
       "It lies in the Arabian Sea off the Horn of Africa, but belongs to a country on the Arabian peninsula.",
     ],
-    fact: "Isolated for millions of years, so a third of its plants grow nowhere else — including the umbrella-shaped dragon's blood tree.",
+    fact: "Isolated for millions of years, so a third of its plants grow nowhere else, including the umbrella-shaped dragon's blood tree.",
   },
   {
     id: "kolmanskop",

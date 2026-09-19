@@ -44,7 +44,7 @@ export function FeatureStatusPage() {
       <div className="feature-status__head">
         <div>
           <h2>Feature Status</h2>
-          <p>What's actually built, right now — not a roadmap dressed up as done.</p>
+          <p>What's actually built, right now: not a roadmap dressed up as done.</p>
         </div>
         <button type="button" onClick={close} aria-label="Close feature status">
           ✕

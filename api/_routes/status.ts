@@ -104,8 +104,8 @@ async function probeOverpass(): Promise<{ status: DependencyStatus["status"]; de
   // the kind of reassuring-but-wrong signal the rest of the project refuses
   // to emit. Losing half the mirrors is degraded: queries still succeed, but
   // they're slower and one more outage away from failing outright.
-  if (healthy === 0) return { status: "down", detail: `${detail} — GIS evidence, Nearby and click-to-inspect will fail` };
-  if (healthy * 2 <= total) return { status: "degraded", detail: `${detail} — reduced redundancy, expect slower or intermittent GIS results` };
+  if (healthy === 0) return { status: "down", detail: `${detail}. GIS evidence, Nearby and click-to-inspect will fail` };
+  if (healthy * 2 <= total) return { status: "degraded", detail: `${detail}. Reduced redundancy, expect slower or intermittent GIS results` };
   return { status: "operational", detail };
 }
 
@@ -143,7 +143,7 @@ async function probeWikidata(): Promise<{ status: DependencyStatus["status"]; de
 async function probeOpenRouter(): Promise<{ status: DependencyStatus["status"]; detail: string }> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return { status: "not_configured", detail: "No OPENROUTER_API_KEY set — Copilot and all AI agents are unavailable" };
+    return { status: "not_configured", detail: "No OPENROUTER_API_KEY set, so Copilot and all AI agents are unavailable" };
   }
 
   const response = await fetchWithTimeout(
@@ -162,7 +162,7 @@ async function probeOpenRouter(): Promise<{ status: DependencyStatus["status"]; 
 async function probeSupabase(): Promise<{ status: DependencyStatus["status"]; detail: string }> {
   const client = getSupabaseClient();
   if (!client) {
-    return { status: "not_configured", detail: "No Supabase credentials — knowledge base, feedback and maintenance mode are unavailable" };
+    return { status: "not_configured", detail: "No Supabase credentials, so knowledge base, feedback and maintenance mode are unavailable" };
   }
   const { error } = await withTimeout(client.from("app_settings").select("id").limit(1), PROBE_TIMEOUT_MS, "Supabase probe");
   // The message is logged, not returned. /api/status needs no auth, and a raw

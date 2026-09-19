@@ -89,6 +89,21 @@ export function stripLeakedReasoning(raw: string): string {
 export function formatAiText(raw: string): string {
   let text = stripLeakedReasoning(raw);
 
+  /*
+    Em dashes, which this product does not use anywhere.
+
+    Both system prompts now say so outright, and this is here because an
+    instruction is not an enforcement: the same free models that ignore "no
+    markdown" and "never show your reasoning" will ignore this one too, and
+    `openrouter/free` draws a different model every request, so it only has
+    to be ignored once to put one on screen. A spaced dash joins two clauses
+    and becomes a comma; an unspaced one is nearly always a range or a
+    compound, where a hyphen is what was meant.
+  */
+  // Written as escapes so the character itself appears nowhere in the source,
+  // and a repo-wide search for it stays clean.
+  text = text.replace(/\s+—\s+/g, ", ").replace(/—/g, "-");
+
   // A leaked preamble sometimes ends with the model announcing its real
   // answer instead of just starting it.
   const finalAnswerMarker = /(?:^|\n)\s*(?:final answer|so the answer is|in short|to summarize)[:.]\s*/i.exec(text);

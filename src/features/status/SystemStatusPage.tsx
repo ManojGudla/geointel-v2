@@ -88,10 +88,10 @@ export function SystemStatusPage() {
               {worst === "operational"
                 ? "All systems operational"
                 : worst === "degraded"
-                  ? "Degraded — some features may be slow or intermittent"
+                  ? "Degraded: some features may be slow or intermittent"
                   : worst === "down"
-                    ? "Outage — one or more dependencies are unreachable"
-                    : "Partially configured — some features are switched off"}
+                    ? "Outage: one or more dependencies are unreachable"
+                    : "Partially configured: some features are switched off"}
             </strong>
             <span>
               Checked {new Date(data.checkedAt).toLocaleTimeString()}
@@ -117,7 +117,7 @@ export function SystemStatusPage() {
 
           <p className="system-status__note">
             Each row is a real probe run from the server, not a cached assumption. Results are cached for 60 seconds so this page doesn't itself add load to
-            the free public services it monitors. The AI check confirms the provider is reachable and the key is accepted — it deliberately doesn't spend a
+            the free public services it monitors. The AI check confirms the provider is reachable and the key is accepted. It deliberately doesn't spend a
             generation request, so it can't report on the daily quota.
           </p>
         </>

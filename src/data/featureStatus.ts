@@ -32,7 +32,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       {
         name: "Postal / PIN code lookup",
         status: "partial",
-        note: "Nominatim resolves most postcodes as a general search query — there's no dedicated postcode-only lookup UI yet.",
+        note: "Nominatim resolves most postcodes as a general search query. There's no dedicated postcode-only lookup UI yet.",
       },
       {
         name: "Search by raw coordinates (lat/lon)",
@@ -56,7 +56,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       { name: "Dark basemap", status: "live" },
       { name: "Terrain basemap", status: "live" },
       { name: "2D / 3D perspective toggle", status: "live" },
-      { name: "Real 3D building extrusions", status: "live", note: "Heights from OSM tags where available, a labeled estimate otherwise — never fabricated as exact." },
+      { name: "Real 3D building extrusions", status: "live", note: "Heights from OSM tags where available, a labeled estimate otherwise, never fabricated as exact." },
       { name: "Fullscreen mode", status: "live" },
       { name: "Map rotation & compass", status: "live" },
       { name: "Smooth pan, zoom & scroll on all devices", status: "live" },
@@ -91,12 +91,12 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       {
         name: "Official / Authority Intelligence (current government officials by country/state/district/city)",
         status: "partial",
-        note: "Sourced live from Wikidata — never a hardcoded or guessed name. Country-level is reliably covered; state-level needs a precise subdivision code from the address; city/district-level is best-effort and often correctly shows \"Unable to verify\" where Wikidata's coverage is thin.",
+        note: "Sourced live from Wikidata, never a hardcoded or guessed name. Country-level is reliably covered; state-level needs a precise subdivision code from the address; city/district-level is best-effort and often correctly shows \"Unable to verify\" where Wikidata's coverage is thin.",
       },
       {
         name: "Timezone lookup",
         status: "partial",
-        note: "Currently shows your device's timezone, not the selected location's — a known gap, not yet fixed.",
+        note: "Currently shows your device's timezone, not the selected location's. This is a known gap, not yet fixed.",
       },
       { name: "Zoning & land use data", status: "planned", note: "No free, reliable zoning data source found yet." },
       { name: "Parcel boundaries & ownership records", status: "planned" },
@@ -149,7 +149,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       { name: "Navigation agent", status: "live" },
       { name: "Travel Intelligence agent", status: "live" },
       { name: "Make My Trip agent", status: "live" },
-      { name: "Grounded, no-fabrication AI answers", status: "live", note: "Every agent and Ask maNOWj answer only from real on-screen data — they say so when data is insufficient rather than guessing." },
+      { name: "Grounded, no-fabrication AI answers", status: "live", note: "Every agent and Ask maNOWj answer only from real on-screen data. They say so when data is insufficient rather than guessing." },
       { name: "Predictive search suggestions", status: "partial", note: "Basic autocomplete via Nominatim, not a learned/personalized ranking." },
       {
         name: "Map-aware natural-language queries",
@@ -193,7 +193,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
         // measure tool, and measureStore clears every point when the mode
         // changes, so nothing drawn can be kept. Distance and Area are already
         // listed separately; this is the same tool, not a third capability.
-        note: "You can plot points to measure a distance or an area, but shapes are not saved — switching tools clears them. Keeping and naming drawn shapes is not built yet.",
+        note: "You can plot points to measure a distance or an area, but shapes are not saved. Switching tools clears them. Keeping and naming drawn shapes is not built yet.",
       },
       {
         name: "Buffer analysis",
@@ -262,7 +262,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       {
         name: "Display name",
         status: "partial",
-        note: "Saved to this browser only, in Settings → Your profile — there's no account system yet, so it isn't synced across devices.",
+        note: "Saved to this browser only, in Settings → Your profile. There's no account system yet, so it isn't synced across devices.",
       },
       { name: "User accounts / sign-in", status: "planned" },
       { name: "Premium subscription & billing", status: "planned", note: "Needs a real payment processor decision first." },
@@ -284,7 +284,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       { name: "Rate-limited, cached API layer", status: "live" },
       { name: "Server-side input validation on every endpoint", status: "live" },
       { name: "No secret keys ever reach the client", status: "live" },
-      { name: "Basic security headers (CSP, X-Frame-Options, etc.)", status: "live", note: "Applied in both dev (plugins/vite-plugin-api.ts) and production (vercel.json) — see the README's Security posture section." },
+      { name: "Basic security headers (CSP, X-Frame-Options, etc.)", status: "live", note: "Applied in both dev (plugins/vite-plugin-api.ts) and production (vercel.json). See the README's Security posture section." },
       {
         name: "Keyboard shortcuts",
         status: "partial",
@@ -293,7 +293,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       {
         name: "Global maintenance mode (admin-controlled)",
         status: "live",
-        note: "One-click enable/disable from /admin, enforced server-side on every API endpoint (not just hidden in the frontend). Admin access is a single shared passphrase, not a full account system — none exists yet. Propagates to open tabs via ~20s polling, not instant push.",
+        note: "One-click enable/disable from /admin, enforced server-side on every API endpoint (not just hidden in the frontend). Admin access is a single shared passphrase, not a full account system (none exists yet). Propagates to open tabs via ~20s polling, not instant push.",
       },
       { name: "Native iOS / Android app", status: "planned", note: "The installable web app works today; app-store packaging is a separate, later effort." },
       { name: "Public developer API", status: "planned" },

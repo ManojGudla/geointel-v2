@@ -133,8 +133,8 @@ export function UltimateTicTacToe({ onBackToHub }: { onBackToHub: () => void }) 
     if (!humanTurn) return "The computer is thinking…";
     if (mode === "classic") return `Your turn (${turn}).`;
     return game.activeBoard === null
-      ? "Your turn — you can play in any board."
-      : `Your turn — you must play in the highlighted board.`;
+      ? "Your turn. You can play in any board."
+      : `Your turn. You must play in the highlighted board.`;
   })();
 
   return (

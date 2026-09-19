@@ -384,7 +384,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
     setShout(null);
 
     if (!p.outcome.reviewRetained) setReviewsLeft((n) => Math.max(0, n - 1));
-    setReviewVerdict(`${p.outcome.headline} — ${p.result.reason}`);
+    setReviewVerdict(`${p.outcome.headline}: ${p.result.reason}`);
 
     // Only a NOT OUT changes the match. The wicket is struck off, the ball
     // still counts, and the innings carries on.
@@ -453,13 +453,13 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
     return (
       <div className="game">
         <RoundSummary
-          gameTitle={state.superOver ? "Cricket Challenge — Super Over" : "Cricket Challenge"}
+          gameTitle={state.superOver ? "Cricket Challenge: Super Over" : "Cricket Challenge"}
           headline={
             won
-              ? `Chased it down — ${state.runs}/${state.wickets}`
+              ? `Chased it down: ${state.runs}/${state.wickets}`
               : tied
-                ? `TIED — ${state.runs}/${state.wickets}`
-                : `${state.runs}/${state.wickets} — ${needed} short`
+                ? `TIED: ${state.runs}/${state.wickets}`
+                : `${state.runs}/${state.wickets}, ${needed} short`
           }
           detail={
             tied
@@ -537,7 +537,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
               Without it the scoreboard states a fact; with it, the fact has a
               meaning — 9 an over is comfortable, 18 is nearly gone. */}
           <span className="cricket__rate">
-            Need {Number.isFinite(chase.requiredRate) ? chase.requiredRate.toFixed(1) : "—"} an over
+            Need {Number.isFinite(chase.requiredRate) ? chase.requiredRate.toFixed(1) : "-"} an over
             {state.ballsBowled > 0 ? ` · scoring ${chase.currentRate.toFixed(1)}` : ""}
           </span>
           <span className="cricket__wickets">

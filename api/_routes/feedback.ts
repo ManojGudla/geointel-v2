@@ -38,7 +38,7 @@ const handler: ApiHandler = async (req, res) => {
 
   const client = getSupabaseClient();
   if (!client) {
-    return err(res, 503, "Feedback storage isn't configured yet — the server is missing its Supabase credentials.", "NOT_CONFIGURED");
+    return err(res, 503, "Feedback storage isn't configured yet. The server is missing its Supabase credentials.", "NOT_CONFIGURED");
   }
 
   // ip_address/user_agent are read server-side from the request, never

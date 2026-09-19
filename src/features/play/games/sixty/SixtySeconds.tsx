@@ -174,7 +174,7 @@ export function SixtySeconds({ onBackToHub }: { onBackToHub: () => void }) {
         <p className="sixty__eyebrow">60 Seconds</p>
         <h2 className="sixty__title">One minute. As many as you can.</h2>
         <p className="sixty__lede">
-          Questions come one after another and the type keeps changing. Answer to move on — there is no next button.
+          Questions come one after another and the type keeps changing. Answer to move on. There is no next button.
         </p>
         <ul className="sixty__rules">
           <li>Every correct answer adds {CORRECT_BONUS_SECONDS} second and builds your multiplier.</li>

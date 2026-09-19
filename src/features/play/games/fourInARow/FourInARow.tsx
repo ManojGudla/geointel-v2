@@ -137,7 +137,7 @@ export function FourInARow({ onBackToHub }: { onBackToHub: () => void }) {
       if (mode === "friend") return `${PLAYER_NAME[status.player]} wins!`;
       return status.player === humanPlayer ? "You win! 🎉" : "Computer wins";
     }
-    if (status.kind === "draw") return "Draw — board full";
+    if (status.kind === "draw") return "Draw, board full";
     if (thinking) return "Computer is thinking…";
     if (mode === "friend") return `${PLAYER_NAME[status.turn]}'s turn`;
     return status.turn === humanPlayer ? "Your turn (Red)" : "Computer's turn";

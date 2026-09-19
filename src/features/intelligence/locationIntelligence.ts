@@ -93,7 +93,7 @@ export function computeLocationIntelligence({ evidence, europeanAqi }: Intellige
       state: "scored",
       score: saturatingScore(counts.transport, 25),
       weight: 20,
-      basis: `${counts.transport} public transport features (stops, stations, platforms) mapped ${within}. Road-network connectivity is not included — road geometry isn't fetched at this scale.`,
+      basis: `${counts.transport} public transport features (stops, stations, platforms) mapped ${within}. Road-network connectivity is not included. Road geometry isn't fetched at this scale.`,
       hint: "How well served this area is by mapped public transport.",
     },
     {
@@ -132,7 +132,7 @@ export function computeLocationIntelligence({ evidence, europeanAqi }: Intellige
       basis:
         green > 0
           ? `${parks} parks and ${water} water features mapped ${within}.`
-          : `No parks or water features are mapped ${within}. That may mean none exist, or that they aren't mapped here yet — the two can't be told apart from this data.`,
+          : `No parks or water features are mapped ${within}. That may mean none exist, or that they aren't mapped here yet. The two can't be told apart from this data.`,
       hint: "Green space and water in the surrounding area.",
     },
     {
@@ -146,7 +146,7 @@ export function computeLocationIntelligence({ evidence, europeanAqi }: Intellige
       basis:
         typeof europeanAqi === "number"
           ? `European AQI of ${Math.round(europeanAqi)} at this point, from a modelled coarse grid.`
-          : "No air-quality reading is loaded for this point. Flood, seismic and crime risk are not scored at all — this app has no free data source for any of them, so they are left out rather than estimated.",
+          : "No air-quality reading is loaded for this point. Flood, seismic and crime risk are not scored at all. This app has no free data source for any of them, so they are left out rather than estimated.",
       hint: "Environmental risk, from measured air quality only.",
     },
     {
@@ -184,7 +184,7 @@ export function computeLocationIntelligence({ evidence, europeanAqi }: Intellige
     confidenceReason =
       totalMapped === 0
         ? `Nothing is mapped ${within} in OpenStreetMap, so there is almost nothing to score.`
-        : `Only ${totalMapped.toLocaleString()} features are mapped ${within} — thin coverage, so treat these scores as indicative.`;
+        : `Only ${totalMapped.toLocaleString()} features are mapped ${within}, which is thin coverage, so treat these scores as indicative.`;
   }
 
   const sources = ["OpenStreetMap / Overpass"];

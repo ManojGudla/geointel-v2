@@ -374,7 +374,7 @@ describe("commentary", () => {
     const line = commentary(before, after, { outcome: "out", contact: "edge", offsetMs: 200, detail: "Edged it" });
     // The count matters, not just the word OUT: knowing you have one left
     // changes how the next ball should be played.
-    expect(line).toBe("Wicket! One wicket left — you cannot lose another.");
+    expect(line).toBe("Wicket! One wicket left. You cannot lose another.");
   });
 
   it("puts the pressure into words in the last over", () => {

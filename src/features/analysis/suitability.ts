@@ -92,7 +92,7 @@ const FACTORS: Record<string, FactorSpec> = {
     defaultWeight: 20,
     compute: ({ evidence, radiusMeters }) => ({
       score: invertedScore(evidence.counts.residential, 200),
-      basis: `${evidence.counts.residential} residential buildings within ${radiusMeters} m — fewer scores higher here`,
+      basis: `${evidence.counts.residential} residential buildings within ${radiusMeters} m (fewer scores higher here)`,
     }),
   },
   competition: {
@@ -101,7 +101,7 @@ const FACTORS: Record<string, FactorSpec> = {
     defaultWeight: 25,
     compute: ({ competitionCount, radiusMeters }) => ({
       score: invertedScore(competitionCount, 8),
-      basis: `${competitionCount} similar facilities already within ${radiusMeters} m — fewer scores higher`,
+      basis: `${competitionCount} similar facilities already within ${radiusMeters} m (fewer scores higher)`,
     }),
   },
 };

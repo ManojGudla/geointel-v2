@@ -9,7 +9,7 @@ type Mode = "ai" | "local";
 const DIFFICULTIES: Array<{ id: Difficulty; label: string; blurb: string }> = [
   { id: "easy", label: "Easy", blurb: "Plays at random." },
   { id: "medium", label: "Medium", blurb: "Takes wins and blocks losses." },
-  { id: "hard", label: "Hard", blurb: "Solved — the best you can get is a draw." },
+  { id: "hard", label: "Hard", blurb: "Solved. The best you can get is a draw." },
 ];
 
 /** A short, honest pause so the AI's move is perceivable rather than instantaneous. */
@@ -93,7 +93,7 @@ export function TicTacToe() {
       if (mode === "local") return `Player ${state.winner} wins`;
       return state.winner === "X" ? "🎉 You win" : "AI wins";
     }
-    if (state.kind === "draw") return "Draw — good game";
+    if (state.kind === "draw") return "Draw, good game";
     if (thinking) return "AI is thinking…";
     if (mode === "local") return `Player ${state.turn}'s turn`;
     return state.turn === "X" ? "Your turn" : "AI's turn";
@@ -207,7 +207,7 @@ export function TicTacToe() {
       </section>
 
       <p className="ttt__note">
-        Free and unlimited — no sign-in, no limits, no timers. Scores are kept in this browser only and are never sent anywhere.
+        Free and unlimited: no sign-in, no limits, no timers. Scores are kept in this browser only and are never sent anywhere.
       </p>
     </div>
   );

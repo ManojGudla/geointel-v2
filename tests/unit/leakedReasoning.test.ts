@@ -238,3 +238,28 @@ describe("a bad roll from the free model router", () => {
     expect(spy).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("em dashes never reach the screen", () => {
+  /**
+   * The product does not use em dashes anywhere, and both AI system prompts
+   * now say so. This is the enforcement behind that instruction: the same
+   * free models that ignore "no markdown" and "never show your reasoning"
+   * will ignore this one too, and `openrouter/free` draws a different model
+   * every request, so it only has to be ignored once.
+   */
+  it("turns a clause-joining dash into a comma", () => {
+    expect(formatAiText("The area is dense — 156 buildings sit inside the 250 metre ring, with almost no retail.")).toBe(
+      "The area is dense, 156 buildings sit inside the 250 metre ring, with almost no retail."
+    );
+  });
+
+  it("turns an unspaced dash into a hyphen, since that is what was meant", () => {
+    // A range or a compound, not a joined clause.
+    expect(formatAiText("Expect 20—30 minutes on foot from the station to the office park entrance.")).toContain("20-30");
+  });
+
+  it("leaves no em dash behind under any spacing", () => {
+    const messy = "One —two— three — four, and a fifth clause to carry the sentence past the length floor.";
+    expect(formatAiText(messy)).not.toContain("—");
+  });
+});

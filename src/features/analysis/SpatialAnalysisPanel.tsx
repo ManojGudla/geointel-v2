@@ -169,7 +169,7 @@ export function SpatialAnalysisPanel() {
 
       {operation === "suitability" && (
         <div className="analysis__weights">
-          <h4>Weights — drag to match your own priorities</h4>
+          <h4>Weights: drag to match your own priorities</h4>
           {Object.entries(weights).map(([id, weight]) => (
             <label key={id} className="analysis__weight">
               <span className="analysis__weight-head">

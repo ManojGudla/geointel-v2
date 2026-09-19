@@ -93,7 +93,7 @@ export function TravelPlanner() {
   return (
     <div className="travel-planner">
       <p className="travel-planner__intro">
-        Real search links to real providers — GeoIntel doesn't process bookings or show live prices itself. Pick a category, fill in
+        Real search links to real providers. GeoIntel doesn't process bookings or show live prices itself. Pick a category, fill in
         the route or city, and open a provider to book.
       </p>
 

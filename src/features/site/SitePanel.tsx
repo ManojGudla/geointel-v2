@@ -36,8 +36,8 @@ const FEATURE_META: Record<SiteFeatureKind, { icon: string; label: string; tone:
   "road-proposed": { icon: "📐", label: "Road proposed", tone: "plan" },
   "building-site": { icon: "🏗️", label: "Building under construction", tone: "build" },
   "construction-area": { icon: "🧱", label: "Construction site", tone: "build" },
-  brownfield: { icon: "🏚️", label: "Brownfield — previously developed", tone: "plan" },
-  greenfield: { icon: "🌱", label: "Greenfield — scheduled for development", tone: "plan" },
+  brownfield: { icon: "🏚️", label: "Brownfield (previously developed)", tone: "plan" },
+  greenfield: { icon: "🌱", label: "Greenfield (scheduled for development)", tone: "plan" },
 };
 
 /** OSM road classes, in the words a person would use. */

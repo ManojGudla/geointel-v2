@@ -40,7 +40,7 @@ const handler: ApiHandler = async (req, res) => {
   if (!rate.allowed) return err(res, 429, "Too many admin requests. Please slow down.", "RATE_LIMITED");
 
   if (!isAdminConfigured()) {
-    return err(res, 503, "Admin access isn't configured yet — set GEOINTEL_ADMIN_KEY on the server.", "NOT_CONFIGURED");
+    return err(res, 503, "Admin access isn't configured yet. Set GEOINTEL_ADMIN_KEY on the server.", "NOT_CONFIGURED");
   }
   if (!isAdminRequest(req)) {
     // Logged, because otherwise a wrong admin key leaves no record anywhere.
@@ -53,7 +53,7 @@ const handler: ApiHandler = async (req, res) => {
 
   const client = getSupabaseClient();
   if (!client) {
-    return err(res, 503, "Storage isn't configured yet — the server is missing its Supabase credentials.", "NOT_CONFIGURED");
+    return err(res, 503, "Storage isn't configured yet. The server is missing its Supabase credentials.", "NOT_CONFIGURED");
   }
 
   try {

@@ -120,7 +120,7 @@ export function impostorPoints(correct: boolean, secondsTaken: number): number {
 
 export function realOrFakeShare(streak: number, best: number): string {
   const lines = [
-    `maNOWj Impossible or Real — ${streak} in a row`,
+    `maNOWj Impossible or Real: ${streak} in a row`,
     streak >= best && streak > 0 ? "New personal best" : "",
     PLAY_URL,
   ];
@@ -129,7 +129,7 @@ export function realOrFakeShare(streak: number, best: number): string {
 
 export function impostorShare(score: number, found: number, rounds: number): string {
   return [
-    `maNOWj The Impostor — ${score.toLocaleString()}`,
+    `maNOWj The Impostor: ${score.toLocaleString()}`,
     `Caught ${found} of ${rounds}`,
     PLAY_URL,
   ].join("\n");

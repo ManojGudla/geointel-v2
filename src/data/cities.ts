@@ -92,7 +92,7 @@ export const CITIES: City[] = [
     lon: 77.5946,
     zoom: 12,
     summary:
-      "Bengaluru on an interactive map — a city built around rainwater tanks rather than a river. Ask what lies within any radius, with every figure showing where it came from.",
+      "Bengaluru on an interactive map: a city built around rainwater tanks rather than a river. Ask what lies within any radius, with every figure showing where it came from.",
     geography:
       "Bengaluru sits high on the Deccan plateau, around 900 metres above sea level, which is why it stays cooler than most of southern India at the same latitude. It has no river running through it and grew instead around a network of tanks built to hold rainwater, many of which survive as lakes. The city spreads outward along the Outer Ring Road rather than from a single dense core.",
     landmarks: ["Lalbagh Botanical Garden", "Cubbon Park", "Vidhana Soudha", "Ulsoor Lake", "Electronic City"],
@@ -127,7 +127,7 @@ export const CITIES: City[] = [
     summary:
       "Delhi on an interactive map, from the Yamuna to the forested Ridge. Ask what lies within any radius of any point, with every figure showing its source and its date.",
     geography:
-      "Delhi lies on the west bank of the Yamuna, on the flat Indo-Gangetic plain, interrupted by the Delhi Ridge — the northern tail of the Aravalli range, which runs through the city as a band of rocky, forested high ground. The National Capital Territory covers far more than the historic city, taking in New Delhi, the older walled city around Red Fort, and a wide belt of newer development.",
+      "Delhi lies on the west bank of the Yamuna, on the flat Indo-Gangetic plain, interrupted by the Delhi Ridge, the northern tail of the Aravalli range, which runs through the city as a band of rocky, forested high ground. The National Capital Territory covers far more than the historic city, taking in New Delhi, the older walled city around Red Fort, and a wide belt of newer development.",
     landmarks: ["Red Fort", "India Gate", "Qutub Minar", "Connaught Place", "Lodhi Gardens"],
     questions: ["hospitals within 5 km", "schools within 2 km", "what is within 800 m", "pharmacies within 1 km"],
   },
@@ -197,7 +197,7 @@ export const CITIES: City[] = [
     summary:
       "Gurugram on an interactive map, where the Aravallis run out into the Delhi plain. Ask what lies within any radius, with every figure showing the source it came from.",
     geography:
-      "Gurugram sits where the northern tail of the Aravalli range runs out into the Delhi plain, about 237 metres above sea level, drained by the seasonal Sahibi — a Yamuna tributary that rises in the Aravallis of Rajasthan. It went from a district town to a corporate centre in roughly three decades, which is why glass office blocks along the expressway stand directly against older village settlements instead of being separated from them by anything. Forested Aravalli remnants survive at Mangar Bani and Gwal Pahari, and Sultanpur National Park and the Basai wetland lie out to the west.",
+      "Gurugram sits where the northern tail of the Aravalli range runs out into the Delhi plain, about 237 metres above sea level, drained by the seasonal Sahibi, a Yamuna tributary that rises in the Aravallis of Rajasthan. It went from a district town to a corporate centre in roughly three decades, which is why glass office blocks along the expressway stand directly against older village settlements instead of being separated from them by anything. Forested Aravalli remnants survive at Mangar Bani and Gwal Pahari, and Sultanpur National Park and the Basai wetland lie out to the west.",
     landmarks: ["Cyber City", "DLF CyberHub", "Sultanpur National Park", "Damdama Lake", "MG Road"],
     questions: ["hospitals within 3 km", "schools within 2 km", "what is within 800 m", "cafes within 1 km"],
   },
@@ -211,7 +211,7 @@ export const CITIES: City[] = [
     summary:
       "Ahmedabad on an interactive map, split east and west by the Sabarmati. Ask what lies within any radius of any point, with every figure showing its source.",
     geography:
-      "Ahmedabad stands on the Sabarmati, which splits it cleanly in two: the walled old city and its dense pols on the east bank, the newer western districts across a line of bridges. The ground is flat, sandy and around 53 metres above sea level, broken only by the low Thaltej–Jodhpur rise. Two large lakes sit inside the built-up area — Kankaria, dug in 1451, and Vastrapur.",
+      "Ahmedabad stands on the Sabarmati, which splits it cleanly in two: the walled old city and its dense pols on the east bank, the newer western districts across a line of bridges. The ground is flat, sandy and around 53 metres above sea level, broken only by the low Thaltej–Jodhpur rise. Two large lakes sit inside the built-up area: Kankaria, dug in 1451, and Vastrapur.",
     landmarks: ["Sabarmati Riverfront", "Kankaria Lake", "Sabarmati Ashram", "Vastrapur Lake", "Bhadra Fort"],
     questions: ["hospitals within 5 km", "schools within 2 km", "what is within 800 m", "parks within 2 km"],
   },
@@ -239,7 +239,7 @@ export const CITIES: City[] = [
     summary:
       "Indore on an interactive map, on the Malwa plateau where the Kanh meets the Saraswati. Ask what lies within any radius, with every figure showing its source.",
     geography:
-      "Indore sits on the Malwa plateau in western Madhya Pradesh, about 550 metres above sea level, where two small rivers meet — the Kanh and the Saraswati — which run through the older parts of the city rather than around them. The plateau is high enough to take the edge off the summer compared with the plains below it, and level enough that the city has spread outward in most directions with little to stop it.",
+      "Indore sits on the Malwa plateau in western Madhya Pradesh, about 550 metres above sea level, where two small rivers meet (the Kanh and the Saraswati), which run through the older parts of the city rather than around them. The plateau is high enough to take the edge off the summer compared with the plains below it, and level enough that the city has spread outward in most directions with little to stop it.",
     landmarks: ["Rajwada Palace", "Lalbagh Palace", "Kanch Mandir", "Khajrana Ganesh Temple", "Manik Bagh"],
     questions: ["hospitals within 3 km", "schools within 2 km", "what is within 800 m", "shopping within 1 km"],
   },

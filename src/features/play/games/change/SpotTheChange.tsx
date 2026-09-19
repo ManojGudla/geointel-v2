@@ -187,7 +187,7 @@ export function SpotTheChange({ onBackToHub }: { onBackToHub: () => void }) {
         { label: "Your best", value: Math.max(best, score).toLocaleString() },
       ],
     });
-    const outcome = await shareScoreCard(card, `maNOWj Spot the Change — ${score.toLocaleString()}\n${PLAY_URL}`);
+    const outcome = await shareScoreCard(card, `maNOWj Spot the Change: ${score.toLocaleString()}\n${PLAY_URL}`);
     setShared(outcome === "downloaded" ? "Saved as an image" : outcome === "shared" ? "Shared" : null);
     if (outcome !== "cancelled") window.setTimeout(() => setShared(null), 2600);
   };
@@ -244,7 +244,7 @@ export function SpotTheChange({ onBackToHub }: { onBackToHub: () => void }) {
         <ol className="change__review">
           {rounds.slice(0, round + 1).map((r) => (
             <li key={r.site.id}>
-              <strong>{r.site.name}</strong>, {r.site.country} — {r.site.answer.toLowerCase()}
+              <strong>{r.site.name}</strong>, {r.site.country}: {r.site.answer.toLowerCase()}
             </li>
           ))}
         </ol>

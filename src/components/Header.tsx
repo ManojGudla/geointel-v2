@@ -143,7 +143,7 @@ export function Header() {
         <div className="app-header__wordmark">
           <span className="app-header__logo app-header__logo--full">maNOWj GeoIntel</span>
           <span className="app-header__logo app-header__logo--short">GeoIntel</span>
-          <span className="app-header__tagline">Geospatial Intelligence Platform</span>
+          <span className="app-header__tagline">Maps, data and sources for any place</span>
         </div>
       </div>
 
@@ -210,7 +210,7 @@ export function Header() {
             type="button"
             className="app-header__icon-btn app-header__icon-btn--ghost"
             onClick={openHelp}
-            aria-label="How it works — a guide to this application"
+            aria-label="How it works: a guide to this application"
             title="How it works"
           >
             <span aria-hidden="true">❓</span>

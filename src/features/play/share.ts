@@ -42,7 +42,7 @@ export function scoreBar(score: number, max: number): string {
 }
 
 export function buildShareText({ gameTitle, headline, score, lines }: ShareInput): string {
-  const parts = [`maNOWj PLAY — ${gameTitle}`, headline, `Score: ${score.toLocaleString()}`];
+  const parts = [`maNOWj PLAY: ${gameTitle}`, headline, `Score: ${score.toLocaleString()}`];
   if (lines && lines.length) parts.push("", ...lines);
   parts.push("", PLAY_URL);
   return parts.join("\n");

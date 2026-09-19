@@ -103,7 +103,7 @@ export function CountryHunt({ onBackToHub }: { onBackToHub: () => void }) {
           <span className="hunt__outof">/ {(ROUNDS * MAX_ROUND_SCORE).toLocaleString()}</span>
         </p>
         <p className="hunt__note">
-          {noHints ? "No hints used — that is the full score." : "Some rounds used hints, which cost points."}
+          {noHints ? "No hints used. That is the full score." : "Some rounds used hints, which cost points."}
         </p>
         <ol className="hunt__review">
           {results.map((r) => (
@@ -207,7 +207,7 @@ export function CountryHunt({ onBackToHub }: { onBackToHub: () => void }) {
       {revealed && current ? (
         <div className="hunt__answer">
           <p className="hunt__answer-head">
-            <Flag code={round!.country.code} name={round!.country.name} className="flag--inline" /> <strong>{round!.country.name}</strong> — capital{" "}
+            <Flag code={round!.country.code} name={round!.country.name} className="flag--inline" /> <strong>{round!.country.name}</strong>, capital{" "}
             {round!.country.capital}
           </p>
           <p className="hunt__answer-score">
@@ -231,7 +231,7 @@ export function CountryHunt({ onBackToHub }: { onBackToHub: () => void }) {
       )}
 
       <p className="hunt__caveat">
-        Scored against the country's capital, not its borders — so for very large countries, landing anywhere inside
+        Scored against the country's capital, not its borders, so for very large countries, landing anywhere inside
         still loses a little distance.
       </p>
     </section>

@@ -840,7 +840,7 @@ export function Stadium({
         {phase === "runup"
           ? "Here it comes…"
           : travelling
-            ? "NOW — tap or SPACE"
+            ? "NOW: tap or SPACE"
             : phase === "result"
               ? outcome === "out"
                 ? "Out."

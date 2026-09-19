@@ -182,7 +182,7 @@ export function MapCommandBar() {
   return (
     <div className="map-command">
       <p className="map-command__lead">
-        Ask in plain language. The answer is drawn on the map and computed from real mapped data — the AI only decides which
+        Ask in plain language. The answer is drawn on the map and computed from real mapped data. The AI only decides which
         analysis to run.
       </p>
 
@@ -208,7 +208,7 @@ export function MapCommandBar() {
 
       {!location && (
         <p className="map-command__note">
-          Select a location first — every question is answered about the area around it.
+          Select a location first. Every question is answered about the area around it.
         </p>
       )}
 

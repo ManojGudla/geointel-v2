@@ -46,7 +46,7 @@ function OfficialRow({ entry }: { entry: OfficialEntry }) {
           </p>
         </>
       ) : (
-        <p className="officials-panel__unavailable">Unable to verify{entry.note ? ` — ${entry.note}` : "."}</p>
+        <p className="officials-panel__unavailable">Unable to verify{entry.note ? `: ${entry.note}` : "."}</p>
       )}
     </div>
   );
@@ -89,7 +89,7 @@ export function OfficialsPanel() {
                 <section key={level} className="officials-panel__level">
                   <h3>
                     {level === "country" && flag ? `${flag} ` : ""}
-                    {LEVEL_HEADING[level]} — {levelLabel}
+                    {LEVEL_HEADING[level]}: {levelLabel}
                   </h3>
                   {rows.map((entry, i) => (
                     <OfficialRow key={`${entry.role}-${i}`} entry={entry} />

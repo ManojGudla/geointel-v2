@@ -118,7 +118,7 @@ export function hintsFor(round: CountryRound): Hint[] {
     {
       kind: "region",
       label: "Which part of the world?",
-      text: `${country.region}${compassWithinRegion(country, sameRegion) ? ` — the ${compassWithinRegion(country, sameRegion)} part` : ""}.`,
+      text: `${country.region}${compassWithinRegion(country, sameRegion) ? `, the ${compassWithinRegion(country, sameRegion)} part` : ""}.`,
       cost: HINT_COST.region,
     },
     {

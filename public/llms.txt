@@ -20,34 +20,34 @@ Built by Manoj Kumar Gudla. Free, no sign-up, no tracking without consent.
 
 ## Where the data comes from
 
-- OpenStreetMap and Nominatim — places and addresses
-- Overpass — map features and points of interest
-- OSRM — routing
-- Open-Meteo — weather and air quality
-- USGS — earthquakes
-- Wikidata — population
-- Esri and NASA GIBS — satellite imagery
+- OpenStreetMap and Nominatim: places and addresses
+- Overpass: map features and points of interest
+- OSRM: routing
+- Open-Meteo: weather and air quality
+- USGS: earthquakes
+- Wikidata: population
+- Esri and NASA GIBS: satellite imagery
 
 Nothing is estimated. Where a source has no figure, the app says so rather
 than guessing, and every answer carries the date it applies to.
 
 ## Pages
 
-- [Home](https://www.manowj.com/) — the map, the analysis panels and the games
-- [AI Map Search](https://www.manowj.com/ai-map-search) — what the app does and how the answers are sourced
-- [System status](https://www.manowj.com/status) — live reachability of the data providers behind the app
+- [Home](https://www.manowj.com/): the map, the analysis panels and the games
+- [AI Map Search](https://www.manowj.com/ai-map-search): what the app does and how the answers are sourced
+- [System status](https://www.manowj.com/status): live reachability of the data providers behind the app
 
 City pages, each with hand-written geography and live figures that carry their
 source and date:
 
-- [Hyderabad](https://www.manowj.com/maps/hyderabad) — map, population, air quality and what is nearby
-- [Bengaluru](https://www.manowj.com/maps/bengaluru) — map, population, air quality and what is nearby
-- [Mumbai](https://www.manowj.com/maps/mumbai) — map, population, air quality and what is nearby
-- [Delhi](https://www.manowj.com/maps/delhi) — map, population, air quality and what is nearby
-- [Chennai](https://www.manowj.com/maps/chennai) — map, population, air quality and what is nearby
-- [Pune](https://www.manowj.com/maps/pune) — map, population, air quality and what is nearby
-- [Kolkata](https://www.manowj.com/maps/kolkata) — map, population, air quality and what is nearby
-- [Visakhapatnam](https://www.manowj.com/maps/visakhapatnam) — map, population, air quality and what is nearby
+- [Hyderabad](https://www.manowj.com/maps/hyderabad): map, population, air quality and what is nearby
+- [Bengaluru](https://www.manowj.com/maps/bengaluru): map, population, air quality and what is nearby
+- [Mumbai](https://www.manowj.com/maps/mumbai): map, population, air quality and what is nearby
+- [Delhi](https://www.manowj.com/maps/delhi): map, population, air quality and what is nearby
+- [Chennai](https://www.manowj.com/maps/chennai): map, population, air quality and what is nearby
+- [Pune](https://www.manowj.com/maps/pune): map, population, air quality and what is nearby
+- [Kolkata](https://www.manowj.com/maps/kolkata): map, population, air quality and what is nearby
+- [Visakhapatnam](https://www.manowj.com/maps/visakhapatnam): map, population, air quality and what is nearby
 
 Feature status and Privacy are panels inside the app rather than separate
 addresses. They were listed above as their own links, all three pointing at the

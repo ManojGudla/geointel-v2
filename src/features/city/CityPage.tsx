@@ -280,7 +280,7 @@ export function CityPage({ city }: Props) {
             {(counts.data ?? COUNT_CATEGORIES.map((c) => ({ ...c, count: null }))).map((c) => (
               <li key={c.id} className="city__count">
                 <span className="city__count-value">
-                  {counts.isLoading ? "…" : c.count === null ? "—" : c.count.toLocaleString("en-IN")}
+                  {counts.isLoading ? "…" : c.count === null ? "-" : c.count.toLocaleString("en-IN")}
                 </span>
                 <span className="city__count-label">{c.label}</span>
               </li>

@@ -44,7 +44,7 @@ export const GIBS_LAYERS: GibsLayer[] = [
     product: "MODIS_Terra_CorrectedReflectance_Bands721",
     format: "jpg",
     maxZoom: 9,
-    blurb: "False colour. Vegetation reads bright green, water dark, burn scars red-brown — change is far easier to see than in true colour.",
+    blurb: "False colour. Vegetation reads bright green, water dark, burn scars red-brown. Change is far easier to see than in true colour.",
   },
 ];
 

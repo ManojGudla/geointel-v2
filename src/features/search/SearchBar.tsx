@@ -428,7 +428,7 @@ export function SearchBar() {
           </p>
           <ul>
             <li>Try just the area or colony name, without the house number.</li>
-            <li>A Plus Code works too — paste it exactly as Google shows it.</li>
+            <li>A Plus Code works too. Paste it exactly as Google shows it.</li>
             <li>
               Or <button type="button" className="search-bar__empty-link" onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen(false)}>close this and click the spot on the map</button>.
             </li>

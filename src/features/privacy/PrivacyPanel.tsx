@@ -49,7 +49,7 @@ export function PrivacyPanel() {
             <h2>
               <span aria-hidden="true">🔒</span> Privacy &amp; security
             </h2>
-            <p>What this app does with your data, in plain words — and what it doesn&apos;t.</p>
+            <p>What this app does with your data, in plain words, and what it doesn&apos;t.</p>
           </div>
           <button type="button" className="privacy__close" onClick={close} aria-label="Close">
             ✕
@@ -84,7 +84,7 @@ export function PrivacyPanel() {
 
         <footer className="privacy__foot">
           Every claim above points at the file or setting that makes it true, so it can be checked rather than taken on
-          faith. {NOT_YET.length} things are marked as not yet done — if one of them matters to you, say so through
+          faith. {NOT_YET.length} things are marked as not yet done. If one of them matters to you, say so through
           Feedback and it moves up the list.
         </footer>
       </div>

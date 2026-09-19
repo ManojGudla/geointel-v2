@@ -145,7 +145,7 @@ export function CommandPalette() {
       { id: "feature-status", label: "What's built vs. planned", icon: "📋", available: true, run: () => openFeatureStatus() },
       { id: "privacy", label: "Privacy & security", icon: "🔒", available: true, run: () => openPrivacy() },
       { id: "about", label: "About", icon: "ℹ️", available: true, run: () => openAbout() },
-      { id: "games", label: "maNOWj PLAY — games", icon: "🎮", available: true, run: () => openGames() },
+      { id: "games", label: "maNOWj PLAY: games", icon: "🎮", available: true, run: () => openGames() },
       { id: "compare", label: "Compare locations", icon: "⚖️", available: false, run: () => {} },
       { id: "report", label: "Generate report", icon: "📄", available: false, run: () => {} },
     ],

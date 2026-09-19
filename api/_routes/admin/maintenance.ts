@@ -119,7 +119,7 @@ const handler: ApiHandler = async (req, res) => {
   if (req.method !== "POST") return err(res, 405, "Use GET or POST.");
 
   if (!isAdminConfigured()) {
-    return err(res, 503, "Admin access isn't configured yet — set GEOINTEL_ADMIN_KEY on the server.", "NOT_CONFIGURED");
+    return err(res, 503, "Admin access isn't configured yet. Set GEOINTEL_ADMIN_KEY on the server.", "NOT_CONFIGURED");
   }
   if (!isAdminRequest(req)) {
     console.warn("[admin] auth failure", { route: "maintenance:write", ip: getClientIp(req), ua: req.headers["user-agent"] });
@@ -133,7 +133,7 @@ const handler: ApiHandler = async (req, res) => {
 
   const client = getSupabaseClient();
   if (!client) {
-    return err(res, 503, "Maintenance settings storage isn't configured yet — the server is missing its Supabase credentials.", "NOT_CONFIGURED");
+    return err(res, 503, "Maintenance settings storage isn't configured yet. The server is missing its Supabase credentials.", "NOT_CONFIGURED");
   }
 
   const now = new Date().toISOString();

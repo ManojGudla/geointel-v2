@@ -45,14 +45,14 @@ export function Buildings3DStatus() {
     action = { label: "Turn on 3D", run: toggle3D };
   } else if (tooFarOut) {
     tone = "wait";
-    message = `Zoom in to load buildings. Shapes load at zoom ${MIN_ZOOM_FOR_3D_BUILDINGS} and closer — you're at zoom ${zoom.toFixed(1)}.`;
+    message = `Zoom in to load buildings. Shapes load at zoom ${MIN_ZOOM_FOR_3D_BUILDINGS} and closer. You're at zoom ${zoom.toFixed(1)}.`;
     action = { label: "Zoom to buildings", run: () => requestCamera({ zoom: MIN_ZOOM_FOR_3D_BUILDINGS + 0.5, pitch: 55 }) };
   } else if (query.isFetching) {
     tone = "wait";
     message = "Loading building outlines for this view…";
   } else if (query.isError) {
     tone = "error";
-    message = "Building outlines couldn't be loaded — the OpenStreetMap query service didn't respond.";
+    message = "Building outlines couldn't be loaded. The OpenStreetMap query service didn't respond.";
     action = { label: "Try again", run: () => void query.refetch() };
   } else if (count === 0) {
     tone = "empty";

@@ -23,7 +23,7 @@ export function analyzeProperty(evidence: GISEvidence): PropertyAnalysis {
       confidence: 0,
       trust: "unavailable",
       evidence: ["No mapped buildings, shops, offices, amenities, tourism features, or transit infrastructure were found within this radius."],
-      reasoning: "OpenStreetMap has no recorded features here yet. This does not mean the area is empty — only that it isn't mapped in detail.",
+      reasoning: "OpenStreetMap has no recorded features here yet. This does not mean the area is empty, only that it isn't mapped in detail.",
       scores,
       sources: ["OpenStreetMap / Overpass"],
     };

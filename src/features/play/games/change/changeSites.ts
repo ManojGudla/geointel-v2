@@ -267,7 +267,7 @@ export const CHANGE_SITES: ChangeSite[] = [
     source: "Australian Government Royal Commission into National Natural Disaster Arrangements, 2020",
     layer: "falsecolor",
     shortIntervalBecause:
-      "Five months, deliberately: before the fire season and after it. A burn scar in false colour is a hard-edged dark red-brown area that seasonal change does not produce, so the short gap does not make the answer ambiguous — it is what makes the fire the only thing that differs.",
+      "Five months, deliberately: before the fire season and after it. A burn scar in false colour is a hard-edged dark red-brown area that seasonal change does not produce, so the short gap does not make the answer ambiguous. It is what makes the fire the only thing that differs.",
   },
 ];
 

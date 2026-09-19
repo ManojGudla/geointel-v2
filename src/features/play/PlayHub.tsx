@@ -110,7 +110,7 @@ export function PlayHub() {
               className="play__icon-btn"
               onClick={() => setSoundEnabled(!soundEnabled)}
               aria-pressed={soundEnabled}
-              title={soundEnabled ? "Sound on — click to mute" : "Sound off — click to unmute"}
+              title={soundEnabled ? "Sound on: click to mute" : "Sound off: click to unmute"}
             >
               {soundEnabled ? "🔊" : "🔇"}
             </button>
@@ -191,7 +191,7 @@ export function PlayHub() {
 
         {view.kind === "hub" && (
           <footer className="play__foot">
-            Every game here is playable now — there are no locked cards. Scores, streaks and achievements are saved in this
+            Every game here is playable now. There are no locked cards. Scores, streaks and achievements are saved in this
             browser only; there is no account and no global leaderboard, so nothing here is compared against other players.
           </footer>
         )}
@@ -239,7 +239,7 @@ function Profile() {
 
       <h4>Personal bests</h4>
       {played.length === 0 ? (
-        <p className="play-empty">Nothing yet — finish a round and it shows up here.</p>
+        <p className="play-empty">Nothing yet. Finish a round and it shows up here.</p>
       ) : (
         <ul className="play-profile__bests">
           {played.map((g) => {

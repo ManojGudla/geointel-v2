@@ -82,8 +82,8 @@ export async function runAnalysis(request: AnalysisRequest): Promise<AnalysisRes
       points: inside,
       stats: [
         { label: "Found", value: String(inside.length) },
-        { label: "Closest", value: inside[0] ? formatDistance(inside[0].distanceMeters) : "—" },
-        { label: "Furthest", value: inside.length ? formatDistance(inside[inside.length - 1]!.distanceMeters) : "—" },
+        { label: "Closest", value: inside[0] ? formatDistance(inside[0].distanceMeters) : "-" },
+        { label: "Furthest", value: inside.length ? formatDistance(inside[inside.length - 1]!.distanceMeters) : "-" },
       ],
       note: "Results are features tagged in OpenStreetMap. Somewhere unmapped will not appear here.",
     };
@@ -121,7 +121,7 @@ export async function runAnalysis(request: AnalysisRequest): Promise<AnalysisRes
         { label: "Straight-line distance", value: formatDistance(closest.distanceMeters) },
         { label: "Direction", value: `${compassPoint(bearing)} (${Math.round(bearing)}°)` },
       ],
-      note: "Straight-line distance, not travel distance — use Directions for a road route.",
+      note: "Straight-line distance, not travel distance. Use Directions for a road route.",
     };
   }
 
@@ -146,7 +146,7 @@ export async function runAnalysis(request: AnalysisRequest): Promise<AnalysisRes
       { label: "Mapped features considered", value: String(evidence.features.length) },
     ],
     suitability: { score, band: scoreBand(score), factors },
-    note: "Scored from OpenStreetMap feature density within the radius. It does not include population statistics, land price or flood risk — no free source provides those at this level, so they are not modelled rather than guessed.",
+    note: "Scored from OpenStreetMap feature density within the radius. It does not include population statistics, land price or flood risk. No free source provides those at this level, so they are not modelled rather than guessed.",
   };
 }
 

@@ -228,7 +228,7 @@ export function buildQueue(seed: number | string, length = 80): QuizQuestion[] {
 
 export function shareText(state: SixtyState, best: number): string {
   const lines = [
-    `maNOWj 60 Seconds — ${state.score.toLocaleString()}`,
+    `maNOWj 60 Seconds: ${state.score.toLocaleString()}`,
     `🔥 ${state.longestStreak} best streak · ${accuracy(state)}% accurate · ${state.correct}/${state.answered}`,
   ];
   if (state.score >= best && state.score > 0) lines.push("New personal best");

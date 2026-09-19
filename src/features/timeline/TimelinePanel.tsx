@@ -90,7 +90,7 @@ export function TimelinePanel() {
           {tooClose && (
             <div className="timeline__warning">
               <p>
-                You&apos;re zoomed in past what this imagery holds — it&apos;s 250 m per pixel, so at this zoom you&apos;re looking at
+                You&apos;re zoomed in past what this imagery holds. It&apos;s 250 m per pixel, so at this zoom you&apos;re looking at
                 an enlargement, not more detail.
               </p>
               <button type="button" onClick={() => requestCamera({ zoom: USEFUL_MAX_ZOOM - 1 })}>
@@ -101,7 +101,7 @@ export function TimelinePanel() {
 
           <p className="timeline__note">
             NASA GIBS / MODIS Terra, 250 m per pixel, daily since 2000. Good for reservoirs, coastlines, vegetation, burn scars and
-            large-scale urban growth across years. It cannot show individual buildings or streets — that needs commercial
+            large-scale urban growth across years. It cannot show individual buildings or streets. That needs commercial
             high-resolution archive imagery, which has no free source.
           </p>
         </>

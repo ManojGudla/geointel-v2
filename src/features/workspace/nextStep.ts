@@ -110,7 +110,7 @@ export function nextStep(input: NextStepInput): NextStep | null {
   // something, which is what the analysis tools answer.
   if (is3D) {
     return {
-      text: "You can score this exact spot for a use — a café, a clinic, a warehouse.",
+      text: "You can score this exact spot for a use: a café, a clinic, a warehouse.",
       label: "Score this spot",
       action: "analyse",
     };

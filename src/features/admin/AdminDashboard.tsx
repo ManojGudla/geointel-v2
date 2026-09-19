@@ -17,7 +17,7 @@ import { clearAdminKey, readAdminKey, writeAdminKey } from "./adminSession";
 import "./AdminDashboard.css";
 
 function formatTimestamp(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "Not available";
   try {
     return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
   } catch {
@@ -177,7 +177,7 @@ export function AdminDashboard() {
             if (keyInput.trim()) verify(keyInput.trim());
           }}
         >
-          <h1>maNOWj GeoIntel — Admin</h1>
+          <h1>maNOWj GeoIntel: Admin</h1>
           <p>Enter the admin key to manage maintenance mode.</p>
           <input
             type="password"
@@ -213,7 +213,7 @@ export function AdminDashboard() {
 
       {maintenance.enabled && (
         <div className={`admin-dashboard__banner ${maintenance.type === "emergency" ? "admin-dashboard__banner--emergency" : ""}`}>
-          <span>🔧 MAINTENANCE MODE ACTIVE — since {formatTimestamp(maintenance.startedAt)}</span>
+          <span>🔧 MAINTENANCE MODE ACTIVE (since {formatTimestamp(maintenance.startedAt)})</span>
           <button type="button" onClick={() => runAction("disable")} disabled={saving}>
             {saving ? "Working…" : "Disable Maintenance Mode"}
           </button>
@@ -380,7 +380,7 @@ export function AdminDashboard() {
       </section>
 
       <p className="admin-dashboard__note">
-        Admin access here is a single shared key (GEOINTEL_ADMIN_KEY), not a full account system — GeoIntel doesn't have real
+        Admin access here is a single shared key (GEOINTEL_ADMIN_KEY), not a full account system. GeoIntel doesn't have real
         user accounts yet. This dashboard is the one place that key unlocks.
       </p>
     </div>

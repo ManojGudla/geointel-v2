@@ -120,7 +120,7 @@ export function PinThePlace({
           score={totalScore}
           applied={applied}
           lines={records.map(
-            (r) => `${scoreBar(r.score, MAX_PIN_SCORE)} ${r.place.name} — ${formatDistanceKm(r.distanceKm)}`
+            (r) => `${scoreBar(r.score, MAX_PIN_SCORE)} ${r.place.name}: ${formatDistanceKm(r.distanceKm)}`
           )}
           onPlayAgain={restart}
           onBackToHub={onBackToHub}
@@ -176,7 +176,7 @@ export function PinThePlace({
           ...(revealed ? [{ lat: place.lat, lon: place.lon, kind: "answer" as const, label: place.name }] : []),
         ]}
         showConnector={revealed}
-        ariaLabel={`World map — click to place your guess for ${place.name}`}
+        ariaLabel={`World map: click to place your guess for ${place.name}`}
       />
 
       {revealed ? (

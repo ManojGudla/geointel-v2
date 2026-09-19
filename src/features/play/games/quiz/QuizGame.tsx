@@ -173,7 +173,7 @@ export function QuizGame({ gameId, gameTitle, kinds, count = 10, onBackToHub, se
           }}
         >
           {usedFiftyFifty
-            ? "Two answers removed — this question is worth half"
+            ? "Two answers removed. This question is worth half"
             : `Remove two wrong answers (−${Math.round(FIFTY_FIFTY_COST * 100)}% of this question)`}
         </button>
       )}

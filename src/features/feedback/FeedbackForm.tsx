@@ -83,7 +83,7 @@ export function FeedbackForm() {
 
       {state === "done" ? (
         <div className="feedback-form__done">
-          <p>Thanks — your feedback was saved.</p>
+          <p>Thanks. Your feedback was saved.</p>
           <button type="button" onClick={handleClose}>
             Close
           </button>

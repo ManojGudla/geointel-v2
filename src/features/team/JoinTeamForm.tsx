@@ -90,7 +90,7 @@ export function JoinTeamForm() {
 
       {state === "done" ? (
         <div className="join-team-form__done">
-          <p>Thanks, {name.trim() || "there"} — your application was saved. We'll be in touch.</p>
+          <p>Thanks, {name.trim() || "there"}. Your application was saved. We'll be in touch.</p>
           <button type="button" onClick={handleClose}>
             Close
           </button>

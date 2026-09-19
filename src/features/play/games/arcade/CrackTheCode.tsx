@@ -90,7 +90,7 @@ export function CrackTheCode({ onBackToHub }: { onBackToHub: () => void }) {
         { label: "Your best", value: Math.max(best, score).toLocaleString() },
       ],
     });
-    const outcome = await shareScoreCard(card, `maNOWj Crack the Code — ${score.toLocaleString()}\n${PLAY_URL}`);
+    const outcome = await shareScoreCard(card, `maNOWj Crack the Code: ${score.toLocaleString()}\n${PLAY_URL}`);
     setShared(outcome === "downloaded" ? "Saved as an image" : outcome === "shared" ? "Shared" : null);
     if (outcome !== "cancelled") window.setTimeout(() => setShared(null), 2600);
   };

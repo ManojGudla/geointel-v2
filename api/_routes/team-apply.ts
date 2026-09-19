@@ -45,7 +45,7 @@ const handler: ApiHandler = async (req, res) => {
 
   const client = getSupabaseClient();
   if (!client) {
-    return err(res, 503, "Team applications aren't configured yet — the server is missing its Supabase credentials.", "NOT_CONFIGURED");
+    return err(res, 503, "Team applications aren't configured yet. The server is missing its Supabase credentials.", "NOT_CONFIGURED");
   }
 
   // Same reasoning as api/feedback.ts: server-observed IP/user agent and a

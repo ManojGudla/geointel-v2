@@ -189,7 +189,7 @@ export function QuickActions() {
           type="button"
           className={needsPlace ? "quick-actions__needs-place" : undefined}
           onClick={run(() => openDirections(location ?? undefined))}
-          title={needsPlace ? "Pick a place first — this will take you to the search box" : "Get directions to this place"}
+          title={needsPlace ? "Pick a place first. This will take you to the search box" : "Get directions to this place"}
         >
           🧭 Directions
         </button>

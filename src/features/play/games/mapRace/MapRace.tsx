@@ -114,7 +114,7 @@ export function MapRace({ onBackToHub }: { onBackToHub: () => void }) {
           <p className="play-intro__title">60 seconds. How many can you find?</p>
           <p className="play-intro__body">
             A place name appears. Click roughly where it is on the map. Anything within{" "}
-            {HIT_RADIUS_KM} km counts. Wrong answers cost you nothing but time — keep moving.
+            {HIT_RADIUS_KM} km counts. Wrong answers cost you nothing but time. Keep moving.
           </p>
           <button type="button" className="play-btn play-btn--primary" onClick={start}>
             Start the clock
@@ -131,10 +131,10 @@ export function MapRace({ onBackToHub }: { onBackToHub: () => void }) {
         <RoundSummary
           gameTitle="Map Race"
           headline={`${found} found in ${DURATION_SECONDS} seconds`}
-          detail={hits.length > 0 ? `${hits.length} attempts` : "No attempts — the clock ran out."}
+          detail={hits.length > 0 ? `${hits.length} attempts` : "No attempts. The clock ran out."}
           score={found}
           applied={applied}
-          lines={hits.slice(0, 12).map((h) => `${h.found ? "✅" : "❌"} ${h.place.name} — ${formatDistanceKm(h.distanceKm)}`)}
+          lines={hits.slice(0, 12).map((h) => `${h.found ? "✅" : "❌"} ${h.place.name}: ${formatDistanceKm(h.distanceKm)}`)}
           onPlayAgain={start}
           onBackToHub={onBackToHub}
         />
@@ -162,7 +162,7 @@ export function MapRace({ onBackToHub }: { onBackToHub: () => void }) {
           interactive
           onPick={pick}
           pins={[]}
-          ariaLabel={`World map — click where ${place?.name ?? "the place"} is`}
+          ariaLabel={`World map: click where ${place?.name ?? "the place"} is`}
         />
         {flash && (
           <div className={`play-flash ${flash.found ? "play-flash--hit" : "play-flash--miss"}`} role="status">

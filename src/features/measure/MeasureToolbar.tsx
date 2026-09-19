@@ -51,7 +51,7 @@ export function MeasureToolbar() {
               : mode === "distance"
                 ? `${points.length} point${points.length === 1 ? "" : "s"}`
                 : points.length < 3
-                  ? `${points.length} point${points.length === 1 ? "" : "s"} — need 3+ to close`
+                  ? `${points.length} point${points.length === 1 ? "" : "s"}, need 3+ to close`
                   : `${points.length} point${points.length === 1 ? "" : "s"}`}
           </span>
           <div className="measure-toolbar__actions">

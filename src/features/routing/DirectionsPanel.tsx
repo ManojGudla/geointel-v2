@@ -245,7 +245,7 @@ export function DirectionsPanel() {
           </button>
           <p className="directions-panel__start-note">
             Uses your device&apos;s location to follow the route and re-route if you go off course. Times are free-flow
-            estimates — live traffic isn&apos;t available from a free routing provider, so it isn&apos;t included.
+            estimates. Live traffic isn&apos;t available from a free routing provider, so it isn&apos;t included.
           </p>
 
           {steps.length > 0 && (
@@ -304,7 +304,7 @@ export function DirectionsPanel() {
                   </a>
                 ))}
               </div>
-              <small>These open the provider&apos;s own app or site — GeoIntel doesn&apos;t process bookings itself.</small>
+              <small>These open the provider&apos;s own app or site. GeoIntel doesn&apos;t process bookings itself.</small>
             </div>
           )}
         </>

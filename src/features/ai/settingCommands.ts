@@ -59,7 +59,7 @@ export function describeSettingCommand(command: SettingCommand): string {
   switch (command.setting) {
     case "weather-effects":
       return command.value
-        ? "Weather effects are on. They use the real reported conditions at your selected location — if the weather can't be fetched, nothing is drawn."
+        ? "Weather effects are on. They use the real reported conditions at your selected location. If the weather can't be fetched, nothing is drawn."
         : "Weather effects are off.";
     case "3d":
       return command.value ? "Switched the map to 3D." : "Switched the map back to 2D.";

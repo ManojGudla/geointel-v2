@@ -64,8 +64,8 @@ export function GettingStarted() {
       <section>
         <h3 className="getting-started__lead">Start with a place</h3>
         <p className="getting-started__body">
-          Search above, use your location, or click anywhere on the map. Everything in this workspace — evidence, property
-          analysis, measurements, AI — works from the place you pick.
+          Search above, use your location, or click anywhere on the map. Everything in this workspace (evidence, property
+          analysis, measurements, AI) works from the place you pick.
         </p>
       </section>
 
@@ -99,7 +99,7 @@ export function GettingStarted() {
           ))}
         </ul>
         <p className="getting-started__body getting-started__body--quiet">
-          Each of these is a button on the rail to the left — this list is only a shortcut.
+          Each of these is a button on the rail to the left. This list is only a shortcut.
         </p>
       </section>
 

@@ -211,7 +211,7 @@ export const FACTS: Fact[] = [
     claim: "Mount Everest is the tallest mountain on Earth measured from its own base.",
     isTrue: false,
     because:
-      "Everest is the highest above sea level, but Mauna Kea rises further from its base — most of it is under the ocean.",
+      "Everest is the highest above sea level, but Mauna Kea rises further from its base. Most of it is under the ocean.",
     source: "USGS",
     topic: "geography",
     difficulty: 2,
@@ -405,7 +405,7 @@ export const FACTS: Fact[] = [
     id: "gold-seawater",
     claim: "There is gold dissolved in the world's oceans.",
     isTrue: true,
-    because: "Seawater contains gold at extremely low concentration — far too dilute to extract profitably.",
+    because: "Seawater contains gold at extremely low concentration, far too dilute to extract profitably.",
     source: "NOAA Ocean Facts",
     topic: "science",
     difficulty: 2,

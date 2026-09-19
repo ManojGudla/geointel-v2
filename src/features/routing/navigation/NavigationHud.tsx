@@ -125,7 +125,7 @@ export function NavigationHud() {
 
         {poorAccuracy && (
           <p className="nav-hud__accuracy">
-            Your position is only accurate to about {Math.round(accuracyMeters!)} m right now — the marker may wander.
+            Your position is only accurate to about {Math.round(accuracyMeters!)} m right now. The marker may wander.
           </p>
         )}
         {rerouteCount > 0 && state === "navigating" && (

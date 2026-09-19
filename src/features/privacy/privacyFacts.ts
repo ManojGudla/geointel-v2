@@ -28,7 +28,7 @@ export const NO_ACCOUNT_FACTS: Fact[] = [
     claim: "Nothing you search is stored on a server",
     detail:
       "Your recent searches, selected places, layers and analysis results live in your own browser and are sent nowhere. Clearing your browser data erases them completely.",
-    where: "src/stores/searchStore.ts — localStorage only",
+    where: "src/stores/searchStore.ts (localStorage only)",
   },
   {
     claim: "Game scores stay on your device",
@@ -40,7 +40,7 @@ export const NO_ACCOUNT_FACTS: Fact[] = [
     claim: "Your location is used, never stored",
     detail:
       "Pressing 'use my location' sends your coordinates to this site's own server once, to turn them into a street address, and starting navigation sends them to work out the route. Nothing is written to a database and no history is kept. While navigating, your position is used to follow the route and is discarded when you stop.",
-    where: "api/_routes/reverse-geocode.ts and api/_routes/route.ts — answered and dropped, never written; both marked private so no shared cache keeps them",
+    where: "api/_routes/reverse-geocode.ts and api/_routes/route.ts (answered and dropped, never written; both marked private so no shared cache keeps them)",
   },
 ];
 
@@ -49,7 +49,7 @@ export const REQUEST_FACTS: Fact[] = [
     claim: "Map data comes from public sources, through this app",
     detail:
       "Place names come from OpenStreetMap/Nominatim, features from Overpass, routes from OSRM, weather from Open-Meteo, earthquakes from USGS, satellite imagery from Esri and NASA. Requests go through this app's own API rather than straight from your browser, so those providers never see your browser or IP.",
-    where: "api/_routes/ — every provider is called server-side",
+    where: "api/_routes/ (every provider is called server-side)",
   },
   {
     claim: "Every endpoint is rate limited",
@@ -67,7 +67,7 @@ export const REQUEST_FACTS: Fact[] = [
     claim: "Analytics only if you say yes",
     detail:
       "Google Analytics is available on this site, and it is NOT loaded until you accept the banner. Decline and nothing from Google is fetched, no cookies are set, and the site works identically. Your choice is remembered so you are not asked again.",
-    where: "src/features/analytics/consent.ts — the tag loads only after consent",
+    where: "src/features/analytics/consent.ts (the tag loads only after consent)",
   },
   {
     claim: "There are no ad scripts and no other trackers",
@@ -87,13 +87,13 @@ export const BROWSER_FACTS: Fact[] = [
   {
     claim: "The site can't be embedded in someone else's page",
     detail:
-      "X-Frame-Options DENY and frame-ancestors 'none' stop this app being framed inside another site — the trick used to make you click something you didn't intend to.",
+      "X-Frame-Options DENY and frame-ancestors 'none' stop this app being framed inside another site, the trick used to make you click something you didn't intend to.",
     where: "vercel.json X-Frame-Options / frame-ancestors",
   },
   {
     claim: "Your address bar is not leaked to other sites",
     detail:
-      "Referrer-Policy is set to strict-origin-when-cross-origin, so a site you click through to sees only that you came from here — never which place you were looking at.",
+      "Referrer-Policy is set to strict-origin-when-cross-origin, so a site you click through to sees only that you came from here, never which place you were looking at.",
     where: "vercel.json Referrer-Policy",
   },
   {
@@ -133,13 +133,13 @@ export const NOT_YET: Fact[] = [
   {
     claim: "No accounts means no private saved work",
     detail:
-      "Because there's no login, there's also no way to keep your projects private to you across devices — everything is per-browser. Accounts are a real piece of work, not a switch, so they're marked planned rather than hinted at.",
+      "Because there's no login, there's also no way to keep your projects private to you across devices. Everything is per-browser. Accounts are a real piece of work, not a switch, so they're marked planned rather than hinted at.",
     where: "Planned",
   },
   {
     claim: "Accepting analytics shares your visit with Google",
     detail:
-      "If you accept, Google receives your visit the way it does on any site using Analytics — including your IP address and which pages you opened. That is Google's system, not this one, and it is not something this app can promise anything about. If that matters to you, decline: everything still works.",
+      "If you accept, Google receives your visit the way it does on any site using Analytics, including your IP address and which pages you opened. That is Google's system, not this one, and it is not something this app can promise anything about. If that matters to you, decline: everything still works.",
     where: "Google Analytics via Tag Manager",
   },
   {

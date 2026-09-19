@@ -289,7 +289,7 @@ function Test({
   return (
     <div className={`drs__test${shown ? " is-shown" : ""} drs__test--${tone}`}>
       <span className="drs__testlabel">{label}</span>
-      <span className="drs__testvalue">{shown ? value : "—"}</span>
+      <span className="drs__testvalue">{shown ? value : "-"}</span>
     </div>
   );
 }

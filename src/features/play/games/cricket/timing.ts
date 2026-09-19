@@ -146,17 +146,17 @@ function scoreContact(contact: Contact, delivery: Delivery, aim: Aim, rng: Rng):
     // straight does; a bouncer sails over the top.
     const bowledChance = delivery.length === "yorker" ? 0.92 : delivery.length === "full" ? 0.8 : delivery.length === "good" ? 0.6 : delivery.length === "short" ? 0.2 : 0.05;
     if (rng.next() < bowledChance) {
-      return { ...base, outcome: "out", detail: "Missed it — bowled" };
+      return { ...base, outcome: "out", detail: "Missed it. Bowled" };
     }
-    return { ...base, outcome: 0, detail: "Missed it — no run" };
+    return { ...base, outcome: 0, detail: "Missed it. No run" };
   }
 
   if (contact === "edge") {
     // An edge is mostly survivable but it is how you get caught.
     const caught = rng.next() < (aim === "off" ? 0.45 : aim === "straight" ? 0.3 : 0.22);
-    if (caught) return { ...base, outcome: "out", detail: "Edged it — caught" };
+    if (caught) return { ...base, outcome: "out", detail: "Edged it. Caught" };
     const runs = rng.next() < 0.35 ? 4 : rng.next() < 0.5 ? 1 : 0;
-    return { ...base, outcome: runs as Outcome, detail: runs === 4 ? "Edged it — flew for four!" : runs === 1 ? "Edged it — single" : "Edged it — no run" };
+    return { ...base, outcome: runs as Outcome, detail: runs === 4 ? "Edged it. Flew for four!" : runs === 1 ? "Edged it. Single" : "Edged it. No run" };
   }
 
   // Well-timed shots. The better the contact, the further it goes.
@@ -164,13 +164,13 @@ function scoreContact(contact: Contact, delivery: Delivery, aim: Aim, rng: Rng):
   const offRisk = aim === "off";
 
   if (contact === "perfect") {
-    if (offRisk && rng.next() < 0.12) return { ...base, outcome: "out", detail: "Middled it — straight to the fielder" };
+    if (offRisk && rng.next() < 0.12) return { ...base, outcome: "out", detail: "Middled it. Straight to the fielder" };
     return { ...base, outcome: 6, detail: legBonus ? "Pulled for SIX!" : "Six!" };
   }
 
   if (contact === "great") {
     if (legBonus && rng.next() < 0.4) return { ...base, outcome: 6, detail: "Pulled for six!" };
-    if (offRisk && rng.next() < 0.08) return { ...base, outcome: "out", detail: "Well timed — caught in the deep" };
+    if (offRisk && rng.next() < 0.08) return { ...base, outcome: "out", detail: "Well timed. Caught in the deep" };
     return { ...base, outcome: 4, detail: "Four!" };
   }
 
@@ -191,7 +191,7 @@ function scoreContact(contact: Contact, delivery: Delivery, aim: Aim, rng: Rng):
 export function playBall(offsetMs: number | null, delivery: Delivery, aim: Aim, rng: Rng): BallResult {
   if (offsetMs === null) {
     const result = scoreContact("miss", delivery, aim, rng);
-    return { ...result, offsetMs: 0, detail: result.outcome === "out" ? "No shot — bowled" : "No shot — left it" };
+    return { ...result, offsetMs: 0, detail: result.outcome === "out" ? "No shot. Bowled" : "No shot. Left it" };
   }
   const contact = contactFor(offsetMs, delivery);
   const result = scoreContact(contact, delivery, aim, rng);
@@ -347,7 +347,7 @@ export function averageTimingError(history: BallRecord[]): number | null {
 export const READS_PER_MATCH = 3;
 
 export function readTheBowler(delivery: Delivery): string {
-  return `${BOWLER_LABEL[delivery.bowler]} — looks like a ${LENGTH_LABEL[delivery.length].toLowerCase()}.`;
+  return `${BOWLER_LABEL[delivery.bowler]}: looks like a ${LENGTH_LABEL[delivery.length].toLowerCase()}.`;
 }
 
 /** Which shot the length actually rewards. Shown with a read, so it teaches. */
@@ -477,10 +477,10 @@ export function bowlerPlan(history: BallRecord[]): { avoid: Aim | null; note: st
     avoid: favourite,
     note:
       favourite === "leg"
-        ? "The bowler has seen you going leg side — expect it fuller and straighter."
+        ? "The bowler has seen you going leg side. Expect it fuller and straighter."
         : favourite === "off"
-          ? "They know you like it through the off side — expect it shorter."
-          : "You have been going straight — expect it wider.",
+          ? "They know you like it through the off side. Expect it shorter."
+          : "You have been going straight. Expect it wider.",
   };
 }
 
@@ -536,12 +536,12 @@ export function commentary(before: MatchState, after: MatchState, result: BallRe
   const chase = chaseState(after);
 
   if (after.runs >= after.target) {
-    return after.superOver ? "Won the Super Over!" : "Chased it down — that is the match!";
+    return after.superOver ? "Won the Super Over!" : "Chased it down. That is the match!";
   }
   if (result.outcome === "out") {
     const left = after.maxWickets - after.wickets;
     if (left === 0) return "Gone. That is the innings.";
-    return left === 1 ? "Wicket! One wicket left — you cannot lose another." : `Wicket! ${left} left.`;
+    return left === 1 ? "Wicket! One wicket left. You cannot lose another." : `Wicket! ${left} left.`;
   }
   if (after.ballsBowled >= after.totalBalls) return `${chase.runsNeeded} short at the end.`;
 
@@ -549,14 +549,14 @@ export function commentary(before: MatchState, after: MatchState, result: BallRe
   if (crossedFifty) return "FIFTY! Raise the bat.";
 
   if (result.outcome === 6) return chase.death ? "SIX! Right when it was needed." : "Six! That has gone all the way.";
-  if (result.outcome === 4) return "Four — beautifully timed.";
+  if (result.outcome === 4) return "Four. Beautifully timed.";
 
   if (chase.death) {
-    if (result.outcome === 0) return `Dot ball. ${chaseLine(after)} — the pressure is on.`;
+    if (result.outcome === 0) return `Dot ball. ${chaseLine(after)}. The pressure is on.`;
     return `${chaseLine(after)}. Every run counts now.`;
   }
 
-  if (chase.requiredRate > 12) return `${chaseLine(after)} — that is asking a lot.`;
+  if (chase.requiredRate > 12) return `${chaseLine(after)}. That is asking a lot.`;
   if (result.outcome === 0) return "No run. The rate is creeping up.";
   return chaseLine(after);
 }

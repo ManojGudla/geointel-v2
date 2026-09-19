@@ -44,7 +44,7 @@ export function LiveLayersPanel() {
     : quakes.isLoading
       ? "Loading…"
       : quakes.isError
-        ? "Unavailable — USGS didn't respond"
+        ? "Unavailable: USGS didn't respond"
         : `${quakes.data?.events.length ?? 0} events`;
 
   const radarStatus = !enabled.radar
@@ -52,7 +52,7 @@ export function LiveLayersPanel() {
     : radar.isLoading
       ? "Loading…"
       : radar.isError
-        ? "Unavailable — RainViewer didn't respond"
+        ? "Unavailable: RainViewer didn't respond"
         : `Frame from ${timeAgo(radar.data ? radar.data.frameTime * 1000 : null)}`;
 
   const band = aqiBand(air.data?.europeanAqi ?? null);
@@ -116,7 +116,7 @@ export function LiveLayersPanel() {
                 street here really means rain somewhere in that kilometre. */}
             {zoom > RADAR_DETAIL_ZOOM && (
               <p className="live-layers__caveat">
-                You&apos;re zoomed in past the radar&apos;s real detail — it&apos;s roughly a 1 km grid, so it shows the area
+                You&apos;re zoomed in past the radar&apos;s real detail. It&apos;s roughly a 1 km grid, so it shows the area
                 rather than this exact street.
               </p>
             )}
@@ -136,25 +136,25 @@ export function LiveLayersPanel() {
         </div>
         {!location && <p className="live-layers__status">Pick a place to get a reading.</p>}
         {location && air.isLoading && <p className="live-layers__status">Loading…</p>}
-        {location && air.isError && <p className="live-layers__status">Unavailable — the air quality provider didn&apos;t respond.</p>}
+        {location && air.isError && <p className="live-layers__status">Unavailable: the air quality provider didn&apos;t respond.</p>}
         {air.data && (
           <>
             <dl className="live-layers__aqi-grid">
               <div>
                 <dt>PM2.5</dt>
-                <dd>{air.data.pm25 != null ? `${air.data.pm25.toFixed(1)} µg/m³` : "—"}</dd>
+                <dd>{air.data.pm25 != null ? `${air.data.pm25.toFixed(1)} µg/m³` : "-"}</dd>
               </div>
               <div>
                 <dt>PM10</dt>
-                <dd>{air.data.pm10 != null ? `${air.data.pm10.toFixed(1)} µg/m³` : "—"}</dd>
+                <dd>{air.data.pm10 != null ? `${air.data.pm10.toFixed(1)} µg/m³` : "-"}</dd>
               </div>
               <div>
                 <dt>NO₂</dt>
-                <dd>{air.data.no2 != null ? `${air.data.no2.toFixed(1)} µg/m³` : "—"}</dd>
+                <dd>{air.data.no2 != null ? `${air.data.no2.toFixed(1)} µg/m³` : "-"}</dd>
               </div>
               <div>
                 <dt>Ozone</dt>
-                <dd>{air.data.ozone != null ? `${air.data.ozone.toFixed(1)} µg/m³` : "—"}</dd>
+                <dd>{air.data.ozone != null ? `${air.data.ozone.toFixed(1)} µg/m³` : "-"}</dd>
               </div>
             </dl>
             <p className="live-layers__source">

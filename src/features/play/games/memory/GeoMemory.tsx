@@ -134,7 +134,7 @@ export function GeoMemory({ onBackToHub }: { onBackToHub: () => void }) {
           headline={`All ${totalPairs} pairs found`}
           detail={
             moves === perfectMoves
-              ? `Perfect — ${moves} moves, no mistakes, in ${seconds}s.`
+              ? `Perfect: ${moves} moves, no mistakes, in ${seconds}s.`
               : `${moves} moves in ${seconds}s. A perfect game is ${perfectMoves} moves.`
           }
           score={score}

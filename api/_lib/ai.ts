@@ -51,7 +51,7 @@ export async function getAiCompletion(
   const requestedModel = opts.model || process.env.OPENROUTER_MODEL || FREE_ROUTER;
 
   if (!apiKey) {
-    return { ok: false, error: "AI features aren't configured yet — an OPENROUTER_API_KEY is needed on the server." };
+    return { ok: false, error: "AI features aren't configured yet. An OPENROUTER_API_KEY is needed on the server." };
   }
 
   /*
@@ -149,7 +149,7 @@ export async function getAiCompletion(
             and naming that would send the reader to change a value they
             never set. The configured slug is the one they can act on.
           */
-          lastError = `No AI endpoint matched this request — check the OPENROUTER_MODEL setting ("${requestedModel}"). This is a configuration problem, not an outage.`;
+          lastError = `No AI endpoint matched this request. Check the OPENROUTER_MODEL setting ("${requestedModel}"). This is a configuration problem, not an outage.`;
         } else {
           lastError = `The AI provider is temporarily unavailable (HTTP ${response.status}).`;
         }
@@ -170,9 +170,9 @@ export async function getAiCompletion(
       const content = data.choices?.[0]?.message?.content?.trim();
 
       if (!content) {
-        console.warn("[ai] empty content from", model, "— rolling for a different model");
+        console.warn("[ai] empty content from", model, "(rolling for a different model)");
         lastError =
-          "Every model tried returned an empty answer. Free models are shared and this usually passes — press Run again in a moment.";
+          "Every model tried returned an empty answer. Free models are shared and this usually passes. Press Run again in a moment.";
         if (isLast) return { ok: false, error: lastError };
         continue;
       }

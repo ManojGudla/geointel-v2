@@ -207,7 +207,7 @@ export function shareText(results: RoundResult[], dateKey: string, streak: numbe
   const total = totalScore(results);
   const grid = results.map((r) => BAND_SQUARE[bandFor(r.score)]).join("");
   const lines = [
-    `maNOWj Daily #${puzzleNumber(dateKey)} — ${total.toLocaleString()}/${MAX_DAY_SCORE.toLocaleString()}`,
+    `maNOWj Daily #${puzzleNumber(dateKey)}: ${total.toLocaleString()}/${MAX_DAY_SCORE.toLocaleString()}`,
     grid,
   ];
   if (streak > 1) lines.push(`🔥 ${streak} day streak`);

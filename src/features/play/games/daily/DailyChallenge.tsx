@@ -67,8 +67,8 @@ const BAND_SQUARE: Record<ReturnType<typeof bandFor>, string> = {
  */
 function clueButtonLabel(used: number): string {
   if (used === 0) return "No idea? Take a free clue";
-  if (used === 1) return "Another clue — costs 20% of this round";
-  return "Last clue — costs another 35%";
+  if (used === 1) return "Another clue: costs 20% of this round";
+  return "Last clue: costs another 35%";
 }
 
 export function DailyChallenge({ onBackToHub }: { onBackToHub: () => void }) {
@@ -188,7 +188,7 @@ export function DailyChallenge({ onBackToHub }: { onBackToHub: () => void }) {
         </p>
         <ul className="daily__rules">
           <li>Everyone in the world gets the same five places today.</li>
-          <li>One run a day — no retries, so the score means something.</li>
+          <li>One run a day: no retries, so the score means something.</li>
           <li>Every answer ends with something worth knowing about the place.</li>
           <li>Stuck on one? The first clue is free. Two more cost part of that round.</li>
         </ul>
@@ -228,7 +228,7 @@ export function DailyChallenge({ onBackToHub }: { onBackToHub: () => void }) {
         </dl>
 
         <button type="button" className="daily__primary" onClick={() => void share()}>
-          {copied ? "Copied — now paste it" : "Share your score"}
+          {copied ? "Copied. Now paste it" : "Share your score"}
         </button>
         <p className="daily__note">
           The shared card shows colours only, never the places, so it can't spoil anyone's day.
@@ -321,7 +321,7 @@ export function DailyChallenge({ onBackToHub }: { onBackToHub: () => void }) {
       </div>
 
       <div className="daily__view">
-        <p className="daily__viewlabel">{revealed ? "How close you were" : "Your guess — click the map"}</p>
+        <p className="daily__viewlabel">{revealed ? "How close you were" : "Your guess: click the map"}</p>
         <GameMap
           style="world"
           center={guessCenter}

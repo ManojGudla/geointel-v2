@@ -17,11 +17,11 @@ interface AgentRequestBody {
 
 const AGENT_FOCUS: Record<AgentKind, string> = {
   search: "Focus on what was searched for and how strong the match is. If no location is selected, say the user should search or select a location first.",
-  gis: "Focus purely on the GIS evidence counts and category scores — what kind of built environment this radius shows, and how strong or thin that evidence is. Don't restate the property classification headline verbatim; interpret the underlying numbers.",
+  gis: "Focus purely on the GIS evidence counts and category scores, what kind of built environment this radius shows, and how strong or thin that evidence is. Don't restate the property classification headline verbatim; interpret the underlying numbers.",
   property: "Focus on explaining the property classification result in plain language: what it means, how confident it is, and what would make the confidence higher (more nearby evidence).",
   navigation: "Focus on the active route (if any): is this a practical trip by the chosen mode, given the distance and duration? If no route is set, say directions haven't been planned yet and suggest opening the Directions panel.",
-  travel: "Focus on this location as a place to visit right now: combine the weather and nearby amenities data to say whether it's currently a comfortable, well-served place to spend time, citing the real numbers. If the user needs to actually book travel (flights, trains, buses, hotels), tell them to use the Travel tab, which opens real search pages on Google Flights, Skyscanner, IRCTC, ConfirmTkt, redBus, AbhiBus, Booking.com, and Google Hotels — never invent a price, schedule, or availability yourself.",
-  makeMyTrip: "Suggest a short, realistic same-day plan anchored on this location, using ONLY the real nearby categories and weather data provided — do not name specific businesses unless they appear in the data, and do not invent opening hours, prices, or addresses. For booking a movie (BookMyShow, District), a stay (Booking.com, Google Hotels), or getting here (flights, trains, buses), point the user to the Travel tab's real provider links instead of guessing at logistics you don't have data for.",
+  travel: "Focus on this location as a place to visit right now: combine the weather and nearby amenities data to say whether it's currently a comfortable, well-served place to spend time, citing the real numbers. If the user needs to actually book travel (flights, trains, buses, hotels), tell them to use the Travel tab, which opens real search pages on Google Flights, Skyscanner, IRCTC, ConfirmTkt, redBus, AbhiBus, Booking.com, and Google Hotels, never invent a price, schedule, or availability yourself.",
+  makeMyTrip: "Suggest a short, realistic same-day plan anchored on this location, using ONLY the real nearby categories and weather data provided, do not name specific businesses unless they appear in the data, and do not invent opening hours, prices, or addresses. For booking a movie (BookMyShow, District), a stay (Booking.com, Google Hotels), or getting here (flights, trains, buses), point the user to the Travel tab's real provider links instead of guessing at logistics you don't have data for.",
 };
 
 function buildDataBlock(context: AgentRequestBody["context"] | undefined, kind: AgentKind): string {
@@ -61,7 +61,7 @@ function buildDataBlock(context: AgentRequestBody["context"] | undefined, kind: 
   // navigation agent's whole focus is the active route, so it always needs
   // to know (including "none set", which is a valid answer it's supposed to
   // give). Every other agent (gis, property, search, ...) has nothing to do
-  // with directions — previously this pushed "Active route: none set." into
+  // with directions, previously this pushed "Active route: none set." into
   // EVERY agent's data block regardless of kind, and the model would latch
   // onto that stray unrelated line and start commenting on routing even
   // when asked about GIS/property data. Non-navigation agents now only see
@@ -133,15 +133,15 @@ const handler: ApiHandler = async (req, res) => {
     {
       role: "system",
       content:
-        `You are the ${kind} intelligence agent inside maNOWj GeoIntel, writing a short result card for a real person to read — not a document or a report. ${AGENT_FOCUS[kind]} ` +
-        "Write 3-5 plain, flowing sentences — never markdown of any kind (no **bold**, no *, -, or numbered list syntax, no ### headers). If you want to mention several numbers, weave them into a sentence ('7 petrol stations, 5 parks, and 4 hotels nearby') instead of a list. " +
-        "Never show your reasoning, planning, or thinking process, and never narrate what you're about to do ('Let me analyze this', 'Step 1: Analyze user input', 'As the X agent I will...') — respond with ONLY the final answer, as if you already worked it out. " +
+        `You are the ${kind} intelligence agent inside maNOWj GeoIntel, writing a short result card for a real person to read, not a document or a report. ${AGENT_FOCUS[kind]} ` +
+        "Write 3-5 plain, flowing sentences, never markdown of any kind (no **bold**, no *, -, or numbered list syntax, no ### headers). If you want to mention several numbers, weave them into a sentence ('7 petrol stations, 5 parks, and 4 hotels nearby') instead of a list. Never use an em dash. Use a comma, a colon, a full stop, or brackets instead. " +
+        "Never show your reasoning, planning, or thinking process, and never narrate what you're about to do ('Let me analyze this', 'Step 1: Analyze user input', 'As the X agent I will...'), respond with ONLY the final answer, as if you already worked it out. " +
         "Match the person's language if the location data or question gives you a signal to (Telugu, Hindi, Tamil, Kannada, or a mixed/transliterated form like Tenglish or Hinglish are all fine); otherwise write in plain English. " +
-        "Use ONLY the CURRENT LOCATION DATA below (and the knowledge base, if relevant) — never invent facts, businesses, prices, or numbers that aren't there. " +
+        "Use ONLY the CURRENT LOCATION DATA below (and the knowledge base, if relevant), never invent facts, businesses, prices, or numbers that aren't there. " +
         "If the data is insufficient for this agent's focus, say so directly, in one plain sentence. " +
         "If asked who built or developed this app, say Manoj Kumar Gudla built it. If asked personal questions about him unrelated to this app, " +
         "politely decline rather than guessing. If the data includes an 'Officials/authorities' section, treat those as the ONLY source of truth for " +
-        "government officials' names — never state such a name from your own memory, and say 'Unable to verify' if a role isn't listed there.\n\n" +
+        "government officials' names, never state such a name from your own memory, and say 'Unable to verify' if a role isn't listed there.\n\n" +
         `${fenceRules(fence)}\n\nCURRENT LOCATION DATA:\n${fence.wrap(dataBlock)}` +
         (kbBlock ? `\n\nRELEVANT KNOWLEDGE BASE:\n${kbBlock}` : ""),
     },

@@ -79,7 +79,7 @@ export function SettingsPanel() {
           />
         </label>
         <small>
-          Saved to this browser only — GeoIntel doesn't have real user accounts yet (see Features → Personalization &amp;
+          Saved to this browser only. GeoIntel doesn't have real user accounts yet (see Features → Personalization &amp;
           Settings), so this isn't synced anywhere else.
         </small>
       </div>
@@ -128,7 +128,7 @@ export function SettingsPanel() {
         </label>
         <small>
           Off by default. When on, rain, snow, fog or cloud are drawn from the actual reported conditions at your
-          selected location — never invented. If the weather can&apos;t be fetched, nothing is drawn. The effect sits
+          selected location, never invented. If the weather can&apos;t be fetched, nothing is drawn. The effect sits
           under every data layer and never blocks a click.
         </small>
       </div>
@@ -147,7 +147,7 @@ export function SettingsPanel() {
             </button>
           ))}
         </div>
-        <small>Used the next time you open GeoIntel — the radius selector in the right panel still adjusts the current session.</small>
+        <small>Used the next time you open GeoIntel. The radius selector in the right panel still adjusts the current session.</small>
       </div>
 
       <div className="settings-panel__group">

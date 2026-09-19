@@ -88,7 +88,7 @@ export function RoundSummary({ gameTitle, headline, detail, score, applied, line
           <ul>
             {unlocked.map((a) => (
               <li key={a.id}>
-                <span aria-hidden="true">{a.icon}</span> <strong>{a.title}</strong> — {a.requirement}
+                <span aria-hidden="true">{a.icon}</span> <strong>{a.title}</strong>: {a.requirement}
               </li>
             ))}
           </ul>

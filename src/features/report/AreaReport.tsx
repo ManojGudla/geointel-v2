@@ -96,15 +96,15 @@ export function AreaReport() {
               </div>
               <div>
                 <dt>City</dt>
-                <dd>{location.address?.city ?? "—"}</dd>
+                <dd>{location.address?.city ?? "Not available"}</dd>
               </div>
               <div>
                 <dt>State</dt>
-                <dd>{location.address?.state ?? "—"}</dd>
+                <dd>{location.address?.state ?? "Not available"}</dd>
               </div>
               <div>
                 <dt>Country</dt>
-                <dd>{location.address?.country ?? "—"}</dd>
+                <dd>{location.address?.country ?? "Not available"}</dd>
               </div>
               <div>
                 <dt>Analysis radius</dt>
@@ -117,7 +117,7 @@ export function AreaReport() {
           <section className="report__section">
             <h2>Mapped evidence within {radiusMeters} m</h2>
             {evidence.isLoading && <p className="report__pending">Evidence was still loading when this report was generated.</p>}
-            {evidence.isError && <p className="report__pending">Evidence could not be loaded — this section is incomplete.</p>}
+            {evidence.isError && <p className="report__pending">Evidence could not be loaded. This section is incomplete.</p>}
             {counts && (
               <>
                 <dl className="report__grid report__grid--tight">
@@ -184,7 +184,7 @@ export function AreaReport() {
 
           {analysis && (
             <section className="report__section">
-              <h2>Spatial analysis — {analysis.title}</h2>
+              <h2>Spatial analysis: {analysis.title}</h2>
               {analysis.suitability && (
                 <p className="report__headline">
                   Suitability score {analysis.suitability.score} / 100 · {analysis.suitability.band}
@@ -229,27 +229,27 @@ export function AreaReport() {
             <dl className="report__grid report__grid--tight">
               <div>
                 <dt>Temperature</dt>
-                <dd>{weather.data ? `${Math.round(weather.data.temperatureC)} °C` : "—"}</dd>
+                <dd>{weather.data ? `${Math.round(weather.data.temperatureC)} °C` : "Not available"}</dd>
               </div>
               <div>
                 <dt>Condition</dt>
-                <dd>{weather.data?.condition ?? "—"}</dd>
+                <dd>{weather.data?.condition ?? "Not available"}</dd>
               </div>
               <div>
                 <dt>Humidity</dt>
-                <dd>{weather.data ? `${weather.data.humidityPct}%` : "—"}</dd>
+                <dd>{weather.data ? `${weather.data.humidityPct}%` : "Not available"}</dd>
               </div>
               <div>
                 <dt>Wind</dt>
-                <dd>{weather.data ? `${weather.data.windKph} km/h` : "—"}</dd>
+                <dd>{weather.data ? `${weather.data.windKph} km/h` : "Not available"}</dd>
               </div>
               <div>
                 <dt>Air quality (EAQI)</dt>
-                <dd>{air.data?.europeanAqi != null ? `${Math.round(air.data.europeanAqi)} · ${band.label}` : "—"}</dd>
+                <dd>{air.data?.europeanAqi != null ? `${Math.round(air.data.europeanAqi)} · ${band.label}` : "Not available"}</dd>
               </div>
               <div>
                 <dt>PM2.5</dt>
-                <dd>{air.data?.pm25 != null ? `${air.data.pm25.toFixed(1)} µg/m³` : "—"}</dd>
+                <dd>{air.data?.pm25 != null ? `${air.data.pm25.toFixed(1)} µg/m³` : "Not available"}</dd>
               </div>
             </dl>
             <p className="report__source">

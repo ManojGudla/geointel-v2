@@ -29,9 +29,9 @@ export const LAYER_DEFS: LayerDef[] = [
   { id: "water", label: "Water", color: "#2b7fd7", available: true, description: "natural=water, waterway" },
   { id: "railways", label: "Railways", color: "#55607a", available: true, description: "railway=*" },
   { id: "transport", label: "Transport", color: "#0a8fb5", available: true, description: "Bus stops & public transport" },
-  { id: "roads", label: "Roads", color: "#8891a8", available: false, description: "Coming soon — needs a tiled fetch strategy" },
-  { id: "landuse", label: "Land use", color: "#a8916b", available: false, description: "Coming soon — polygon geometry pipeline" },
-  { id: "adminBoundaries", label: "Admin boundaries", color: "#8891a8", available: false, description: "Coming soon — polygon geometry pipeline" },
+  { id: "roads", label: "Roads", color: "#8891a8", available: false, description: "Coming soon: needs a tiled fetch strategy" },
+  { id: "landuse", label: "Land use", color: "#a8916b", available: false, description: "Coming soon: polygon geometry pipeline" },
+  { id: "adminBoundaries", label: "Admin boundaries", color: "#8891a8", available: false, description: "Coming soon: polygon geometry pipeline" },
 ];
 
 export function bucketFeature(feature: GISFeature): GISLayerId[] {
