@@ -60,11 +60,38 @@ export class RateLimiter {
   }
 }
 
+/**
+ * Who we are, for every free public service this app leans on.
+ *
+ * This lives here, applied by default, because of a bug that only ever
+ * appeared in production. api/_lib/overpass.ts already carries the full
+ * account: from a home IP the public mirrors tolerate an anonymous request,
+ * but from Vercel's datacenter IPs overpass-api.de answered HTTP 406, the
+ * signature of a WAF refusing an unidentified cloud client rather than a
+ * real content-negotiation failure. Nominatim, Wikidata, USGS, RainViewer
+ * and the status probes were all given a User-Agent in response.
+ *
+ * api/_routes/route.ts was missed. It called `fetchWithTimeout(url, {})`,
+ * making it the only outbound client in the codebase with no identification
+ * at all, against routing.openstreetmap.de, which is FOSSGIS-run and asks
+ * clients to identify themselves in exactly the same way. That is a strong
+ * candidate for "directions work on my machine and not on the live site",
+ * because those are precisely the two conditions that differ.
+ *
+ * Setting it per call site is what let one be forgotten, so it is a default
+ * here instead: a handler that needs its own still passes one, and one that
+ * says nothing is still identified. Being a good citizen of free
+ * infrastructure is not optional for a product built entirely on it.
+ */
+export const DEFAULT_USER_AGENT = "maNOWj-GeoIntel/2.0 (location-intelligence app; +https://www.manowj.com)";
+
 export async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = 10_000): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const headers = new Headers(init.headers);
+  if (!headers.has("User-Agent")) headers.set("User-Agent", DEFAULT_USER_AGENT);
   try {
-    return await fetch(url, { ...init, signal: controller.signal });
+    return await fetch(url, { ...init, headers, signal: controller.signal });
   } finally {
     clearTimeout(timer);
   }

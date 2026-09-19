@@ -7,6 +7,7 @@ import { buildShareUrl } from "@/features/share/viewState";
 import { CITIES, type City } from "@/data/cities";
 import { track } from "@/services/analytics";
 import type { PopulationData } from "@/features/population/PopulationPanel";
+import { CityMap } from "./CityMap";
 import "./CityPage.css";
 
 /**
@@ -182,6 +183,18 @@ export function CityPage({ city }: Props) {
             How this works
           </a>
         </div>
+
+        {/*
+          The product itself, above the article. A stranger arriving from a
+          search result now sees the map working before they read a word
+          about it. It loads after first paint and into a box that already
+          holds its final height, so the text still paints as fast as it did
+          when this page carried no map at all. See CityMap.tsx.
+        */}
+        <CityMap city={city} />
+        <a className="city-map__open" href={openInApp()} onClick={() => track("map_opened", { source: "city-page-map" })}>
+          Explore {city.name} on the full map
+        </a>
       </header>
 
       <main className="city__main">

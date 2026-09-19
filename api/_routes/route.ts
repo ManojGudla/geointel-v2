@@ -143,8 +143,37 @@ const handler: ApiHandler = async (req, res) => {
     }
 
     if (!data) {
-      console.error("[api/route]", lastError);
-      return err(res, 502, "Routing is temporarily unavailable.", "PROVIDER_UNAVAILABLE");
+      console.error("[api/route]", mode, lastError);
+      /*
+        "Routing is temporarily unavailable" was the same sentence whether
+        the router was down, the profile has no second mirror to fall back
+        to, or the two points simply cannot be connected by road. Those need
+        different reactions from the reader and only one of them is worth
+        waiting out.
+
+        Walk and bike have a single provider each (routing.openstreetmap.de
+        is the only free public OSRM with those profiles), so when it is
+        unreachable there is no failover, and saying so is more use than
+        implying a retry will help.
+      */
+      const noRouteFound = lastError.includes("NoRoute") || lastError.includes("no route");
+      if (noRouteFound) {
+        return err(
+          res,
+          502,
+          `No ${mode === "car" ? "driving" : mode === "walk" ? "walking" : "cycling"} route connects these two points. They may be separated by water, or one of them may not be near a mapped road.`,
+          "NO_ROUTE"
+        );
+      }
+      if (routers.length === 1) {
+        return err(
+          res,
+          502,
+          `${mode === "walk" ? "Walking" : "Cycling"} directions come from a single free provider and it is not responding right now. Driving directions have a second provider and should still work.`,
+          "PROVIDER_UNAVAILABLE"
+        );
+      }
+      return err(res, 502, "Every routing provider is unreachable right now. Please try again shortly.", "PROVIDER_UNAVAILABLE");
     }
     cache.set(cacheKey, data);
   }
