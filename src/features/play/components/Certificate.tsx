@@ -2,64 +2,31 @@ import { useMemo, useState } from "react";
 import "./Certificate.css";
 
 /**
- * The certificate a player gets for winning.
+ * The card a player gets for winning.
  *
- * It is rendered ON SCREEN, finished, at the moment they win — not built
- * inside a share flow they have to go looking for. That was the whole point of
- * the request: people screenshot things, and a reward that only exists as a
- * file you must deliberately export is a reward almost nobody ever sees.
+ * Three redesigns of this were reworked and rejected, and the last piece of
+ * feedback was the useful one: people were laughing at it. Every previous
+ * attempt treated that as a styling problem and made the diploma cleaner. It
+ * was never a styling problem. A landscape sheet reading "Achievement
+ * Certificate", "Presented to", and "Credential ID: MJ-CRI-84-Q7FX" for
+ * scoring points in a geography game is funny because of what it claims to
+ * be, and no amount of typography fixes a format that is pretending.
  *
- * The design brief, after two rounds of real feedback, is a modern digital
- * credential rather than a printed diploma. The earlier version had a gold
- * pressed seal, a guilloché ground, a double gold rule, a script signature
- * and Georgia throughout. Every one of those is a genuine convention of
- * printed certificates, and together on a screen they read as a template.
- * People said so plainly: too much, too big, not good.
+ * So this is not a certificate any more. It is a result card: the shape
+ * every game people actually share uses, from a Wordle grid to a workout
+ * summary. Portrait, because it is screenshotted on a phone and posted.
+ * Score first and enormous, because that is the only thing anyone is
+ * sharing. Everything else is one line or gone.
  *
- * So this strips the ornament and spends the space on the two things anyone
- * actually screenshots: the name and the score. One typeface, one accent
- * colour, one hairline, and a lot of white. Nothing here is decorative —
- * every mark on the card is either the brand, a fact, or a divider between
- * facts.
+ * Gone specifically: the word Certificate, "Presented to", the credential
+ * ID, the fake reference code, the awarded-date label, and the disclaimer
+ * explaining that a game result is not a qualification. That last one was
+ * only ever needed because the card was dressed as something it wasn't. A
+ * card that looks like a game score needs no footnote saying it is one.
  *
- * What it still deliberately does NOT do is pretend to be a qualification.
- * There is no accreditation and no claim that a skill was assessed. The
- * credential ID is described as what it is, and the footer says in plain
- * words that this is a game result. A game score dressed up as a credential
- * is a small lie that would eventually embarrass whoever shared it, which is
- * the opposite of what this is for.
+ * The props are unchanged, so RoundSummary and every game calling it are
+ * untouched.
  */
-
-/**
- * A short, stable code for one result.
- *
- * Deterministic, so the same win always produces the same code — which is
- * what makes it read as a reference rather than a random string. It verifies
- * nothing and is not claimed to; see the note under it on the card.
- */
-function referenceCode(parts: string): string {
-  let hash = 0;
-  for (let i = 0; i < parts.length; i++) {
-    hash = (hash << 5) - hash + parts.charCodeAt(i);
-    hash |= 0;
-  }
-  // No I, O, 0 or 1: this is a code people retype and read aloud.
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let out = "";
-  let value = Math.abs(hash);
-  for (let i = 0; i < 4; i++) {
-    out += alphabet[value % alphabet.length];
-    value = Math.floor(value / alphabet.length);
-  }
-  return out;
-}
-
-/** Three letters standing for the game, so the ID says which one at a glance. */
-function gameTag(gameTitle: string): string {
-  const letters = gameTitle.replace(/[^a-z]/gi, "");
-  return (letters.slice(0, 3) || "GAM").toUpperCase();
-}
-
 export function Certificate({
   gameTitle,
   headline,
@@ -78,94 +45,55 @@ export function Certificate({
   const [name, setName] = useState("");
 
   const awarded = useMemo(
-    () =>
-      new Date().toLocaleDateString(undefined, {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
-    [],
-  );
-
-  const credentialId = useMemo(
-    () =>
-      `MJ-${gameTag(gameTitle)}-${score}-${referenceCode(
-        `${gameTitle}|${score}|${new Date().toDateString()}`,
-      )}`,
-    [gameTitle, score],
+    () => new Date().toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }),
+    []
   );
 
   return (
-    <figure className="cert" aria-label="Certificate of achievement">
-      <div className="cert__sheet">
-        <header className="cert__head">
-          {/* The real logo, not a typeset name. It is the single strongest
-              signal that this came from a specific place rather than being a
-              generic template, and with the ornament gone it is now the only
-              piece of graphic on the card. */}
-          <img className="cert__logo" src="/logo.png" alt="maNOWj GeoIntel" width={128} height={88} />
-          <p className="cert__kicker">
-            Achievement
-            <br />
-            Certificate
-          </p>
+    <figure className="score-card" aria-label={`${gameTitle} result`}>
+      <div className="score-card__sheet">
+        <header className="score-card__head">
+          <span className="score-card__game">{gameTitle}</span>
+          <span className="score-card__date">{awarded}</span>
         </header>
 
-        <div className="cert__hero">
-          <p className="cert__label">Presented to</p>
-
-          {/* An input styled as a ruled blank. The product has no accounts,
-              and printing "Player" is the one thing guaranteed to stop
-              somebody sharing it. */}
-          <input
-            className="cert__name"
-            type="text"
-            value={name}
-            maxLength={32}
-            placeholder="Write your name"
-            aria-label="Your name, as it appears on the certificate"
-            onChange={(e) => setName(e.target.value)}
-          />
-
-          <p className="cert__context">
-            <span className="cert__game">{gameTitle}</span>
-            <span className="cert__dot" aria-hidden="true" />
-            {headline}
-          </p>
-
-          {/* The score, given the size the brief asked for. Tabular figures so
-              a three-digit result does not shift the card's centre line. */}
-          <p className="cert__score">
-            <span className="cert__score-value">{score.toLocaleString()}</span>
-            <span className="cert__score-label">{scoreLabel}</span>
-          </p>
-
-          {detail && <p className="cert__detail">{detail}</p>}
+        {/*
+          The whole point of the card. Tabular figures so a four-digit score
+          sits on the same centre line as a two-digit one, and a deliberately
+          tight line-height so the number reads as a single graphic mark
+          rather than as a line of text.
+        */}
+        <div className="score-card__scoreblock">
+          <strong className="score-card__score">{score.toLocaleString()}</strong>
+          <span className="score-card__score-label">{scoreLabel}</span>
         </div>
 
-        <footer className="cert__foot">
-          <dl className="cert__facts">
-            <div>
-              <dt>Awarded</dt>
-              <dd>{awarded}</dd>
-            </div>
-            <div>
-              <dt>Credential ID</dt>
-              <dd className="cert__id">{credentialId}</dd>
-            </div>
-          </dl>
+        <p className="score-card__headline">{headline}</p>
+        {detail && <p className="score-card__detail">{detail}</p>}
 
-          <div className="cert__issuer">
-            <span className="cert__site">maNOWj.com</span>
-            {/* Says exactly what this is. A credential ID on a card that
-                looks official has to be followed by the truth about what it
-                certifies, which is a game. */}
-            <span className="cert__disclaimer">Issued by maNOWj GeoIntel · a game result, not a qualification</span>
-          </div>
+        {/*
+          Optional, and it says so. The product has no accounts, and the old
+          card made this a ruled blank under "Presented to", which read as an
+          unfilled form and made an unnamed card look incomplete. Here the
+          card is finished without it and a name simply personalises it.
+        */}
+        <input
+          className="score-card__name"
+          type="text"
+          value={name}
+          maxLength={28}
+          placeholder="Add your name (optional)"
+          aria-label="Your name on this result card"
+          onChange={(e) => setName(e.target.value)}
+        />
+
+        <footer className="score-card__foot">
+          <img className="score-card__mark" src="/icons/icon-32.png" alt="" width={20} height={20} aria-hidden="true" />
+          <span>manowj.com</span>
         </footer>
       </div>
 
-      <figcaption className="cert__hint">Write your name, then screenshot it to share.</figcaption>
+      <figcaption className="score-card__hint">Screenshot it to share.</figcaption>
     </figure>
   );
 }

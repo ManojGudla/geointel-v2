@@ -16,9 +16,20 @@
   background: var(--color-surface-2);
 }
 
-.city-map__canvas {
+/*
+  Both classes, for the reason documented in LandingPage.css: MapLibre sets
+  `.maplibregl-map { position: relative }` on this same element, at equal
+  specificity, and whichever stylesheet the bundler emits last wins. On the
+  landing page MapLibre won, the box collapsed to zero height, and the
+  canvas fell back to its 400x300 default. This map would have inherited
+  exactly the same bug.
+*/
+.city-map__canvas.maplibregl-map,
+.city-map > .city-map__canvas {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .city-map__placeholder {

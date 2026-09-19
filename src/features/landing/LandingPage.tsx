@@ -718,7 +718,33 @@ export function LandingPage() {
     };
     map.on("move", sync);
 
+    /*
+      Keep the canvas the same size as the box it lives in.
+
+      Measured on the built site: this canvas was 400x300, MapLibre's
+      hard-coded default, inside a hero 902px tall. MapLibre reads the
+      container's size once, at construction, and this effect runs before
+      the browser has finished laying the hero out, so it measured nothing
+      and fell back to the default. Nothing ever told it otherwise, because
+      MapLibre only listens to window resize, and the hero's height comes
+      from its content rather than from the viewport.
+
+      The result is a hero that advertises "Live satellite map. Drag it."
+      above a near-empty rectangle: the page that carries every launch link
+      failing at the one thing it promises, in the first second.
+
+      A ResizeObserver rather than a one-off resize() because the box keeps
+      changing after this runs: a web font swapping in reflows the column
+      beside it, and an orientation change on a phone redraws the lot.
+    */
+    const observer = new ResizeObserver(() => map.resize());
+    observer.observe(mapNode.current);
+    // One immediate call for the common case where layout is already done
+    // by the time this effect runs and the observer has nothing to report.
+    map.resize();
+
     return () => {
+      observer.disconnect();
       map.remove();
       mapRef.current = null;
     };

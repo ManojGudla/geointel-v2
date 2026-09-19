@@ -1,313 +1,198 @@
 /*
-  The win certificate: a modern digital credential, not a printed diploma.
+  A result card, not a certificate. See Certificate.tsx for why the diploma
+  went. The design rules here are short on purpose:
 
-  Built to be screenshotted, and every decision follows from that: one
-  self-contained rectangle with its own opaque background, nothing important
-  near the edges, no hover state and no animation a still frame would miss.
-  Crop to the sheet and what you get is complete.
+  One graphic idea: the score is the card. Everything above it is a label,
+  everything below it is provenance, and neither competes for attention.
 
-  It stays LIGHT in both themes rather than inverting. Two people who won the
-  same game should be able to put their screenshots side by side and see the
-  same object, and a credential that arrives dark in one person's chat and
-  light in another's does not read as one thing. So every colour here is a
-  literal, deliberately, and the sheet paints its own ground.
-
-  The palette is four greys, one blue and one hairline:
-
-    ink      #0c111d   the name, the score
-    muted    #667085   supporting sentences
-    faint    #98a2b3   the small uppercase labels
-    hairline #e4e7ec   every rule on the card
-    accent   #1570ef   the score, and nothing else
-    paper    #ffffff
-
-  The accent appears exactly once. That is what makes the score the thing your
-  eye lands on, and it is cheaper and more durable than any graphic would be.
+  Fixed palette rather than theme tokens, and deliberately so. This is the
+  one surface in the product designed to leave it: it gets screenshotted and
+  posted somewhere with its own background. A card that changed colour with
+  the viewer's OS theme would mean two different images circulating under
+  one brand, and the light one would vanish against a light timeline. The
+  navy and amber are the product's own identity from the app icon, so the
+  card is recognisable as this product wherever it lands.
 */
-.cert {
-  margin: var(--space-4) 0 0;
+.score-card {
+  margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
 }
 
-.cert__sheet {
-  width: 100%;
-  /*
-    Landscape, and no taller than a screen.
+.score-card__sheet {
+  --card-ink: #f4f7ff;
+  --card-ground: #0b1b3a;
+  --card-accent: #ff9440;
+  --card-faint: rgba(244, 247, 255, 0.55);
+  --card-rule: rgba(244, 247, 255, 0.14);
 
-    An earlier version was portrait at 480px, which opened inside a scrolling
-    modal on a laptop: the logo was cut off at the top and you had to scroll
-    to reach the bottom. A certificate you cannot see all of is a certificate
-    nobody screenshots, which was the entire purpose. This shape crops into a
-    post properly instead of being a tall strip.
-  */
-  max-width: 700px;
-  padding: 28px 40px 22px;
+  position: relative;
+  width: min(340px, 100%);
   box-sizing: border-box;
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
-  color: #0c111d;
-  font-family: var(--font-sans);
-  /* A single soft shadow, close and low-contrast. Anything stronger reads as
-     a UI card floating over a page rather than as a document. */
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 12px 32px -12px rgba(16, 24, 40, 0.14);
-}
-
-/* ── Header: the mark, and what this is ───────────────────────────────── */
-
-.cert__head {
+  padding: 22px 24px 18px;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  /* A quiet vertical gradient rather than a flat fill: it gives the card
+     depth in a screenshot without reading as a decorative "AI gradient",
+     because it moves between two values of the same navy. */
+  background: linear-gradient(170deg, #12295c 0%, var(--card-ground) 62%);
+  color: var(--card-ink);
+  border-radius: 16px;
+  font-family: var(--font-sans, system-ui, sans-serif);
+  overflow: hidden;
+}
+
+/* The single accent mark on the card: a bar across the top edge. It is the
+   only decoration, and it exists to make the card identifiable at thumbnail
+   size in a feed, where the type is too small to read. */
+.score-card__sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--card-accent);
+}
+
+.score-card__head {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--card-rule);
 }
 
-/* The wordmark is inside the logo, so typesetting the name beside it would
-   say it twice. */
-.cert__logo {
-  width: 128px;
-  height: auto;
-  max-width: 38%;
+.score-card__game {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
-.cert__kicker {
-  margin: 2px 0 0;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.6;
-  letter-spacing: 0.2em;
+.score-card__date {
+  font-size: 11px;
+  color: var(--card-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.score-card__scoreblock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 26px 0 6px;
+}
+
+.score-card__score {
+  /* Sized against the card, not the viewport: 18vw put "1,240" within a few
+     pixels of both edges on a 340px card. The em-based ceiling keeps a
+     two-digit score commanding without letting a four-digit one run out of
+     room. */
+  font-size: clamp(46px, 15vw, 64px);
+  max-width: 100%;
+  /* Tight, so the number reads as one mark rather than a line of text, and
+     tabular so 8 and 1,240 share a centre line. */
+  line-height: 0.9;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--card-accent);
+}
+
+.score-card__score-label {
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  text-align: right;
-  color: #98a2b3;
+  color: var(--card-faint);
 }
 
-/* ── The hero: name, then score ───────────────────────────────────────── */
-
-.cert__hero {
-  padding: 22px 0 26px;
+.score-card__headline {
+  margin: 12px 0 0;
   text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-wrap: balance;
 }
 
-.cert__label {
-  margin: 0;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #98a2b3;
+.score-card__detail {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--card-faint);
+  text-wrap: balance;
 }
 
 /*
-  The name, and the largest thing on the card after the score.
-
-  It is an input rather than text because there are no accounts, and a
-  certificate that says "Player" is one nobody shares. The rule underneath is
-  the affordance: it reads as a blank to fill before anything is typed, and as
-  a signature line afterwards, so it never has to be explained.
+  Reads as a caption the player can edit, not as a form field waiting to be
+  completed. No box, no rule, no focus ring that looks like validation: the
+  card is finished without a name and simply nicer with one.
 */
-.cert__name {
+.score-card__name {
   width: 100%;
-  max-width: 520px;
-  margin: 10px 0 0;
-  padding: 0 0 9px;
-  border: none;
-  border-bottom: 1px solid #e4e7ec;
-  border-radius: 0;
+  margin-top: 18px;
+  padding: 6px 4px;
+  border: 0;
+  border-bottom: 1px solid transparent;
   background: transparent;
+  color: var(--card-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
   text-align: center;
-  font-family: inherit;
-  font-size: 42px;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-  color: #0c111d;
+  border-radius: 0;
 }
 
-.cert__name::placeholder {
-  font-size: 22px;
+.score-card__name::placeholder {
+  color: rgba(244, 247, 255, 0.38);
   font-weight: 500;
-  letter-spacing: -0.01em;
-  color: #cfd4dc;
 }
 
-.cert__name:focus-visible {
+.score-card__name:hover,
+.score-card__name:focus {
+  border-bottom-color: var(--card-rule);
   outline: none;
-  border-bottom-color: #1570ef;
 }
 
-.cert__context {
+.score-card__name:focus {
+  border-bottom-color: var(--card-accent);
+}
+
+.score-card__foot {
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-rule);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 14px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #667085;
-}
-
-.cert__game {
+  gap: 7px;
+  font-size: 11px;
   font-weight: 600;
-  color: #344054;
-}
-
-/* A dot between the game and the result, instead of a slash or a dash. It is
-   quieter than punctuation and does not fight the sentence. */
-.cert__dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #cfd4dc;
-}
-
-/*
-  The score.
-
-  The brief was to make this and the name the focus, so it gets the one use of
-  the accent colour on the whole card and the largest type. Tabular figures
-  keep a three-digit result on the same centre line as a two-digit one.
-*/
-.cert__score {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  margin: 20px 0 0;
-}
-
-.cert__score-value {
-  font-size: 60px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
-  color: #1570ef;
-}
-
-.cert__score-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #98a2b3;
-}
-
-.cert__detail {
-  max-width: 460px;
-  margin: 15px auto 0;
-  font-size: 13px;
-  line-height: 1.55;
-  text-wrap: balance;
-  color: #98a2b3;
-}
-
-/* ── Footer: the facts, and what this is not ──────────────────────────── */
-
-.cert__foot {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding-top: 16px;
-  border-top: 1px solid #e4e7ec;
-  text-align: left;
-}
-
-.cert__facts {
-  display: flex;
-  gap: 34px;
-  margin: 0;
-}
-
-.cert__facts dt {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #98a2b3;
-}
-
-.cert__facts dd {
-  margin: 4px 0 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: #344054;
-}
-
-.cert__id {
-  font-family: var(--font-mono);
-  font-size: 12px !important;
   letter-spacing: 0.04em;
+  color: var(--card-faint);
 }
 
-.cert__issuer {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
+.score-card__mark {
+  border-radius: 5px;
+  display: block;
 }
 
-.cert__site {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1570ef;
-}
-
-.cert__disclaimer {
-  margin-top: 4px;
-  font-size: 10px;
-  line-height: 1.4;
-  color: #b0b7c3;
-}
-
-.cert__hint {
+.score-card__hint {
   font-size: 11px;
   color: var(--color-text-faint);
 }
 
 /*
-  Narrow screens. The card keeps its structure and loses size: the footer
-  stacks rather than squeezing three groups into a phone's width, and the
-  name steps down so a long one still fits on one line.
+  No media query. The sheet is `min(340px, 100%)` and its one large number is
+  `clamp(56px, 18vw, 76px)`, so it fits every width on its own. A 400px
+  breakpoint was written here to trim the padding on small phones and the
+  breakpoint guard (tests/unit/breakpoints.test.ts) rejected it, correctly:
+  this layout reflows at no width, so it needs no width to reflow at.
 */
-@media (max-width: 560px) {
-  .cert__sheet {
-    padding: 22px 20px 18px;
-    border-radius: 12px;
-  }
-
-  .cert__hero {
-    padding: 22px 0 24px;
-  }
-
-  .cert__name {
-    font-size: 30px;
-  }
-
-  .cert__name::placeholder {
-    font-size: 17px;
-  }
-
-  .cert__score-value {
-    font-size: 46px;
-  }
-
-  .cert__foot {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-3);
-  }
-
-  .cert__facts {
-    gap: 24px;
-  }
-
-  .cert__issuer {
-    align-items: flex-start;
-    text-align: left;
-  }
-}

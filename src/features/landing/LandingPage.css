@@ -250,9 +250,32 @@ html.ln-route body {
   overflow: hidden;
 }
 
-.ln-hero__map {
+/*
+  Two class names, and that is the entire point of this rule.
+
+  MapLibre stamps `maplibregl-map` onto whatever element you hand it and its
+  own stylesheet sets `.maplibregl-map { position: relative }`. That has the
+  same specificity as a plain `.ln-hero__map`, so the winner is decided by
+  which stylesheet the bundler happens to emit last, and it was emitting
+  MapLibre's last. This element therefore computed to position: relative
+  with height: 0, `inset: 0` never applied, and the canvas fell back to
+  MapLibre's hard-coded 400x300 default inside a hero 903px tall.
+
+  Measured on the built site, not inferred: the hero that says "Live
+  satellite map. Drag it." was showing a near-empty box, on the page every
+  launch link points at.
+
+  Matching both classes wins the cascade outright, whatever order the CSS
+  lands in. Explicit width and height as well as inset, so the box still
+  fills its parent even if a future MapLibre release changes its own
+  positioning again.
+*/
+.ln-hero__map.maplibregl-map,
+.ln-hero > .ln-hero__map {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* Esri's imagery is accurate, not flattering: dense cities come back as
