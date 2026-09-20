@@ -1,7 +1,7 @@
 /**
  * NASA GIBS dated satellite imagery.
  *
- * What this is and — just as importantly — what it isn't. GIBS serves global
+ * What this is and - just as importantly - what it isn't. GIBS serves global
  * satellite imagery as map tiles, keyless and free, with a date in the URL,
  * daily from February 2000 to a couple of days ago. That makes a real
  * historical timeline possible without a paid imagery archive.
@@ -9,7 +9,7 @@
  * The resolution is 250 m per pixel. So this shows reservoirs filling and
  * emptying, coastlines moving, vegetation and snow coming and going, large
  * urban expansion over years, smoke and dust. It does NOT show individual
- * new buildings or new streets — at 250 m a city block is one pixel. High
+ * new buildings or new streets - at 250 m a city block is one pixel. High
  * resolution historical imagery exists and costs money; presenting a 250 m
  * product as if it showed building-level change would be the kind of
  * overclaim this project doesn't make, so the UI says the resolution out
@@ -54,7 +54,7 @@ export const GIBS_EARLIEST = "2000-02-24";
 /**
  * GIBS publishes a day's global mosaic after that day has finished
  * processing, so the last day or two is routinely missing. Asking for
- * "today" returns blank tiles, which looks exactly like a broken layer —
+ * "today" returns blank tiles, which looks exactly like a broken layer -
  * so the slider's own upper bound is three days back.
  */
 export function gibsLatestDate(now: Date = new Date()): string {
@@ -83,7 +83,7 @@ export function timelineStops(now: Date = new Date()): string[] {
   // Fifteen years is enough to show real change without making each slider
   // step so small that it's hard to land on one.
   for (let year = latestYear - 14; year <= latestYear - 1; year += 1) {
-    // Mid-year, and in the dry season for much of South Asia — a date chosen
+    // Mid-year, and in the dry season for much of South Asia - a date chosen
     // at random lands on cloud often enough to look like a broken layer.
     stops.push(`${year}-02-15`);
   }

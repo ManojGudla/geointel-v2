@@ -13,7 +13,7 @@ import type { NavState } from "@/features/routing/navigation/navStore";
  * labels gives a first-time visitor no reason to press any particular one.
  *
  * There is already a suggestion engine in the app (features/ai/
- * copilotSuggestions.ts) and it is good, but it lives inside the Ask panel —
+ * copilotSuggestions.ts) and it is good, but it lives inside the Ask panel -
  * behind the very door people were not opening. So this is deliberately not
  * more questions to ask an assistant. It is a single sentence that names
  * something true about THIS place or current view, attached to a button that does it.
@@ -69,7 +69,7 @@ export function nextStep(input: NextStepInput): NextStep | null {
 
   /**
    * Priority 1: Place-discovery suggestions.
-   * These are the highest value — someone landed on a place and should be
+   * These are the highest value - someone landed on a place and should be
    * guided through what's actually here. All other suggestions defer to these.
    */
 
@@ -85,7 +85,7 @@ export function nextStep(input: NextStepInput): NextStep | null {
   const count = evidenceCount.toLocaleString();
 
   // Genuinely empty. This is the moment people conclude the site is broken,
-  // so it is the most valuable one to answer honestly — OSM coverage varies
+  // so it is the most valuable one to answer honestly - OSM coverage varies
   // enormously, and the app has something real to offer instead.
   if (evidenceCount === 0) {
     return {

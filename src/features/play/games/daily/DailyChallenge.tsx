@@ -26,7 +26,7 @@ import {
 import "./DailyChallenge.css";
 
 /**
- * maNOWj Daily — five satellite views, one guess each, the same five for
+ * maNOWj Daily - five satellite views, one guess each, the same five for
  * everyone, once a day.
  *
  * This replaced ten games that could each be played endlessly. The reason is
@@ -45,7 +45,7 @@ import "./DailyChallenge.css";
  *   quiz that only tells you that you were wrong.
  *
  *   The shared result is colours only. It proves how you did without spoiling
- *   the day for whoever reads it — the property that let Wordle spread.
+ *   the day for whoever reads it - the property that let Wordle spread.
  */
 
 type Phase = "intro" | "guessing" | "revealed" | "finished";
@@ -134,7 +134,7 @@ export function DailyChallenge({ onBackToHub }: { onBackToHub: () => void }) {
     setPhase("finished");
   }, [index]);
 
-  // Recording happens once, when the run actually finishes — not on every
+  // Recording happens once, when the run actually finishes - not on every
   // render of the finished screen, which a stale tab would otherwise repeat.
   useEffect(() => {
     if (phase !== "finished" || recordedRef.current) return;
@@ -269,8 +269,8 @@ export function DailyChallenge({ onBackToHub }: { onBackToHub: () => void }) {
    *
    * It used to be the reward for taking the first clue, and the round before
    * that clue was genuinely unanswerable. The player saw a top-down crop of
-   * ordinary low-rise buildings — no signs, no vehicles, no vegetation, none
-   * of the things that make a street-level guessing game work — beside a map
+   * ordinary low-rise buildings - no signs, no vehicles, no vegetation, none
+   * of the things that make a street-level guessing game work - beside a map
    * of the entire planet four centimetres wide. There is no skill that turns
    * that into a pin. It is a lottery, and it reads as a broken game.
    *

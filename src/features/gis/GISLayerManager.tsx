@@ -10,7 +10,7 @@ const LAYER_BY_ID = new Map(LAYER_DEFS.map((l) => [l.id, l]));
  * Map data layers, grouped rather than listed flat.
  *
  * Every layer that existed before is still here and still individually
- * switchable — grouping is presentation, not a reduction in capability. What
+ * switchable - grouping is presentation, not a reduction in capability. What
  * changed is that the panel no longer opens as eighteen undifferentiated
  * checkboxes: each group says what it is for, shows how many of its layers
  * are on, and starts collapsed unless something in it is active.
@@ -67,7 +67,7 @@ export function GISLayerManager() {
                 <strong>{group.label}</strong>
                 <span>{group.hint}</span>
               </span>
-              {/* Stated in words, not as a coloured dot — the count has to be
+              {/* Stated in words, not as a coloured dot - the count has to be
                   readable without relying on colour. */}
               <span className="layer-group__count">{active > 0 ? `${active} on` : "off"}</span>
             </button>

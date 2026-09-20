@@ -6,7 +6,7 @@ import { join } from "node:path";
  * What a search engine can actually read on the home page.
  *
  * This exists because of a real report: an SEO checker scored the site zero,
- * and the site did not appear in Google. The cause was not missing keywords —
+ * and the site did not appear in Google. The cause was not missing keywords -
  * search engines stopped reading the keywords meta tag well over a decade ago.
  * It was that the entire body of index.html was:
  *
@@ -16,12 +16,12 @@ import { join } from "node:path";
  *
  * Not one word. Every visible sentence on the site is produced by JavaScript
  * after load. Google's crawler does run JavaScript, but it does so on a second,
- * slower pass, and most other crawlers and audit tools do not run it at all —
+ * slower pass, and most other crawlers and audit tools do not run it at all -
  * so to them the page was blank, and a blank page cannot rank for anything.
  *
  * The fix is a static fallback inside #root that React replaces on mount, plus
  * a ld+json block describing the application. These tests keep both from being
- * quietly removed by a later edit, and — the part most likely to be forgotten —
+ * quietly removed by a later edit, and - the part most likely to be forgotten -
  * keep the fallback from breaking the blank-page recovery guard.
  */
 
@@ -74,7 +74,7 @@ describe("the home page has content without JavaScript", () => {
   /**
    * The keywords tag, and why this test changed its mind.
    *
-   * It used to assert the opposite — that no keywords tag existed — on the
+   * It used to assert the opposite - that no keywords tag existed - on the
    * grounds that search engines have ignored it for well over a decade and
    * that having one "would imply the site does something about SEO that it
    * does not."
@@ -87,7 +87,7 @@ describe("the home page has content without JavaScript", () => {
    *
    * So it stays, because it was asked for and it costs nothing. What must not
    * happen is the name living ONLY in that tag, which would be a real
-   * mistake — hence the tests below, which check the four places that
+   * mistake - hence the tests below, which check the four places that
    * actually do the work.
    */
   it("keeps the keywords tag honest about being decorative", () => {
@@ -170,7 +170,7 @@ describe("the recovery guard still works with content in #root", () => {
   it("knows the static fallback is not a mounted app", () => {
     // The trap: the old guard asked whether #root had any children. The
     // fallback made that permanently false, which would have silently
-    // disabled the whole blank-page recovery — the exact bug it exists to
+    // disabled the whole blank-page recovery - the exact bug it exists to
     // catch, reintroduced by the fix for a different one.
     expect(recovery).toContain("prerender");
     expect(html).toContain('id="prerender"');
@@ -184,7 +184,7 @@ describe("the recovery guard still works with content in #root", () => {
 /**
  * llms.txt, and the trap it fell into.
  *
- * Lighthouse reported "llms.txt does not follow recommendations — File is
+ * Lighthouse reported "llms.txt does not follow recommendations - File is
  * missing a required H1 header". That wording is the giveaway: it did not say
  * the file was absent, it said the file's CONTENT was wrong. There was no
  * llms.txt at all. The request for it fell through to the SPA rewrite and came

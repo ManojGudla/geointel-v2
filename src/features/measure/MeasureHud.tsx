@@ -6,7 +6,7 @@ import "./MeasureHud.css";
  *
  * The controls themselves live in the Tools panel, which is where someone
  * goes looking for them. But while you are actually measuring, your eyes are
- * on the map and the panel may well be closed — so the running figure, the
+ * on the map and the panel may well be closed - so the running figure, the
  * point count and the two actions you need mid-measurement (undo, finish)
  * follow you here. It renders only while a measurement mode is active, so it
  * costs nothing the rest of the time.

@@ -70,7 +70,7 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = { easy: "Easy", normal: "No
 type Phase = "ready" | "runup" | "travelling" | "result" | "done";
 
 /**
- * Cricket Challenge — a timing game, not a menu.
+ * Cricket Challenge - a timing game, not a menu.
  *
  * The ball leaves the bowler's hand and travels down the pitch over a real,
  * varying number of milliseconds. You press SPACE (or tap the pitch) to play
@@ -102,7 +102,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
    * time a shot you have to scroll to see.
    *
    * The real Fullscreen API rather than a CSS overlay, because only the real
-   * one hides the browser chrome and the phone's own bars — which is most of
+   * one hides the browser chrome and the phone's own bars - which is most of
    * the height being lost.
    */
   const stageRef = useRef<HTMLDivElement>(null);
@@ -207,7 +207,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
        *
        * These four were left behind, and the result was a fresh match opening
        * at 0/0 off 0.0 overs with "Gone. That is the innings." sitting above
-       * it — the previous game's final line of commentary, reporting a wicket
+       * it - the previous game's final line of commentary, reporting a wicket
        * that had not happened yet. Reads and reviews were carried over too, so
        * a second match silently started with fewer of both.
        */
@@ -231,7 +231,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
 
   useEffect(() => () => clearTimers(), []);
 
-  /** Resolves the ball — called by a swing, or by the ball passing the bat. */
+  /** Resolves the ball - called by a swing, or by the ball passing the bat. */
   const resolve = useCallback(
     (offsetMs: number | null) => {
       const rng = rngRef.current;
@@ -252,7 +252,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
         rather than a coin. If the ball was going to hit low and straight,
         it beat the pad too and knocked the stumps over, and nobody reviews
         a bowled. Anything else struck the pad on the way, which is the
-        shout — and the shout is where the geometry earns its keep, because
+        shout - and the shout is where the geometry earns its keep, because
         the umpire cannot see deviation after pitching and the player can
         learn to.
       */
@@ -294,7 +294,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
     const current = stateRef.current;
     if (!rng || !current || isOver(current)) return;
 
-    // The bowler now plans against you rather than bowling at random — see
+    // The bowler now plans against you rather than bowling at random - see
     // bowlerPlan in timing.ts. The note is what the plan looks like from the
     // batter's end, so the counter is learnable instead of invisible.
     const { delivery: ball, note } = nextPlannedDelivery(difficulty, current, rng);
@@ -338,7 +338,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
   const swing = useCallback(() => {
     if (phase !== "travelling" || swungRef.current) return;
     swungRef.current = true;
-    // Measured against the wall clock, not the frame counter — a stutter must
+    // Measured against the wall clock, not the frame counter - a stutter must
     // never change what your press was worth.
     resolve(performance.now() - contactAtRef.current);
   }, [phase, resolve]);
@@ -360,7 +360,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
    * Sends it upstairs.
    *
    * On an overturn the innings is rewound to the state BEFORE the ball, then
-   * that ball is re-applied as a dot — which is what actually happens: the
+   * that ball is re-applied as a dot - which is what actually happens: the
    * wicket is struck off and the delivery still counts.
    */
   /**
@@ -474,7 +474,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
           won={won || tied}
           applied={applied}
           /**
-           * A tie is not a loss and it is not an ending — it is the best
+           * A tie is not a loss and it is not an ending - it is the best
            * result a chase can produce, and cricket has an answer for it.
            * Six balls, one wicket, sudden death.
            */
@@ -535,7 +535,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
           </span>
           {/* The required rate is the number a real chase is actually about.
               Without it the scoreboard states a fact; with it, the fact has a
-              meaning — 9 an over is comfortable, 18 is nearly gone. */}
+              meaning - 9 an over is comfortable, 18 is nearly gone. */}
           <span className="cricket__rate">
             Need {Number.isFinite(chase.requiredRate) ? chase.requiredRate.toFixed(1) : "-"} an over
             {state.ballsBowled > 0 ? ` · scoring ${chase.currentRate.toFixed(1)}` : ""}
@@ -560,7 +560,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
         DRS. The piece that turns a dismissal from a full stop into a decision.
 
         One review an innings, as in a T20, and the truth was fixed when the
-        ball was bowled — reviewing reveals what happened, it cannot change it.
+        ball was bowled - reviewing reveals what happened, it cannot change it.
         Umpire's call keeps your review, exactly as the real rule does, which
         is what makes spending it a genuine gamble rather than a free retry.
       */}
@@ -615,12 +615,12 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
       {/*
         The ground, replacing a green rectangle with a dot travelling down it.
 
-        The timing underneath is unchanged — it was already the good part. What
+        The timing underneath is unchanged - it was already the good part. What
         changed is that there is now a match happening around it: a crowd that
         reacts, a set field that the bowler moves against you, an umpire who
         signals, and batters who actually run. The previous version used emoji
         for the players and the feedback on it was exact: small, over-acted and
-        funny. Every figure is drawn now — see Figures.tsx.
+        funny. Every figure is drawn now - see Figures.tsx.
       */}
       <Stadium
         progress={progress}
@@ -690,7 +690,7 @@ export function CricketChallenge({ onBackToHub }: { onBackToHub: () => void }) {
         </div>
       )}
 
-      {/* Aim is chosen between balls, not during — it is a plan, not a reflex. */}
+      {/* Aim is chosen between balls, not during - it is a plan, not a reflex. */}
       <div className="cricket__aim" role="group" aria-label="Where to hit">
         <span className="cricket__aim-label">Aim</span>
         {AIMS.map((a) => (

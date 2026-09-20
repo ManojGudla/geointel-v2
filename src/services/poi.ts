@@ -17,7 +17,7 @@ export interface PoiEvidence {
   trust: EvidenceTrust;
   // Reuses GISEvidence's counts/scores shape (rather than a second hand-typed
   // copy) so the two can never drift the way api/gis.ts's classifyFeatures()
-  // and this type once did — see totalEvidenceCount() in api/gis.ts.
+  // and this type once did - see totalEvidenceCount() in api/gis.ts.
   counts: GISEvidence["counts"];
   scores: GISEvidence["scores"];
   features: GISFeature[];

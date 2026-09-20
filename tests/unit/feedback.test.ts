@@ -57,7 +57,7 @@ describe("api/feedback handler", () => {
         from: () => ({
           insert: async () => ({ error: { message: "insert failed" } }),
           // withMaintenanceGuard (every non-admin handler is wrapped in it
-          // now) calls getMaintenanceState(), which does this select — not
+          // now) calls getMaintenanceState(), which does this select - not
           // what this test is about, so just report "no maintenance row",
           // same as an unconfigured/unmigrated project.
           select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),

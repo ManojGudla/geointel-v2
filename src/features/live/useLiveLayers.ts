@@ -5,7 +5,7 @@ import { useLocationStore } from "@/stores/locationStore";
 
 /**
  * Each live layer only fetches while it is switched on (`enabled`), so an
- * unused layer costs nothing — no request, no polling, no load on a public
+ * unused layer costs nothing - no request, no polling, no load on a public
  * service. Refetch intervals match how fast the underlying data actually
  * moves, not how fast a dashboard could theoretically poll.
  */
@@ -36,7 +36,7 @@ export function useRadarFrame() {
 }
 
 /**
- * Air quality is a reading for the selected point rather than a map layer —
+ * Air quality is a reading for the selected point rather than a map layer -
  * CAMS publishes it on a grid far coarser than anything worth drawing as
  * tiles, so presenting it as a shaded overlay would imply a precision the
  * data does not have. It's shown as a number, where a number is honest.

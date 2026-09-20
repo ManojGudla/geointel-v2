@@ -45,7 +45,7 @@ export function FeedbackForm() {
   /*
     Makes this behave like the role="dialog" it declares: Escape closes it,
     focus moves in on open and cycles inside, and goes back to whatever opened
-    it on close. See hooks/useDialog.ts — none of that was happening before,
+    it on close. See hooks/useDialog.ts - none of that was happening before,
     and Tab walked straight out into the map behind this panel.
   */
   const dialogRef = useDialog({ open: isOpen, onClose: handleClose });

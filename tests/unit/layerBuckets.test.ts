@@ -7,8 +7,8 @@ import type { GISFeature } from "../../src/types/gis";
  * [a GIS layer checkbox] also there nothing change." Root cause was that a
  * residential/industrial/institutional building belongs to BOTH its
  * specific subtype layer and the generic "buildings" layer (same for
- * amenity subtypes under "amenities"), and the generic layer — always
- * checked by default — was always picked first, so the specific checkbox's
+ * amenity subtypes under "amenities"), and the generic layer - always
+ * checked by default - was always picked first, so the specific checkbox's
  * state had zero visible effect. pickVisibleLayer() is the fix: prefer a
  * specific, checked layer over a generic one.
  */
@@ -50,7 +50,7 @@ describe("pickVisibleLayer", () => {
 
     // Default GIS panel state: Buildings on, Residential off.
     expect(pickVisibleLayer(layers, { buildings: true, residential: false })).toBe("buildings");
-    // After the user checks "Residential" — this used to stay "buildings"
+    // After the user checks "Residential" - this used to stay "buildings"
     // (the bug); it must now flip to "residential".
     expect(pickVisibleLayer(layers, { buildings: true, residential: true })).toBe("residential");
   });
@@ -67,7 +67,7 @@ describe("pickVisibleLayer", () => {
 describe("layer grouping", () => {
   /**
    * A layer that exists in LAYER_DEFS but appears in no group would vanish
-   * from the layer panel entirely — present in the data model, invisible and
+   * from the layer panel entirely - present in the data model, invisible and
    * unreachable in the interface. Nothing in the source makes that visible,
    * so this is the check that catches it.
    */

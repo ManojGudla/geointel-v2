@@ -2,17 +2,22 @@
 Builds the MG monogram, as the standard mark and as the Android maskable one.
 
 The letters are extracted from Poppins Bold and written out as <path> data, so
-the finished files have no font dependency at all — a favicon is rasterised by
+the finished files have no font dependency at all - a favicon is rasterised by
 browsers, crawlers and phone launchers, and not one of them can be relied on
 to have the font installed.
 """
 
+import os
+from pathlib import Path
+
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 
-FONT = "/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf"
+# Point FONT_PATH at a copy of Poppins Bold before running this. It is only
+# needed to regenerate the icons, never at build or run time.
+FONT = os.environ.get("FONT_PATH", "Poppins-Bold.ttf")
 TILE = 512
-ICONS = "/home/claude/geointel-v2/public/icons"
+ICONS = str(Path(__file__).resolve().parent.parent / "public" / "icons")
 
 font = TTFont(FONT)
 cap = font["OS/2"].sCapHeight
@@ -61,7 +66,7 @@ def letters(side_padding):
 
 standard, cap_std = letters(46)
 # A maskable icon's safe zone is the central circle of 80% diameter, so the
-# letters are set smaller here — a launcher may crop to a circle, a squircle
+# letters are set smaller here - a launcher may crop to a circle, a squircle
 # or a teardrop, and anything outside that circle can be shaved off.
 mask, cap_mask = letters(132)
 
@@ -74,7 +79,7 @@ NOTE = """  <!--
 
     Two colours, and that is the point rather than decoration. An all-white
     "MG" on a blue tile is precisely what Google draws for a site whose icon
-    it cannot find — so a mark that looked like that would be indistinguishable
+    it cannot find - so a mark that looked like that would be indistinguishable
     from having no mark at all. The amber G is the one accent this brand
     spends, and it gives the tile a colour signature that survives at 16px,
     well past the size where the letterforms stop being legible.
@@ -82,7 +87,7 @@ NOTE = """  <!--
     Sized against the size it is actually seen at. A favicon in a search result
     is 16 pixels: the cap height here is {pct:.0f}% of the tile, which is
     {px:.1f}px at that size, and the stroke weights of Poppins Bold hold up at
-    it. The previous mark drew a ring at a 15/512 stroke — 0.47px at 16px —
+    it. The previous mark drew a ring at a 15/512 stroke - 0.47px at 16px -
     which did not thin, it smeared.
   -->"""
 
@@ -106,8 +111,8 @@ with open(f"{ICONS}/mark-maskable.svg", "w") as f:
         "    The maskable variant, for Android home screens.\n\n"
         "    Full-bleed square with no corner radius, because the launcher applies\n"
         "    its own mask and a pre-rounded tile inside one leaves corner gaps. The\n"
-        "    letters are set smaller so they stay inside the safe zone — the central\n"
-        "    circle of 80% diameter — whatever shape the phone crops to.\n"
+        "    letters are set smaller so they stay inside the safe zone - the central\n"
+        "    circle of 80% diameter - whatever shape the phone crops to.\n"
         "  -->\n"
         "  <defs>\n" + GRADIENT.format(gid="tileMask") + "\n  </defs>\n\n"
         f'  <rect width="{TILE}" height="{TILE}" fill="url(#tileMask)"/>\n\n' + mask + "</svg>\n"

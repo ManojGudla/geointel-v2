@@ -7,16 +7,16 @@ import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
  * Single-key shortcuts for the things people reach for constantly.
  *
  * Two rules keep these from becoming a nuisance. They never fire while the
- * user is typing — in an input, a textarea, a select or anything
- * contenteditable — because a shortcut that eats the "l" in "hospital" is
+ * user is typing - in an input, a textarea, a select or anything
+ * contenteditable - because a shortcut that eats the "l" in "hospital" is
  * worse than no shortcut. And they never fire with a modifier held, so
  * browser and OS combinations (Ctrl+L for the address bar, Cmd+A for select
  * all) keep working exactly as they should.
  *
  * Escape is deliberately layered rather than doing one thing: it undoes the
  * most recent, most specific piece of state first. Measuring, then the
- * panel. Anything with its own Escape handling — the command palette, the
- * header menu, the search dropdown — is left alone here, so pressing Escape
+ * panel. Anything with its own Escape handling - the command palette, the
+ * header menu, the search dropdown - is left alone here, so pressing Escape
  * never closes two things at once.
  */
 function isTyping(target: EventTarget | null): boolean {

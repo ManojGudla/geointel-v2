@@ -45,7 +45,7 @@ describe("the teaser's auto-hide", () => {
     expect(screen.queryByText(TEASER_COPY.headline)).toBeNull();
   });
 
-  it("leaving on its own is not remembered — only ✕ is", () => {
+  it("leaving on its own is not remembered - only ✕ is", () => {
     render(<SurpriseTeaser />);
     act(() => {
       vi.advanceTimersByTime(fullExit());

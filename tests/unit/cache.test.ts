@@ -56,7 +56,7 @@ describe("RateLimiter", () => {
 
 // Regression coverage for a real bug: getMaintenanceState() and
 // searchKnowledgeBase() each awaited a Supabase call with nothing bounding
-// it — unlike every other external dependency in this project, which all
+// it - unlike every other external dependency in this project, which all
 // go through fetchWithTimeout above. A slow/unreachable Supabase project
 // (a paused free-tier project is the common real case) left that await
 // hanging until some much longer platform-level socket timeout finally

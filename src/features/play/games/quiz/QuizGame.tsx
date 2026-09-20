@@ -30,7 +30,7 @@ interface Answered {
  * bonus and the scoring behave identically everywhere instead of drifting
  * apart per quiz.
  *
- * Answering fast is worth more, so the clock starts on each question — but
+ * Answering fast is worth more, so the clock starts on each question - but
  * there's no time LIMIT, because a countdown that fails you mid-thought is
  * stressful rather than fun and makes the quiz unusable for anyone who reads
  * slowly.
@@ -145,7 +145,7 @@ export function QuizGame({ gameId, gameTitle, kinds, count = 10, onBackToHub, se
       </div>
 
       {/* The flag is the question in the Flag Quiz, so it carries NO alt text
-          and no country name — see the note in Flag.tsx. */}
+          and no country name - see the note in Flag.tsx. */}
       {question.flagCode && (
         <div className="quiz__display">
           <Flag code={question.flagCode} size={220} className="flag--display" />
@@ -159,7 +159,7 @@ export function QuizGame({ gameId, gameTitle, kinds, count = 10, onBackToHub, se
 
       <p className="play-prompt">{question.prompt}</p>
 
-      {/* Stuck? Remove two wrong answers — at half the points for this
+      {/* Stuck? Remove two wrong answers - at half the points for this
           question. Priced because a free 50/50 just inflates every score
           equally and makes the number mean less. */}
       {chosen === null && (

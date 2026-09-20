@@ -1,6 +1,6 @@
 /* Bottom-right, stacked directly above the Copilot launcher which occupies
    that corner (see CopilotLauncher.css). Top-right belongs to MapLibre's own
-   zoom/compass/fullscreen stack, and bottom-left to the coordinate readout —
+   zoom/compass/fullscreen stack, and bottom-left to the coordinate readout -
    every overlay has its own reserved space, none of them overlap. */
 .measure-hud {
   position: absolute;

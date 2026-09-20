@@ -19,7 +19,7 @@ export interface Location extends Coordinates {
     state?: string;
     country?: string;
     postcode?: string;
-    /** ISO 3166-1 alpha-2, e.g. "US", "IN" — powers Official/Authority Intelligence (see api/officials.ts). */
+    /** ISO 3166-1 alpha-2, e.g. "US", "IN" - powers Official/Authority Intelligence (see api/officials.ts). */
     countryCode?: string;
     /** ISO 3166-2 subdivision code, e.g. "US-CA", "IN-TG", when Nominatim provides one at this precision. */
     stateCode?: string;

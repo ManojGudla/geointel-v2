@@ -15,7 +15,7 @@ export interface NominatimResult {
 
 /**
  * Nominatim usage policy requires a descriptive User-Agent and reasonable
- * request rates — both handled by the caller's rate limiter and this header.
+ * request rates - both handled by the caller's rate limiter and this header.
  */
 async function nominatimFetch(path: string, params: Record<string, string>): Promise<Response> {
   const url = new URL(`${NOMINATIM_BASE}${path}`);

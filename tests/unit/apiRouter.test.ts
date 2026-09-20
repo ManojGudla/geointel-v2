@@ -9,7 +9,7 @@ import { fakeReqRes } from "./testUtils";
  * The whole API is now served by one Vercel serverless function
  * (api/[...path].ts) dispatching through the ROUTES table, because Vercel's
  * Hobby plan caps a deployment at 12 functions and this project has 17
- * endpoints — deploying them as separate files failed outright, which is why
+ * endpoints - deploying them as separate files failed outright, which is why
  * the live site had a frontend and no API. That makes this router the single
  * point of failure for every endpoint, so it gets direct coverage: a wrong
  * key here silently 404s a whole feature in production.
@@ -34,7 +34,7 @@ describe("API router", () => {
 
   // Every endpoint the frontend calls must be registered. If a handler is
   // added under api/_routes/ but never listed in ROUTES, it exists on disk,
-  // typechecks, and still 404s at runtime — this is the check that catches
+  // typechecks, and still 404s at runtime - this is the check that catches
   // that before a deploy does.
   it("registers every endpoint the app depends on, each as a callable handler", () => {
     const expected = [
@@ -72,7 +72,7 @@ describe("API router", () => {
    * Regression coverage for a production-only 404: Vercel's plain api/
    * directory matches `[...path]` against exactly ONE segment, so the
    * catch-all served /api/health while /api/ai/copilot and
-   * /api/admin/maintenance returned 404 — the admin page was unreachable
+   * /api/admin/maintenance returned 404 - the admin page was unreachable
    * even though its handler was registered and working. Nested routes need a
    * real file at their own path. Nothing in the source makes that visible,
    * so without this test the next nested route added would 404 in production
@@ -84,7 +84,7 @@ describe("API router", () => {
 
     for (const key of nested) {
       const entry = path.resolve(process.cwd(), "api", `${key}.ts`);
-      expect(existsSync(entry), `Missing api/${key}.ts — /api/${key} would 404 in production despite being in ROUTES`).toBe(true);
+      expect(existsSync(entry), `Missing api/${key}.ts - /api/${key} would 404 in production despite being in ROUTES`).toBe(true);
     }
   });
 

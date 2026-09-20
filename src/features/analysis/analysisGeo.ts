@@ -4,7 +4,7 @@ import { bufferPolygon } from "./spatialMath";
 /**
  * Turns an analysis result into the single GeoJSON collection the map's
  * analysis source draws. Every feature carries a `role` property, and the
- * map layers filter on it — one source, one setData call, no layer juggling
+ * map layers filter on it - one source, one setData call, no layer juggling
  * when the result changes shape between operations.
  *
  * Kept pure and separate from the panel so the geometry can be tested

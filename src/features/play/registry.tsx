@@ -36,14 +36,14 @@ import { registerGameCount } from "./progress/playStore";
  * back tomorrow.
  *
  * Tic-Tac-Toe is here again, but as ULTIMATE tic-tac-toe. The plain 3×3 game
- * was removed for a reason that polish could not fix — it is solved, so two
+ * was removed for a reason that polish could not fix - it is solved, so two
  * competent players draw every time and there is nothing to get better at.
  * Ultimate keeps the familiar rules and adds the one twist that creates real
  * depth, and classic 3×3 is still available inside it as a mode for anyone who
  * wants it.
  *
  * EVERY entry here is a game you can play right now, end to end. There are no
- * locked cards, no "coming soon" tiles and no teasers — a card that can't be
+ * locked cards, no "coming soon" tiles and no teasers - a card that can't be
  * pressed is a promise, and promises in a games list are how a product starts
  * feeling fake. Games that are genuinely planned are named in one honest line
  * at the bottom of the hub instead of occupying a slot that looks playable.
@@ -85,7 +85,7 @@ export const GAMES: GameEntry[] = [
     tagline: "Nine boards. Your move decides where your opponent plays next.",
     icon: "✖️",
     categories: ["trending", "casual", "quick"],
-    duration: "3–8 min",
+    duration: "3-8 min",
     scored: false,
     render: ({ onBackToHub }) => <UltimateTicTacToe onBackToHub={onBackToHub} />,
   },

@@ -11,12 +11,12 @@ import { AGENT_DEFINITIONS } from "../../src/types/ai";
  * only contains the location address and current weather, with no GIS
  * evidence counts, POI categories, or built-environment scores available to
  * analyze." Beside it, the map read "161 things mapped within 250 m" and was
- * covered in evidence dots — driven by the very same query that feeds the
+ * covered in evidence dots - driven by the very same query that feeds the
  * agent's context.
  *
  * Nothing had failed. Weather comes from Open-Meteo and arrives in a moment;
  * GIS evidence comes from Overpass and takes seconds. The agent was asked in
- * the gap, was handed a half-empty context, and reported honestly on it —
+ * the gap, was handed a half-empty context, and reported honestly on it -
  * the guardrail working exactly as designed. The bug is that it was asked at
  * all, and that its answer then sat on the card permanently, describing a
  * gap that had closed two seconds later.
@@ -38,7 +38,7 @@ describe("what each agent waits for", () => {
   });
 
   it("holds the property agent back too, since it reads the same evidence", () => {
-    // analyzeProperty() is computed from the GIS counts — no evidence means
+    // analyzeProperty() is computed from the GIS counts - no evidence means
     // no classification to explain.
     expect(readinessNotice("property", { ...READY, gis: true })).not.toBeNull();
   });
@@ -46,7 +46,7 @@ describe("what each agent waits for", () => {
   it("does not make an agent wait for a source it never reads", () => {
     /*
       The reason this is per-agent rather than "wait for everything": one
-      slow dependency — officials, from Wikidata — must not be able to block
+      slow dependency - officials, from Wikidata - must not be able to block
       an agent that has no use for it.
     */
     const officialsSlow: ContextPending = { ...READY, officials: true };
@@ -112,7 +112,7 @@ describe("the agent card while its data is still arriving", () => {
   it("will not let a finished card be re-run into the same gap", async () => {
     /*
       Changing the radius creates a new query key, so the evidence is
-      genuinely absent again rather than merely refreshing — clicking "Run
+      genuinely absent again rather than merely refreshing - clicking "Run
       again" during that window would reproduce the original bug exactly.
     */
     await renderCard(

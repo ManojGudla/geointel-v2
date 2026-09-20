@@ -9,13 +9,13 @@ import { FEATURED_PAIR_PATHS } from "../../src/features/compare/comparePairs";
 /**
  * These pages exist for one reason: before them, the site had two indexable
  * URLs, so somebody searching "hospitals near Hyderabad" had no way to find
- * this application without already knowing the brand — which for a new product
+ * this application without already knowing the brand - which for a new product
  * means no way in at all.
  *
  * The risk in fixing that is the fix being worse than the problem. Generated
  * pages that differ only in a name are what search engines have spent fifteen
  * years learning to discount, and they pull down the pages that would otherwise
- * have ranked. So the tests that matter here are not "does it render" — they
+ * have ranked. So the tests that matter here are not "does it render" - they
  * are the ones that keep these pages honest and distinct.
  */
 
@@ -65,7 +65,7 @@ describe("the city data itself", () => {
     /*
       The geography was always per-city, but every summary used to read
       "Explore {City} on an interactive map and ask questions about any part of
-      it" — one string, twelve times, differing by a proper noun. That string is
+      it" - one string, twelve times, differing by a proper noun. That string is
       the meta description, so the set of pages this site is trying to rank
       carried a duplicate description on every one of them, which is the same
       templating mistake the geography rule exists to prevent, made in the field
@@ -91,7 +91,7 @@ describe("the city data itself", () => {
   it("does not place two cities on top of each other", () => {
     /*
       The copy-paste guard, and it nearly caught me: a source read as "72°58′E"
-      for Ahmedabad where the real value is 72.58°E — a difference of about
+      for Ahmedabad where the real value is 72.58°E - a difference of about
       forty kilometres, which would have centred that city's map in open
       farmland east of it. Coordinates being "inside India" is not enough; they
       also have to be somewhere different from each other.
@@ -105,7 +105,7 @@ describe("the city data itself", () => {
           0.1 degrees is roughly 11km. Deliberately loose: this is a guard
           against a duplicated or mistyped coordinate, not a policy on how far
           apart two cities must be. Delhi and Gurugram are about 25km apart and
-          are genuinely separate cities in separate states — a stricter
+          are genuinely separate cities in separate states - a stricter
           threshold would fail on a legitimate pair, which is how a useful test
           turns into one people delete.
         */
@@ -117,7 +117,7 @@ describe("the city data itself", () => {
   it("only offers questions the parser can actually run", async () => {
     /*
       The worst possible SEO page is one that ranks and then disappoints. Every
-      prompt listed on a city page opens the map and runs — so each one is
+      prompt listed on a city page opens the map and runs - so each one is
       checked against the real parser, not a list of nice-sounding strings.
     */
     const { parseMapCommand } = await import("../../src/features/ai/mapCommands");
@@ -206,7 +206,7 @@ describe("a rendered city page", () => {
     /*
       The production host, not the test runner's. This assertion used to expect
       "http://localhost:3000/maps/hyderabad", because the page built its
-      canonical from window.location.origin — so the test faithfully encoded a
+      canonical from window.location.origin - so the test faithfully encoded a
       real bug. This app answers on www.manowj.com AND on the
       manowj-geointel.vercel.app address Vercel keeps live, and a canonical
       derived from the current origin tells a crawler that whichever host it
@@ -249,8 +249,8 @@ describe("a rendered city page", () => {
   it("never claims an FAQ it does not display", async () => {
     /*
       FAQPage schema needs the questions AND their answers visible on the page.
-      These prompts run a live query — the answer does not exist until somebody
-      clicks — so marking them up as an FAQ would be a structured-data claim the
+      These prompts run a live query - the answer does not exist until somebody
+      clicks - so marking them up as an FAQ would be a structured-data claim the
       page cannot back, which earns a manual action rather than a rich result.
     */
     await renderCity("delhi");

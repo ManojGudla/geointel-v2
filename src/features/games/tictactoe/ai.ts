@@ -1,7 +1,7 @@
 import { applyMove, legalMoves, status, turnOf, type Board, type Player } from "./engine";
 
 /**
- * The computer opponent. Three genuinely different strategies — not one
+ * The computer opponent. Three genuinely different strategies - not one
  * strategy with three labels on it.
  *
  *   Easy    plays at random. Beatable, and meant to be.
@@ -11,13 +11,13 @@ import { applyMove, legalMoves, status, turnOf, type Board, type Player } from "
  *   Hard    full minimax over the whole game tree. Tic-tac-toe is small
  *           enough (fewer than 550k positions from an empty board, and
  *           trivial in practice with alpha-beta) to solve exactly, so Hard
- *           is genuinely unbeatable — the best any opponent can achieve
+ *           is genuinely unbeatable - the best any opponent can achieve
  *           against it is a draw.
  *
  * Depth is included in the score so that, among equally-good outcomes, the
  * AI prefers to win sooner and lose later. Without it a solved position
  * makes every losing move look identical and the AI plays listlessly toward
- * a loss it could have delayed — which reads as a bug even though the
+ * a loss it could have delayed - which reads as a bug even though the
  * result is the same.
  */
 export type Difficulty = "easy" | "medium" | "hard";
@@ -71,7 +71,7 @@ function minimax(board: Board, maximisingFor: Player, depth: number, alpha: numb
  * The AI's move for the side to play, or null if the game is already over.
  *
  * `random` is injectable so the non-deterministic difficulties can be tested
- * deterministically — otherwise "Easy sometimes blunders" is untestable and
+ * deterministically - otherwise "Easy sometimes blunders" is untestable and
  * a regression in it would go unnoticed.
  */
 export function chooseMove(board: Board, difficulty: Difficulty, random: () => number = Math.random): number | null {

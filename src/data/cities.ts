@@ -1,7 +1,7 @@
 /**
  * The cities that get their own page.
  *
- * The rule is "written properly", not a number — and it is worth stating that
+ * The rule is "written properly", not a number - and it is worth stating that
  * precisely, because this file used to say "eight, not eighty" and that was
  * the wrong rule stated in the right spirit.
  *
@@ -17,20 +17,20 @@
  * So the bar for adding a city is: its coordinates, terrain and landmarks
  * were looked up in a source and checked, and the geography paragraph says
  * something true of that city and of nowhere else. A place that cannot clear
- * that bar — a town with no real geography to describe and almost nothing
- * mapped in it — would render as a page of "Not published", which is exactly
+ * that bar - a town with no real geography to describe and almost nothing
+ * mapped in it - would render as a page of "Not published", which is exactly
  * the thin page the hazard describes. It does not get an entry.
  *
  * WHAT IS IN THIS FILE, AND WHAT IS DELIBERATELY NOT.
  *
- * In: the things that do not change and that can be checked — the city's name,
+ * In: the things that do not change and that can be checked - the city's name,
  * the state it is in, its coordinates, the river or coast it sits on, a handful
  * of landmarks anyone can verify on the map itself.
  *
  * Not in: a single number. No population, no area, no density, no air quality,
  * no counts of hospitals or schools. Every figure on these pages is fetched
  * live from the same APIs the app uses, and arrives with its source and its
- * date attached. That is not caution for its own sake — a hardcoded population
+ * date attached. That is not caution for its own sake - a hardcoded population
  * is wrong the day it is written and gets more wrong every year, silently, in a
  * page that exists to look authoritative. This app's whole claim is that every
  * answer shows where it came from and when. A city page full of unsourced
@@ -211,7 +211,7 @@ export const CITIES: City[] = [
     summary:
       "Ahmedabad on an interactive map, split east and west by the Sabarmati. Ask what lies within any radius of any point, with every figure showing its source.",
     geography:
-      "Ahmedabad stands on the Sabarmati, which splits it cleanly in two: the walled old city and its dense pols on the east bank, the newer western districts across a line of bridges. The ground is flat, sandy and around 53 metres above sea level, broken only by the low Thaltej–Jodhpur rise. Two large lakes sit inside the built-up area: Kankaria, dug in 1451, and Vastrapur.",
+      "Ahmedabad stands on the Sabarmati, which splits it cleanly in two: the walled old city and its dense pols on the east bank, the newer western districts across a line of bridges. The ground is flat, sandy and around 53 metres above sea level, broken only by the low Thaltej-Jodhpur rise. Two large lakes sit inside the built-up area: Kankaria, dug in 1451, and Vastrapur.",
     landmarks: ["Sabarmati Riverfront", "Kankaria Lake", "Sabarmati Ashram", "Vastrapur Lake", "Bhadra Fort"],
     questions: ["hospitals within 5 km", "schools within 2 km", "what is within 800 m", "parks within 2 km"],
   },

@@ -9,7 +9,7 @@ import type { NearbyCategory } from "@/types/intel";
  *
  *  1. Quota. The AI provider's free tier allows fifty requests a day across
  *     the whole application. If every "hospitals within 5 km" spent one,
- *     the feature would stop working partway through a demo — which is the
+ *     the feature would stop working partway through a demo - which is the
  *     worst possible moment for it to stop working.
  *  2. Determinism. "Nearest hospital" has exactly one correct
  *     interpretation. Sending it to a language model to find that out adds
@@ -19,7 +19,7 @@ import type { NearbyCategory } from "@/types/intel";
  * So the common shapes are parsed here, for free and instantly, and
  * anything this cannot parse falls through to the model (see
  * useMapCommand.ts). The model's job there is only to pick an operation and
- * its parameters — it never produces the numbers. Every figure the user
+ * its parameters - it never produces the numbers. Every figure the user
  * sees comes from a real query against real data.
  */
 
@@ -81,7 +81,7 @@ const INTENT_WORDS =
 function hasSpatialIntent(text: string, distance: number | null): boolean {
   if (INTENT_WORDS.test(text)) return true;
   if (distance !== null) return true;
-  // The whole query IS the category — "hospitals", "petrol pumps", "atms".
+  // The whole query IS the category - "hospitals", "petrol pumps", "atms".
   // Nobody types that as an address, and it is the shortest useful command.
   const bare = CATEGORY_WORDS.reduce((rest, [pattern]) => rest.replace(pattern, " "), text)
     .replace(/[^a-z]/g, "")
@@ -100,7 +100,7 @@ const FACILITY_WORDS: Array<[RegExp, string]> = [
 
 const DEFAULT_RADIUS_METERS = 2000;
 
-/** "5 km", "5km", "800 m", "1.5 kilometres", "half a km" is not supported — it must be a number. */
+/** "5 km", "5km", "800 m", "1.5 kilometres", "half a km" is not supported - it must be a number. */
 export function parseDistanceMeters(text: string): number | null {
   const match = /(\d+(?:\.\d+)?)\s*(km|kms|kilomet(?:er|re)s?|m|meters?|metres?|mi|miles?)\b/.exec(text);
   if (!match) return null;
@@ -147,7 +147,7 @@ export function parseMapCommand(input: string): MapCommand | null {
     return { operation: "within", category, radiusMeters: distance ?? DEFAULT_RADIUS_METERS };
   }
 
-  // No category named, but a distance was — "draw a 5 km buffer", "what's
+  // No category named, but a distance was - "draw a 5 km buffer", "what's
   // within 2 km". A ring plus everything inside it is the useful answer.
   if (distance && /\bbuffer\b|\bring\b|\bradius\b|\bwithin\b|\baround\b/.test(text)) {
     return { operation: "buffer", radiusMeters: distance };

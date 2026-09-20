@@ -4,8 +4,8 @@
 
     Full-bleed square with no corner radius, because the launcher applies
     its own mask and a pre-rounded tile inside one leaves corner gaps. The
-    letters are set smaller so they stay inside the safe zone — the central
-    circle of 80% diameter — whatever shape the phone crops to.
+    letters are set smaller so they stay inside the safe zone - the central
+    circle of 80% diameter - whatever shape the phone crops to.
   -->
   <defs>
     <linearGradient id="tileMask" x1="0.1" y1="0" x2="0.9" y2="1">

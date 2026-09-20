@@ -7,13 +7,13 @@ import { puzzleNumber } from "./games/daily/dailyEngine";
  *
  * This used to rotate between three existing games with the date as a seed.
  * That gave everyone the same round, which was the right instinct, but it was
- * still just one of the ordinary games replayed — no streak, no result worth
+ * still just one of the ordinary games replayed - no streak, no result worth
  * sharing, nothing learned, and no reason to be there rather than in the
  * game's own card two rows below.
  *
  * It is now one purpose-built game: five satellite views a day, scored by how
  * close your pin lands, with a spoiler-free result card and a streak. The
- * rotation is gone deliberately — a daily habit needs the same shape every
+ * rotation is gone deliberately - a daily habit needs the same shape every
  * day, and "today it's a quiz, tomorrow it's a map" is not a habit, it is a
  * surprise.
  */

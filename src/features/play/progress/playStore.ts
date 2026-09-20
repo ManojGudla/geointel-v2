@@ -32,7 +32,7 @@ function emptyStats(knownGameCount: number): PlayStats {
 /**
  * Reading localStorage can throw outright (Safari private mode, an embedded
  * webview, a browser set to block site data), and the stored value can be
- * anything if it was hand-edited or written by an older build — so every
+ * anything if it was hand-edited or written by an older build - so every
  * field is checked rather than trusted.
  */
 function loadStats(knownGameCount: number): PlayStats {
@@ -51,7 +51,7 @@ function loadStats(knownGameCount: number): PlayStats {
       lastPlayedDate: typeof parsed.lastPlayedDate === "string" ? parsed.lastPlayedDate : null,
       dailyCompleted: typeof parsed.dailyCompleted === "number" ? parsed.dailyCompleted : 0,
       lastDailyDate: typeof parsed.lastDailyDate === "string" ? parsed.lastDailyDate : null,
-      // Always the current build's count, never the stored one — otherwise
+      // Always the current build's count, never the stored one - otherwise
       // "play every game" would stay unlocked against an old, smaller list.
       knownGameCount,
     };
@@ -76,7 +76,7 @@ function loadSound(): boolean {
      *
      * It used to be off unless explicitly turned on, which meant every new
      * visitor played every game in silence and reasonably concluded the sound
-     * was broken — which is exactly how it was reported. Opt-in audio is the
+     * was broken - which is exactly how it was reported. Opt-in audio is the
      * right default for a page that starts making noise at you; a games hub
      * you deliberately opened is not that page, and the mute control sits in
      * its header.

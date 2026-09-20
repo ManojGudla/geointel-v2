@@ -34,7 +34,7 @@ describe("api/admin/maintenance", () => {
     else process.env.GEOINTEL_ADMIN_KEY = ORIGINAL_ADMIN_KEY;
   });
 
-  it("GET without a key returns the public maintenance state only — no audit log, no key-validity flag", async () => {
+  it("GET without a key returns the public maintenance state only - no audit log, no key-validity flag", async () => {
     vi.resetModules();
     process.env.GEOINTEL_ADMIN_KEY = ADMIN_KEY;
     mockSupabase({ selectData: { maintenance_mode: false } });
@@ -56,7 +56,7 @@ describe("api/admin/maintenance", () => {
    *
    * This endpoint used to answer "is this key correct?" for anyone who asked,
    * which handed an anonymous attacker a confirm oracle in front of the only
-   * secret protecting every visitor's name, email, message and IP address —
+   * secret protecting every visitor's name, email, message and IP address -
    * guessing with instant feedback. A wrong key must now be byte-for-byte
    * indistinguishable from sending no key at all, so there is no signal to
    * optimise a guess against. Comparing the two whole response bodies is the
@@ -138,7 +138,7 @@ describe("api/admin/maintenance", () => {
   it("POST enable with the correct key updates state and returns it as enabled", async () => {
     vi.resetModules();
     process.env.GEOINTEL_ADMIN_KEY = ADMIN_KEY;
-    // After the update, getMaintenanceState() re-reads — return the
+    // After the update, getMaintenanceState() re-reads - return the
     // "now enabled" row to reflect what the update just did.
     mockSupabase({ selectData: { maintenance_mode: true, maintenance_type: "scheduled", maintenance_title: "Scheduled Maintenance" } });
     const { default: handler } = await import("../../api/_routes/admin/maintenance");
@@ -170,7 +170,7 @@ describe("api/admin/maintenance", () => {
   });
 
   // Security regression: this endpoint accepts a shared admin key and its
-  // GET path even echoes back whether a given key was valid — without a
+  // GET path even echoes back whether a given key was valid - without a
   // rate limit, that's an unlimited-attempts oracle for brute-forcing
   // GEOINTEL_ADMIN_KEY. Every other endpoint in this project rate-limits by
   // IP; this one now does too.

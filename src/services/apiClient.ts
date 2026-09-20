@@ -1,7 +1,7 @@
 /**
  * Thin fetch wrapper for every frontend service (geocode, gis, weather,
  * news, route, nearby...). Every api/*.ts handler responds with either
- * { ok: true, ...data } or { ok: false, error, code } — this wrapper turns
+ * { ok: true, ...data } or { ok: false, error, code } - this wrapper turns
  * that into a resolved value or a typed error, so AsyncPanel can tell a
  * "provider is down, everything else keeps working" state (ApiUnavailableError)
  * apart from a genuine network/programming failure (plain Error).
@@ -26,8 +26,8 @@ type ApiEnvelope<T> = ({ ok: true } & T) | { ok: false; error: string; code?: st
  * Every failure message below used to interpolate the whole `path`, and for
  * /api/nearby that query string carries the user's latitude and longitude. So
  * a dropped connection put someone's coordinates into a sentence on their
- * screen — a sentence they might then paste into a bug report or a support
- * message — in an application whose analytics deliberately refuse anything
+ * screen - a sentence they might then paste into a bug report or a support
+ * message - in an application whose analytics deliberately refuse anything
  * coordinate-shaped (see services/analytics.ts).
  *
  * The endpoint on its own is enough to diagnose any of these. The arguments
@@ -39,15 +39,15 @@ function endpointName(path: string): string {
 
 // Every panel (Weather, News, Overview, Evidence, Nearby, Travel...) renders
 // its loading state via AsyncPanel until this promise settles. Without a
-// client-side bound, a request that never resolves — a stalled connection,
-// a proxy/firewall that swallows the response instead of erroring — leaves
+// client-side bound, a request that never resolves - a stalled connection,
+// a proxy/firewall that swallows the response instead of erroring - leaves
 // that spinner running forever with no way for the user to know something's
 // wrong. This caps every request so a hang always turns into a visible,
 // retryable error within a bounded time, regardless of the cause.
 // 20s, not 15s: the slowest real dependency behind these endpoints is the
 // Overpass GIS lookup (api/_lib/overpass.ts), which races 6 public mirrors
-// in parallel with a 9s per-mirror timeout (shortened from 14s — see that
-// file's comment on why) — 15s here was cutting that off before a slow-but-
+// in parallel with a 9s per-mirror timeout (shortened from 14s - see that
+// file's comment on why) - 15s here was cutting that off before a slow-but-
 // working mirror could finish, which is exactly what caused "Property
 // intelligence failed to load ... timed out after 15s" even when the data
 // was on its way. 20s gives real network latency + response parsing a

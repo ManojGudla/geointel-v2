@@ -9,7 +9,7 @@ import "./MeasureToolbar.css";
  * polygon closes automatically and the running area updates live. "Undo"
  * drops the last point, "Clear" resets, and picking a mode (or the same mode
  * again) starts a fresh measurement. Click handling and the on-map preview
- * live in MapView.tsx / measureStore.ts — this is pure UI + readout, which
+ * live in MapView.tsx / measureStore.ts - this is pure UI + readout, which
  * is why it can be rendered inside a panel rather than over the map.
  */
 export function MeasureToolbar() {

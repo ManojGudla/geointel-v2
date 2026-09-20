@@ -16,11 +16,11 @@ import "./SecretGate.css";
  * component knows only whether the server said yes.
  *
  * On yes, the key goes into the session the admin dashboard already reads
- * from, and we hand over to it — the dashboard auto-verifies a key it finds
+ * from, and we hand over to it - the dashboard auto-verifies a key it finds
  * there, so it opens unlocked rather than asking a second time.
  *
  * On no, it says so plainly. There is a temptation with a hidden door to be
- * coy — to close silently, or to pretend nothing happened — and it is worth
+ * coy - to close silently, or to pretend nothing happened - and it is worth
  * resisting: the only person who ever sees this dialog is someone who already
  * knows the gesture, and leaving them unable to tell a wrong code from a
  * broken server helps nobody.

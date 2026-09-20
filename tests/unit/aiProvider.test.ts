@@ -46,7 +46,7 @@ describe("getAiCompletion", () => {
 
   // A flat "temporarily unavailable" for every non-2xx status made a bad/
   // expired key and a hit-your-free-quota rate limit look identical to a
-  // real outage — these assert each surfaces a distinct, actionable reason.
+  // real outage - these assert each surfaces a distinct, actionable reason.
   it("reports an unauthorized key distinctly from a generic provider error", async () => {
     process.env.OPENROUTER_API_KEY = "test-key";
     vi.stubGlobal(

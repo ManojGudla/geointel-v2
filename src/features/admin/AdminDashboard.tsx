@@ -9,7 +9,7 @@ import {
 } from "@/services/maintenance";
 import { fetchAdminSubmissions, type FeedbackSubmission, type TeamApplicationSubmission } from "@/services/adminSubmissions";
 import { ApiUnavailableError } from "@/services/apiClient";
-/* The session key moved to its own module when a second way in was added —
+/* The session key moved to its own module when a second way in was added -
    the hidden entrance behind the header logo writes the same slot, and two
    copies of the string is how you get a gate that succeeds into a dashboard
    that then asks for the key again. */
@@ -47,11 +47,11 @@ function formFromState(state: MaintenanceState | null): SettingsForm {
 
 /**
  * The whole maintenance-mode admin surface, reached at /admin (App.tsx does
- * a plain pathname check — this project has no router, so that's the
+ * a plain pathname check - this project has no router, so that's the
  * honest, real minimum for "a separate admin page").
  *
  * Admin identity is a single shared passphrase (GEOINTEL_ADMIN_KEY, set
- * server-side only) rather than a real account system — this project has
+ * server-side only) rather than a real account system - this project has
  * none yet (see Feature Status: "User accounts/sign-in" is Planned). The
  * key is verified against the server on every load and every action; it's
  * kept in sessionStorage only so it isn't re-typed on every click within
@@ -125,7 +125,7 @@ export function AdminDashboard() {
     try {
       const result = await fetchMaintenanceState(key);
       if (!result.adminKeyValid) {
-        // The key stopped working (e.g. rotated on the server) — drop back
+        // The key stopped working (e.g. rotated on the server) - drop back
         // to the passphrase form rather than showing stale/wrong data.
         setAdminKey(null);
         clearAdminKey();

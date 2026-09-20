@@ -7,14 +7,14 @@ import "./arcade.css";
 import { PLAY_URL } from "@/features/play/share";
 
 /**
- * Pattern Breaker — continue the sequence, against a clock.
+ * Pattern Breaker - continue the sequence, against a clock.
  *
  * The clock is per puzzle rather than per game. A whole-game timer makes the
  * last puzzles worthless when you are behind; a per-puzzle one keeps every
  * single question tense right to the end, which is what the aptitude-test
  * sites this could otherwise resemble are missing.
  *
- * Every rule produces exactly one defensible continuation — see puzzles.ts.
+ * Every rule produces exactly one defensible continuation - see puzzles.ts.
  * Ambiguous sequences are the standard complaint magnet for this genre: the
  * player reasons correctly, the game marks them wrong, and they leave.
  */
@@ -49,7 +49,7 @@ export function PatternBreaker({ onBackToHub }: { onBackToHub: () => void }) {
 
   /**
    * Per-puzzle clock. Depends on the round and whether an answer is showing,
-   * never on the value it writes — the create-cancel-create cycle that froze
+   * never on the value it writes - the create-cancel-create cycle that froze
    * Ultimate Tic-Tac-Toe in this project came from exactly that mistake.
    */
   useEffect(() => {
@@ -89,7 +89,7 @@ export function PatternBreaker({ onBackToHub }: { onBackToHub: () => void }) {
     /**
      * The clock is refilled HERE, not only in the interval effect below.
      *
-     * Without this line a timeout skipped the next puzzle entirely — seen in
+     * Without this line a timeout skipped the next puzzle entirely - seen in
      * a browser going straight from "1 of 10" to "3 of 10". Clearing `picked`
      * produces one render where nothing is picked and `remaining` is still
      * zero from the puzzle that just expired, and the timeout effect fires

@@ -31,8 +31,8 @@ import { getSupabaseClient } from "./supabase.js";
  * It falls back to the in-memory limiter rather than failing either fully open
  * or fully closed. Failing open drops all protection during exactly the outage
  * an attacker might have caused. Failing closed is worse than it sounds here:
- * it would lock the owner out of the admin endpoints — including the one that
- * turns maintenance mode off — at the moment something is already wrong.
+ * it would lock the owner out of the admin endpoints - including the one that
+ * turns maintenance mode off - at the moment something is already wrong.
  *
  * So a Supabase outage degrades to the weak-but-real behaviour this had
  * before, and says so in the log.

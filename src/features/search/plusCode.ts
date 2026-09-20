@@ -7,8 +7,8 @@
  *
  * Google Maps found it instantly. This app returned nothing, and the user
  * concluded the maps were broken. They were not: `8VPH+PH2` is a Plus Code,
- * Google invented the format, and Nominatim — the OpenStreetMap geocoder
- * behind every search here — has no support for them whatsoever. Sending that
+ * Google invented the format, and Nominatim - the OpenStreetMap geocoder
+ * behind every search here - has no support for them whatsoever. Sending that
  * string to Nominatim will never work, no matter how the query is phrased.
  *
  * The good news is that a Plus Code is not a database lookup. It is an
@@ -18,7 +18,7 @@
  *
  * This matters more in India than almost anywhere. House-number addresses are
  * sparse in OpenStreetMap, so Plus Codes are what people actually share when
- * a place has no usable street address — which is precisely the situation the
+ * a place has no usable street address - which is precisely the situation the
  * complaining user was in.
  *
  * The format, briefly:
@@ -30,7 +30,7 @@
  * A short code is the common form because it is what Google displays. It is
  * ambiguous on its own: the same eight characters repeat every degree of
  * latitude and longitude. Recovering one needs a reference point, which is why
- * the string above carries "Araku Valley, Andhra Pradesh" alongside it — that
+ * the string above carries "Araku Valley, Andhra Pradesh" alongside it - that
  * text IS part of the address, not decoration. See recoverNearest below.
  *
  * Specification: https://github.com/google/open-location-code
@@ -73,7 +73,7 @@ function digitsOf(code: string): string {
 }
 
 /**
- * True for a syntactically valid FULL code — one that names a point on its own.
+ * True for a syntactically valid FULL code - one that names a point on its own.
  *
  * Deliberately strict. Anything that merely looks code-shaped must fall through
  * to normal place search rather than being force-decoded into a wrong point,
@@ -163,7 +163,7 @@ export function decodePlusCode(code: string): DecodedPlusCode | null {
   }
 
   return {
-    // The centre of the cell, not its corner — a corner would put the pin on
+    // The centre of the cell, not its corner - a corner would put the pin on
     // the boundary between two codes.
     lat: lat + latPrecision / 2,
     lon: lon + lonPrecision / 2,
@@ -179,7 +179,7 @@ export function decodePlusCode(code: string): DecodedPlusCode | null {
  * A short code has had its leading digits removed, and those digits are what
  * said which part of the world it was in. Recovering them means taking the
  * reference point's own code, borrowing its first few digits, and then
- * checking whether the result landed in the neighbouring cell instead — which
+ * checking whether the result landed in the neighbouring cell instead - which
  * happens whenever the reference sits near a cell boundary.
  *
  * The reference has to be genuinely nearby. Four missing digits means the code
@@ -212,7 +212,7 @@ export function recoverPlusCode(shortCode: string, refLat: number, refLon: numbe
 export interface PlusCodeQuery {
   code: string;
   full: boolean;
-  /** Everything else in the query — the place name that locates a short code. */
+  /** Everything else in the query - the place name that locates a short code. */
   context: string;
 }
 

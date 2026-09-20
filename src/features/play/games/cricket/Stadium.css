@@ -7,8 +7,8 @@
   same coordinate space, because that relationship IS the timing.
 
   Everything that belongs to the world lives inside .stadium__camera and moves
-  with it. Everything that belongs to the player — the meter, the prompt, the
-  aim chip, the full screen button — lives outside it and never moves. That
+  with it. Everything that belongs to the player - the meter, the prompt, the
+  aim chip, the full screen button - lives outside it and never moves. That
   split is what lets the camera push in without putting what you see out of step
   with what you are scored on.
 */
@@ -97,7 +97,7 @@
   animation: fan-jump 620ms ease-in-out 2;
 }
 
-/* On a wicket the crowd goes quiet and dim instead of still — the drop in light
+/* On a wicket the crowd goes quiet and dim instead of still - the drop in light
    is read faster than the drop in motion. */
 .stadium--crowd-groan .stadium__crowd {
   animation: crowd-hush 900ms ease-out 1;
@@ -197,8 +197,8 @@
 }
 
 /*
-  Fielders shrink with depth. Not a true projection — a real one would make the
-  deep fielders four pixels tall — but a continuous falloff rather than the two
+  Fielders shrink with depth. Not a true projection - a real one would make the
+  deep fielders four pixels tall - but a continuous falloff rather than the two
   fixed sizes it used to have, so the field recedes instead of arriving in a
   near size and a far size. Width, height and opacity all come from the depth,
   set inline in Stadium.tsx.
@@ -251,7 +251,7 @@
 
   One figure in the near foreground, thrown out of focus and dropped into
   shadow, gives the eye a near reference to measure the distance to the pitch
-  against — which is the whole trick behind why a photograph of a cricket ground
+  against - which is the whole trick behind why a photograph of a cricket ground
   looks deep and a diagram of one does not. Cropped hard at the off-side edge so
   it frames the shot and never sits between the player and the ball.
 */
@@ -270,7 +270,7 @@
 /*
   The striker's stumps.
 
-  Reported as "where is the wickets" — they were 46px of pale line at the bottom
+  Reported as "where is the wickets" - they were 46px of pale line at the bottom
   edge, behind the batter, and effectively invisible. They are what the bowler
   is aiming at and what breaks when you miss, so they have to be among the
   clearest objects on the near half of the ground.
@@ -288,7 +288,7 @@
 
 .stadium__batter {
   position: absolute;
-  /* Beside the stumps, not in front of them — a right-hander stands outside
+  /* Beside the stumps, not in front of them - a right-hander stands outside
      leg, and covering the wicket is what made it impossible to find. */
   left: 40%;
   top: 87%;
@@ -479,7 +479,7 @@
   The moment of contact.
 
   A timing game needs impact to be unmistakable ON THE FRAME it happens. A
-  number appearing under the pitch a beat later is not that — by then the player
+  number appearing under the pitch a beat later is not that - by then the player
   has already stopped looking. The flash is sized and coloured by how the ball
   was struck, so a six reads as a six before a word is read.
 */
@@ -614,7 +614,7 @@
 
   Cut to the strip's own perspective rather than drawn as a straight bar, so it
   reads as light falling on the pitch instead of a rule floating over it. It
-  glows as the ball enters the scoring window, so the pitch itself says NOW — a
+  glows as the ball enters the scoring window, so the pitch itself says NOW - a
   player watching the ball never has to look away to the meter.
 */
 .stadium__zone {
@@ -633,7 +633,7 @@
   The meter.
 
   Drawn from the same millisecond windows the scoring uses, so it is not an
-  illustration of the timing — it IS the timing. Sitting above the prompt bar
+  illustration of the timing - it IS the timing. Sitting above the prompt bar
   where the eye already is when the ball arrives, and outside the camera so the
   push-in never moves it.
 */

@@ -7,7 +7,7 @@ import { buildShareUrl, decodeViewState, encodeViewState, VIEW_PARAMS } from "..
  * Everything this product does to acquire users runs through one action:
  * somebody gets an interesting answer and sends it to somebody else. If the
  * link does not carry the answer, that loop is broken no matter how good the
- * answer was — the recipient opens a default map and has to rebuild the
+ * answer was - the recipient opens a default map and has to rebuild the
  * interesting part themselves, which they will not do.
  *
  * So these tests hold three things. A link carries the view. An old link still
@@ -106,7 +106,7 @@ describe("decoding a link somebody sent", () => {
       Caught by this test rather than in production, which is the point of it.
 
       `Number(null)` is 0, not NaN, so a missing parameter used to pass every
-      check and decode to { lat: 0, lon: 0 } — Null Island, in the Atlantic.
+      check and decode to { lat: 0, lon: 0 } - Null Island, in the Atlantic.
       This function runs against window.location.search on every page load, so
       the plain home page with no query string would have produced a valid
       "shared view" and flown the map into the ocean on every first visit.
@@ -123,8 +123,8 @@ describe("decoding a link somebody sent", () => {
   it("ignores an invalid field rather than clamping it", () => {
     /*
       Ignoring leaves the app on its own default for that one field and still
-      opens. Clamping would quietly show something the link did not say — a
-      radius of 5 km where the URL asked for 50 km — which is worse than
+      opens. Clamping would quietly show something the link did not say - a
+      radius of 5 km where the URL asked for 50 km - which is worse than
       visibly falling back, because nobody can tell it happened.
     */
     const v = decodeViewState("?lat=17.385&lon=78.487&z=99&r=999999&map=hologram&s=nonsense&t=nope");

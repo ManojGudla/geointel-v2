@@ -30,7 +30,7 @@ describe("world data", () => {
      * plain letters, because it ships no flag glyphs. The Flag Quiz showed
      * "KZ" above "Which country's flag is this?".
      *
-     * So the invariant worth testing is not the string — it is that a real
+     * So the invariant worth testing is not the string - it is that a real
      * image exists on disk for every country the games can deal. A missing
      * file is a broken image in the middle of a round, and nothing else in the
      * build would catch it.

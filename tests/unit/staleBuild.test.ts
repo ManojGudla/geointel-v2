@@ -10,7 +10,7 @@ import {
  *
  * Observed live on manowj.com: a deploy went out, and a tab that had been
  * open beforehand showed "maNOWj PLAY hit a problem and couldn't render" and
- * the same for the privacy panel. Nothing was wrong with the server — the
+ * the same for the privacy panel. Nothing was wrong with the server - the
  * page in memory was naming chunk files that the new build had replaced, so
  * opening a not-yet-loaded panel fetched a URL that now 404s.
  *
@@ -32,7 +32,7 @@ import {
 
 describe("recognising a stale build", () => {
   it("matches what each browser actually says when a chunk is gone", () => {
-    // Real wordings, which differ per engine — matching only Chrome's would
+    // Real wordings, which differ per engine - matching only Chrome's would
     // leave Safari and Firefox users stuck on the broken panel.
     const real = [
       "TypeError: Failed to fetch dynamically imported module: https://www.manowj.com/assets/PlayHub-q2PUc83g.js",

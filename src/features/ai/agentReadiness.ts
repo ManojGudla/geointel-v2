@@ -6,15 +6,15 @@ import type { AgentKind } from "@/types/ai";
  *
  * Seen on the live site: the GIS agent, run on Banjara Hills, answered "no
  * GIS evidence counts, POI categories, or built-environment scores available
- * to analyze" — beside a map reading "161 things mapped within 250 m". The
+ * to analyze" - beside a map reading "161 things mapped within 250 m". The
  * evidence was seconds away, from Overpass, while the weather had already
  * arrived from Open-Meteo. The agent was asked in the gap and reported
  * honestly on a context that was still half-empty, and that answer then sat
  * on the card for good.
  *
  * So the requirement is per-agent, not global. Making every card wait for
- * every source would let one slow or failing dependency — officials from
- * Wikidata, say — block an agent that never reads it.
+ * every source would let one slow or failing dependency - officials from
+ * Wikidata, say - block an agent that never reads it.
  */
 export type ContextSource = keyof ContextPending;
 
@@ -28,7 +28,7 @@ export const AGENT_NEEDS: Record<AgentKind, ContextSource[]> = {
   // classification to explain.
   property: ["gis"],
   // "No route set" is a real and useful answer from this agent, and a
-  // disabled query never reads as loading — so this only waits when a route
+  // disabled query never reads as loading - so this only waits when a route
   // is genuinely being fetched.
   navigation: ["route"],
   travel: ["weather", "nearby"],

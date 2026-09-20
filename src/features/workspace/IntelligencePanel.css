@@ -1,5 +1,5 @@
 /* .workspace__panel--left (the aside wrapping this component) is the
-   ONE scroll container for all left-side content — this component does
+   ONE scroll container for all left-side content - this component does
    not scroll itself. min-height: 100% keeps it filling the aside when
    content is short; it grows past that when content is tall, and the
    aside's own scrollbar handles the rest. */
@@ -36,7 +36,7 @@
 
 .intel-panel__content {
   flex: 1;
-  /* No overflow-y here on purpose — .side-panel__body is the single scroll
+  /* No overflow-y here on purpose - .side-panel__body is the single scroll
      container for whatever section is showing (tabs stay pinned via the
      sticky rule above, relative to that outer scrollport). Adding a scroll
      here would recreate the nested-scrollbar problem the shell exists to
@@ -45,7 +45,7 @@
 
 @media (max-width: 900px) {
   /* Six tabs no longer fit as equal-width flex items on a phone-width
-     panel without truncating to illegibility — scroll horizontally
+     panel without truncating to illegibility - scroll horizontally
      instead, with each tab kept at a real touch-target width. */
   .intel-panel__tabs {
     overflow-x: auto;

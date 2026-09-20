@@ -11,10 +11,10 @@ interface UiState {
   defaultRadiusMeters: number;
   is3DMapEnabled: boolean;
   /**
-   * Device-local profile info — there's no accounts system yet (see
+   * Device-local profile info - there's no accounts system yet (see
    * FEATURE_STATUS: "User accounts / sign-in" is still Planned), so this is
    * honestly just a display name saved to this browser, not a synced
-   * account. Used to personalize the greeting/feedback — never sent
+   * account. Used to personalize the greeting/feedback - never sent
    * anywhere as an identity claim.
    */
   displayName: string;

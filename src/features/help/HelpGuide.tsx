@@ -20,7 +20,7 @@ const SECTIONS: Array<{ id: Section; label: string; icon: string }> = [
 ];
 
 /**
- * A real, accurate feature guide — every claim here matches something that
+ * A real, accurate feature guide - every claim here matches something that
  * actually works today (cross-check against README.md before editing this
  * file). The "What's coming next" tab is here on purpose: honest status,
  * not a feature list that overpromises.
@@ -31,7 +31,7 @@ export function HelpGuide() {
   /*
     Makes this behave like the role="dialog" it declares: Escape closes it,
     focus moves in on open and cycles inside, and goes back to whatever opened
-    it on close. See hooks/useDialog.ts — none of that was happening before,
+    it on close. See hooks/useDialog.ts - none of that was happening before,
     and Tab walked straight out into the map behind this panel.
   */
   const dialogRef = useDialog({ open: isOpen, onClose: close });
@@ -96,7 +96,7 @@ function HelpGuideBody({ section, setSection, close }: { section: Section; setSe
                 <p>Switch basemaps with the Standard / Satellite / Dark / Terrain buttons above the map. All four are free, keyless tile sources (OpenStreetMap, Esri World Imagery, Esri Dark Gray Canvas, OpenTopoMap). "2D/3D" tilts the camera and, once you're zoomed in close on a city area, renders real extruded building shapes from OpenStreetMap footprint data, not a generic block per building; heights come from OSM tags when available and a labeled estimate otherwise.</p>
                 <p><strong>Click any point on the map</strong> (a building, a shop marker, or bare ground) to open a popup with real property information for that exact spot: classification, confidence, and the underlying OpenStreetMap evidence.</p>
                 <p>The bottom-left <strong>Distance / Area</strong> toolbar measures the real world: pick a mode, click points on the map, and the running length or area updates live (Undo removes the last point, Clear resets). Also reachable from the command palette (Ctrl/Cmd+K).</p>
-                <p>The right-hand panel controls the Analysis Radius (100m–5km) and which GIS layers render as dots on the map (buildings, shops, offices, amenities, and more), with an opacity slider.</p>
+                <p>The right-hand panel controls the Analysis Radius (100m-5km) and which GIS layers render as dots on the map (buildings, shops, offices, amenities, and more), with an opacity slider.</p>
               </>
             )}
 

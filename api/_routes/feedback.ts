@@ -42,7 +42,7 @@ const handler: ApiHandler = async (req, res) => {
   }
 
   // ip_address/user_agent are read server-side from the request, never
-  // trusted from the request body — the client can't spoof who it says it
+  // trusted from the request body - the client can't spoof who it says it
   // is here, and created_at (set by the database, not sent by the client)
   // is the exact, unspoofable submission time. See
   // supabase/migrations/0003_submission_metadata.sql for why this is safe

@@ -10,7 +10,7 @@ import { useSearchStore } from "../../src/stores/searchStore";
  * written, and until now nothing in the application ever read it back. A
  * feature that only writes is not a half-built feature, it is a liability:
  * the user got nothing from it, and their search history accumulated in the
- * browser with no way to see it and no way to delete it — on a site that asks
+ * browser with no way to see it and no way to delete it - on a site that asks
  * permission before it counts a page view.
  *
  * Two things are worth defending now that it is wired up. That the history is

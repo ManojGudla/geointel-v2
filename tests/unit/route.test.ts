@@ -15,7 +15,7 @@ function mockFetchOnce(status: number, body: unknown) {
 }
 
 function query(seed: number) {
-  // Each test needs its own coordinates — api/route.ts caches successful
+  // Each test needs its own coordinates - api/route.ts caches successful
   // responses by rounded from/to coords, and reusing the same pair across
   // tests would return a previous test's cached (and differently-shaped)
   // response instead of exercising the mock set up in this test.
@@ -25,12 +25,12 @@ function query(seed: number) {
 /**
  * Regression coverage for a Feature Status audit finding: "Turn-by-turn
  * directions" was labeled live, but api/route.ts requested `steps=false`
- * from OSRM, so no maneuver instructions were ever fetched or shown — only
+ * from OSRM, so no maneuver instructions were ever fetched or shown - only
  * aggregate distance/duration. These tests assert the real fix: OSRM's own
  * maneuver data (a fixed, documented vocabulary) is now requested and turned
  * into real per-step instructions, never invented text.
  */
-describe("api/route handler — turn-by-turn steps", () => {
+describe("api/route handler - turn-by-turn steps", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("requests steps=true from the routing provider", async () => {
@@ -98,7 +98,7 @@ describe("api/route handler — turn-by-turn steps", () => {
       { instruction: "Arrive at your destination", distanceMeters: 0 },
     ]);
 
-    // Each step carries WHERE the manoeuvre happens and how long it takes —
+    // Each step carries WHERE the manoeuvre happens and how long it takes -
     // without the coordinates, tapping a step in the panel has nowhere to fly
     // to, which is what made the old directions a printed list.
     expect(parsed.route.steps.map((s) => s.location)).toEqual([

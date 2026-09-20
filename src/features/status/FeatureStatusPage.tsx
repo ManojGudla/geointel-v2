@@ -17,11 +17,11 @@ function StatusBadge({ status }: { status: FeatureStatus }) {
 }
 
 /**
- * The honest, real-time answer to "what does GeoIntel actually do" — every
+ * The honest, real-time answer to "what does GeoIntel actually do" - every
  * feature discussed for this product, organized by category, mapped to
  * Live / Partial / Planned against the real codebase (see
  * src/data/featureStatus.ts). Built specifically so this can be shown to a
- * client, manager, or teammate without overclaiming — it's the same
+ * client, manager, or teammate without overclaiming - it's the same
  * discipline as every "temporarily unavailable" state elsewhere in the app,
  * applied to the product's own feature list.
  */
@@ -31,7 +31,7 @@ export function FeatureStatusPage() {
   /*
     Makes this behave like the role="dialog" it declares: Escape closes it,
     focus moves in on open and cycles inside, and goes back to whatever opened
-    it on close. See hooks/useDialog.ts — none of that was happening before,
+    it on close. See hooks/useDialog.ts - none of that was happening before,
     and Tab walked straight out into the map behind this panel.
   */
   const dialogRef = useDialog({ open: isOpen, onClose: close });

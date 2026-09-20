@@ -5,7 +5,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
  *
  * This is structurally identical to what Vercel's Node runtime passes to a
  * serverless function, and to what plugins/vite-plugin-api.ts synthesizes in
- * local dev — so a handler written against these types runs unmodified in
+ * local dev - so a handler written against these types runs unmodified in
  * both places. We deliberately don't depend on @vercel/node's types here to
  * keep this package installable and testable without pulling in Vercel's
  * runtime.
@@ -56,7 +56,7 @@ export function err(res: ApiResponse, status: number, error: string, code?: stri
  * WHAT MAY USE THIS: responses that depend only on the query string and
  * contain nothing about the person asking. Everything wrapped below is public
  * geographic data. Anything carrying user input, an identity, or an admin
- * result must never be marked public — it would be served to the next
+ * result must never be marked public - it would be served to the next
  * visitor. tests/unit/edgeCache.test.ts holds that line.
  *
  * `stale-while-revalidate` matters as much as the TTL here: when an entry
@@ -81,8 +81,8 @@ export function withEdgeCache(seconds: number, staleSeconds = seconds * 4) {
  *
  * For routes whose URL contains the user's own position. /api/reverse-geocode
  * and /api/route are deliberately exempt from the coordinate snapping in
- * src/services/geoPrecision.ts — snapping a reverse lookup returns the wrong
- * street — so their URLs carry the raw GPS fix, to full precision.
+ * src/services/geoPrecision.ts - snapping a reverse lookup returns the wrong
+ * street - so their URLs carry the raw GPS fix, to full precision.
  *
  * Under `public` that URL was written into the shared CDN's access log beside
  * the caller's IP, and shared caches were invited to keep the response. Where
@@ -107,7 +107,7 @@ export function getQueryParam(req: ApiRequest, key: string): string | undefined 
  *
  * This used to return `forwarded.split(",")[0]`, which is the WRONG end.
  * X-Forwarded-For is append-only: each proxy adds its view to the right, so
- * the leftmost entry is whatever the original client sent — a value the
+ * the leftmost entry is whatever the original client sent - a value the
  * client picks. Anyone could send `X-Forwarded-For: 1.2.3.4`, change the
  * number each request, and appear as a new IP every time.
  *
@@ -115,7 +115,7 @@ export function getQueryParam(req: ApiRequest, key: string): string | undefined 
  * API, so rotating the header made all of them unenforceable, including the
  * one guarding the admin key check and the ones guarding paid AI calls. It is
  * also written to `ip_address` on feedback and team applications, under a
- * comment claiming the client cannot spoof it — which was not true.
+ * comment claiming the client cannot spoof it - which was not true.
  *
  * `x-vercel-forwarded-for` is set by the platform and cannot be appended to
  * by a client, so it is preferred. The XFF fallback now reads the LAST entry,
@@ -125,7 +125,7 @@ export function getQueryParam(req: ApiRequest, key: string): string | undefined 
  * Marks a response as private to this caller and uncacheable.
  *
  * `ok()` sets no Cache-Control at all, so a successful admin response went
- * out with nothing — and its body changes depending on the admin key header,
+ * out with nothing - and its body changes depending on the admin key header,
  * which no shared cache could know without a Vary. The body is visitor PII
  * (names, emails, messages, IP addresses), so heuristic caching of it by any
  * intermediary is not acceptable.

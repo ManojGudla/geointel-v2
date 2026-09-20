@@ -11,7 +11,7 @@ import "./NavigationHud.css";
 /**
  * The navigation display: a big instruction banner at the top and a trip
  * strip at the bottom, the arrangement Apple and Google Maps both use because
- * it works — the thing you need at a glance is large and at the top, and the
+ * it works - the thing you need at a glance is large and at the top, and the
  * trip totals stay out of the way at the bottom.
  *
  * It is honest about two limits rather than hiding them:

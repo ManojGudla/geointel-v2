@@ -18,8 +18,8 @@ import { ok, err, withEdgeCache, withPrivateCache, type ApiHandler } from "../..
  * nineteen instantly. That is also the danger: a `public` response is handed
  * to WHOEVER asks for that URL next. So the rule below is not a style
  * preference, it is a privacy boundary. Public geographic data, keyed only by
- * the query string, may be cached. Anything shaped by who is asking — the
- * feedback form, job applications, AI conversations, the admin endpoints —
+ * the query string, may be cached. Anything shaped by who is asking - the
+ * feedback form, job applications, AI conversations, the admin endpoints -
  * must never be, and this test is what stops one being wrapped by mistake.
  */
 
@@ -68,7 +68,7 @@ const MUST_CACHE = [
   "population.ts",
   // Roads and construction status for a point. Public geographic data keyed
   // only by the snapped coordinates, and the heaviest Overpass query in the
-  // app — the edge cache is what keeps it off the free mirrors.
+  // app - the edge cache is what keeps it off the free mirrors.
   "site.ts",
   "weather.ts",
 ];
@@ -78,7 +78,7 @@ const MUST_CACHE = [
  * one person who asked.
  *
  * These two were in MUST_CACHE, and that was wrong in a way nothing here
- * caught, because the leak is not in the response body — it is in the URL.
+ * caught, because the leak is not in the response body - it is in the URL.
  * src/services/geoPrecision.ts snaps coordinates to a coarse grid before they
  * reach most endpoints, both to make caching work and to stop full-precision
  * positions travelling. These two are DELIBERATELY exempt, because snapping a
@@ -105,7 +105,7 @@ describe("which routes may be cached at the edge", () => {
   it("never marks a private or user-shaped response public", () => {
     const leaks = [...Object.keys(MUST_NOT_CACHE), ...Object.keys(MUST_BE_PRIVATE)]
       .filter((name) => files.includes(name) && isCached(name))
-      .map((name) => `${name} — ${MUST_NOT_CACHE[name] ?? MUST_BE_PRIVATE[name]}`);
+      .map((name) => `${name} - ${MUST_NOT_CACHE[name] ?? MUST_BE_PRIVATE[name]}`);
     expect(leaks).toEqual([]);
   });
 
@@ -137,7 +137,7 @@ describe("which routes may be cached at the edge", () => {
       const edge = Number(/withEdgeCache\((\d+)\)/.exec(text)?.[1]);
       const ttlExpr = /new TtlCache<[^>]*>\(([^)]+)\)/.exec(text)?.[1];
       if (!ttlExpr) continue;
-      // e.g. "6 * 60 * 60 * 1000" — evaluate the arithmetic literally.
+      // e.g. "6 * 60 * 60 * 1000" - evaluate the arithmetic literally.
       const ttlMs = ttlExpr
         .split("*")
         .map((n) => Number(n.trim().replace(/_/g, "")))

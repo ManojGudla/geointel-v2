@@ -15,7 +15,7 @@ export interface PlayStats {
   games: Record<string, GameStats>;
   /**
    * Counters for one-off conditions an achievement needs but that don't fit
-   * the per-game shape — "beat Hard", "pinned within 25 km". Named
+   * the per-game shape - "beat Hard", "pinned within 25 km". Named
    * `game:condition` so it's obvious where each one is written.
    */
   flags: Record<string, number>;
@@ -29,7 +29,7 @@ export interface PlayStats {
   dailyCompleted: number;
   lastDailyDate: string | null;
   /**
-   * How many games the hub currently offers — needed by the "play every game"
+   * How many games the hub currently offers - needed by the "play every game"
    * achievement, and stored so the achievement can't be silently satisfied by
    * a future release removing a game.
    */
@@ -45,7 +45,7 @@ export interface RoundResult {
   flags?: string[];
   /** True when the round was today's Daily Challenge. */
   daily?: boolean;
-  /** Perfect round — all questions right, no mistakes. Worth extra XP. */
+  /** Perfect round - all questions right, no mistakes. Worth extra XP. */
   perfect?: boolean;
 }
 

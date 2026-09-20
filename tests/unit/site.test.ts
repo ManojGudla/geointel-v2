@@ -8,7 +8,7 @@ import { bhuvanUrl, globalPortals, portalGroups, statePortals } from "../../src/
  * the tests for both.
  *
  * The Overpass query either asks for the right tags or it returns an empty
- * list, and an empty list looks exactly like "nothing is being built here" —
+ * list, and an empty list looks exactly like "nothing is being built here" -
  * which is a wrong answer someone might act on. So the query text is asserted
  * tag by tag.
  *
@@ -61,7 +61,7 @@ describe("the Overpass query", () => {
     outnumber construction sites heavily in any built-up area, and one street
     is routinely a dozen ways, so a single shared cap lets roads crowd the
     construction records out entirely. The panel would then report "0 under
-    construction" for a street with three tower cranes on it — not because it
+    construction" for a street with three tower cranes on it - not because it
     found nothing, but because the answer was truncated.
 
     Development therefore gets its own `out` with its own budget.
@@ -152,7 +152,7 @@ describe("the portal directory", () => {
 
   it("returns nothing rather than a guess for a state it has not checked", () => {
     // The alternative is inventing a URL from a pattern, which produces a
-    // government link that 404s — worse than no link at all.
+    // government link that 404s - worse than no link at all.
     expect(statePortals("Nagaland")).toEqual([]);
     expect(statePortals(undefined)).toEqual([]);
   });

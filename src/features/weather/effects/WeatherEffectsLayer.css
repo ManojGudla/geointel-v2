@@ -5,7 +5,7 @@
      search bar. The data always wins. */
   z-index: 2;
   /* Never eats a click. Clicking "through" the weather onto the map is not
-     negotiable — the map is the product. */
+     negotiable - the map is the product. */
   pointer-events: none;
   /* A hard ceiling on how much the effect can obscure. Even at full particle
      density the basemap and every GIS layer stay legible through it. */

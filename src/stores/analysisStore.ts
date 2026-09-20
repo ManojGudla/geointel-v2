@@ -3,7 +3,7 @@ import type { SuitabilityFactor } from "@/features/analysis/spatialMath";
 
 /**
  * The result of the most recent spatial analysis, held here so the map can
- * draw it while the panel that produced it explains it — and so it survives
+ * draw it while the panel that produced it explains it - and so it survives
  * the panel being closed. Only one analysis is live at a time on purpose: a
  * map carrying three overlapping result sets stops communicating anything.
  */
@@ -22,7 +22,7 @@ export interface AnalysisResult {
   /** Draws a ring on the map when set. */
   bufferMeters?: number;
   points: AnalysisPoint[];
-  /** A straight line from origin to a single result — used by "nearest". */
+  /** A straight line from origin to a single result - used by "nearest". */
   connector?: [[number, number], [number, number]];
   stats: Array<{ label: string; value: string }>;
   suitability?: { score: number; band: string; factors: SuitabilityFactor[] };

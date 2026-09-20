@@ -4,7 +4,7 @@
  *
  * The constraint that shaped this entire list: NASA GIBS serves MODIS at 250
  * metres per pixel. src/features/timeline/gibs.ts is blunt about what that
- * means — "reservoirs filling and emptying, coastlines moving, vegetation and
+ * means - "reservoirs filling and emptying, coastlines moving, vegetation and
  * snow coming and going, large urban expansion over years". At 250 m a city
  * block is one pixel.
  *
@@ -27,12 +27,12 @@
 
 export interface ChangeSite {
   id: string;
-  /** Never shown before the answer — it would give the change away. */
+  /** Never shown before the answer - it would give the change away. */
   name: string;
   country: string;
   lat: number;
   lon: number;
-  /** Zoom for the tile grid. 5–7 covers tens to hundreds of km. */
+  /** Zoom for the tile grid. 5-7 covers tens to hundreds of km. */
   zoom: number;
   before: string;
   after: string;

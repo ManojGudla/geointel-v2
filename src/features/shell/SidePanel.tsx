@@ -27,7 +27,7 @@ import "./SidePanel.css";
  *
  * The layout this replaces had the page scrolling behind a right rail that
  * also scrolled, their two scrollbars sitting a few pixels apart at the same
- * screen edge — so "which one moves what" had no answer, and content below
+ * screen edge - so "which one moves what" had no answer, and content below
  * the page fold (the AI agents) was effectively invisible. Here the shell
  * itself never scrolls; only this panel's content does, and only ever one of
  * them at a time.
@@ -65,7 +65,7 @@ export function SidePanel() {
         where it is the control that resizes and closes the panel.
 
         It is a real <button>, so it is reachable and operable from a keyboard
-        — arrow keys step the same three heights a finger drags between. A
+        - arrow keys step the same three heights a finger drags between. A
         grip that answers only to a pointer is a control that exists for touch
         users and for nobody else.
       */}
@@ -157,7 +157,7 @@ export function SidePanel() {
               <section className="side-panel__group">
                 {/* Retitled from "Ask the map". This panel holds two boxes you
                     can type a question into, and both were called "Ask
-                    something" — which left no way to tell from the labels which
+                    something" - which left no way to tell from the labels which
                     one to use. They do different jobs: this one FINDS things and
                     draws them on the map; the one below ANSWERS in words. The
                     titles now say which is which. */}

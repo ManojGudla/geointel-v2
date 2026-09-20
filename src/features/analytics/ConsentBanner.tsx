@@ -92,7 +92,7 @@ export function ConsentBanner() {
       Lighthouse flagged this as "ARIA role should be appropriate for the
       element", and it was right. role="dialog" promises a modal: focus moves
       into it, Escape closes it, and everything behind it is inert. This banner
-      does none of that — the map stays fully usable while it is up, which is
+      does none of that - the map stays fully usable while it is up, which is
       the correct behaviour for a consent notice and the reason it was built
       that way. Claiming to be a dialog told screen readers to expect a trap
       that does not exist.

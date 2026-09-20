@@ -16,7 +16,7 @@ import "./CityPage.css";
  * This exists because of a specific, measurable problem: the site had two
  * indexable URLs. Somebody searching "hospitals near Hyderabad" or "Hyderabad
  * satellite map" had nothing of this application to find, and the only way in
- * was to already know the brand — which for a new product means no way in at
+ * was to already know the brand - which for a new product means no way in at
  * all.
  *
  * The rule these pages are built to, and the reason there are eight rather than
@@ -52,7 +52,7 @@ const COUNT_CATEGORIES = [
 const COUNT_RADIUS = 5000;
 
 /**
- * The canonical URL for a city page — always on www.manowj.com, whatever host
+ * The canonical URL for a city page - always on www.manowj.com, whatever host
  * served the request.
  *
  * This used to read `window.location.origin`, and that is a quietly expensive
@@ -60,7 +60,7 @@ const COUNT_RADIUS = 5000;
  * the manowj-geointel.vercel.app address Vercel assigns and keeps live. An
  * origin-derived canonical means that if a crawler ever reaches a city page on
  * the vercel.app host, the page tells it "the canonical version of this is the
- * vercel.app one" — so the two hosts compete as duplicates, on exactly the
+ * vercel.app one" - so the two hosts compete as duplicates, on exactly the
  * pages this site is trying to rank, and the authority splits between them.
  *
  * Naming the one preferred host is the entire job of rel=canonical; deriving
@@ -77,7 +77,7 @@ function cityUrl(slug: string): string {
 export function CityPage({ city }: Props) {
   usePageMeta({
     // Written to match how people actually search: the place first, then what
-    // they can do. "maNOWj" is deliberately last — nobody is searching for a
+    // they can do. "maNOWj" is deliberately last - nobody is searching for a
     // brand they have never heard of.
     title: `${city.name} map, population and geographic data | maNOWj GeoIntel`,
     description: `${city.summary} Population, air quality, hospitals, schools and satellite imagery for ${city.name}, ${city.state}.`,
@@ -88,8 +88,8 @@ export function CityPage({ city }: Props) {
     WebPage and BreadcrumbList, not FAQPage.
 
     An FAQ schema needs questions and answers actually visible on the page. The
-    questions below are prompts that run a live query — the answer does not
-    exist until somebody clicks — so marking them up as an FAQ would be a
+    questions below are prompts that run a live query - the answer does not
+    exist until somebody clicks - so marking them up as an FAQ would be a
     structured-data claim the page cannot back, which is the kind of thing that
     earns a manual action rather than a rich result.
   */
@@ -213,7 +213,7 @@ export function CityPage({ city }: Props) {
                     The most important line on this page.
 
                     Without the year, a population figure implies "now", and it
-                    never is — these come from censuses and official estimates
+                    never is - these come from censuses and official estimates
                     that are often years old. Stating the year is the difference
                     between a fact and a misleading number.
                   */}

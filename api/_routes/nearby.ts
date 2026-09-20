@@ -11,13 +11,13 @@ interface TagFilter {
 }
 
 // Reported bug: "Nearby" showed no results for real, populated locations.
-// Root cause — every category here used to require an EXACT single tag
+// Root cause - every category here used to require an EXACT single tag
 // value (e.g. amenity=restaurant only), built from a hand-parsed regex over
 // strings like "[amenity=restaurant]". That missed two things constantly
 // present in real-world OSM data: (1) common synonym tags real mappers use
 // (amenity=fast_food, tourism=motel, healthcare=hospital, leisure=garden,
 // railway=station...), and (2) "shopping" only matched shop=mall/
-// supermarket/department_store — it never matched the far more common case
+// supermarket/department_store - it never matched the far more common case
 // of individual small shops (shop=clothes, shop=convenience, shop=bakery,
 // ...), even though the GIS evidence scorer (api/gis.ts) already treats ANY
 // shop=* tag as real commercial evidence. A `{ key }` filter with no value
@@ -39,13 +39,13 @@ const CATEGORY_FILTERS: Record<string, TagFilter[]> = {
   publicTransport: [{ key: "highway", value: "bus_stop" }, { key: "public_transport" }, { key: "railway", value: "station" }],
 };
 
-// OSM's built environment — buildings, shops, amenities, POIs — changes over
+// OSM's built environment - buildings, shops, amenities, POIs - changes over
 // days and weeks, not minutes, so a short TTL bought nothing and cost a great
 // deal: every repeat view re-queried Overpass's free public mirrors, which are
 // the least reliable dependency in this app and were actively rate-limiting us.
 // Six hours matches what officials.ts already uses for similarly slow-moving
 // data. This is a per-instance in-memory cache on serverless (see cache.ts), so
-// it evaporates on a cold start — it reduces load and speeds up repeat views,
+// it evaporates on a cold start - it reduces load and speeds up repeat views,
 // it is not a durability guarantee.
 const cache = new TtlCache<OverpassElement[]>(6 * 60 * 60 * 1000);
 const limiter = new RateLimiter(60_000, 20);
@@ -89,7 +89,7 @@ const handler: ApiHandler = async (req, res) => {
    *
    * Without it, `?radius=20000000` with no category built 21 Overpass clauses
    * each searching a 20,000 km circle, and sent that to the volunteer-run
-   * public mirrors. Repeat it and the mirrors ban this deployment's IP — which
+   * public mirrors. Repeat it and the mirrors ban this deployment's IP - which
    * takes out GIS evidence, Nearby, click-to-inspect, Property Intelligence
    * and every AI agent that reads them. Not a data leak; an outage, caused by
    * a query string.

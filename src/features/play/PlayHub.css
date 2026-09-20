@@ -509,8 +509,8 @@
   background: var(--color-brand-100);
 }
 
-/* Right and wrong carry a word as well as a colour — see the icon in the
-   reveal line below — so the feedback survives colour blindness. */
+/* Right and wrong carry a word as well as a colour - see the icon in the
+   reveal line below - so the feedback survives colour blindness. */
 .play-option--right {
   border-color: var(--color-success);
   background: var(--color-success-bg);
@@ -1041,7 +1041,7 @@
 }
 
 .play-achievements li.locked {
-  /* Dimmed, but still legible — a locked achievement is a goal, and a goal
+  /* Dimmed, but still legible - a locked achievement is a goal, and a goal
      you can't read is not a goal. Opacity stops at a level that keeps the
      text above the contrast floor. */
   opacity: 0.72;

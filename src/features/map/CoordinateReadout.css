@@ -37,7 +37,7 @@
   color: var(--color-brand-600);
 }
 
-/* On a phone the DMS form is the first thing to go — the decimal pair and
+/* On a phone the DMS form is the first thing to go - the decimal pair and
    zoom are what fit and what get used. */
 @media (max-width: 900px) {
   .coordinate-readout {

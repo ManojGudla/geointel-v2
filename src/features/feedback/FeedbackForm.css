@@ -58,7 +58,7 @@
 }
 
 .feedback-form__stars button.active {
-  /* Was #f0a83c, which measured 2.02:1 on a white surface — the filled stars
+  /* Was #f0a83c, which measured 2.02:1 on a white surface - the filled stars
      were nearly invisible in light mode. The token is defined per theme. */
   color: var(--color-warning);
 }

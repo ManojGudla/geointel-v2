@@ -1,8 +1,8 @@
 /*
   Landing page styling.
 
-  A deliberate single-theme design: this page commits to one visual world —
-  a dark instrument panel — rather than following the app's light/dark
+  A deliberate single-theme design: this page commits to one visual world -
+  a dark instrument panel - rather than following the app's light/dark
   switch. That is a choice, not an omission, so every colour below is
   painted explicitly on .ln and nothing is inherited from the app's theme
   tokens. Dropping it onto a white host background cannot make it unreadable.
@@ -11,7 +11,7 @@
   borrows what cartographic tools actually look like: a graticule ruling the
   background, hairline rules instead of drop shadows, coordinates and source
   attributions set in monospace with tabular figures, and exactly one warm
-  signal colour — survey-marker amber — against a deep navy that matches the
+  signal colour - survey-marker amber - against a deep navy that matches the
   app's own brand ramp. Blue is reserved for things to do with the map data
   itself; amber is spent only on the live indicator and the primary action.
 */
@@ -22,8 +22,8 @@
   An @import in this file becomes an @import in the built CSS chunk, and
   Vite's lazy-route loader waits on that chunk's load event before it will
   render the route. A stylesheet whose @import points at a host that is slow
-  or blocked — Google Fonts is both, intermittently, on some networks in the
-  regions this site actually gets traffic from — never fires that event, so
+  or blocked - Google Fonts is both, intermittently, on some networks in the
+  regions this site actually gets traffic from - never fires that event, so
   the whole page fell into its error boundary instead of rendering with a
   fallback font. Caught by rendering the built page with the font host
   unreachable, which is exactly what a blocked visitor sees.
@@ -36,7 +36,7 @@
 /*
   Opt this route out of the app shell's full-height lock.
 
-  reset.css sets `html, body, #root { height: 100% }` — correct for the app,
+  reset.css sets `html, body, #root { height: 100% }` - correct for the app,
   which is a full-screen map whose panels do all their own scrolling and
   which must never let the page itself scroll. It is fatal here: it clamps
   the document to exactly one viewport, so a 4,500px landing page rendered
@@ -1337,7 +1337,7 @@ html.ln-route body {
 
 @media (max-width: 640px) {
   /* Both of these wrapped onto a second line at phone width, which doubled
-     the height of the bar for no gain. The wordmark is "maNOWj" — the
+     the height of the bar for no gain. The wordmark is "maNOWj" - the
      product suffix is the half that can go. */
   .ln-bar {
     padding: 14px 20px;

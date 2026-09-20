@@ -1,11 +1,11 @@
 /**
- * Turning real weather data into a visual effect — and refusing to invent one
+ * Turning real weather data into a visual effect - and refusing to invent one
  * when there isn't any data.
  *
  * The condition comes from a WMO weather code (Open-Meteo's `weather_code`),
  * which is the actual observed/forecast condition at that point, not a guess
  * from the temperature or the time of day. If the weather request fails, the
- * effect is NOT drawn and the UI says "Weather unavailable" — there is no
+ * effect is NOT drawn and the UI says "Weather unavailable" - there is no
  * fallback to a pleasant default, because a decorative rain shower over a
  * city that is dry would be fabricated data on a map people are meant to
  * trust.
@@ -15,7 +15,7 @@ export type WeatherEffect = "clear" | "clouds" | "rain" | "snow" | "fog" | "stor
 
 /**
  * WMO 4677 weather codes, as used by Open-Meteo.
- * https://open-meteo.com/en/docs — the code table is documented there.
+ * https://open-meteo.com/en/docs - the code table is documented there.
  */
 export function effectForWeatherCode(code: number): WeatherEffect {
   if (code === 0) return "clear";
@@ -45,7 +45,7 @@ export type Quality = "high" | "medium" | "low" | "off";
 /**
  * Particle counts per effect and quality tier.
  *
- * These are drawn on ONE canvas, not as DOM nodes — a few thousand absolutely
+ * These are drawn on ONE canvas, not as DOM nodes - a few thousand absolutely
  * positioned divs is what makes browser weather effects tank a map's frame
  * rate, and this has to coexist with a WebGL map that is already doing real
  * work.
@@ -87,7 +87,7 @@ export function downgrade(quality: Quality): Quality {
 
 /**
  * Decides whether to step the quality down, from a rolling average frame
- * time. 22ms is roughly 45fps — below that the map starts to feel sticky
+ * time. 22ms is roughly 45fps - below that the map starts to feel sticky
  * while panning, and a decorative effect is never worth that.
  */
 export const SLOW_FRAME_MS = 22;

@@ -18,8 +18,8 @@ import {
 /**
  * Ultimate Tic-Tac-Toe.
  *
- * The rule that makes this game worth playing — the cell you take decides
- * which board your opponent must play in — is also the one most likely to be
+ * The rule that makes this game worth playing - the cell you take decides
+ * which board your opponent must play in - is also the one most likely to be
  * broken by a later edit, and a subtle break there would not look like a bug.
  * It would just quietly turn the game back into nine unrelated boards. Most of
  * what follows guards that rule and its two awkward edges: being sent to a
@@ -97,7 +97,7 @@ describe("the rule that makes the game", () => {
     // sequence would fail the test for a reason that has nothing to do with
     // the rule under test.
     //
-    // Without this rule the game deadlocks — a player is ordered into a board
+    // Without this rule the game deadlocks - a player is ordered into a board
     // with no empty cells and has no legal move at all.
     const boardZeroWon: UltimateState = {
       ...createUltimate("O"),

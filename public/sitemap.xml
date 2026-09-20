@@ -5,7 +5,7 @@
 
   It would be trivial to generate a thousand entries by crossing city names with
   feature names. That is exactly what search engines have spent fifteen years
-  learning to discount, and thin pages do not merely fail to rank — they drag
+  learning to discount, and thin pages do not merely fail to rank - they drag
   down the pages that would otherwise have. So the count here grows one written
   page at a time: adding the thirteenth city means researching and writing the
   thirteenth, and a place with no real geography to describe does not get one.
@@ -26,7 +26,7 @@
   </url>
   <!--
     The landing page. Already indexed by Google under its own title before it
-    was ever listed here — which is exactly why it belongs in the sitemap: a
+    was ever listed here - which is exactly why it belongs in the sitemap: a
     URL a crawler found on its own is one it can also quietly drop.
   -->
   <url>

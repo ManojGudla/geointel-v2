@@ -8,10 +8,10 @@ import { SearchBar } from "@/features/search/SearchBar";
  * MapLibre GL JS is 788 KB of the roughly 1.3 MB main bundle, and while it
  * was imported here directly, NOTHING on the page could paint until all of it
  * had downloaded and parsed. Measured on PageSpeed against a mid-range phone
- * on throttled 4G, that was 4.3 seconds to first paint and 4.5 to largest —
+ * on throttled 4G, that was 4.3 seconds to first paint and 4.5 to largest -
  * the worst number this site has, and one every mobile visitor pays.
  *
- * Splitting it out lets the shell — rail, panel, search box — paint as soon as
+ * Splitting it out lets the shell - rail, panel, search box - paint as soon as
  * the small bundle lands, and the map arrives a moment later into a
  * placeholder that already occupies its exact space. The total bytes are
  * unchanged; what changes is that the visitor sees the product instead of a
@@ -53,14 +53,14 @@ import "./Workspace.css";
  */
 export function Workspace() {
   // Passed to MapView so its FullscreenControl fullscreens this whole stage,
-  // not just the raw canvas — the controls below are absolutely positioned
+  // not just the raw canvas - the controls below are absolutely positioned
   // siblings of the map, and the Fullscreen API only renders the requested
   // element's own subtree, so fullscreening the canvas alone made every one
   // of them vanish rather than merely hide.
   const stageRef = useRef<HTMLDivElement>(null);
   const measuring = useMeasureStore((s) => s.mode !== "off");
   // On a phone the getting-started card is bottom-anchored, and two floating
-  // overlays — the Ask maNOWj launcher and the coordinate chip — were drawn
+  // overlays - the Ask maNOWj launcher and the coordinate chip - were drawn
   // on top of it, covering its last suggestion and crowding "Dismiss" into
   // the corner. Reported as: new visitors could not find how to close it.
   // Same treatment as measuring below: the card owns the bottom edge while
@@ -68,7 +68,7 @@ export function Workspace() {
   const onboarding = useOnboardingVisible();
   // Below 900px the panel is a bottom sheet rising off the same edge the
   // coordinate chip and map-style pill sit on, so those two yield while it is
-  // up — the same bargain measuring and onboarding already strike below.
+  // up - the same bargain measuring and onboarding already strike below.
   const panelOpen = useShellStore((s) => s.open);
 
   return (
@@ -82,7 +82,7 @@ export function Workspace() {
           </ErrorBoundary>
 
           {/* A phone screen has room for the measurement readout OR the
-              basemap/coordinate chips along its bottom edge, not both — so
+              basemap/coordinate chips along its bottom edge, not both - so
               measuring temporarily yields that space rather than stacking
               two overlapping overlays. See Workspace.css. */}
           <div
@@ -102,7 +102,7 @@ export function Workspace() {
               </Suspense>
             </ErrorBoundary>
 
-            {/* Between the map canvas and every panel — see the z-index note
+            {/* Between the map canvas and every panel - see the z-index note
                 in WeatherEffectsLayer.css. Renders nothing at all unless the
                 user has switched it on AND real weather came back. */}
             <ErrorBoundary label="Weather effects" variant="silent">

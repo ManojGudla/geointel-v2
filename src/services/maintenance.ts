@@ -38,10 +38,10 @@ export interface MaintenanceUpdateInput {
 const ADMIN_HEADER = "x-geointel-admin-key";
 
 /**
- * Public read — every visitor's browser calls this (no key) to know whether
+ * Public read - every visitor's browser calls this (no key) to know whether
  * to show the maintenance page. Passing an admin key additionally asks the
  * server to confirm whether that key is valid and, if so, include the
- * recent audit log — used by the /admin dashboard to verify a passphrase
+ * recent audit log - used by the /admin dashboard to verify a passphrase
  * without a separate endpoint.
  */
 export function fetchMaintenanceState(adminKey?: string, signal?: AbortSignal) {

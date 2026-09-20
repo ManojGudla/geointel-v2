@@ -18,11 +18,11 @@ const INTERESTS: Array<{ id: string; label: string }> = [
 type SubmitState = "idle" | "submitting" | "done" | "error";
 
 /**
- * "Join Our Team" — a real lead-capture form (name, email, area of
+ * "Join Our Team" - a real lead-capture form (name, email, area of
  * interest, note), same shape as FeedbackForm.tsx and saved the same
  * honest way via api/team-apply.ts: a real row when Supabase is
  * configured, a clear error otherwise. This is intentionally not an
- * accounts/HR system — just how someone interested in the project reaches
+ * accounts/HR system - just how someone interested in the project reaches
  * you until that's built.
  */
 export function JoinTeamForm() {
@@ -53,7 +53,7 @@ export function JoinTeamForm() {
   /*
     Makes this behave like the role="dialog" it declares: Escape closes it,
     focus moves in on open and cycles inside, and goes back to whatever opened
-    it on close. See hooks/useDialog.ts — none of that was happening before,
+    it on close. See hooks/useDialog.ts - none of that was happening before,
     and Tab walked straight out into the map behind this panel.
   */
   const dialogRef = useDialog({ open: isOpen, onClose: handleClose });

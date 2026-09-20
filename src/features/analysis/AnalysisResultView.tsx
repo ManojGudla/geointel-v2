@@ -9,7 +9,7 @@ import "./SpatialAnalysisPanel.css";
  *
  * Shared by the Tools panel's controls and the AI command bar rather than
  * duplicated, because the two are answering the same question by different
- * routes — if they rendered results separately they would eventually drift,
+ * routes - if they rendered results separately they would eventually drift,
  * and a user who asked the same thing twice would get two presentations of
  * one answer.
  */
@@ -19,7 +19,7 @@ export function AnalysisResultView() {
   const ref = useRef<HTMLDivElement>(null);
 
   // With the controls above it, a result on a short panel can land entirely
-  // below the fold — the analysis runs, the map updates, and the numbers
+  // below the fold - the analysis runs, the map updates, and the numbers
   // appear somewhere the user has to go looking for. Bring them into view.
   useEffect(() => {
     if (result) ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });

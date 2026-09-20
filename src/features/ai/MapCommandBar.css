@@ -123,7 +123,7 @@
 }
 
 /* Visible stages of real work. Each line marks something that actually
-   happened — a question parsed, a radius set, layers switched on — so a slow
+   happened - a question parsed, a radius set, layers switched on - so a slow
    query reads as progress through known steps rather than as a hang. */
 .map-command__steps {
   list-style: none;

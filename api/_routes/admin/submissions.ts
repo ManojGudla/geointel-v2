@@ -14,17 +14,17 @@ const LIMIT = 50;
 
 // Same gap as api/admin/maintenance.ts, same fix: this endpoint accepts the
 // same shared admin key and, unlike every other endpoint here, had no rate
-// limiting — unlimited attempts to guess GEOINTEL_ADMIN_KEY, and a
+// limiting - unlimited attempts to guess GEOINTEL_ADMIN_KEY, and a
 // successful guess reads real visitor PII (feedback + team application
 // submissions, including recorded IP address and user agent).
 
 /**
- * Admin-only read of what visitors have actually submitted — Feedback and
- * Join Our Team applications — including the exact server-recorded
+ * Admin-only read of what visitors have actually submitted - Feedback and
+ * Join Our Team applications - including the exact server-recorded
  * timestamp, IP address and user agent (api/feedback.ts, api/team-apply.ts;
  * see supabase/migrations/0003_submission_metadata.sql for why storing
  * those is safe: RLS + service-role-only access, same as here). Same admin
- * key as maintenance mode (api/_lib/adminAuth.ts) — this project has no
+ * key as maintenance mode (api/_lib/adminAuth.ts) - this project has no
  * per-feature permission system, just the one shared admin gate.
  */
 const handler: ApiHandler = async (req, res) => {
@@ -45,7 +45,7 @@ const handler: ApiHandler = async (req, res) => {
   if (!isAdminRequest(req)) {
     // Logged, because otherwise a wrong admin key leaves no record anywhere.
     // Someone guessing at this endpoint all night would produce nothing you
-    // could find the next morning — the platform access log shows a 401 but
+    // could find the next morning - the platform access log shows a 401 but
     // cannot tell a bad admin key from any other one.
     console.warn("[admin] auth failure", { route: "submissions", ip: getClientIp(req), ua: req.headers["user-agent"] });
     return err(res, 401, "Invalid or missing admin key.", "UNAUTHORIZED");

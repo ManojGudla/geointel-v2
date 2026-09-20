@@ -12,16 +12,16 @@ import { SitePanel } from "@/features/site/SitePanel";
 import { OfficialsPanel } from "@/features/officials/OfficialsPanel";
 import "./IntelligencePanel.css";
 
-// No "AI Agents" tab here — the same six agent cards already render as an
+// No "AI Agents" tab here - the same six agent cards already render as an
 // always-visible strip directly below the map (AgentStrip.tsx), so a
 // second copy in this panel was pure duplication eating the one place on
 // screen with the least room to spare.
-// Travel is no longer a tab here — it has its own entry on the workspace
+// Travel is no longer a tab here - it has its own entry on the workspace
 // rail, because a headline feature buried behind the fifth tab of another
 // panel is a feature nobody finds.
 // "Site & plans" sits second rather than last. It answers the question people
-// arrive with most often after "where is this" — what is on this land, what is
-// being built on it, and who holds the records — and a tab at the far right of
+// arrive with most often after "where is this" - what is on this land, what is
+// being built on it, and who holds the records - and a tab at the far right of
 // a five-tab row is a tab nobody presses.
 const TABS: Array<{ id: IntelTab; label: string }> = [
   { id: "overview", label: "Overview" },
@@ -32,7 +32,7 @@ const TABS: Array<{ id: IntelTab; label: string }> = [
 ];
 
 /**
- * The left "Intelligence Workspace" panel from the spec — tabbed so the
+ * The left "Intelligence Workspace" panel from the spec - tabbed so the
  * growing set of panels (location identity, property intelligence, GIS
  * evidence, weather, news, nearby) stays navigable instead of one endless
  * scroll, per the "clear navigation, high information density" direction.
@@ -54,7 +54,7 @@ export function IntelligencePanel() {
       <div className="intel-panel__content">
         {tab === "overview" && (
           <>
-            {/* The headline answer to "what is this place?" goes first —
+            {/* The headline answer to "what is this place?" goes first -
                 before the raw identity fields, which are reference rather
                 than insight. */}
             <ErrorBoundary label="Location intelligence score" variant="panel">

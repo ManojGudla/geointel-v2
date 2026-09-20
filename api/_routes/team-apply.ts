@@ -21,7 +21,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const VALID_INTERESTS = ["engineering", "design", "gis-data", "product", "other"];
 
 /**
- * "Join Our Team" applications. Deliberately not a real accounts/HR system —
+ * "Join Our Team" applications. Deliberately not a real accounts/HR system -
  * it's a lead-capture form, same honest pattern as api/feedback.ts: real
  * rows in a real table when Supabase is configured, a clear "not configured
  * yet" error otherwise, never a fabricated "application received" when
@@ -49,7 +49,7 @@ const handler: ApiHandler = async (req, res) => {
   }
 
   // Same reasoning as api/feedback.ts: server-observed IP/user agent and a
-  // database-generated created_at, never anything the client could spoof —
+  // database-generated created_at, never anything the client could spoof -
   // see supabase/migrations/0003_submission_metadata.sql.
   try {
     const { error } = await withTimeout(

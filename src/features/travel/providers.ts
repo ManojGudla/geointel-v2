@@ -1,6 +1,6 @@
 /**
  * Pure URL builders for the Travel Planner. These are honest external
- * handoffs, not a booking integration — GeoIntel has no partnership or paid
+ * handoffs, not a booking integration - GeoIntel has no partnership or paid
  * API access to real flight/train/bus/movie/hotel availability, so it never
  * fabricates prices, seats, or showtimes. Each category opens two real
  * providers' own search pages, prefilled where that provider's URL scheme
@@ -13,7 +13,7 @@
 export interface ProviderLink {
   label: string;
   url: string;
-  /** Shown when this provider's link can't be prefilled — sets honest expectations. */
+  /** Shown when this provider's link can't be prefilled - sets honest expectations. */
   note?: string;
 }
 

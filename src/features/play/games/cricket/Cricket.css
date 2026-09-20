@@ -7,7 +7,7 @@
   padding: 0;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-lg);
-  /* Green outfield with a lighter strip up the middle — reads as a pitch at
+  /* Green outfield with a lighter strip up the middle - reads as a pitch at
      a glance without needing an illustration. */
   background:
     linear-gradient(to bottom, #cbb78a 0%, #d8c79c 100%) center / 34% 100% no-repeat,
@@ -51,7 +51,7 @@
   will-change: top, transform;
 }
 
-/* The crease — the line the ball must be met on. Its position matches
+/* The crease - the line the ball must be met on. Its position matches
    progress = 1 in the component, so it is an honest visual cue rather than
    decoration. */
 .cricket__crease {
@@ -148,7 +148,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* The ball still moves — it has to, it IS the game — but nothing else
+  /* The ball still moves - it has to, it IS the game - but nothing else
      animates, and the shrink-toward-you scaling is dropped. */
   .cricket__ballmark {
     transition: none;
@@ -168,7 +168,7 @@
   color: var(--color-text-muted);
 }
 
-/* The last over turns the required rate red. Nothing else changes — the
+/* The last over turns the required rate red. Nothing else changes - the
    colour is the whole signal, and it only ever means one thing. */
 .cricket__need--death strong {
   color: var(--color-danger);

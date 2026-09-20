@@ -8,7 +8,7 @@ import { CITY_BY_SLUG, type City } from "@/data/cities";
  * "Hyderabad vs Bengaluru" and "Bengaluru vs Hyderabad" are the same page, and
  * people link to both. Served as two URLs with identical content they compete
  * with each other, split whatever authority the page earns, and give a crawler
- * a duplicate-content problem to resolve on its own — usually by ranking
+ * a duplicate-content problem to resolve on its own - usually by ranking
  * neither.
  *
  * So both spellings work, and both declare the SAME canonical: the pair sorted
@@ -48,7 +48,7 @@ export function canonicalPairSlug(one: string, two: string): string {
  * Twelve cities make sixty-six possible comparisons, and that ratio is the
  * point: the number of pairs grows as the square of the number of cities, so
  * "list them all" gets worse every time a city is added. Most of the
- * sixty-six are comparisons nobody has ever wanted to read — Kochi versus
+ * sixty-six are comparisons nobody has ever wanted to read - Kochi versus
  * Indore is not a question anyone types.
  *
  * The nine below are ones people genuinely search for, so they are the ones
@@ -65,7 +65,7 @@ export const FEATURED_PAIRS: Array<[string, string]> = [
   ["hyderabad", "chennai"],
   ["bengaluru", "delhi"],
   // Added with the second batch of cities. Each of these is a comparison
-  // people genuinely type — "Gurgaon vs Delhi" in particular is one of the
+  // people genuinely type - "Gurgaon vs Delhi" in particular is one of the
   // higher-volume relocation searches in the country, and the two places
   // differ in exactly the ways this page can show with live data.
   ["delhi", "gurugram"],

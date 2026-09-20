@@ -109,7 +109,7 @@ describe("particle simulation", () => {
   /**
    * Built by hand rather than with spawnParticle, which places the drop at a
    * RANDOM height. An earlier version of this test spawned one and compared
-   * two copies of it — but if the random position happened to be near the
+   * two copies of it - but if the random position happened to be near the
    * bottom, one step pushed it off-screen and step() respawned it with fresh
    * random values, so the two copies diverged and the test failed at random.
    * Starting at the top with a known velocity keeps the particle in the field
@@ -121,7 +121,7 @@ describe("particle simulation", () => {
     const a = dropAtTop();
     const b = dropAtTop();
     step([a], field, 0.05); // a normal frame, already at the clamp ceiling
-    step([b], field, 30); // 30 seconds — a tab that was hidden and came back
+    step([b], field, 30); // 30 seconds - a tab that was hidden and came back
     // Both are clamped to the same maximum step, so the field doesn't jump.
     expect(b.y).toBeCloseTo(a.y, 5);
     // And it genuinely moved rather than being frozen.
@@ -132,7 +132,7 @@ describe("particle simulation", () => {
 
   it("does not let a huge delta carry a drop past the bottom of the field", () => {
     // The failure this guards against: without the clamp, dt = 30 moves a
-    // 800px/s drop 24,000px in one frame — every particle vanishes at once
+    // 800px/s drop 24,000px in one frame - every particle vanishes at once
     // and the whole effect visibly restarts.
     const p = dropAtTop();
     step([p], field, 30);

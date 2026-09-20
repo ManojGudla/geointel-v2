@@ -15,13 +15,13 @@ export interface GISFeatureDto {
   tags: Record<string, string>;
 }
 
-// OSM's built environment — buildings, shops, amenities, POIs — changes over
+// OSM's built environment - buildings, shops, amenities, POIs - changes over
 // days and weeks, not minutes, so a short TTL bought nothing and cost a great
 // deal: every repeat view re-queried Overpass's free public mirrors, which are
 // the least reliable dependency in this app and were actively rate-limiting us.
 // Six hours matches what officials.ts already uses for similarly slow-moving
 // data. This is a per-instance in-memory cache on serverless (see cache.ts), so
-// it evaporates on a cold start — it reduces load and speeds up repeat views,
+// it evaporates on a cold start - it reduces load and speeds up repeat views,
 // it is not a durability guarantee.
 const cache = new TtlCache<OverpassElement[]>(6 * 60 * 60 * 1000);
 const limiter = new RateLimiter(60_000, 20);
@@ -112,7 +112,7 @@ function categoryOf(tags: Record<string, string>): { category: ScoreCategory; ki
   /*
     Landuse is deliberately last and never a subject. A landuse=residential
     polygon can cover a whole suburb, so its centroid says nothing about
-    where you are standing — treating one as "the thing you clicked" is how
+    where you are standing - treating one as "the thing you clicked" is how
     a single zoning polygon could overrule the building you are inside.
   */
   if (tags.landuse === "residential") return { category: "residential", kind: "residential land" };
@@ -206,7 +206,7 @@ export function classifyFeatures(
       // shop) or "this is an office building" (building=office), even when
       // nothing else on that same way carries a separate shop=/office= tag.
       // Before this, only residential/industrial/institutional building
-      // subtypes fed their matching score — a building tagged
+      // subtypes fed their matching score - a building tagged
       // building=commercial or building=retail contributed NOTHING to the
       // commercial score below, so a genuinely 100% commercial property
       // sitting anywhere near ordinary residential buildings (true of
@@ -237,7 +237,7 @@ export function classifyFeatures(
     }
     // Same asymmetry one level up: landuse=residential counted, but a zone
     // explicitly tagged landuse=commercial/landuse=retail (very common for
-    // a business district) never did — the other half of the same bug.
+    // a business district) never did - the other half of the same bug.
     if (tags.landuse === "commercial" || tags.landuse === "retail") {
       counts.shops += 1;
       weighted.shops += weight;
@@ -259,7 +259,7 @@ export function classifyFeatures(
     // (railway=*, public_transport=*, highway=bus_stop) alongside
     // buildings/shops/offices/amenities, but until now nothing ever counted
     // them. A landmark like the Eiffel Tower is tagged tourism=attraction
-    // with no building/shop/office/amenity tag on its own node at all — so
+    // with no building/shop/office/amenity tag on its own node at all - so
     // its own OSM entry contributed ZERO evidence, and the location came
     // back "Vacant / Unknown" despite Overpass returning real data for
     // exactly the thing being looked up. Same blind spot for a location
@@ -303,7 +303,7 @@ export function classifyFeatures(
 
 /**
  * How much real evidence Overpass actually returned, across every bucket
- * classifyFeatures tracks — used to decide "Vacant / Unknown" (api/gis.ts's
+ * classifyFeatures tracks - used to decide "Vacant / Unknown" (api/gis.ts's
  * GIS Evidence panel and analyzeProperty() both need this same number, so it
  * lives here once rather than drifting between two hand-copied sums, which
  * is exactly how the Eiffel Tower bug above happened: totalEvidence used to

@@ -42,7 +42,7 @@ export interface RouteStep {
   durationSeconds: number;
   /**
    * [lon, lat] of the manoeuvre itself. Without this a step is just a
-   * sentence — you can read "Turn left onto GT Road" but you can't SEE where
+   * sentence - you can read "Turn left onto GT Road" but you can't SEE where
    * that is, which is the whole difference between a list and directions.
    * Tapping a step flies the map here.
    */

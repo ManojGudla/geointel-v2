@@ -5,7 +5,7 @@ import { MAX_DAY_SCORE, type RoundResult } from "./dailyEngine";
 /**
  * What the Daily Challenge remembers between visits.
  *
- * Stored in this browser only — there are no accounts, so there is nothing to
+ * Stored in this browser only - there are no accounts, so there is nothing to
  * sync and no leaderboard to compare against. That is stated plainly on the
  * results screen rather than implied, because a streak that silently vanishes
  * when someone opens the site on their laptop would feel like a bug.
@@ -83,7 +83,7 @@ export function previousDateKey(dateKey: string): string {
 
 /**
  * A streak counts consecutive days, so it survives yesterday and only
- * yesterday. Missing a day resets to 1 rather than 0 — the day just played
+ * yesterday. Missing a day resets to 1 rather than 0 - the day just played
  * still counts, and starting a fresh streak at zero would read as a punishment
  * for coming back.
  */

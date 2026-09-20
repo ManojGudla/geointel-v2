@@ -12,7 +12,7 @@ function formatTimestamp(iso: string | null): string {
 
 /**
  * Replaces the entire normal app for every visitor while maintenance mode
- * is on (see App.tsx) — real backend-enforced, not just this page: every
+ * is on (see App.tsx) - real backend-enforced, not just this page: every
  * data API also refuses to serve non-admin requests while the same flag is
  * set (api/_lib/maintenance.ts's withMaintenanceGuard), so there's no route
  * or direct API call that bypasses it.

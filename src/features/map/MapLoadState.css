@@ -36,7 +36,7 @@
   box-shadow: var(--shadow-md);
 }
 
-/* While it's just "loading", the card is a bare spinner and one line —
+/* While it's just "loading", the card is a bare spinner and one line -
    a bordered dialog for a 400ms wait is noise. */
 .map-load--loading .map-load__card {
   border-color: transparent;

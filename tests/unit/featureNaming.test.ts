@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * One feature, one name — enforced.
+ * One feature, one name - enforced.
  *
  * The question feature shipped under four different names at once: "Ask
  * Copilot" on the floating button, "maNOWj GeoIntel Copilot" on the panel it
@@ -11,18 +11,18 @@ import { describe, expect, it } from "vitest";
  * AI Agents" in the help guide. A user who pressed the first one had no way
  * to know they had already found the third.
  *
- * Worse, a SECOND feature — the plain-language spatial query that draws its
- * answer on the map — was called "Ask the map", sitting directly above the
+ * Worse, a SECOND feature - the plain-language spatial query that draws its
+ * answer on the map - was called "Ask the map", sitting directly above the
  * assistant in the same panel. Two boxes, two names starting with "Ask",
  * doing different things.
  *
  * The names are now:
- *   "Ask maNOWj"            — the assistant. Answers in words.
- *   "Find things on the map" — the spatial query. Draws the answer.
+ *   "Ask maNOWj"            - the assistant. Answers in words.
+ *   "Find things on the map" - the spatial query. Draws the answer.
  *
  * This test reads the real source and fails if either drifts. It only looks
- * at strings that can actually reach a user's eyes — JSX text, a handful of
- * attributes, and the object keys the app renders labels from — so the
+ * at strings that can actually reach a user's eyes - JSX text, a handful of
+ * attributes, and the object keys the app renders labels from - so the
  * internal names (`useCopilotContext`, `.copilot-panel`, `openCopilot`) are
  * deliberately untouched and stay that way. Renaming those buys nothing
  * anyone can see and would break persisted state, exactly as sections.ts
@@ -67,7 +67,7 @@ function userFacingStrings(): Found[] {
      * JSX text nodes: `>text</`.
      *
      * Three guards, each for a false positive this actually produced. Braces
-     * are excluded so `>{value}<` — an expression, not a literal — is skipped
+     * are excluded so `>{value}<` - an expression, not a literal - is skipped
      * rather than half-matched. The lookbehind drops `=>`, which otherwise let
      * an arrow function's body run on until the next tag and swallowed whole
      * lines of code. And the match must END at a closing tag, which is what
@@ -109,7 +109,7 @@ describe("the question feature has exactly one name", () => {
 
   it("does not call the spatial query 'Ask the map' any more", () => {
     // The name that collided with the assistant. It reads fine on its own,
-    // which is why it survived so long — the problem only appears when both
+    // which is why it survived so long - the problem only appears when both
     // names are on screen together, as they are in the Ask panel.
     const leaks = strings.filter((s) => /ask the map/i.test(s.text));
     expect(leaks.map((s) => `${s.file}: ${s.text.trim()}`)).toEqual([]);

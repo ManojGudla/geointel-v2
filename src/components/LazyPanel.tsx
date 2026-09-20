@@ -9,14 +9,14 @@ import { ErrorBoundary } from "./ErrorBoundary";
  * 209 KB of that was the games hub. Nobody opening a map needs the games
  * hub. Nor the settings panel, the privacy panel, the printable report, the
  * feedback form, the team application form, the about panel or the feature
- * status page — every one of which arrived on first load, on every visit,
+ * status page - every one of which arrived on first load, on every visit,
  * for every visitor, on whatever connection they had.
  *
  * All of them were already `React.lazy`, which is why this looked correct.
  * The trap is that lazy splits the chunk but does nothing to decide WHEN it
  * is fetched: the import fires the moment React renders the component, and
  * all nine were mounted unconditionally at the bottom of App. Each one then
- * read its own store, saw `isOpen: false`, and returned null — after its
+ * read its own store, saw `isOpen: false`, and returned null - after its
  * chunk had already been downloaded. A panel that renders nothing still
  * costs its full weight.
  *
@@ -50,7 +50,7 @@ interface Props {
 
 export function LazyPanel({ label, isOpen, children }: Props) {
   const mounted = useHasOpened(isOpen);
-  // Returning null does not merely hide the children — it never renders
+  // Returning null does not merely hide the children - it never renders
   // them, which is the whole point: an unrendered lazy element is an
   // unfetched chunk.
   if (!mounted) return null;

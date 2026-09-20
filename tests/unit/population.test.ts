@@ -8,8 +8,8 @@ import handler from "../../api/_routes/population";
  * handler to the rule the whole product runs on: report what the source says,
  * WITH its year and provenance, and return nothing rather than a guess.
  *
- * The live query itself could not be run from the build container — Wikidata
- * and Overpass are both blocked by its egress policy — so these exercise the
+ * The live query itself could not be run from the build container - Wikidata
+ * and Overpass are both blocked by its egress policy - so these exercise the
  * handler against recorded response shapes. The shapes are the documented
  * SPARQL JSON results format and the Overpass JSON format respectively.
  */
@@ -26,7 +26,7 @@ function mockFetch(body: unknown, status = 200) {
 }
 
 /**
- * Overpass responses must carry a plausible replica timestamp — the wrapper
+ * Overpass responses must carry a plausible replica timestamp - the wrapper
  * rejects mirrors without one, because a corrupted mirror returning an empty
  * element list is indistinguishable from "nothing is there" and would quietly
  * produce wrong answers. Mocks have to include it or they aren't testing the
@@ -37,7 +37,7 @@ const overpass = (elements: unknown[]) => ({
   elements,
 });
 
-/** Each test needs fresh coordinates — the handler caches by rounded lat/lon. */
+/** Each test needs fresh coordinates - the handler caches by rounded lat/lon. */
 let seed = 0;
 const coords = () => {
   seed += 0.01;
@@ -58,8 +58,8 @@ describe("api/population", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   /**
-   * Regression: the live endpoint returned "Andhra Pradesh (1956-2014)" —
-   * 84 million — for a point in Hyderabad. The query asked only for the most
+   * Regression: the live endpoint returned "Andhra Pradesh (1956-2014)" -
+   * 84 million - for a point in Hyderabad. The query asked only for the most
    * populous thing with coordinates nearby, and administrative regions have
    * both, at populations no city can match. It also happened to be a state
    * that no longer exists. Both filters are asserted here because neither is
@@ -111,7 +111,7 @@ describe("api/population", () => {
     const { population } = r.body as { population: Record<string, unknown> };
     expect(population.place).toBe("Hyderabad");
     expect(population.population).toBe(6_809_970);
-    // The YEAR is the point — a figure without one invites the reader to
+    // The YEAR is the point - a figure without one invites the reader to
     // assume it's current.
     expect(population.year).toBe(2011);
     expect(population.areaKm2).toBe(650);

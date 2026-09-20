@@ -104,7 +104,7 @@
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   /* The project's own warning tokens, which are already defined for both
-     themes (src/styles/tokens.css) — a hand-mixed colour here would have
+     themes (src/styles/tokens.css) - a hand-mixed colour here would have
      been right in one theme and wrong in the other. */
   border-left: 3px solid var(--color-warning);
   background: var(--color-warning-bg);
@@ -134,7 +134,7 @@
 
 /* Model attribution. A provider slug is a long unbroken token
    ("meta-llama/llama-3.3-70b-instruct:free") sitting in a card that can be
-   as narrow as 160px on a phone — without `anywhere` it refuses to break and
+   as narrow as 160px on a phone - without `anywhere` it refuses to break and
    pushes the card wider than its grid track. */
 .agent-card__attribution {
   font-size: 11px;

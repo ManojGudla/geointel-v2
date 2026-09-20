@@ -7,8 +7,8 @@ import { computeLocationIntelligence, scoreContributions } from "./locationIntel
 import "./LocationIntelligencePanel.css";
 
 /**
- * The signature panel: one headline number for a place, and — one click
- * away — exactly what produced it.
+ * The signature panel: one headline number for a place, and - one click
+ * away - exactly what produced it.
  *
  * The "Why?" view is deliberately not hidden behind a tooltip or an info
  * icon. A score with no visible derivation is a number the user has to take

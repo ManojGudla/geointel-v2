@@ -15,10 +15,10 @@ import {
  *
  * Given a resolved address (country/state/district/city, from
  * api/reverse-geocode.ts), returns the current officials for each
- * administrative level that can be reliably identified — sourced from
+ * administrative level that can be reliably identified - sourced from
  * Wikidata (see api/_lib/wikidata.ts for why). This module NEVER invents a
  * name: every entry is either backed by a live, sourced Wikidata statement
- * ("verified") or explicitly says "Unable to verify" ("unavailable") —
+ * ("verified") or explicitly says "Unable to verify" ("unavailable") -
  * there is no third state and no fallback to guessing. Officeholders
  * change rarely enough that a 6h cache is a reasonable trade against
  * hammering the public SPARQL endpoint on every search.
@@ -29,7 +29,7 @@ const limiter = new RateLimiter(60_000, 20);
 
 // The whole handler's budget. The browser aborts this request at 20s
 // (REQUEST_TIMEOUT_MS, src/services/apiClient.ts), so everything here has to
-// finish inside that with room for network and JSON parsing on top — see the
+// finish inside that with room for network and JSON parsing on top - see the
 // long note in the handler for the bug this fixes.
 const OFFICIALS_BUDGET_MS = 15_000;
 // Ceiling for any single SPARQL query. Two stages at this ceiling still fit
@@ -62,7 +62,7 @@ interface RoleLabels {
   merged?: string;
 }
 
-// Title WORDS only — never a person's name, and titles essentially never
+// Title WORDS only - never a person's name, and titles essentially never
 // change even when the officeholder does, so this is stable static
 // reference data, not the kind of hardcoding the feature must avoid. Kept
 // deliberately modest: countries not listed fall back to the generic
@@ -162,19 +162,19 @@ const handler: ApiHandler = async (req, res) => {
 
   // Reported bug: the dev log filled with repeating "[wikidata] SPARQL
   // request failed [AbortError]" and the panel came back empty. This handler
-  // used to run its four SPARQL queries strictly one after another —
-  // country, then state, then city, then district — at 12s each, up to 48s,
+  // used to run its four SPARQL queries strictly one after another -
+  // country, then state, then city, then district - at 12s each, up to 48s,
   // while the browser gives up on this request after 20s
   // (REQUEST_TIMEOUT_MS in src/services/apiClient.ts). On a slow Wikidata
   // day it therefore COULDN'T finish: the client aborted mid-chain and every
   // level was lost, including the ones that had already resolved.
   //
   // Two changes fix that. The independent queries now run together (country
-  // resolves by ISO 3166-1 and state by ISO 3166-2 — neither needs the
+  // resolves by ISO 3166-1 and state by ISO 3166-2 - neither needs the
   // other; city and district only need the QIDs those two produce, and are
   // independent of each other). And the whole handler now works to a budget
   // that fits inside the client's, spending what's left rather than a fixed
-  // per-query timeout — so a slow first stage shortens the second stage
+  // per-query timeout - so a slow first stage shortens the second stage
   // instead of blowing the deadline. Anything that doesn't make it reports
   // "Unable to verify" like every other unresolved level, which is the
   // honest answer and leaves the levels that DID resolve intact.
@@ -199,7 +199,7 @@ const handler: ApiHandler = async (req, res) => {
     officials.push(unavailable("country", countryLabel, "Head of State", `Could not resolve "${countryLabel}" to a Wikidata country entity.`));
   }
 
-  // State level — only attempted when Nominatim gave us a precise ISO
+  // State level - only attempted when Nominatim gave us a precise ISO
   // 3166-2 code; a name-only fallback risks matching the wrong same-named
   // subdivision, so it's skipped rather than guessed.
   let stateQid: string | null = null;
@@ -224,7 +224,7 @@ const handler: ApiHandler = async (req, res) => {
   // Stage 2: city + district, in parallel. Both need the QIDs stage 1
   // produced (each lookup is scoped by country to avoid cross-country name
   // collisions), but not each other. If stage 1 ate the budget there's no
-  // point starting a query that can only time out — those levels say so
+  // point starting a query that can only time out - those levels say so
   // plainly instead, and Retry gets a fresh budget.
   const outOfTime = remainingMs() < MIN_USEFUL_QUERY_MS;
   const [cityResult, districtResult] = await Promise.all([
@@ -246,7 +246,7 @@ const handler: ApiHandler = async (req, res) => {
     }
   }
 
-  // District level — expected to often come back unavailable even on a
+  // District level - expected to often come back unavailable even on a
   // healthy lookup (see resolveDistrictWithOfficeholder's doc comment).
   if (district && countryQid) {
     const roleLabel = districtRoleLabel(countryCode);

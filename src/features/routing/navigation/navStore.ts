@@ -7,7 +7,7 @@ interface NavigationState {
   state: NavState;
   /** Raw GPS position, as reported. */
   position: Coord | null;
-  /** Position snapped onto the route line — what the marker is drawn at. */
+  /** Position snapped onto the route line - what the marker is drawn at. */
   snapped: Coord | null;
   /** Device-reported accuracy in metres, or null if it didn't say. */
   accuracyMeters: number | null;

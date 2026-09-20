@@ -27,7 +27,7 @@ export function CoordinateReadout() {
       setTimeout(() => setCopied(false), 1600);
     } catch {
       // Clipboard access can be refused (insecure context, permission
-      // policy). Nothing is broken — the coordinates are on screen to read.
+      // policy). Nothing is broken - the coordinates are on screen to read.
       setCopied(false);
     }
   };

@@ -8,7 +8,7 @@ import { join } from "node:path";
  * These exist because the site had none: a link shared on WhatsApp, LinkedIn
  * or X rendered as a bare grey URL with no title, image or description. The
  * app already had a share button and shareable location URLs, so every share
- * was landing with nothing to click on — the single biggest hole in getting
+ * was landing with nothing to click on - the single biggest hole in getting
  * anyone to visit.
  *
  * They're easy to lose in a refactor and produce no error when missing, so
@@ -31,7 +31,7 @@ describe("social preview", () => {
   });
 
   it("uses an absolute image URL", () => {
-    // Relative og:image paths are silently ignored by every major scraper —
+    // Relative og:image paths are silently ignored by every major scraper -
     // the usual reason a card shows text but no picture.
     const image = meta("property", "og:image")!;
     expect(image.startsWith("https://")).toBe(true);

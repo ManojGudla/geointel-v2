@@ -33,12 +33,12 @@ describe("classifyFeatures", () => {
   });
 
   // Regression test for a real, reported bug: a genuinely 100% commercial
-  // property was classified Residential. Root cause — building=commercial/
+  // property was classified Residential. Root cause - building=commercial/
   // retail/office/supermarket/kiosk and landuse=commercial/retail
   // contributed NOTHING to the commercial score (only shop=/office=/amenity=
   // tags did), while the equivalent residential/industrial building
   // subtypes and landuse values DID feed their score. So a building tagged
-  // just building=commercial (no separate shop=/office= tag — a very common
+  // just building=commercial (no separate shop=/office= tag - a very common
   // real-world OSM pattern) scored zero commercial evidence.
   it("counts a building=commercial/retail/office/supermarket/kiosk tag toward the commercial score, even with no shop/office/amenity tag", () => {
     const { counts, scores } = classifyFeatures([
@@ -63,7 +63,7 @@ describe("classifyFeatures", () => {
     // Before the fix: building=commercial contributed ZERO to the
     // commercial score (only shop=/office=/amenity= tags did), while
     // building=house contributed +1 residential each. So even at an EQUAL
-    // 2-vs-2 count, the old scorer produced commercial=0 vs residential=4 —
+    // 2-vs-2 count, the old scorer produced commercial=0 vs residential=4 -
     // a real commercial property reads Residential purely because ordinary
     // homes are almost always mapped nearby too. After the fix, equal
     // counts correctly favor commercial (shop-weight x3 vs residential x2).

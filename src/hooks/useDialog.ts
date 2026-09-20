@@ -6,12 +6,12 @@ import { useEffect, useRef } from "react";
  * Thirteen components in this app declare `role="dialog"`. That role is a
  * promise to assistive technology: focus moves into this thing, Escape closes
  * it, and Tab stays inside it until it does. Four of the thirteen handled
- * Escape. None trapped focus — there was no focus-trap utility anywhere in the
+ * Escape. None trapped focus - there was no focus-trap utility anywhere in the
  * codebase.
  *
  * What that meant in practice, for somebody using a keyboard or a screen
  * reader: open Settings, press Tab a few times, and focus walks straight out of
- * the dialog and into the map, the nav rail, and the search box behind it —
+ * the dialog and into the map, the nav rail, and the search box behind it -
  * controls the dialog is visually covering. The reader announces a page the
  * person cannot see while a modal they cannot leave sits on top of it. The role
  * had told them to expect a trap, and there wasn't one, which is worse than

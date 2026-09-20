@@ -24,7 +24,7 @@
  *
  * A note on reachability. Roughly half of these government hosts refuse
  * connections from outside India. That is geofencing, not death, so links are
- * never hidden on the strength of a failed probe — a user in Hyderabad will
+ * never hidden on the strength of a failed probe - a user in Hyderabad will
  * reach portals that a health check from a European data centre cannot.
  */
 

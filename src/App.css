@@ -3,8 +3,8 @@
   flex-direction: column;
   height: 100%;
   /* Dynamic viewport height: on a phone the browser's own toolbars slide in
-     and out, and a plain 100% (or 100vh) leaves the bottom of the app — the
-     navigation rail, of all things — hidden behind them. dvh tracks the
+     and out, and a plain 100% (or 100vh) leaves the bottom of the app - the
+     navigation rail, of all things - hidden behind them. dvh tracks the
      space actually available. */
   height: 100dvh;
   overflow: hidden;
@@ -15,7 +15,7 @@
   min-height: 0;
 }
 
-/* Slim, always-present strip — adds a fixed-height flex item to .app-shell,
+/* Slim, always-present strip - adds a fixed-height flex item to .app-shell,
    so .app-shell__main's flex:1 simply shrinks to make room; it never causes
    the page itself to scroll. */
 .app-footer {
@@ -74,7 +74,7 @@
 
   It carries the hidden owner entrance (see features/secret/secretGesture.ts),
   which means it has to be a real button: keyboard-reachable, focusable, and
-  announced. What it must NOT do is look like one — a visitor seeing a
+  announced. What it must NOT do is look like one - a visitor seeing a
   clickable logo would expect it to go home, and the whole point of the
   gesture is that nothing about the page changes for anyone who does not
   already know it is there. So every button default is reset back to what the
@@ -182,7 +182,7 @@
   border-color: var(--color-border-strong);
 }
 
-/* Ghost: quiet by default — no border, no fill — so a row of six of these
+/* Ghost: quiet by default - no border, no fill - so a row of six of these
    reads as one calm utility strip instead of six equally-loud buttons. */
 .app-header__icon-btn--ghost {
   border-color: transparent;
@@ -195,7 +195,7 @@
   color: var(--color-text);
 }
 
-/* Primary: the one filled, brand-colored button in the header — everything
+/* Primary: the one filled, brand-colored button in the header - everything
    else is intentionally quieter than this. */
 .app-header__icon-btn--primary {
   background: linear-gradient(135deg, var(--color-brand-600), var(--color-brand-500));
@@ -298,7 +298,7 @@
   display: none !important;
 }
 
-/* Phones: the header collapses to a single row — short wordmark, icon-only
+/* Phones: the header collapses to a single row - short wordmark, icon-only
    utility buttons, a status dot, and everything else behind More. It used to
    wrap onto four rows here, eating about a quarter of the screen before the
    map got any, which on a map application is the wrong trade in every case. */
@@ -342,7 +342,7 @@
     padding: var(--space-2);
   }
 
-  /* Folded into the More menu at this width — see Header.tsx. */
+  /* Folded into the More menu at this width - see Header.tsx. */
   .app-header__cta {
     display: none;
   }
@@ -370,7 +370,7 @@
   border-radius: 999px;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  /* A readout, not a control — no pointer cursor, no hover state to imply
+  /* A readout, not a control - no pointer cursor, no hover state to imply
      it's clickable, so it doesn't get lost among the buttons beside it. */
   cursor: default;
 }
@@ -538,7 +538,7 @@
 }
 
 /* Suspense fallback for the code-split full-page routes (/admin, /status).
-   The overlay panels use a null fallback instead — they render nothing until
+   The overlay panels use a null fallback instead - they render nothing until
    opened, so a flash of "Loading…" behind a closed dialog would be noise. */
 .app-loading {
   display: flex;

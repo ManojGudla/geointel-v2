@@ -21,7 +21,7 @@ const SUPABASE_CALL_TIMEOUT_MS = 6_000;
 //
 // The limiter used to be an in-process RateLimiter, which on serverless meant
 // it reset on every cold start and counted separately on every concurrent
-// instance — so it did not bound guessing at all. It now counts in Postgres;
+// instance - so it did not bound guessing at all. It now counts in Postgres;
 // see api/_lib/rateLimit.ts. A real admin is nowhere near 20 requests a
 // minute, so the limit is invisible in normal use.
 
@@ -34,7 +34,7 @@ interface MaintenanceUpdateBody {
   supportInfo?: string;
   showStatus?: boolean;
   showCountdown?: boolean;
-  /** The admin's own Settings → Display name, if they've set one — never a fabricated identity, just whatever they typed for themselves. */
+  /** The admin's own Settings → Display name, if they've set one - never a fabricated identity, just whatever they typed for themselves. */
   adminLabel?: string;
 }
 
@@ -42,7 +42,7 @@ const VALID_ACTIONS = ["enable", "disable", "update"];
 
 /**
  * The one endpoint the whole maintenance-mode feature turns on:
- *  - GET is public (no admin key needed) — every visitor's browser polls
+ *  - GET is public (no admin key needed) - every visitor's browser polls
  *    this to know whether to show the maintenance page. Sending a valid
  *    admin key additionally unlocks the recent audit log, and reports
  *    whether that key is valid (so the admin dashboard can verify a
@@ -58,7 +58,7 @@ const handler: ApiHandler = async (req, res) => {
   /**
    * Durable, not in-memory. The GET branch below answers "is this admin key
    * correct?" for anyone who asks, so this counter is the only thing bounding
-   * how fast the key can be guessed — and the in-memory version reset on every
+   * how fast the key can be guessed - and the in-memory version reset on every
    * cold start and counted separately on every concurrent instance.
    */
   const rate = await checkDurableLimit("admin", getClientIp(req), 60_000, 20);
@@ -76,7 +76,7 @@ const handler: ApiHandler = async (req, res) => {
        *
        * This branch used to return `adminKeyValid: false` to anyone who
        * asked, which turned guessing the admin passphrase into a loop with
-       * instant feedback — an unauthenticated confirm oracle in front of the
+       * instant feedback - an unauthenticated confirm oracle in front of the
        * only secret protecting every visitor's name, email, IP and message.
        * The per-IP limiter did not close it: it is defeated by a pool of
        * cloud addresses, and it silently degrades to a per-instance memory
@@ -103,7 +103,7 @@ const handler: ApiHandler = async (req, res) => {
             );
             responseBody.auditLog = data ?? [];
           } catch (error) {
-            // The admin key was already verified above — don't fail the
+            // The admin key was already verified above - don't fail the
             // whole status check just because the audit log specifically
             // timed out; report an empty log rather than hanging.
             console.error("[api/admin/maintenance] audit log read failed/timed out", error instanceof Error ? error.message : error);
@@ -181,7 +181,7 @@ const handler: ApiHandler = async (req, res) => {
       SUPABASE_CALL_TIMEOUT_MS,
       "maintenance_audit_log insert"
     );
-    // Don't fail the whole request over a logging hiccup — the setting
+    // Don't fail the whole request over a logging hiccup - the setting
     // change itself already succeeded and is what the admin asked for.
     if (logError) console.error("[api/admin/maintenance] audit log insert failed", logError.message);
   } catch (error) {

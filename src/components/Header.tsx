@@ -16,9 +16,9 @@ const THEME_ICON: Record<ThemeMode, string> = { system: "🖥️", light: "☀�
 
 /**
  * Pings a lightweight, always-mounted API route so "GIS Online" reflects
- * the actual backend, not a hardcoded green dot. api/health.ts (Phase 1)
- * just confirms the dev/production API layer itself is reachable; richer
- * per-provider status can be layered on in a later phase.
+ * the actual backend, not a hardcoded green dot. api/health.ts just
+ * confirms the dev/production API layer itself is reachable; richer
+ * per-provider status could be layered on later.
  */
 function useBackendStatus() {
   const [online, setOnline] = useState<boolean | null>(null);
@@ -47,13 +47,13 @@ function useBackendStatus() {
 const THEME_CYCLE: ThemeMode[] = ["system", "light", "dark"];
 
 /**
- * "change these location and place where it will suit" — the header used to
+ * "change these location and place where it will suit" - the header used to
  * lay out ⌘K/Help/Settings/Features/Feedback/Theme as six equal-weight
  * buttons in a flat row, which read as busy and undifferentiated no matter
  * how they were grouped or styled. The pattern most 2026 SaaS headers
  * actually use is: keep only the handful of things people reach for
  * constantly at top level (search, theme), and tuck everything else behind
- * one compact overflow menu. That's what this does — Help/Settings/
+ * one compact overflow menu. That's what this does - Help/Settings/
  * Features/Feedback move into a "More" menu; ⌘K and the theme toggle stay
  * visible since those get used far more often.
  */
@@ -122,7 +122,7 @@ export function Header() {
     <header className="app-header">
       <div className="app-header__brand">
         {/*
-          The mark carries the hidden owner entrance — three taps inside about
+          The mark carries the hidden owner entrance - three taps inside about
           a second. A single tap does nothing at all, so the page behaves
           exactly as before for everyone who does not know the gesture. See
           features/secret/secretGesture.ts for why it is not a single click,
@@ -138,7 +138,7 @@ export function Header() {
         </button>
         {/* Two spellings of the name, one shown at a time by CSS. On a phone
             the header has to fit in a single row beside the controls, and
-            the full lockup plus tagline was taking four stacked rows —
+            the full lockup plus tagline was taking four stacked rows -
             roughly a quarter of the screen height, taken from the map. */}
         <div className="app-header__wordmark">
           <span className="app-header__logo app-header__logo--full">maNOWj GeoIntel</span>
@@ -148,8 +148,8 @@ export function Header() {
       </div>
 
       <div className="app-header__actions">
-        {/* Utility row: only the two things people reach for constantly —
-            the command palette and the theme toggle — stay at top level.
+        {/* Utility row: only the two things people reach for constantly -
+            the command palette and the theme toggle - stay at top level.
             Ghost styling keeps these quiet so they don't compete with the
             one real call-to-action. */}
         <div className="app-header__group app-header__group--utility">
@@ -195,13 +195,13 @@ export function Header() {
             call for six things nobody urgently needs. It was the wrong call
             for this one. The reported problem with this product, repeatedly,
             is that people open it and cannot work out what it does or where
-            anything is — and the answer to precisely that question was the
+            anything is - and the answer to precisely that question was the
             second item inside a menu behind a "⋯" glyph. Someone who does not
             know how an app works does not go hunting in its overflow menu;
             they leave.
 
             The label says "How it works" rather than "Help" because Help is
-            where you go when something is broken, and nothing is broken —
+            where you go when something is broken, and nothing is broken -
             they just have not been told what this is yet. Below 900px App.css
             drops the label and it becomes a "?" on its own, which is still
             visible, which is the entire point.
@@ -240,7 +240,7 @@ export function Header() {
                 <button type="button" role="menuitem" className="app-header__menu-item--mobile" onClick={() => runFromMenu(openJoinTeam)}>
                   <span aria-hidden="true">🤝</span> Join Our Team
                 </button>
-                {/* Help is no longer duplicated here — it is a visible
+                {/* Help is no longer duplicated here - it is a visible
                     control in the row above, for the reason given there. */}
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openFeatureStatus)}>
                   <span aria-hidden="true">📋</span> Features
@@ -269,7 +269,7 @@ export function Header() {
           </div>
         </div>
 
-        {/* The one real call-to-action in the header — visually distinct
+        {/* The one real call-to-action in the header - visually distinct
             (filled, brand-colored) so it reads as the primary action rather
             than one more item in a row of identical pills. */}
         <button
@@ -282,7 +282,7 @@ export function Header() {
           <span aria-hidden="true">🤝</span> Join Our Team
         </button>
 
-        {/* A live status readout, not an action — role="status" plus its
+        {/* A live status readout, not an action - role="status" plus its
             own pill styling (tinted by the current state) keeps it from
             reading as just another clickable button in the row. */}
         <span

@@ -3,7 +3,7 @@ import { CHANGE_SITES, type ChangeSite } from "./changeSites";
 import { GIBS_LAYERS } from "@/features/timeline/gibs";
 
 /**
- * Spot the Change — the pure part.
+ * Spot the Change - the pure part.
  *
  * The scoring, the round order and the tile arithmetic live here with no React
  * and no network, so all of it is testable. The component only draws.
@@ -69,7 +69,7 @@ export function tileGrid(site: ChangeSite, date: string): string[] {
 /**
  * One game's worth of rounds.
  *
- * Options are shuffled, and the answer's position is therefore not fixed —
+ * Options are shuffled, and the answer's position is therefore not fixed -
  * a constant slot is learnable in three rounds and ends the game early.
  */
 export function buildChangeGame(seed: number | string, count = ROUNDS_PER_GAME): ChangeRound[] {

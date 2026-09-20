@@ -16,7 +16,7 @@ export interface OfficialEntry {
 }
 
 // Wikidata lookups (esp. the label-matching city/district queries) can take
-// longer than the app's default request budget — same lesson as the AI
+// longer than the app's default request budget - same lesson as the AI
 // agent timeout fix: give this its own honest, longer allowance instead of
 // racing the generic default and reporting a false "failed to load".
 const OFFICIALS_REQUEST_TIMEOUT_MS = 30_000;

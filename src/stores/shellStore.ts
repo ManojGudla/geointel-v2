@@ -4,7 +4,7 @@ import { create } from "zustand";
  * Which workspace section is showing, and whether its panel is open.
  *
  * Why this exists: the previous layout scattered features across six
- * unrelated places — a header menu, a quick-action row, a tabbed left panel,
+ * unrelated places - a header menu, a quick-action row, a tabbed left panel,
  * a right rail, a floating launcher, and an agent strip below the fold that
  * most people never scrolled to. Two separate scrollbars sat fourteen pixels
  * apart at the right edge, so nobody could tell which one moved what.
@@ -30,8 +30,8 @@ export type ShellSection = "place" | "layers" | "tools" | "ai" | "travel";
  * does is represented by five eleven-pixel words in a 78 pixel column
  * against a full-screen map, and a rail that narrow reads as decoration
  * rather than navigation. Nobody clicks it, so nobody finds anything behind
- * it. Every serious mapping platform — ArcGIS, the state digital twins, the
- * analysis suites — opens with its panel showing, and they all do it for
+ * it. Every serious mapping platform - ArcGIS, the state digital twins, the
+ * analysis suites - opens with its panel showing, and they all do it for
  * this reason.
  *
  * It opens on "layers" (Map data & style) rather than "place", because that
@@ -66,7 +66,7 @@ interface ShellState {
   open: boolean;
   /** Opens a section, or closes the panel if that section is already showing. */
   toggleSection: (section: ShellSection) => void;
-  /** Opens a section unconditionally — for deep links from elsewhere in the app. */
+  /** Opens a section unconditionally - for deep links from elsewhere in the app. */
   openSection: (section: ShellSection) => void;
   closePanel: () => void;
 }
@@ -82,7 +82,7 @@ export const useShellStore = create<ShellState>((set) => ({
 
 /**
  * Opens the Explore panel the first time a location is selected, wherever
- * that selection came from — search, a map click, an example chip, a shared
+ * that selection came from - search, a map click, an example chip, a shared
  * link. Selecting a place and having nothing visibly happen is the single
  * most disorienting thing this app could do, and wiring it here rather than
  * into each of those call sites means a new way of selecting a place can't
@@ -102,7 +102,7 @@ export function watchLocationForPanel(subscribe: (listener: (hasLocation: boolea
        * This used to only act when the panel was CLOSED, which was right
        * when the panel started closed everywhere. Now that wide screens
        * start open on Map data, that guard would mean searching a place on a
-       * desktop left the panel sitting on basemap switches — the user asks
+       * desktop left the panel sitting on basemap switches - the user asks
        * "what is at this address", the app answers with a list of map
        * styles. The transition still only fires once per selection, so a
        * panel the user deliberately closed stays closed.

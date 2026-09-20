@@ -16,7 +16,7 @@ export const SURPRISE_DATE = "09-25";
 /**
  * Days before the date the teaser starts appearing.
  *
- * 30 rather than 10 so it is up for the whole month leading in — at 10 days
+ * 30 rather than 10 so it is up for the whole month leading in - at 10 days
  * it would not have surfaced until 15 September, and the point of a teaser is
  * the build-up. Still self-limiting: it disappears on its own the day after.
  */
@@ -33,7 +33,7 @@ export const DISMISS_KEY = "manowj-surprise-teaser-dismissed";
  * read, and short enough that it is gone before anyone is annoyed by it
  * sitting over the map. Timing out is not the same as dismissing: it is not
  * remembered, so the card is back next visit. Only ✕ silences it for the
- * year — see SurpriseTeaser.
+ * year - see SurpriseTeaser.
  */
 export const TEASER_AUTO_HIDE_MS = 5000;
 
@@ -73,7 +73,7 @@ export function isWithinTeaserWindow(now: Date): boolean {
 }
 
 /**
- * Dismissal is remembered per occurrence, not forever — the stored value is
+ * Dismissal is remembered per occurrence, not forever - the stored value is
  * the year it was dismissed in. Dismissing it this year should not silence it
  * next year, and a single boolean would.
  */
@@ -116,7 +116,7 @@ export function shouldShowTeaser(now: Date, dismissedYear: number | null): boole
  * The teaser is pinned to the top-right of the map; the first-run onboarding
  * card is centred and sits above it in the stacking order. On a laptop-width
  * window they overlapped, and the card cut the teaser's date line in half.
- * The intro wins — it is what a brand-new visitor needs — so the teaser waits
+ * The intro wins - it is what a brand-new visitor needs - so the teaser waits
  * until the intro is gone rather than fighting it for the same pixels.
  *
  * Pure and taking the flag as an argument, so a test can prove the two are

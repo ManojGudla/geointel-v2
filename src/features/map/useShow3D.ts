@@ -5,8 +5,8 @@ import { MIN_ZOOM_FOR_3D_BUILDINGS } from "./useBuildings3D";
 /**
  * The one behaviour behind every "3D" control in the app.
  *
- * There are three of them — the map toolbar, the basemap panel, and the
- * prompt inside the buildings readout — and until this existed they did two
+ * There are three of them - the map toolbar, the basemap panel, and the
+ * prompt inside the buildings readout - and until this existed they did two
  * different things. The panel's switch only tilted the camera, which from a
  * city-wide view produced a slanted map and nothing else, because building
  * footprints are only fetched at zoom 16 and closer. The polygon query is
@@ -24,7 +24,7 @@ import { MIN_ZOOM_FOR_3D_BUILDINGS } from "./useBuildings3D";
  *
  * - The pitch is named in the camera request even though the map's own is3D
  *   effect also eases to 55°. Left unset, the request carries the CURRENT
- *   pitch — zero, at the moment 3D goes on — and the two animations fight.
+ *   pitch - zero, at the moment 3D goes on - and the two animations fight.
  * - Turning 3D off issues no camera request at all. The is3D effect flattens
  *   the pitch on its own, and a competing request would only re-introduce
  *   the same race in the other direction.
@@ -44,7 +44,7 @@ export function useShow3D(): { is3D: boolean; toggle: () => void } {
     set3D(true);
     requestCamera({ zoom: Math.max(zoom, MIN_ZOOM_FOR_3D_BUILDINGS + 0.5), pitch: 55 });
     // Opens Map data, where the buildings readout says how many loaded, or
-    // why none did — OSM coverage varies by city and "nothing appeared, with
+    // why none did - OSM coverage varies by city and "nothing appeared, with
     // no explanation" is the failure this whole thing exists to end. Already
     // open on that section (the desktop default) and this changes nothing.
     openSection("layers");

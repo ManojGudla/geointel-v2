@@ -27,7 +27,7 @@ import {
  *
  *   It must only apply where the answer is about an AREA. Rounding the point
  *   under a reverse-geocode would return the wrong street, which is a
- *   correctness bug traded for speed — a much worse deal than the delay.
+ *   correctness bug traded for speed - a much worse deal than the delay.
  */
 
 describe("snapping a coordinate", () => {
@@ -47,7 +47,7 @@ describe("snapping a coordinate", () => {
   it("produces a clean number, not a float artefact", () => {
     // Math.round(x * 1000) / 1000 gives 17.384999999999998 for this input,
     // which serialises into a different URL than another client's and misses
-    // the cache — the precise failure being fixed.
+    // the cache - the precise failure being fixed.
     const snapped = snapCoordinate(17.385, 3);
     expect(String(snapped)).toBe("17.385");
     expect(String(snapCoordinate(-0.1005, 3))).not.toMatch(/9999|0000/);

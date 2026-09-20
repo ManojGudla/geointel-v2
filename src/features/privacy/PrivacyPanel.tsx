@@ -8,7 +8,7 @@ import "./PrivacyPanel.css";
  * "security people need to use better and understand every thing".
  *
  * A trust page written to be read by someone deciding whether to put real
- * work into this — so it's in plain words, it says where each claim comes
+ * work into this - so it's in plain words, it says where each claim comes
  * from in the code, and it has a section for what ISN'T true yet.
  *
  * That last section is the one that makes the rest believable. Anyone can
@@ -21,8 +21,8 @@ export function PrivacyPanel() {
 
   /*
     This declares aria-modal="true". Escape was already handled below, but
-    the other half of that promise — focus moves in, Tab stays inside, focus
-    returns on close — was not: a keyboard user could tab straight out of
+    the other half of that promise - focus moves in, Tab stays inside, focus
+    returns on close - was not: a keyboard user could tab straight out of
     this panel into the map it was covering. See hooks/useDialog.ts.
   */
   const dialogRef = useDialog({ open: isOpen, onClose: close });

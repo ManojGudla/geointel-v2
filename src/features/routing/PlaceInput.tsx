@@ -22,7 +22,7 @@ interface PlaceInputProps {
  *
  * The bug this rewrite exists to fix: the old version only ever set a point
  * when you CLICKED a dropdown row with the mouse. Type the full name and
- * press Enter — the thing everyone does — and nothing happened at all. The
+ * press Enter - the thing everyone does - and nothing happened at all. The
  * text sat in the box, the route never ran, and the panel showed no error,
  * because as far as the app was concerned you hadn't chosen anywhere. That's
  * why directions looked broken with both fields apparently filled in.
@@ -80,7 +80,7 @@ export function PlaceInput({ label, value, onChange, onSelect, placeholder, reso
     inputRef.current?.blur();
   };
 
-  /** Pasted "17.385, 78.486" is a location too — no lookup needed. */
+  /** Pasted "17.385, 78.486" is a location too - no lookup needed. */
   const chooseCoordinates = () => {
     if (!coordinates) return;
     const label = `${coordinates.lat.toFixed(5)}, ${coordinates.lon.toFixed(5)}`;
@@ -110,7 +110,7 @@ export function PlaceInput({ label, value, onChange, onSelect, placeholder, reso
         return;
       }
       // -1 means "nothing highlighted", in which case Enter takes the top
-      // result — what every search box does, and what people expect.
+      // result - what every search box does, and what people expect.
       const pick = suggestions[highlighted >= 0 ? highlighted : 0];
       if (pick) choose(pick);
     }
@@ -119,7 +119,7 @@ export function PlaceInput({ label, value, onChange, onSelect, placeholder, reso
   /**
    * Leaving the field with typed-but-unresolved text resolves the best match
    * instead of throwing it away. Delayed so a click on a suggestion lands
-   * first — otherwise blur would fire before the click and resolve the wrong
+   * first - otherwise blur would fire before the click and resolve the wrong
    * row.
    */
   const onBlur = () => {

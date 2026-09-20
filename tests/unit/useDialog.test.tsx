@@ -8,7 +8,7 @@ import { useDialog } from "../../src/hooks/useDialog";
  *
  * The role tells assistive technology: focus moves into this, Escape closes it,
  * and Tab stays inside until it does. Four of the thirteen dialogs handled
- * Escape. None trapped focus — there was no focus-trap anywhere in the
+ * Escape. None trapped focus - there was no focus-trap anywhere in the
  * codebase. So a keyboard user could open Settings, press Tab, and walk
  * straight out into the map, the nav rail and the search box behind it:
  * controls the dialog was visually covering, announced by a screen reader as
@@ -79,7 +79,7 @@ describe("a dialog that claims the role", () => {
   });
 
   it("wraps Tab from the last control back to the first", async () => {
-    // The actual trap. Without it, Tab here lands on "Behind" — a control the
+    // The actual trap. Without it, Tab here lands on "Behind" - a control the
     // dialog is covering.
     render(<Harness />);
     fireEvent.click(screen.getByText("Open"));
@@ -122,7 +122,7 @@ describe("a dialog that claims the role", () => {
   it("hands focus back to whatever opened it", async () => {
     /*
       Landing at the top of the document instead means tabbing all the way back
-      to where you were, every single time — which is the difference between a
+      to where you were, every single time - which is the difference between a
       dialog somebody uses and one they avoid.
     */
     render(<Harness />);

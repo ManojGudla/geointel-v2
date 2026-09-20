@@ -4,13 +4,13 @@ let cached: SupabaseClient | null | undefined;
 
 /**
  * Server-side Supabase client using the service-role key. Only ever imported
- * from api/*.ts handlers — never bundled into frontend code, so the
+ * from api/*.ts handlers - never bundled into frontend code, so the
  * service-role key can't leak to the browser (same secure pattern the
  * previous version of this project already got right for its one Supabase
  * write path).
  *
  * Returns null (never throws) when SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY
- * aren't set, so callers can degrade gracefully — "this feature isn't
+ * aren't set, so callers can degrade gracefully - "this feature isn't
  * configured yet" rather than a 500.
  */
 export function getSupabaseClient(): SupabaseClient | null {

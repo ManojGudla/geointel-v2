@@ -6,7 +6,7 @@ import { buildRealOrFakeQueue, realOrFakePoints, realOrFakeShare } from "./factG
 import "./arcade.css";
 
 /**
- * Impossible or Real — survival.
+ * Impossible or Real - survival.
  *
  * One claim at a time, REAL or FAKE, and a single wrong answer ends the run.
  * Survival rather than a timer for two reasons: the result is one number
@@ -75,7 +75,7 @@ export function RealOrFake({ onBackToHub }: { onBackToHub: () => void }) {
 
       timer.current = window.setTimeout(() => {
         setPicked(null);
-        // A wrong answer ends the run. That is the entire mechanic — without
+        // A wrong answer ends the run. That is the entire mechanic - without
         // it there is nothing at stake and the streak means nothing.
         if (correct) setIndex((i) => i + 1);
         else setPhase("over");

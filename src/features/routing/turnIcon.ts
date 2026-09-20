@@ -2,7 +2,7 @@
  * The arrow shown beside each turn.
  *
  * Driven by OSRM's own `maneuver.type` / `maneuver.modifier`, which come from
- * a fixed documented vocabulary — so the arrow always matches the instruction
+ * a fixed documented vocabulary - so the arrow always matches the instruction
  * instead of being guessed from the wording of the sentence.
  */
 export function turnIcon(type: string, modifier?: string): string {
@@ -42,7 +42,7 @@ export function turnIcon(type: string, modifier?: string): string {
   }
 }
 
-/** "4 min", "1h 12m" — the same shape a maps app prints. */
+/** "4 min", "1h 12m" - the same shape a maps app prints. */
 export function formatDuration(seconds: number): string {
   // Tested against raw seconds, not the rounded minutes: Math.round(30/60)
   // is 1, so checking `minutes < 1` could never be true and a 30-second walk
@@ -56,7 +56,7 @@ export function formatDuration(seconds: number): string {
 
 /**
  * Clock time you'd arrive if you left now. Every maps app shows this, and it
- * is the number people actually care about — "45 minutes" means less than
+ * is the number people actually care about - "45 minutes" means less than
  * "arrive 6:12 pm".
  */
 export function arrivalTime(seconds: number, now: Date = new Date()): string {

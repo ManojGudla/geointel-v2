@@ -5,7 +5,7 @@
  *
  * This product's entire position is that what it tells you is traceable. A
  * trivia game inside it that confidently asserts unsourced facts would
- * quietly undermine that everywhere else — a visitor who catches one wrong
+ * quietly undermine that everywhere else - a visitor who catches one wrong
  * "fact" here has no reason to trust the population figure on the map either.
  *
  * So `source` is a required field, not an optional nicety, and a test fails
@@ -21,7 +21,7 @@
  * argued with is a game that generates complaints instead of shares.
  *
  * The FALSE entries are deliberately the kind of thing people half-remember
- * as true. A false statement nobody would ever believe is a wasted question —
+ * as true. A false statement nobody would ever believe is a wasted question -
  * it makes the round easier without making it more interesting.
  */
 

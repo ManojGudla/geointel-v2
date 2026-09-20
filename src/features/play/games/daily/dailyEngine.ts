@@ -14,7 +14,7 @@ import { PLAY_URL } from "@/features/play/share";
  *
  * Everything in this file is pure. No dates are read except the one passed in,
  * no storage is touched, nothing is random except through a seed derived from
- * the date — so the whole game is testable, and two players on the same day
+ * the date - so the whole game is testable, and two players on the same day
  * provably get the same five locations.
  */
 
@@ -57,7 +57,7 @@ export const SCORE_DECAY_KM = 800;
  *
  * The first clue is FREE, and that is the important decision here. It names
  * the continent and moves the guess map there. Before it existed, a player who
- * did not recognise the photo had nothing to do but click somewhere and hope —
+ * did not recognise the photo had nothing to do but click somewhere and hope -
  * which is not a hard puzzle, it is an unplayable one, and it is what made the
  * first version of this game feel hostile. Being completely stuck is the
  * failure worth removing outright rather than charging for.
@@ -142,7 +142,7 @@ export function cluesRevealed(location: DailyLocation, used: number): string[] {
  *
  * The mix is fixed at two easy, two medium and one hard rather than five drawn
  * at random. A random draw regularly produced a day of five obscure places,
- * which reads as "this game is not for me" on someone's first visit — the
+ * which reads as "this game is not for me" on someone's first visit - the
  * single worst outcome for a daily puzzle. The shape below always opens
  * approachable and always ends with something worth knowing.
  *

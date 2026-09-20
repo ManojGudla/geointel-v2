@@ -21,7 +21,7 @@ export type Difficulty = "easy" | "medium" | "hard";
  * It plays a strong club-level game: it always takes an immediate win, always
  * blocks an immediate loss, sees most two-move traps, and will beat a casual
  * player consistently. It is beatable by someone who knows the theory, which
- * is the right target — an unbeatable opponent isn't fun.
+ * is the right target - an unbeatable opponent isn't fun.
  */
 const SEARCH_DEPTH: Record<Difficulty, number> = { easy: 1, medium: 3, hard: 6 };
 
@@ -29,7 +29,7 @@ const WIN_SCORE = 1_000_000;
 
 /**
  * Centre columns are worth more because more winning lines pass through
- * them — the centre column sits on 7 of the 69 possible lines, an outside
+ * them - the centre column sits on 7 of the 69 possible lines, an outside
  * column on only 3. Weighting them is the single biggest cheap improvement
  * to play strength.
  */
@@ -65,7 +65,7 @@ const WINDOWS: number[][] = (() => {
 
 /**
  * Positive is good for `me`. Counts how close each 4-cell window is to being
- * completed, which is what actually decides Connect Four positions — three of
+ * completed, which is what actually decides Connect Four positions - three of
  * yours plus a gap is a threat, three of theirs plus a gap is an emergency.
  */
 export function evaluate(board: Board, me: Player): number {
@@ -87,7 +87,7 @@ export function evaluate(board: Board, me: Player): number {
       if (c === me) mine++;
       else if (c === them) theirs++;
     }
-    // A window with both players in it is dead — nobody can complete it.
+    // A window with both players in it is dead - nobody can complete it.
     if (mine && theirs) continue;
     if (mine === 3) score += 60;
     else if (mine === 2) score += 8;
@@ -144,7 +144,7 @@ function immediateWins(board: Board, player: Player): number[] {
 /**
  * Chooses a column. Returns null only when the board is full or finished.
  *
- * Easy is genuinely easy — it plays a random legal column, but still takes a
+ * Easy is genuinely easy - it plays a random legal column, but still takes a
  * win that's sitting there, because an opponent that misses a one-move win is
  * frustrating rather than easy. Medium takes wins and blocks losses and looks
  * three moves ahead. Hard runs the full search.

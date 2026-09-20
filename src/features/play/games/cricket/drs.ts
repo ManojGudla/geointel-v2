@@ -13,8 +13,8 @@ import type { Aim, BowlerType, Delivery, Length } from "./timing";
  * pitching point, an impact point on the pad, and a predicted path on to the
  * stumps, all computed from the length, line and bowler that were already
  * being simulated. The decision then comes out of the actual Law 36 tests
- * applied to those coordinates — where it pitched, where it struck, whether
- * it was going on to hit — rather than out of a random number.
+ * applied to those coordinates - where it pitched, where it struck, whether
+ * it was going on to hit - rather than out of a random number.
  *
  * The consequence that matters for gameplay: a player who watches where the
  * ball pitched can tell, before spending a review, that it pitched outside
@@ -197,7 +197,7 @@ export function impactVerdict(t: Trajectory): ImpactVerdict {
  * Three bands rather than two, because that is what the real system does and
  * it is where all the tension lives. A ball whose centre is inside the stumps
  * is conclusively hitting. A ball merely overlapping them is a clip, and a
- * clip is not enough to overturn an umpire — the on-field call stands. That
+ * clip is not enough to overturn an umpire - the on-field call stands. That
  * single rule is why a review can fail even when the ball was going to hit
  * the stumps, and it is the thing that makes spending one a real decision.
  */

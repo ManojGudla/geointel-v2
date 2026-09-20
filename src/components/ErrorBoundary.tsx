@@ -6,7 +6,7 @@ interface Props {
   label: string;
   /**
    * "page" for the app root, "panel" for a normal panel, and "silent" for
-   * purely decorative things — the weather effect, the teaser card. If one of
+   * purely decorative things - the weather effect, the teaser card. If one of
    * those crashes, rendering nothing is the correct outcome; putting a red
    * error box over the middle of the map because a snowflake threw would be a
    * worse experience than the bug itself. The failure is still logged.
@@ -34,7 +34,7 @@ interface State {
  *
  * Seen on manowj.com: opening the games hub and the privacy panel right after
  * a deploy both showed "hit a problem and couldn't render". Retry could never
- * fix it — the file is genuinely gone, so re-rendering asks for the same dead
+ * fix it - the file is genuinely gone, so re-rendering asks for the same dead
  * URL again. Only a reload helps, because the document is fetched network
  * first and comes back naming the new chunks.
  *
@@ -61,7 +61,7 @@ export function isStaleBuildError(error: unknown): boolean {
  *
  * Reloading on a stale chunk is right exactly once. If the fresh build fails
  * the same way, reloading again would spin the tab forever and the visitor
- * would never see a message explaining anything — the worst possible outcome,
+ * would never see a message explaining anything - the worst possible outcome,
  * and strictly worse than the error box this replaces.
  */
 export function shouldReloadForStaleBuild(now: number, lastAttempt: string | null): boolean {
@@ -72,7 +72,7 @@ export function shouldReloadForStaleBuild(now: number, lastAttempt: string | nul
 
 /**
  * Catches render-time crashes so one broken panel (or a truly unexpected
- * frontend bug) never turns the whole app into a white screen — the single
+ * frontend bug) never turns the whole app into a white screen - the single
  * hardest requirement in the spec. Data-fetch errors (network failures,
  * provider outages) are handled separately by AsyncPanel; this only catches
  * actual React render exceptions.
@@ -95,7 +95,7 @@ export class ErrorBoundary extends Component<Props, State> {
       lastAttempt = sessionStorage.getItem(RELOAD_KEY);
     } catch {
       // Blocked storage. Treated as "never tried", so the reload still
-      // happens — the visitor gets a working page, and the worst case is one
+      // happens - the visitor gets a working page, and the worst case is one
       // extra reload rather than a permanently broken panel.
     }
     if (!shouldReloadForStaleBuild(Date.now(), lastAttempt)) return;

@@ -31,7 +31,7 @@ describe("analyzeProperty", () => {
       "verified" was awarded whenever three or more features turned up
       anywhere in the radius. It meant "Overpass returned some things
       nearby" and said nothing whatever about whether the classification was
-      right — so it sat, in capital letters, on top of answers that were
+      right - so it sat, in capital letters, on top of answers that were
       wrong. Waverock, a commercial office complex in Hyderabad, was labelled
       RESIDENTIAL · VERIFIED at 68% confidence, and users in three countries
       reported the same shape of error.
@@ -99,7 +99,7 @@ describe("analyzeProperty", () => {
   // (tourism=attraction, no building/shop/office/amenity tag) used to
   // contribute zero evidence to totalEvidence, so it read as "Vacant /
   // Unknown" even though Overpass returned real data for exactly the thing
-  // being looked up — e.g. searching the Eiffel Tower itself.
+  // being looked up - e.g. searching the Eiffel Tower itself.
   it("classifies a tourism-dominant spot (a landmark) as Landmark, not Vacant / Unknown", () => {
     const result = analyzeProperty(
       evidence({

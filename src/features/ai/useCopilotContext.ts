@@ -15,7 +15,7 @@ import type { CopilotContext } from "@/types/ai";
  * This exists because of a failure seen on the live site: the GIS agent was
  * run on Banjara Hills and answered "the data provided only contains the
  * location address and current weather, with no GIS evidence counts, POI
- * categories, or built-environment scores available to analyze" — while the
+ * categories, or built-environment scores available to analyze" - while the
  * map beside it read "161 things mapped within 250 m" and was covered in
  * evidence dots.
  *
@@ -25,7 +25,7 @@ import type { CopilotContext } from "@/types/ai";
  * correctly reported what it had been given. The answer then sat on the card
  * permanently, describing a gap that had closed two seconds later.
  *
- * The guardrails did their job — it said "I don't have this" instead of
+ * The guardrails did their job - it said "I don't have this" instead of
  * inventing counts. The bug is that it was asked at all.
  */
 export interface ContextPending {
@@ -40,7 +40,7 @@ export interface ContextPending {
  * `isLoading` is the right signal and `isPending` is not: a query that is
  * disabled (no location, no route set) is pending forever and would block
  * every agent permanently. isLoading is pending AND actually in flight, so
- * a disabled or already-settled query reads as ready — including one that
+ * a disabled or already-settled query reads as ready - including one that
  * settled with an error, which must not be able to hold an agent hostage.
  */
 export function useCopilotContextState(): { context: CopilotContext; pending: ContextPending } {
@@ -53,7 +53,7 @@ export function useCopilotContextState(): { context: CopilotContext; pending: Co
   /*
     These two repeat the query options above rather than sharing a hook.
     TanStack dedupes on the key, so this observes the same query instance and
-    makes no second request — but the keys and the `enabled` flags have to
+    makes no second request - but the keys and the `enabled` flags have to
     stay identical to the ones in useCopilotContext, or this would watch a
     query nothing else is running and report "loading" forever.
   */
@@ -85,7 +85,7 @@ export function useCopilotContextState(): { context: CopilotContext; pending: Co
 /**
  * Assembles the same "current location data" block the Copilot and every
  * AI agent are grounded in, from the real queries/stores already powering
- * the on-screen panels — the AI layer never fetches its own separate copy
+ * the on-screen panels - the AI layer never fetches its own separate copy
  * of location data, it only reasons over what's already verified and shown.
  */
 export function useCopilotContext(): CopilotContext {
@@ -93,12 +93,12 @@ export function useCopilotContext(): CopilotContext {
   const radiusMeters = useLocationStore((s) => s.radiusMeters);
   // Reported bug: the Navigation agent (and Copilot questions about
   // directions) would say "no route set" even for a route the user had
-  // already planned, as soon as they closed the Directions panel — closing
+  // already planned, as soon as they closed the Directions panel - closing
   // it only sets isPanelOpen: false, it doesn't clear from/to (see
   // routeStore.ts's closePanel()), so a real, still-active route existed
   // but the AI layer couldn't see it. Gate on whether a route is actually
   // set (from && to), not on whether the panel happens to be open right
-  // now — the two are unrelated once you've already planned a trip.
+  // now - the two are unrelated once you've already planned a trip.
   const route = useRouteStore((s) => (s.from && s.to ? { from: s.from, to: s.to, mode: s.mode } : null));
 
   const gisQuery = useGisEvidence();

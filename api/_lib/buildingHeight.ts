@@ -1,7 +1,7 @@
 /**
  * Estimates a building's height in meters for 3D extrusion. Real explicit
  * data (an OSM `height` or `building:levels` tag) is used whenever present;
- * otherwise this falls back to a rough by-type default — the same
+ * otherwise this falls back to a rough by-type default - the same
  * estimate-when-untagged approach every 3D map product (Google, Apple,
  * Mapbox) uses, since most OSM buildings simply have no height data. This is
  * never presented as measured fact: api/buildings.ts reports

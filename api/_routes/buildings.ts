@@ -7,18 +7,18 @@ import { estimateBuildingHeight } from "../_lib/buildingHeight.js";
 
 // Caps how much viewport a single request can cover, so a fast pan/zoom
 // can't trigger a multi-megabyte Overpass geometry pull. ~0.03deg is
-// roughly a 3km square at the latitudes this app targets — plenty for a
+// roughly a 3km square at the latitudes this app targets - plenty for a
 // zoomed-in 3D view, since extrusions aren't meaningful once zoomed out.
 const MAX_BBOX_DEGREES = 0.03;
 const MAX_BUILDINGS_RETURNED = 1500;
 
-// OSM's built environment — buildings, shops, amenities, POIs — changes over
+// OSM's built environment - buildings, shops, amenities, POIs - changes over
 // days and weeks, not minutes, so a short TTL bought nothing and cost a great
 // deal: every repeat view re-queried Overpass's free public mirrors, which are
 // the least reliable dependency in this app and were actively rate-limiting us.
 // Six hours matches what officials.ts already uses for similarly slow-moving
 // data. This is a per-instance in-memory cache on serverless (see cache.ts), so
-// it evaporates on a cold start — it reduces load and speeds up repeat views,
+// it evaporates on a cold start - it reduces load and speeds up repeat views,
 // it is not a durability guarantee.
 const cache = new TtlCache<OverpassElement[]>(6 * 60 * 60 * 1000);
 const limiter = new RateLimiter(60_000, 20);

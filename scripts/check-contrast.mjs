@@ -2,7 +2,7 @@
 /**
  * Contrast audit for the design tokens.
  *
- * "text was not that much visible once check all and fix" — rather than
+ * "text was not that much visible once check all and fix" - rather than
  * eyeballing colours, this computes the real WCAG 2.1 contrast ratio for
  * every text token against every surface it can legitimately sit on, in both
  * themes, and fails the build-adjacent check if any pair falls below its
@@ -10,7 +10,7 @@
  *
  * Thresholds are the WCAG AA ones: 4.5:1 for normal text, 3:1 for large
  * text (>=18.66px bold or >=24px). Everything in this app that uses
- * --color-text-faint is small, so faint text is held to 4.5:1 too — the
+ * --color-text-faint is small, so faint text is held to 4.5:1 too - the
  * "large text" allowance is deliberately not used as an escape hatch.
  */
 
@@ -51,7 +51,7 @@ export function contrast(fg, bg) {
 /**
  * Pulls the token values out of a specific block of tokens.css. Blocks are
  * delimited by their selector, so light values come from `:root {` and dark
- * values from `:root[data-theme="dark"] {` — the media-query block is a
+ * values from `:root[data-theme="dark"] {` - the media-query block is a
  * duplicate of the latter and is verified separately for drift.
  */
 function readBlock(css, selector) {
@@ -91,7 +91,7 @@ const failures = [];
 const rows = [];
 
 // Status colours are also used as text ON their own tinted pill background
-// (the header's "GIS Online" pill, trust badges, banner rows) — a pairing
+// (the header's "GIS Online" pill, trust badges, banner rows) - a pairing
 // the surface loop above never covers, and the one most likely to go dim.
 const TINTED_PAIRS = [
   ["--color-success", "--color-success-bg"],
@@ -133,7 +133,7 @@ for (const r of rows) {
  * Two colours in the app are deliberately hardcoded because they sit on a
  * surface that does NOT change with the theme: the navigation banner is always
  * dark navy, and the printed area report is always on white paper. Theme
- * tokens would be wrong there — but they still have to be legible, so they're
+ * tokens would be wrong there - but they still have to be legible, so they're
  * pinned here rather than left unchecked.
  */
 const FIXED_SURFACE = [

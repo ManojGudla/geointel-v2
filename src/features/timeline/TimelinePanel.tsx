@@ -18,7 +18,7 @@ function formatStop(date: string): string {
  *
  * The honest framing is doing real work here. At 250 m per pixel this shows
  * water bodies, vegetation, coastline and large-scale urban growth across a
- * decade — genuinely striking, and genuinely free. It does not show new
+ * decade - genuinely striking, and genuinely free. It does not show new
  * buildings or new streets, and the panel says so rather than letting
  * someone conclude it from a blurry image. See gibs.ts.
  *

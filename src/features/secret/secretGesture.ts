@@ -3,8 +3,8 @@
  *
  * The brief was "clicking the logo opens a page that asks for a secret code,
  * so only I can use it". A single click does not achieve the second half:
- * every visitor clicks a logo — it is the most reliable convention on the
- * web that a logo goes home — and a password box appearing for all of them
+ * every visitor clicks a logo - it is the most reliable convention on the
+ * web that a logo goes home - and a password box appearing for all of them
  * both breaks that convention and advertises that an admin area exists,
  * which is the opposite of hidden.
  *
@@ -15,7 +15,7 @@
  *
  * To be clear about what this is and is not: the gesture is obscurity, not
  * security. It hides the door. The lock is the code typed afterwards, and
- * that code is checked on the server against GEOINTEL_ADMIN_KEY — never in
+ * that code is checked on the server against GEOINTEL_ADMIN_KEY - never in
  * this file, never in the bundle, never anywhere a visitor could read it.
  * Anyone who reads the source can find this gesture in a minute; they still
  * cannot get through the door, which is the part that matters.

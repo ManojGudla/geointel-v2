@@ -18,16 +18,16 @@ interface Answered {
 }
 
 /**
- * Where Am I? — you're dropped on real satellite imagery with every label
+ * Where Am I? - you're dropped on real satellite imagery with every label
  * stripped out, and you pick which place you're looking at.
  *
  * The imagery is genuinely the place in question (Esri World Imagery at the
- * real coordinates), not a stock photo — which is what makes it a geography
+ * real coordinates), not a stock photo - which is what makes it a geography
  * game rather than a picture quiz. Distractors come from the same country
  * where possible so the shapes and terrain actually have to be read.
  *
  * You can pan and zoom out to look around; zooming out far enough will
- * eventually give the answer away, which is fine — that's the player choosing
+ * eventually give the answer away, which is fine - that's the player choosing
  * to spend the points, and the score reflects it.
  */
 export function WhereAmI({ onBackToHub, seed, daily = false }: { onBackToHub: () => void; seed?: string; daily?: boolean }) {
@@ -42,7 +42,7 @@ export function WhereAmI({ onBackToHub, seed, daily = false }: { onBackToHub: ()
 
   const rounds = useMemo(() => {
     const rng = createRng(seed ?? `where-${nonce}`);
-    // Prefer places whose satellite view is actually distinctive — a random
+    // Prefer places whose satellite view is actually distinctive - a random
     // suburb of a random city is not a fair question.
     const pool = PLACES.filter((p) => p.landmark || p.fame <= 2);
     return rng.sample(pool, ROUNDS).map((place) => {

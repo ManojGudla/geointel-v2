@@ -21,8 +21,8 @@ import { COUNTRIES, haversineKm } from "../../src/features/play/data/world";
  *
  * The engine is pure on purpose. Ultimate Tic-Tac-Toe in this project froze
  * because its game logic lived inside a React effect: every engine test
- * passed and the game was unplayable. So the rules here — scoring, the
- * streak, the clock penalty — are all functions that can be checked exactly,
+ * passed and the game was unplayable. So the rules here - scoring, the
+ * streak, the clock penalty - are all functions that can be checked exactly,
  * and the component only calls them.
  *
  * Two properties matter more than the rest:

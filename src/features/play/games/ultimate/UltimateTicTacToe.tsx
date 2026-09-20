@@ -21,8 +21,8 @@ import "./UltimateTicTacToe.css";
  *
  * The plain 3×3 game is solved: two people who know what they are doing draw
  * every time, which is why it was the least liked thing in the hub. Ultimate
- * keeps the familiar rules and adds one twist that creates real depth — the
- * cell you take decides which board your opponent must play in next — so every
+ * keeps the familiar rules and adds one twist that creates real depth - the
+ * cell you take decides which board your opponent must play in next - so every
  * move is two decisions, and nobody has solved it.
  *
  * Classic is still here as a mode. Some people want it, and hiding it to make
@@ -64,13 +64,13 @@ export function UltimateTicTacToe({ onBackToHub }: { onBackToHub: () => void }) 
 
   /**
    * The computer's reply, deferred a beat so the player's own move paints
-   * first — an instant answer reads as if the board moved by itself.
+   * first - an instant answer reads as if the board moved by itself.
    *
    * There is deliberately no "thinking" state flag here. There was one, and it
    * deadlocked the game completely: setting it re-ran this effect, whose
    * cleanup cleared the timer before it could ever fire, so the computer never
    * moved and the board sat on "thinking…" forever. `humanTurn` already
-   * prevents double-scheduling — the effect only runs while it is false, and
+   * prevents double-scheduling - the effect only runs while it is false, and
    * applying the move flips it back.
    *
    * Every engine test passed throughout. The bug lived entirely in the
@@ -179,7 +179,7 @@ export function UltimateTicTacToe({ onBackToHub }: { onBackToHub: () => void }) 
                 className={`uttt__board${isActive ? " uttt__board--active" : ""}${owner ? ` uttt__board--won uttt__board--${owner}` : ""}`}
               >
                 {owner && owner !== "draw" ? <span className="uttt__claim" aria-label={`Board won by ${owner}`}>{owner}</span> : null}
-                {owner === "draw" ? <span className="uttt__claim uttt__claim--draw">–</span> : null}
+                {owner === "draw" ? <span className="uttt__claim uttt__claim--draw">-</span> : null}
                 {cells.map((v, c) => (
                   <button
                     key={c}

@@ -89,7 +89,7 @@ interface SiteResult {
  *
  * The first version put all seven clauses in one union and capped the output
  * at 400 elements. Overpass applies that cap to the union as a whole, ordered
- * by element id — not by the order the clauses are written. Named road
+ * by element id - not by the order the clauses are written. Named road
  * segments outnumber construction sites by a wide margin in any built-up area,
  * and a single street is routinely mapped as a dozen ways, so in a dense city
  * the road segments alone can exceed the cap. The construction and land-status
@@ -103,7 +103,7 @@ interface SiteResult {
  * Still one round trip, which is what actually matters to the free mirrors.
  *
  * `out tags center` gives the tags plus a representative point without the
- * full geometry — this panel lists things, it does not draw them, and asking
+ * full geometry - this panel lists things, it does not draw them, and asking
  * for geometry would multiply the payload for nothing.
  */
 export function buildSiteQuery(lat: number, lon: number, radius: number): string {
@@ -190,7 +190,7 @@ export function classify(el: OverpassElement): SiteFeature | null {
 /**
  * Groups named ways into roads.
  *
- * A single street is routinely mapped as a dozen ways — split at every
+ * A single street is routinely mapped as a dozen ways - split at every
  * junction, every surface change, every bridge. Listing the raw ways would
  * show the same street name a dozen times and make a quiet lane look like a
  * network. Grouping by name plus class is what makes the list read like the

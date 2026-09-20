@@ -53,7 +53,7 @@ describe("tic-tac-toe engine", () => {
   });
 
   /**
-   * The UI must never be the thing that decides a move is legal — a fast
+   * The UI must never be the thing that decides a move is legal - a fast
    * double-tap or a click on a stale render would otherwise place two marks
    * or overwrite a cell.
    */
@@ -138,7 +138,7 @@ describe("tic-tac-toe AI", () => {
    * itself, and against every other strategy as the second player, must
    * never produce a loss for Hard.
    */
-  it("hard is unbeatable — it never loses, against itself or against weaker play", () => {
+  it("hard is unbeatable - it never loses, against itself or against weaker play", () => {
     expect(playOut("hard", "hard")).toBe("draw");
     for (let seed = 1; seed <= 25; seed += 1) {
       expect(playOut("easy", "hard", seed), `hard lost as O with seed ${seed}`).not.toBe("X");

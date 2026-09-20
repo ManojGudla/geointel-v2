@@ -112,8 +112,8 @@ describe("a commercial building surrounded by housing", () => {
 describe("what the VERIFIED badge is allowed to mean", () => {
   it("is earned only when there is a mapped feature at the point", () => {
     /*
-      It used to be awarded for totalEvidence >= 3 — "Overpass returned at
-      least three things nearby" — which says nothing about whether the
+      It used to be awarded for totalEvidence >= 3 - "Overpass returned at
+      least three things nearby" - which says nothing about whether the
       classification is right. It was the strongest word on the panel
       attached to the weakest claim, and it is what turned a wrong answer
       into a confidently wrong one.

@@ -1,5 +1,5 @@
 /* Desktop: a vertical rail on the left edge, always visible, never scrolls.
-   It is the fixed reference point of the whole interface — if it moved or
+   It is the fixed reference point of the whole interface - if it moved or
    collapsed, "where do I find things" would be an open question again. */
 .nav-rail {
   flex: 0 0 auto;
@@ -55,7 +55,7 @@
   text-align: center;
 }
 
-/* Phones: the rail becomes a bottom tab bar — thumb-reachable, and the
+/* Phones: the rail becomes a bottom tab bar - thumb-reachable, and the
    pattern every phone user already knows. It sits above the map rather than
    beside it so the map keeps the full width of a narrow screen.
    env(safe-area-inset-bottom) keeps it clear of the iOS home indicator. */
@@ -77,8 +77,8 @@
        hard to use on a phone. */
     min-height: 48px;
     /* The desktop rail was enlarged so its labels read as navigation rather
-       than decoration. A phone does not have that problem — the tab bar is
-       full width with the labels already legible — and every pixel added
+       than decoration. A phone does not have that problem - the tab bar is
+       full width with the labels already legible - and every pixel added
        here is a pixel taken off the map, so the phone keeps its old size. */
     gap: 3px;
     padding: var(--space-2) 2px;

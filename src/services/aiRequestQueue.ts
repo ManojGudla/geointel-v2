@@ -2,10 +2,10 @@
  * A small concurrency gate for AI provider calls.
  *
  * Reported bug: clicking through the six agent cards in the strip (which is
- * the natural thing to do — they sit in a row) fired six near-simultaneous
+ * the natural thing to do - they sit in a row) fired six near-simultaneous
  * POSTs to /api/ai/agent, and OpenRouter's free tier answered a couple of
  * them with HTTP 429. Two cards showed "The AI provider's rate limit or
- * free-tier quota was hit" while the other four returned real answers — not
+ * free-tier quota was hit" while the other four returned real answers - not
  * a provider outage, just more requests at once than a free-tier key is
  * allowed to make. Nothing in the app spaced them out; every card fetched
  * the moment it was clicked.
@@ -29,7 +29,7 @@ export interface RequestGateOptions {
 export interface RunOptions {
   /**
    * Jump the queue. Used for a Copilot question, which is a person waiting
-   * on an answer right now — it shouldn't sit behind five background agent
+   * on an answer right now - it shouldn't sit behind five background agent
    * cards someone clicked a moment earlier.
    */
   priority?: boolean;
@@ -39,7 +39,7 @@ export interface RunOptions {
 
 export interface RequestGate {
   run<T>(task: () => Promise<T>, options?: RunOptions): Promise<T>;
-  /** In-flight count — exposed for tests and debugging, not used by the UI. */
+  /** In-flight count - exposed for tests and debugging, not used by the UI. */
   activeCount(): number;
 }
 
@@ -50,7 +50,7 @@ export function createRequestGate({ maxConcurrent, minGapMs }: RequestGateOption
   // line up at +0, +gap, +2*gap. Measuring against a "last start" timestamp
   // instead looks equivalent but isn't: tasks that begin waiting in the same
   // tick all read the same stale value, all sleep the same amount, and then
-  // start simultaneously anyway — which is exactly the burst this exists to
+  // start simultaneously anyway - which is exactly the burst this exists to
   // prevent. A unit test covers that case directly.
   let nextAllowedStart = 0;
   const queue: Array<() => void> = [];

@@ -7,11 +7,11 @@ import apiPlugin from "./plugins/vite-plugin-api";
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => {
-  // Vite's own env loading (.env, .env.local, .env.[mode].local — same
+  // Vite's own env loading (.env, .env.local, .env.[mode].local - same
   // files/precedence Vite already documents) only exposes VITE_-prefixed
   // vars to client code via import.meta.env. The api/*.ts handlers are
   // server-side Node code reading process.env directly (OPENROUTER_API_KEY,
-  // SUPABASE_URL, ...) — nothing was ever loading .env.local's contents
+  // SUPABASE_URL, ...) - nothing was ever loading .env.local's contents
   // into process.env for them in dev, so a correctly filled-in .env.local
   // still produced "not configured" errors locally. loadEnv's third
   // argument ("") means "no prefix filter, load every key," and copying
@@ -28,11 +28,11 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      // host: true binds to 0.0.0.0 instead of just localhost — needed so a
+      // host: true binds to 0.0.0.0 instead of just localhost - needed so a
       // phone on the same Wi-Fi can reach this dev server at all (to test
       // the site, or /admin, from a mobile browser). Vite prints the exact
       // LAN URL to use ("Network: http://<your-pc-ip>:5173/") in the
-      // terminal on startup. Local-network-only, not a public deployment —
+      // terminal on startup. Local-network-only, not a public deployment -
       // a phone on a different network still can't reach it this way.
       host: true,
       port: 5173,
@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => {
        * Source maps in development, not in the deployed site.
        *
        * This was `true`, which shipped a complete map of every source file to
-       * the public internet — 3.7 MB for the main bundle alone, and enough to
+       * the public internet - 3.7 MB for the main bundle alone, and enough to
        * reconstruct the entire codebase from the live URL. That is a lot to
        * give away for a debugging aid nobody was using in production.
        *

@@ -27,7 +27,7 @@ export function distanceMeters(a: Coord, b: Coord): number {
   return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(s)));
 }
 
-/** Initial bearing from a to b, 0–360, where 0 is north. */
+/** Initial bearing from a to b, 0-360, where 0 is north. */
 export function bearingDegrees(a: Coord, b: Coord): number {
   const φ1 = toRad(a[1]);
   const φ2 = toRad(b[1]);
@@ -41,7 +41,7 @@ export function bearingDegrees(a: Coord, b: Coord): number {
  * Nearest point on the segment a→b to point p, in local metres.
  *
  * Projects to a flat metre grid around p before doing the algebra. Over a
- * single road segment — tens to hundreds of metres — the error from ignoring
+ * single road segment - tens to hundreds of metres - the error from ignoring
  * the earth's curvature is far below GPS noise, and it avoids dragging in a
  * full geodesic library for the sake of a few metres.
  */
@@ -87,7 +87,7 @@ export interface SnapResult {
  * route that doubles back on itself (a U-turn, a loop, a road you drive both
  * ways) has two points equally close to you, and picking the wrong one throws
  * the instruction and the remaining distance far off. Progress only moves
- * forward — which is what a real navigator does.
+ * forward - which is what a real navigator does.
  */
 export function snapToRoute(position: Coord, geometry: Coord[], fromIndex = 0): SnapResult | null {
   if (geometry.length < 2) return null;
@@ -128,7 +128,7 @@ export function routeLengthMeters(geometry: Coord[]): number {
 /**
  * How far off the route counts as "you're not on it any more".
  *
- * Generous on purpose. Consumer GPS is routinely 10–30 m out and much worse
+ * Generous on purpose. Consumer GPS is routinely 10-30 m out and much worse
  * between tall buildings, so a tight threshold would announce a wrong turn
  * every time you stopped at a traffic light next to an office block. The
  * accuracy the device reports is added on top, so a fix that admits it's
@@ -170,7 +170,7 @@ export const STEP_ADVANCE_METERS = 20;
 
 /**
  * Off-route tolerance is widened by the GPS accuracy, and this used to cap the
- * widening at 60 m — which meant the allowance stopped growing exactly when
+ * widening at 60 m - which meant the allowance stopped growing exactly when
  * the fix got bad enough to need it. At the 124 m accuracy seen in the field
  * the tolerance was 105 m, narrower than the noise, so a parked phone
  * re-routed itself roughly every 30 seconds. Each reroute overwrote the user's
@@ -201,11 +201,11 @@ export function navProgress(
    * trip. OSRM gives `step.distance` as the length you travel ALONG step i,
    * while `step.maneuver` sits at the START of step i. The old loop added
    * step i's length before testing, so the distance it computed was to
-   * manoeuvre i+1 while the instruction it displayed was step i's — the turn
+   * manoeuvre i+1 while the instruction it displayed was step i's - the turn
    * you had already made.
    *
-   * On the road that read: "Now — Head east" at the exact moment you had to
-   * turn left, and standing on the turn, "In 1.1 km — Turn left". The turn you
+   * On the road that read: "Now - Head east" at the exact moment you had to
+   * turn left, and standing on the turn, "In 1.1 km - Turn left". The turn you
    * actually needed was demoted to the small grey "then …" line underneath. It
    * is precisely what the reported screenshot shows.
    *
@@ -226,7 +226,7 @@ export function navProgress(
     // Strictly ahead, minus a tolerance, so the instruction flips just AFTER
     // the junction rather than just before it. The old code subtracted the
     // same constant from the other side of the comparison, which flipped it
-    // 20 m EARLY — the opposite of what its own comment promised.
+    // 20 m EARLY - the opposite of what its own comment promised.
     if (manoeuvreAt[i]! > snapped.travelledMeters - STEP_ADVANCE_METERS) {
       currentStep = i;
       metresToNextTurn = Math.max(0, manoeuvreAt[i]! - snapped.travelledMeters);
@@ -248,7 +248,7 @@ export function navProgress(
   };
 }
 
-/** "In 200 m", "In 1.2 km", "Now" — how a navigator announces a turn. */
+/** "In 200 m", "In 1.2 km", "Now" - how a navigator announces a turn. */
 export function announceDistance(metres: number): string {
   if (metres < 25) return "Now";
   if (metres < 1000) return `In ${Math.round(metres / 10) * 10} m`;

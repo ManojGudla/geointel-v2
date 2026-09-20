@@ -106,7 +106,7 @@ export function isLegal(state: UltimateState, board: number, cell: number): bool
 
 /**
  * Plays a move. Returns the SAME object when the move is illegal, so a caller
- * can detect a rejected click by reference without a thrown error — the same
+ * can detect a rejected click by reference without a thrown error - the same
  * contract the four-in-a-row engine used.
  */
 export function applyMove(state: UltimateState, board: number, cell: number): UltimateState {
@@ -118,7 +118,7 @@ export function applyMove(state: UltimateState, board: number, cell: number): Ul
   const status = state.status.slice();
   status[board] = lineWinner(boards[board]!);
 
-  // Being sent to a finished board means "play anywhere" — otherwise the game
+  // Being sent to a finished board means "play anywhere" - otherwise the game
   // would deadlock with a player who has no legal move.
   const nextActive = status[cell] === null ? cell : null;
 
@@ -139,7 +139,7 @@ export type Difficulty = "easy" | "medium" | "hard";
 /**
  * Search depth in plies.
  *
- * Ultimate has a far larger branching factor than 3×3 — up to 81 openings —
+ * Ultimate has a far larger branching factor than 3×3 - up to 81 openings -
  * so depth is expensive and these are tuned to stay responsive in a browser
  * rather than to play perfectly. Easy is deliberately beatable; hard should
  * make a good player concentrate.
@@ -280,7 +280,7 @@ export function applyClassic(state: ClassicState, cell: number): ClassicState {
 }
 
 /**
- * Perfect play for the classic board — it is small enough to solve outright,
+ * Perfect play for the classic board - it is small enough to solve outright,
  * so there is no reason to approximate. On "hard" this cannot be beaten, which
  * is exactly the point being made: the classic game has a ceiling.
  */

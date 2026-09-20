@@ -8,13 +8,13 @@ import { runOverpassQuery } from "../../api/_lib/overpass";
  * mirrors one at a time at 20s each (worst case ~60s) while the frontend's
  * own request timeout was 15s. The fix races all mirrors in parallel so the
  * response time is bounded by the fastest attempt, not the sum of all of
- * them — these tests assert that behavior directly rather than just the
+ * them - these tests assert that behavior directly rather than just the
  * end-to-end symptom.
  */
 // A real Overpass response always carries a genuine osm3s replica
 // timestamp (see api/_lib/overpass.ts's hasPlausibleReplicaTimestamp,
 // added after a live mirror was found returning HTTP 200 with a
-// well-formed but empty body backed by a corrupted replica) — these
+// well-formed but empty body backed by a corrupted replica) - these
 // fixtures include one so they still look like a real mirror's response.
 const FAKE_OSM3S = { timestamp_osm_base: "2026-08-31T00:00:00Z" };
 
@@ -61,14 +61,14 @@ describe("runOverpassQuery mirror racing", () => {
   /*
     This used to assert that the THROWN message named the mirror and its HTTP
     status. It did, and that string travelled all the way into the 502 body the
-    browser renders — gis, nearby, buildings, poi-evidence and live all put
+    browser renders - gis, nearby, buildings, poi-evidence and live all put
     `error.message` in the response. So every visitor who hit an Overpass
     outage was handed a list of this app's third-party endpoints and exactly
     how each was failing: reconnaissance given away for free, and of no use
     whatsoever to the person reading it.
 
     The requirement the old test was really protecting is that the detail is
-    not LOST, and it is not — it goes to the server log, where debugging
+    not LOST, and it is not - it goes to the server log, where debugging
     actually happens. So this now checks both halves: the detail is recorded,
     and it is not in what the caller sees.
   */
@@ -105,7 +105,7 @@ describe("runOverpassQuery mirror racing", () => {
    * click-to-inspect confidently reporting "VACANT / UNKNOWN, 0 features"
    * for a spot that's clearly built up in the satellite view. A mirror
    * under load can return HTTP 200 with elements:[] plus a "remark" field
-   * (Overpass's own signal that the query didn't actually finish) — treating
+   * (Overpass's own signal that the query didn't actually finish) - treating
    * that as a trustworthy empty result would misreport "confirmed nothing
    * here" when the truth is "the query never really ran." One degraded
    * mirror shouldn't sink the whole request when another mirror has real
@@ -160,11 +160,11 @@ describe("runOverpassQuery mirror racing", () => {
   /**
    * Regression coverage for a live bug found 2026-09-01: a public mirror can
    * return HTTP 200, a well-formed `{elements:[...]}` body, and NO `remark`
-   * — but its own `osm3s.timestamp_osm_base` is garbage (a corrupted/near-
+   * - but its own `osm3s.timestamp_osm_base` is garbage (a corrupted/near-
    * empty replica, not a real date), and `elements` is empty even for a
    * real, densely-mapped location. The old `Promise.any` race took whatever
    * settled first, so this corrupted-but-fast mirror could "win" over a
-   * slower mirror that had real data — a confident, silent false negative.
+   * slower mirror that had real data - a confident, silent false negative.
    * A real mirror with valid data must win instead.
    */
   it("ignores a mirror with a bogus replica timestamp (corrupted/empty replica) even though it answers fast with a well-formed empty body", async () => {
@@ -173,7 +173,7 @@ describe("runOverpassQuery mirror racing", () => {
       vi.fn(async (url: string) => {
         if (url.includes("osm.ch")) {
           // The exact live shape observed: 200, valid JSON, empty elements,
-          // no remark, but a non-date "timestamp" — answers almost instantly.
+          // no remark, but a non-date "timestamp" - answers almost instantly.
           return { ok: true, status: 200, text: async () => JSON.stringify({ elements: [], osm3s: { timestamp_osm_base: "116813" } }) };
         }
         if (url.includes("kumi.systems")) {
@@ -196,7 +196,7 @@ describe("runOverpassQuery mirror racing", () => {
   /**
    * Regression coverage for a live production issue: GIS evidence for a
    * location succeeded while click-to-inspect for a point inside it reported
-   * every mirror failing, seconds apart. The cause was self-inflicted load —
+   * every mirror failing, seconds apart. The cause was self-inflicted load -
    * each query fired all six mirrors at once, and one map interaction runs
    * several queries concurrently, so a single click meant 12-24 simultaneous
    * requests to free public infrastructure from one IP, which throttles per
@@ -220,7 +220,7 @@ describe("runOverpassQuery mirror racing", () => {
     const elements = await runOverpassQuery("[out:json];out;");
 
     expect(elements).toHaveLength(1);
-    // The load reduction IS the fix — assert it directly.
+    // The load reduction IS the fix - assert it directly.
     expect(calls.length).toBeLessThanOrEqual(2);
 
     vi.unstubAllGlobals();
@@ -251,7 +251,7 @@ describe("runOverpassQuery mirror racing", () => {
    * Regression coverage for a live issue found 2026-09-01: when every mirror
    * fails, the combined error used to list generic, unattributed reasons
    * ("This operation was aborted" x2 with no endpoint) whenever the failure
-   * was a raw network/timeout throw rather than an HTTP-status error — there
+   * was a raw network/timeout throw rather than an HTTP-status error - there
    * was no way to tell which of the 6 mirrors those came from. Every failure
    * reason in the combined error must now name its own endpoint.
    */

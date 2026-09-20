@@ -152,12 +152,12 @@ describe("trip progress", () => {
    * This test used to pin the bug rather than the behaviour.
    *
    * It asserted currentStep === 1 at a point where the driver still had to
-   * make turn 1 — which is what the old code did, and was wrong. OSRM's
+   * make turn 1 - which is what the old code did, and was wrong. OSRM's
    * `step.distance` is the length travelled ALONG a step while its manoeuvre
    * sits at the step's START, and the old loop added the length before
    * comparing. The result on the road: at the exact moment you had to turn
-   * left the banner read "Now — Head east", and standing on the turn it read
-   * "In 1.1 km — Turn left". The turn you needed was in the small grey line
+   * left the banner read "Now - Head east", and standing on the turn it read
+   * "In 1.1 km - Turn left". The turn you needed was in the small grey line
    * underneath. A whole trip of instructions, each one step behind.
    *
    * The rule the banner must follow: show the next manoeuvre you have NOT yet
@@ -165,7 +165,7 @@ describe("trip progress", () => {
    */
   it("shows the turn you still have to make, not the one you just made", () => {
     // Manoeuvres sit at 0 m (depart), 1113 m (left), 2226 m (right),
-    // 3339 m (arrive) — the cumulative sum of the steps BEFORE each one.
+    // 3339 m (arrive) - the cumulative sum of the steps BEFORE each one.
     const beforeFirstTurn = navProgress(snapToRoute([0.008, 0], straight)!, straight, steps, total);
     expect(beforeFirstTurn.currentStep, "still approaching the left turn").toBe(1);
     expect(beforeFirstTurn.metresToNextTurn).toBeGreaterThan(0);
@@ -188,7 +188,7 @@ describe("trip progress", () => {
   it("holds the instruction until you are genuinely past the junction", () => {
     // STEP_ADVANCE_METERS is a grace period AFTER the turn. The old code
     // subtracted it from the other side of the comparison, flipping the
-    // instruction 20 m EARLY — the opposite of what its own comment promised.
+    // instruction 20 m EARLY - the opposite of what its own comment promised.
     const justBefore = navProgress(snapToRoute([0.00995, 0], straight)!, straight, steps, total);
     expect(justBefore.currentStep, "10 m short of the turn, still says turn").toBe(1);
   });

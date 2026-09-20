@@ -14,7 +14,7 @@ import "./AreaReport.css";
  * A printable geospatial analysis report for the selected location.
  *
  * Deliberately built from what the app has already fetched and shown rather
- * than from a fresh round of queries — a report that quietly disagrees with
+ * than from a fresh round of queries - a report that quietly disagrees with
  * the screen it was generated from is worse than no report. Every section
  * names its source, and any section whose data didn't load says so instead
  * of being silently omitted, so a gap in the report is visible as a gap.
@@ -24,7 +24,7 @@ import "./AreaReport.css";
  * several hundred kilobytes to a bundle that is already large, and produces
  * worse typography than the browser's own print pipeline. The print
  * stylesheet at the bottom of AreaReport.css is what makes the printed page
- * a real document — no interface chrome, no dark theme, real page breaks.
+ * a real document - no interface chrome, no dark theme, real page breaks.
  */
 export function AreaReport() {
   const isOpen = useReportStore((s) => s.isOpen);

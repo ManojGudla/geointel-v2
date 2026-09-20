@@ -26,8 +26,8 @@ interface MapState {
   /**
    * A request for the map camera to move, made from outside the map.
    *
-   * Panels can't call map.easeTo() — the MapLibre instance is private to
-   * MapView — so this is the channel for "zoom in far enough to load
+   * Panels can't call map.easeTo() - the MapLibre instance is private to
+   * MapView - so this is the channel for "zoom in far enough to load
    * buildings", "frame these analysis results", and anything else that has
    * to drive the camera from a control that lives elsewhere. `nonce` makes
    * every request distinct, so asking for the same camera twice still moves
@@ -41,7 +41,7 @@ interface MapState {
   toggle3D: () => void;
   /**
    * Sets 3D to an explicit value rather than flipping it. A voice/text
-   * command like "turn on 3D" must be idempotent — toggling would switch it
+   * command like "turn on 3D" must be idempotent - toggling would switch it
    * OFF if it happened to be on already, which is the opposite of what was
    * asked.
    */

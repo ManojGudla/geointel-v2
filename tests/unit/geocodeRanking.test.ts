@@ -7,7 +7,7 @@ import handler, { rankScore, type SearchResultDto } from "../../api/_routes/geoc
  *
  * These exist because real users couldn't find their own neighbourhood. The
  * handler sorted purely by Nominatim's `importance`, which is a GLOBAL
- * notability score — a residential colony scores near zero, so it sorted
+ * notability score - a residential colony scores near zero, so it sorted
  * below every large city that happened to share a word with it. Someone in
  * Hyderabad searching a local name got Delhi first and their own street last
  * or truncated off the list.
@@ -49,7 +49,7 @@ describe("rankScore", () => {
   });
 
   it("still lets a genuinely famous distant city win when nothing is close", () => {
-    // Searching "Paris" from Hyderabad must still find Paris — proximity is a
+    // Searching "Paris" from Hyderabad must still find Paris - proximity is a
     // bias, not a filter.
     const paris = place("Paris", 48.85, 2.35, 0.95);
     const obscure = place("Parisa village", 19.5, 80.1, 0.02);

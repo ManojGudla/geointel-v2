@@ -1,7 +1,7 @@
 /**
  * The text people paste into a chat after a round.
  *
- * Two rules it follows. First, it only states what happened — a score, a
+ * Two rules it follows. First, it only states what happened - a score, a
  * headline, the round-by-round lines. There is no percentile, no rank and no
  * "better than N players", because this product has no accounts and no
  * server-side leaderboard, so any such number would be invented.
@@ -20,7 +20,7 @@ export interface ShareInput {
  * The one address a shared result points at.
  *
  * It was "https://manowj.com" here and "https://www.manowj.com" in six other
- * files — the same URL written inline eight times, and the copy that drifted
+ * files - the same URL written inline eight times, and the copy that drifted
  * was the bare-domain one. That mattered: until the apex domain was added to
  * Vercel it had no certificate at all, so every result shared through
  * RoundSummary carried a link that opened on a browser security warning. A

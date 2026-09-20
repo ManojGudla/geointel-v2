@@ -73,7 +73,7 @@ export function SixtySeconds({ onBackToHub }: { onBackToHub: () => void }) {
    * Deliberately NOT on anything this effect updates: a state value the
    * effect both reads and writes puts the interval into a
    * create-cancel-create cycle, which is exactly the bug that froze Ultimate
-   * Tic-Tac-Toe in this project — it passed every unit test and only showed
+   * Tic-Tac-Toe in this project - it passed every unit test and only showed
    * up when someone played it.
    *
    * Elapsed time is measured from the wall clock rather than assumed from the
@@ -137,7 +137,7 @@ export function SixtySeconds({ onBackToHub }: { onBackToHub: () => void }) {
   /**
    * Shares the result as an image.
    *
-   * A picture travels where a block of text does not — people post images.
+   * A picture travels where a block of text does not - people post images.
    * On a phone this opens the native sheet with the PNG attached; on a
    * desktop, where browsers mostly cannot share files, it saves the image
    * instead, and the button says which happened rather than going quiet.

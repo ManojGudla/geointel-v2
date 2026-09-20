@@ -26,7 +26,7 @@ const SIZES: GridSize[] = [12, 16, 20];
 /**
  * Geo Memory. Flip two cards; if the flags match they stay up.
  *
- * The clock starts on your FIRST flip, not when the board appears — so
+ * The clock starts on your FIRST flip, not when the board appears - so
  * looking at the layout before you begin costs you nothing, and the score
  * measures play rather than reading speed.
  */
@@ -80,7 +80,7 @@ export function GeoMemory({ onBackToHub }: { onBackToHub: () => void }) {
   const onFlip = (id: number) => {
     if (finished) return;
     const result = flipCard(cards, id);
-    if (result.cards === cards) return; // illegal flip — nothing happened
+    if (result.cards === cards) return; // illegal flip - nothing happened
 
     if (!running) setRunning(true);
     setCards(result.cards);
@@ -106,7 +106,7 @@ export function GeoMemory({ onBackToHub }: { onBackToHub: () => void }) {
   useEffect(() => {
     if (!finished || recordedRef.current) return;
     recordedRef.current = true;
-    // A perfect board is one pair per move — every flip a match, nothing
+    // A perfect board is one pair per move - every flip a match, nothing
     // turned over twice.
     const perfect = moves === size / 2 && !peeked;
     setApplied(

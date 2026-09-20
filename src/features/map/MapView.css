@@ -19,14 +19,14 @@
 
   The "Ask maNOWj" launcher sits in this same bottom-right corner and was
   drawing straight over the attribution, leaving "© OpenStr…" clipped behind
-  the button. That credit is not decoration — OpenStreetMap's ODbL licence and
-  Esri's terms both require it to stay visible — so a button covering it is a
+  the button. That credit is not decoration - OpenStreetMap's ODbL licence and
+  Esri's terms both require it to stay visible - so a button covering it is a
   licence problem, not only an untidy one.
 
   The fix is in CopilotLauncher.css: the button moves up to sit above the
   attribution row, rather than the attribution being pushed out of the corner
   every map library puts it in. This z-index is the backstop for the same
-  rule — if any future overlay lands in this corner, the credit still wins
+  rule - if any future overlay lands in this corner, the credit still wins
   instead of silently disappearing. (Nothing in the app uses a z-index above
   19 over the map, so this stays on top without covering panels or dialogs,
   which sit outside the map container.)
@@ -37,7 +37,7 @@
 
 /* Marker-drop: the selected-location pin (MapView.tsx's markerRef) drops
    in from above with a slight settle rather than just appearing. Animates
-   the marker's inner SVG, not the outer .maplibregl-marker div — that div's
+   the marker's inner SVG, not the outer .maplibregl-marker div - that div's
    own `transform` is how MapLibre positions the pin on the map, so
    animating it directly would fight the library's placement during the
    animation. */
@@ -66,7 +66,7 @@
   }
 }
 
-/* Phones: MapLibre's zoom buttons are dropped — pinch-to-zoom is the native
+/* Phones: MapLibre's zoom buttons are dropped - pinch-to-zoom is the native
    gesture and every phone map application relies on it, while the buttons
    sat in the same top-right corner the floating search now occupies. The
    compass (tap to reset north) and fullscreen stay, since neither has a
@@ -86,7 +86,7 @@
     MapLibre ships its controls at 29px square.
 
     That is its default, not a decision anyone here made, and it is well under
-    a usable touch target — measured at 360px, the compass and fullscreen
+    a usable touch target - measured at 360px, the compass and fullscreen
     buttons were 29x29. They are the only two map controls left on a phone
     (zoom is hidden in favour of pinch), so they are the whole of the map's
     button surface and they have to be hittable.

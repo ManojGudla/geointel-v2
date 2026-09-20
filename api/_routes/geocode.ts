@@ -11,13 +11,13 @@ import { decodePlusCode, findPlusCode, recoverPlusCode } from "../../src/feature
  * This was rewritten because people searching for their OWN neighbourhood
  * couldn't find it. Four things were wrong, and the last one is the reason:
  *
- *  1. The map bias was a box around the whole of India — far too coarse to
+ *  1. The map bias was a box around the whole of India - far too coarse to
  *     help someone looking at one city.
  *  2. Only 8 results were requested, so a local match could be cut before
  *     ranking ever saw it.
  *  3. The cache key ignored where the user was looking, so the first person
  *     to search a word fixed the answer for everyone after them.
- *  4. Results were sorted by Nominatim's `importance` — a GLOBAL notability
+ *  4. Results were sorted by Nominatim's `importance` - a GLOBAL notability
  *     score. A residential colony scores near zero, so it sorted BELOW every
  *     big city that happened to share a word. Someone in Hyderabad searching
  *     their own locality got Delhi first and their street last, or off the
@@ -31,7 +31,7 @@ import { decodePlusCode, findPlusCode, recoverPlusCode } from "../../src/feature
 
 // Fallback bias when the client sends no viewport (a cold load, a shared
 // link). Still India-weighted, matching the product's primary market, and
-// still a soft bias — `bounded: false` means nothing is excluded.
+// still a soft bias - `bounded: false` means nothing is excluded.
 const INDIA_VIEWBOX = "68,37,98,6";
 
 const cache = new TtlCache<NominatimResult[]>(5 * 60 * 1000);
@@ -74,7 +74,7 @@ function distanceKm(aLat: number, aLon: number, bLat: number, bLon: number): num
 /**
  * A viewbox around the point the user is looking at.
  *
- * ±2° is roughly a 220 km box — wide enough to cover a metro area and its
+ * ±2° is roughly a 220 km box - wide enough to cover a metro area and its
  * surroundings, tight enough that it genuinely prefers local matches. It is
  * only a BIAS: Nominatim is called with bounded=false, so a search for
  * "Paris" from Hyderabad still finds Paris.
@@ -119,7 +119,7 @@ export function rankScore(result: SearchResultDto, origin: { lat: number; lon: n
  * concluded the maps were broken. Plus Codes are Google's format and
  * Nominatim has no support for them at all, so no amount of query rewriting
  * would ever have worked. They are pure arithmetic though, so we decode them
- * here — see src/features/search/plusCode.ts.
+ * here - see src/features/search/plusCode.ts.
  *
  * A SHORT code like `8VPH+PH2` repeats every degree, about 110 km, so it needs
  * a nearby reference. The text typed alongside it is that reference, which is
@@ -189,7 +189,7 @@ const handler: ApiHandler = async (req, res) => {
     return err(res, 429, "Too many search requests. Please slow down.", "RATE_LIMITED");
   }
 
-  // Where the user is looking. Optional — search still works without it.
+  // Where the user is looking. Optional - search still works without it.
   const lat = Number(getQueryParam(req, "lat"));
   const lon = Number(getQueryParam(req, "lon"));
   const origin =

@@ -20,7 +20,7 @@ describe("api/_lib/adminAuth", () => {
     expect(isAdminConfigured()).toBe(true);
   });
 
-  it("rejects any request when no key is configured — never 'everyone is admin'", () => {
+  it("rejects any request when no key is configured - never 'everyone is admin'", () => {
     delete process.env.GEOINTEL_ADMIN_KEY;
     const result = fakeReqRes({});
     result.req.headers["x-geointel-admin-key"] = "anything";

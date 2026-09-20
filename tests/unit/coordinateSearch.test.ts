@@ -100,7 +100,7 @@ describe("formatDms", () => {
 
   /**
    * Rounding seconds to one decimal can land on 60.0, which is not a valid
-   * seconds value — it has to carry into minutes (and minutes into degrees)
+   * seconds value - it has to carry into minutes (and minutes into degrees)
    * rather than being printed as 59°60'00.0".
    */
   it("carries a rounded 60 seconds up into minutes instead of printing 60", () => {

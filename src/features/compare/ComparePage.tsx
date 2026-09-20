@@ -13,7 +13,7 @@ import "./ComparePage.css";
 /**
  * Two cities, side by side.
  *
- * This is the shape of question people actually type — "Hyderabad vs
+ * This is the shape of question people actually type - "Hyderabad vs
  * Bangalore" is a real, high-volume search in India, and it is one this
  * application can answer better than a listicle can, because every figure comes
  * from a live source with its date attached rather than from whatever someone
@@ -24,7 +24,7 @@ import "./ComparePage.css";
  * the table looks complete, and a table is the most authoritative-looking
  * format there is. Nothing here is filled in. Where a source has no figure for
  * one of the two cities, the row says so for that city and the comparison
- * simply is not drawn — because "Hyderabad 0, Bengaluru 4,300,000" read as a
+ * simply is not drawn - because "Hyderabad 0, Bengaluru 4,300,000" read as a
  * fact would be a straightforwardly false claim about a real place.
  */
 
@@ -97,7 +97,7 @@ export function ComparePage({ pair }: Props) {
 
       Without this, /compare/a-vs-b and /compare/b-vs-a are two URLs with
       identical content competing with each other, splitting whatever authority
-      the page earns and leaving a crawler to pick one on its own — which it
+      the page earns and leaving a crawler to pick one on its own - which it
       usually resolves by ranking neither.
     */
     url: canonical,

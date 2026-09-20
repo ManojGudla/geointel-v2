@@ -38,7 +38,7 @@ describe("api/news handler", () => {
    * project. This asserts the fix.
    */
   it("rate-limits repeated requests from the same client", async () => {
-    // A fresh module instance so this test gets its own, empty RateLimiter —
+    // A fresh module instance so this test gets its own, empty RateLimiter -
     // the earlier tests in this file already made calls through the shared
     // module-level limiter, which would throw off the exact call count.
     vi.resetModules();

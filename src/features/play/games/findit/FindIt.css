@@ -12,7 +12,7 @@
   background: var(--color-success);
   /* No CSS transition: the width is set every animation frame from the real
      clock, and a transition would make the bar lag behind the actual time
-     left — which in a timing game is a lie. */
+     left - which in a timing game is a lie. */
 }
 
 .findit__timer > span.findit__timer--low {

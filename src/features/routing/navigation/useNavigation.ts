@@ -126,7 +126,7 @@ export function useNavigation() {
             lastRerouteRef.current = Date.now();
             setState("rerouting");
             // Moving the trip's start to where you actually are re-runs the
-            // route query through its existing key — a real new route from
+            // route query through its existing key - a real new route from
             // the provider, not a guess at how to patch the old one.
             setFrom({
               lat: position[1],

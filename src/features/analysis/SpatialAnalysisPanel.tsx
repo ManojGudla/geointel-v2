@@ -27,8 +27,8 @@ const DISTANCES = [500, 1000, 2000, 5000, 10000];
  * The GIS operations that separate this from a place-search app: buffer,
  * within, nearest and weighted site suitability.
  *
- * All four run on data the app already fetches — /api/nearby for features
- * with distances, /api/gis for the evidence counts — so nothing here adds a
+ * All four run on data the app already fetches - /api/nearby for features
+ * with distances, /api/gis for the evidence counts - so nothing here adds a
  * new backend endpoint or a new load on the volunteer-run Overpass mirrors
  * beyond queries that are already cached for six hours.
  */
@@ -53,7 +53,7 @@ export function SpatialAnalysisPanel() {
   const submit = async () => {
     if (!location) return;
     // Errors are already recorded in the store by the shared runner, which
-    // is what renders them below — nothing to do here but not crash.
+    // is what renders them below - nothing to do here but not crash.
     await run({
       operation,
       origin: { lat: location.lat, lon: location.lon },
@@ -69,8 +69,8 @@ export function SpatialAnalysisPanel() {
     in was the whole bug.
 
     askTheMap() in SearchBar deliberately runs from the centre of the map when
-    nothing is selected — that is exactly what makes "schools within 1 km"
-    work on the very first screen, before anyone has picked a place — and it
+    nothing is selected - that is exactly what makes "schools within 1 km"
+    work on the very first screen, before anyone has picked a place - and it
     then sends the user here, because its own comment says "the answer renders
     in Analyze, so that is where the user is taken". But this guard ran first
     and returned "Select a location", so the answer that had just been
@@ -78,7 +78,7 @@ export function SpatialAnalysisPanel() {
     user had just done.
 
     Reported as: "after clicking anything it moves to analyse, and in analyse
-    there is only the measurement and area tool." That is precisely right —
+    there is only the measurement and area tool." That is precisely right -
     the answer was there the whole time, behind this early return.
   */
   const hasAnswer = result !== null || status === "running" || status === "error";

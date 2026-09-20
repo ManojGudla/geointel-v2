@@ -22,7 +22,7 @@ export interface ImageryData {
  *
  * So this says the date out loud, from Esri's own published metadata for that
  * exact ground. It turns a silent, suspicious gap into a stated fact the
- * visitor can weigh — the same rule the population figure follows, and the
+ * visitor can weigh - the same rule the population figure follows, and the
  * whole product with it.
  *
  * Shown only on the satellite basemap. On the street map there is no
@@ -37,7 +37,7 @@ function formatCaptured(iso: string): string {
   return date.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 }
 
-/** Whole months up to a year, then years — nobody needs "43 months ago". */
+/** Whole months up to a year, then years - nobody needs "43 months ago". */
 export function describeAge(iso: string, now: Date = new Date()): string | null {
   const captured = new Date(`${iso}T00:00:00Z`);
   if (Number.isNaN(captured.getTime())) return null;

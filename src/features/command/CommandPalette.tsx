@@ -29,7 +29,7 @@ interface Command {
   /**
    * True for a command that's fully built but temporarily can't run because
    * no location is selected yet (Directions/Analyze/Nearby/AI Agents all
-   * need one) — distinct from a command that's genuinely not built yet
+   * need one) - distinct from a command that's genuinely not built yet
    * (Compare Locations, Generate Report). Both used to render identically
    * as "coming soon," which read as a bug report waiting to happen: someone
    * who'd just used Directions from the toolbar would see it labeled
@@ -190,7 +190,7 @@ export function CommandPalette() {
   const run = (c: Command) => {
     if (!c.available) {
       if (c.requiresLocation) {
-        // Not a dead end — the actual next step to unblock this command is
+        // Not a dead end - the actual next step to unblock this command is
         // picking a location, so send the user straight there instead of
         // silently doing nothing (which is what reads as "broken").
         document.querySelector<HTMLInputElement>(".search-bar__input")?.focus();

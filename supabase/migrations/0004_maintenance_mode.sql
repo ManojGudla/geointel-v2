@@ -1,4 +1,4 @@
--- maNOWj GeoIntel — global maintenance mode (admin-controlled, real backend
+-- maNOWj GeoIntel - global maintenance mode (admin-controlled, real backend
 -- enforcement, no redeploy needed to flip it).
 -- Run this against your Supabase project after 0001-0003 (SQL Editor, or
 -- `supabase db push`).
@@ -8,11 +8,11 @@
 -- display text. api/_lib/maintenance.ts reads it (short-TTL cached) on
 -- every public API request and from the App.tsx polling loop; api/admin/
 -- maintenance.ts is the only thing that ever writes it, and only after
--- verifying the GEOINTEL_ADMIN_KEY header — see api/_lib/adminAuth.ts.
+-- verifying the GEOINTEL_ADMIN_KEY header - see api/_lib/adminAuth.ts.
 --
 -- Same RLS pattern as every other table in this project: enabled, no public
 -- policies, so only the service-role key (server-side only) can read or
--- write it — the browser's anon key can never see or change this directly.
+-- write it - the browser's anon key can never see or change this directly.
 
 create table if not exists app_settings (
   id smallint primary key default 1,
@@ -33,7 +33,7 @@ insert into app_settings (id) values (1) on conflict (id) do nothing;
 
 alter table app_settings enable row level security;
 
--- Every enable/disable/settings-update action, for real accountability —
+-- Every enable/disable/settings-update action, for real accountability -
 -- this project has no user-account system yet, so "Admin" is recorded by
 -- admin_label, which the dashboard fills from whatever the admin has typed
 -- into Settings → Display name (or "Admin" if they haven't set one). Never

@@ -65,7 +65,7 @@ const RADAR_SOURCE = "geointel-radar";
 const RADAR_LAYER = "geointel-radar-layer";
 
 /**
- * RainViewer stops serving real radar tiles past a fairly low zoom — and
+ * RainViewer stops serving real radar tiles past a fairly low zoom - and
  * instead of a 404 it returns an IMAGE with "Zoom Level Not Supported"
  * printed on it, which MapLibre then paints across the map like any other
  * tile. That is what put those grey placards over the streets.
@@ -156,7 +156,7 @@ function addOverlaySources(map: MapLibreMap) {
         "line-opacity": 0.85,
         // Valid per the MapLibre style spec (paint-property transitions),
         // but this maplibre-gl version's addLayer() typings don't include
-        // it — real runtime feature, narrow type gap.
+        // it - real runtime feature, narrow type gap.
         "line-opacity-transition": { duration: 500, delay: 0 },
       } as maplibregl.LineLayerSpecification["paint"],
     });
@@ -256,7 +256,7 @@ function addOverlaySources(map: MapLibreMap) {
          * The old version painted every building one of two near-identical
          * blues, which produced a field of flat grey-blue slabs where a
          * three-storey shop and a twenty-storey tower looked the same. A
-         * height ramp is what makes an extruded city legible at a glance —
+         * height ramp is what makes an extruded city legible at a glance -
          * you can see where the tall buildings are, which is the entire
          * reason to turn 3D on.
          *
@@ -294,7 +294,7 @@ function addOverlaySources(map: MapLibreMap) {
         // and every block looked like tinted glass.
         "fill-extrusion-opacity": 0.94,
         // Shades each face top-to-bottom, which is the only depth cue a
-        // fill-extrusion layer has — without it every wall is one flat fill
+        // fill-extrusion layer has - without it every wall is one flat fill
         // and the whole city looks like cardboard.
         "fill-extrusion-vertical-gradient": true,
       },
@@ -330,7 +330,7 @@ function addOverlaySources(map: MapLibreMap) {
 
   // Spatial analysis output (buffer ring, result points, nearest connector).
   // Added before the measure block so measurement always draws on top of an
-  // analysis result rather than underneath it — you measure ON a result.
+  // analysis result rather than underneath it - you measure ON a result.
   if (!map.getSource(ANALYSIS_SOURCE)) {
     map.addSource(ANALYSIS_SOURCE, { type: "geojson", data: { type: "FeatureCollection", features: [] } });
 
@@ -377,7 +377,7 @@ function addOverlaySources(map: MapLibreMap) {
     map.addSource(MEASURE_SOURCE, { type: "geojson", data: { type: "FeatureCollection", features: [] } });
 
     // Reported bug: measuring drew the vertex dots but NO connecting line and
-    // no polygon fill — the readout computed "1265 m², 4 points" correctly
+    // no polygon fill - the readout computed "1265 m², 4 points" correctly
     // while the map showed four unconnected dots.
     //
     // Same root cause the vertex circles already hit (see the note below):
@@ -386,13 +386,13 @@ function addOverlaySources(map: MapLibreMap) {
     // it, so it can be occluded no matter what the paint order says. The
     // dots survived only because they'd already been moved to DOM markers.
     // Inserting the line/fill BENEATH the extrusion layer puts them back in
-    // the flat pass where they can't be depth-culled — and it's the right
+    // the flat pass where they can't be depth-culled - and it's the right
     // visual answer too, since a ground measurement should drape under a
     // building rather than float through it.
     const beforeBuildings = map.getLayer(BUILDINGS_LAYER) ? BUILDINGS_LAYER : undefined;
 
     // A white casing under the orange keeps the line legible on satellite
-    // imagery and dark basemaps alike — plain orange on a bright rooftop was
+    // imagery and dark basemaps alike - plain orange on a bright rooftop was
     // near-invisible even when it did render.
     map.addLayer(
       {
@@ -430,13 +430,13 @@ function addOverlaySources(map: MapLibreMap) {
     // Root cause of "orange points sometimes appear/disappear": a flat
     // circle layer is composited by the WebGL painter's algorithm, and once
     // fill-extrusion (3D buildings) is present MapLibre engages real
-    // depth-buffer testing for that layer — a point that is geometrically
+    // depth-buffer testing for that layer - a point that is geometrically
     // "under" an extruded roof from the camera's angle gets depth-occluded
     // regardless of paint/add order, and the point flickers in and out as
     // the camera/zoom/pitch changes. Points are rendered as DOM
-    // maplibregl.Marker instances instead (see measureMarkersRef below) —
+    // maplibregl.Marker instances instead (see measureMarkersRef below) -
     // the exact same mechanism already used reliably for the selected-
-    // location pin — because DOM markers live in their own layer on top of
+    // location pin - because DOM markers live in their own layer on top of
     // the WebGL canvas and can never be depth-occluded by anything the map
     // renders. The line/polygon preview stays a GL layer since it's meant
     // to drape along the ground, not sit as a discrete always-on-top mark.
@@ -446,10 +446,10 @@ function addOverlaySources(map: MapLibreMap) {
 /**
  * Builds one DOM element for a measurement-vertex marker. pointer-events is
  * explicitly "none" so an existing marker can never swallow a click meant
- * for the map underneath it (adding the next point, or — once measuring is
- * off — hitting the GIS/POI click handlers). Visual style intentionally
+ * for the map underneath it (adding the next point, or - once measuring is
+ * off - hitting the GIS/POI click handlers). Visual style intentionally
  * matches the previous GL circle layer's paint (radius 5, white 2px
- * stroke, same orange) — only the rendering mechanism changed, not the
+ * stroke, same orange) - only the rendering mechanism changed, not the
  * appearance.
  */
 function createMeasurePointElement(): HTMLDivElement {
@@ -469,7 +469,7 @@ function createMeasurePointElement(): HTMLDivElement {
 interface MapViewProps {
   /**
    * Element the FullscreenControl should fullscreen instead of the bare map
-   * canvas — see the comment where this is passed in Workspace.tsx for why.
+   * canvas - see the comment where this is passed in Workspace.tsx for why.
    * Optional so MapView still works (falling back to MapLibre's own
    * default: the map's own container) if ever used without a wrapping
    * element that owns the sibling overlay controls.
@@ -481,7 +481,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
-  // DOM markers for measurement vertices — see createMeasurePointElement's
+  // DOM markers for measurement vertices - see createMeasurePointElement's
   // comment for why these are DOM markers instead of a GL circle layer.
   // Reconciled to measurePoints (grow/shrink + reposition) in the effect
   // below; never recreated wholesale on every render.
@@ -498,7 +498,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   const pointLookupRef = useRef<AbortController | null>(null);
   const [loadPhase, setLoadPhase] = useState<MapLoadPhase>("loading");
   // Bumped by "Try again", which is the map-creation effect's only
-  // dependency — so a retry tears the old instance down and builds a fresh
+  // dependency - so a retry tears the old instance down and builds a fresh
   // one, rather than poking at a map that already failed.
   const [retryToken, setRetryToken] = useState(0);
 
@@ -553,7 +553,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   );
   const radarTileUrl = radarEnabled ? (radar.data?.tileUrl ?? null) : null;
 
-  // Dated satellite imagery (features/timeline). Pure URL construction — no
+  // Dated satellite imagery (features/timeline). Pure URL construction - no
   // request until MapLibre asks for a tile.
   const historyEnabled = useTimelineStore((s) => s.enabled);
   const historyDate = useTimelineStore((s) => s.date);
@@ -627,7 +627,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     activeStepLocation: activeStepLocation,
   };
 
-  // Create the map once — or again, if the user presses "Try again" after a
+  // Create the map once - or again, if the user presses "Try again" after a
   // failed load. `retryToken` is the only dependency, so the map is never
   // rebuilt for any other reason.
   useEffect(() => {
@@ -645,9 +645,9 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
       attributionControl: { compact: true },
     });
 
-    // A map constructed while its container is still 0×0 — which happens on
+    // A map constructed while its container is still 0×0 - which happens on
     // a first paint if fonts, the shell grid, or a phone's address-bar
-    // collapse settle a frame later — renders once at zero size and then
+    // collapse settle a frame later - renders once at zero size and then
     // never repaints, which is the classic "map didn't load" that goes away
     // on a manual resize. Watching the box and calling resize() removes that
     // whole class of intermittent blank map.
@@ -720,7 +720,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     }, FAIL_AFTER_MS);
 
     // MapLibre reports tile and style failures here rather than throwing.
-    // Only a style-level failure means the map itself is unusable — a single
+    // Only a style-level failure means the map itself is unusable - a single
     // missing tile is normal at the edges of a source's coverage and must
     // not blank out a working map.
     map.on("error", (event) => {
@@ -732,7 +732,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
 
     map.addControl(new NavigationControl({ showCompass: true }), "top-right");
     // Fullscreen the whole map area (map + MapControls + MeasureToolbar +
-    // DirectionsPanel + Copilot + teaser), not just the bare canvas —
+    // DirectionsPanel + Copilot + teaser), not just the bare canvas -
     // see fullscreenContainerRef's doc comment above for why that matters.
     map.addControl(
       new FullscreenControl(fullscreenContainerRef?.current ? { container: fullscreenContainerRef.current } : undefined),
@@ -769,7 +769,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
 
     // Safety net: put the overlays back whenever a style change has removed
     // them. The basemap effect below already restores them synchronously on
-    // the normal path; this covers the path it can't — MapLibre falling back
+    // the normal path; this covers the path it can't - MapLibre falling back
     // to rebuilding the style from scratch when a diff fails (see
     // _updateDiff's catch in maplibre-gl), which replaces the whole Style
     // object asynchronously and would wipe a synchronous restore.
@@ -788,7 +788,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     // This used to open a separate little "Property information" card while
     // the real Explore panel kept showing whatever you had searched for
     // earlier. Two panels, two answers, and the click never actually
-    // selected anything — which is why "click anywhere on the map" didn't
+    // selected anything - which is why "click anywhere on the map" didn't
     // do what the onboarding promised. Now a click runs exactly the path a
     // search runs: marker moves, Explore opens, intelligence/property/
     // layers/radius/AI context all follow the point you clicked.
@@ -867,14 +867,14 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryToken]);
 
-  // Basemap changes require a style swap, which drops custom sources/layers —
+  // Basemap changes require a style swap, which drops custom sources/layers -
   // re-add them immediately afterwards. See the note on the restore call
   // below for why "immediately" and not "once the new style loads".
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     // The "create the map once" effect above already constructs it with
-    // `style: buildBasemapStyle(basemap)` — this effect also runs on that
+    // `style: buildBasemapStyle(basemap)` - this effect also runs on that
     // same initial mount (every effect does), which used to call
     // map.setStyle() again with the IDENTICAL style right after the map
     // had just loaded it, forcing a wasted, redundant tile refetch (and an
@@ -890,7 +890,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     // hasn't finished yet, and this effect can genuinely land in that window:
     // pick a different basemap in the first second of a slow page load, and
     // the map crashes into its error boundary. Deferring to "load" is the
-    // whole fix — the swap still happens, just as soon as it legally can.
+    // whole fix - the swap still happens, just as soon as it legally can.
     const applyBasemap = () => {
       map.setStyle(buildBasemapStyle(basemap));
       restoreOverlays(map, overlayStateRef.current);
@@ -904,10 +904,10 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     applyBasemap();
     // The restore above used to be `map.once("style.load", ...)`, and that
     // event NEVER
-    // FIRED — the single cause of the long-standing "switch the basemap and
+    // FIRED - the single cause of the long-standing "switch the basemap and
     // the overlays are gone" bug, which showed up most visibly as measurement
     // drawing its vertex dots and nothing else. (The dots are DOM markers;
-    // DOM markers survive a style swap, GL layers don't — so the line and the
+    // DOM markers survive a style swap, GL layers don't - so the line and the
     // area fill vanished while the dots stayed, which is exactly the symptom
     // that was reported.) It silently broke GIS points, the route line, the
     // radius circle and 3D buildings in the same stroke.
@@ -915,8 +915,8 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     // Why it never fired: map.setStyle(styleObject) does NOT reload the style
     // by default. It takes the diff path (Map._diffStyle -> _updateDiff ->
     // Style.setState), which computes the difference between the CURRENT
-    // serialized style — custom sources and layers included, since they're
-    // part of the style once added — and the new basemap, then applies the
+    // serialized style - custom sources and layers included, since they're
+    // part of the style once added - and the new basemap, then applies the
     // resulting removeLayer/removeSource operations. It reuses the existing
     // Style object rather than constructing a new one, so "style.load", which
     // is fired only from Style._load(), is never emitted. A listener for it
@@ -937,7 +937,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   }, [gisFeatureCollection]);
 
   // 3D building extrusions follow the viewport + zoom + 3D toggle (see
-  // useBuildings3D.ts) — cleared immediately when 3D is off or zoomed out
+  // useBuildings3D.ts) - cleared immediately when 3D is off or zoomed out
   // rather than left showing a stale skyline.
   useEffect(() => {
     const map = mapRef.current;
@@ -949,7 +949,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   // the cursor turns into a crosshair while a measurement mode is active so
   // it's clear clicks add points instead of opening the POI inspector.
   // (The line/polygon draped along the ground is the only part still drawn
-  // via this GL source — vertices are DOM markers, synced separately below.)
+  // via this GL source - vertices are DOM markers, synced separately below.)
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -972,7 +972,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   }, [quakeCollection]);
 
   // Radar creates and destroys its own source, so it has no source to wait
-  // on — it only needs the style to be loaded enough to accept addSource.
+  // on - it only needs the style to be loaded enough to accept addSource.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !styleReadyRef.current) return;
@@ -987,7 +987,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
 
   // Measurement VERTICES: rebuild the DOM Marker set from scratch every
   // time the store's points change. Deliberately NOT incremental
-  // (grow/shrink + reposition by index) — a point count here is always a
+  // (grow/shrink + reposition by index) - a point count here is always a
   // handful of vertices, so the cost of tearing down and recreating is
   // negligible, and doing it this way makes an entire class of bug
   // impossible: the marker array can never drift out of sync with the
@@ -995,7 +995,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   // pointed at the wrong point after an Undo, one marker double-counted
   // after a fast-refresh remount mid-session). Every run, unconditionally:
   // a marker exists on the map if and only if its point exists in the
-  // store right now, full stop — no bookkeeping to get wrong on a second
+  // store right now, full stop - no bookkeeping to get wrong on a second
   // or third use.
   useEffect(() => {
     const map = mapRef.current;
@@ -1004,7 +1004,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     measureMarkersRef.current.forEach((marker) => marker.remove());
 
     // setLngLat() MUST be called before addTo(): Marker.addTo() immediately
-    // calls _update(), which projects the marker's current _lngLat — if
+    // calls _update(), which projects the marker's current _lngLat - if
     // that's still unset (the constructor doesn't require or default it),
     // _update() throws reading .lng off undefined and takes the whole map
     // down with it. Position first, attach second.
@@ -1016,7 +1016,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     });
   }, [measurePoints]);
 
-  // Unmount safety net for the marker set above — a plain component
+  // Unmount safety net for the marker set above - a plain component
   // unmount, an ErrorBoundary reset elsewhere on the page, or (in dev) a
   // fast-refresh-forced remount must never leave orphaned marker DOM nodes
   // behind, tracked by a ref instance that's about to be discarded.
@@ -1055,7 +1055,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
 
       // Route-draw: drop opacity to 0 and back up on the next frame so the
       // line-opacity-transition (see addOverlaySources) actually has a
-      // value change to animate — setData alone doesn't trigger a paint
+      // value change to animate - setData alone doesn't trigger a paint
       // transition since the opacity value itself hasn't changed.
       if (map.getLayer(ROUTE_LAYER)) {
         map.setPaintProperty(ROUTE_LAYER, "line-opacity", 0);
@@ -1065,7 +1065,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
       }
 
       // Don't yank the camera back to the whole route while the user is
-      // stepping through turns — that would fight the step-zoom below.
+      // stepping through turns - that would fight the step-zoom below.
       if (activeRouteStep !== null) return;
 
       const bounds = geometry.reduce(
@@ -1138,7 +1138,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     if (!navActive || !navSnapped || !navFollowing) return;
 
     // Follow mode. Pitched and rotated to the direction of travel, like every
-    // driving navigator — but only when the device actually reports a
+    // driving navigator - but only when the device actually reports a
     // heading, since a desktop reports null and a map that snapped to north
     // on every fix would be worse than one that never rotated.
     map.easeTo({
@@ -1169,7 +1169,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     mapRef.current?.easeTo({ pitch: is3D ? 55 : 0, duration: 500 });
   }, [is3D]);
 
-  // Camera moves requested by panels outside the map — see mapStore's
+  // Camera moves requested by panels outside the map - see mapStore's
   // cameraRequest doc comment.
   useEffect(() => {
     const map = mapRef.current;
@@ -1214,7 +1214,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
 
 /**
  * Everything a style swap destroys: the custom sources and layers, plus the
- * data that was in them. Re-adding the sources is not enough on its own —
+ * data that was in them. Re-adding the sources is not enough on its own -
  * they come back EMPTY, so a restore that skipped the syncs would leave the
  * map just as blank while looking, in the style JSON, like it had worked.
  */
@@ -1298,7 +1298,7 @@ function syncEarthquakes(map: MapLibreMap, collection: GeoJSON.FeatureCollection
 /**
  * Radar is a RASTER source whose tile URL changes every few minutes as new
  * frames are published, and a raster source's tiles can't be swapped in
- * place — so it is torn down and rebuilt whenever the URL changes, and
+ * place - so it is torn down and rebuilt whenever the URL changes, and
  * removed entirely when the layer is switched off (rather than left loading
  * tiles behind an opacity of 0, which would keep costing requests).
  */
@@ -1306,7 +1306,7 @@ function syncEarthquakes(map: MapLibreMap, collection: GeoJSON.FeatureCollection
  * Dated satellite imagery, rebuilt whenever the date or product changes for
  * the same reason radar is: a raster source's tile template is fixed at
  * creation. Opacity, though, IS a paint property, so blending against the
- * live basemap is applied in place without a rebuild — otherwise dragging
+ * live basemap is applied in place without a rebuild - otherwise dragging
  * the blend slider would tear down and re-fetch every tile on every step.
  */
 function syncHistoricalImagery(map: MapLibreMap, tileUrl: string | null, opacity: number, maxZoom: number) {
@@ -1340,7 +1340,7 @@ function syncHistoricalImagery(map: MapLibreMap, tileUrl: string | null, opacity
 
 /**
  * The route line and the highlighted turn. One function so the live effects
- * and the post-style-swap restore can't drift apart — the class of bug that
+ * and the post-style-swap restore can't drift apart - the class of bug that
  * makes an overlay vanish only when you change basemap.
  */
 function syncRoute(map: MapLibreMap, geometry: Array<[number, number]> | null, stepLocation: [number, number] | null) {

@@ -11,9 +11,9 @@ import { track } from "@/services/analytics";
  * Opening a shared link, and putting back everything it carried.
  *
  * This hook used to read `lat` and `lon` and nothing else, because that was all
- * a share link contained. It now restores the whole view — zoom, basemap,
+ * a share link contained. It now restores the whole view - zoom, basemap,
  * radius, which panel and tab were open, and the question that produced the
- * result — so a link recreates what the sender was looking at rather than the
+ * result - so a link recreates what the sender was looking at rather than the
  * coordinates underneath it. See features/share/viewState.ts for the format and
  * for why every field is validated rather than clamped.
  *
@@ -28,13 +28,13 @@ import { track } from "@/services/analytics";
  * seconds or fail outright; making the camera wait on it would leave a person
  * who followed a link to a specific street staring at the default world view
  * until an unrelated request came back. The position is already known from the
- * URL — nothing about showing it depends on knowing its address.
+ * URL - nothing about showing it depends on knowing its address.
  *
  * The panel state is restored AFTER the location is set, because setting a
  * location fires watchLocationForPanel, which force-opens Explore on the
  * transition from "nothing selected" to "something selected". Restoring the
  * panel first would have it immediately overwritten, and the bug would look
- * like "the section parameter does nothing sometimes" — sometimes, because it
+ * like "the section parameter does nothing sometimes" - sometimes, because it
  * would depend on whether the geocode resolved before or after.
  */
 export function useSharedLocationFromUrl() {
@@ -65,7 +65,7 @@ export function useSharedLocationFromUrl() {
       source: "shared-link",
       // Whether a link carried a real view or just a pin is the measure of
       // whether this feature is doing anything. No coordinates, no question
-      // text — see services/analytics.ts.
+      // text - see services/analytics.ts.
       restoredView: Boolean(view.zoom || view.basemap || view.radiusMeters || view.section || view.question),
     });
 
@@ -100,7 +100,7 @@ export function useSharedLocationFromUrl() {
     return () => {
       cancelled = true;
     };
-    // Intentionally empty deps — this reads window.location.search exactly once
+    // Intentionally empty deps - this reads window.location.search exactly once
     // on first mount, the same "read once, this SPA never navigates between
     // paths" pattern App.tsx uses for its pathname check.
     // eslint-disable-next-line react-hooks/exhaustive-deps

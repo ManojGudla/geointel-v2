@@ -2,7 +2,7 @@ import { COUNTRIES, haversineKm, type Country, type Region } from "../../data/wo
 import { createRng } from "../../lib/random";
 
 /**
- * Country Hunt — you are given a country's name and you click where it is.
+ * Country Hunt - you are given a country's name and you click where it is.
  *
  * Distance-scored rather than right/wrong, because "roughly where Paraguay is"
  * is real knowledge and a multiple-choice quiz throws it away. Someone who
@@ -69,7 +69,7 @@ export type HintKind = "region" | "neighbours" | "narrow";
  * What each hint costs, as a fraction of the round.
  *
  * Hints are not free. A free hint would make every score identical and the
- * whole thing pointless — you would simply press it every time. Paying for
+ * whole thing pointless - you would simply press it every time. Paying for
  * help is what keeps a hinted round comparable to an unhinted one, and makes
  * taking the hint an actual decision.
  */
@@ -101,7 +101,7 @@ function compassWithinRegion(country: Country, region: Country[]): string {
  * The hints available for a round, cheapest and vaguest first.
  *
  * Every one is derived from the bundled data rather than written by hand, so
- * a hint can never contradict the answer it is helping you find — the failure
+ * a hint can never contradict the answer it is helping you find - the failure
  * that makes a hint system worse than none at all.
  */
 export function hintsFor(round: CountryRound): Hint[] {

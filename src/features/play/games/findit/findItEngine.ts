@@ -1,10 +1,10 @@
 import { createRng } from "../../lib/random";
 
 /**
- * Find It — one target hidden in a field of look-alikes, against the clock.
+ * Find It - one target hidden in a field of look-alikes, against the clock.
  *
  * Pure visual search and reflex: nothing is asked and nothing is known in
- * advance. It gets harder the further you get, in three ways at once — more
+ * advance. It gets harder the further you get, in three ways at once - more
  * decoys, decoys that look more like the target, and less time per round.
  * That's what makes it worth replaying rather than a fixed puzzle.
  */
@@ -71,7 +71,7 @@ export function buildLevel(level: number, seed: number | string): Level {
 
 /**
  * Points for finding it. Faster is worth more, and later levels are worth
- * more because they're harder — but every successful find scores something,
+ * more because they're harder - but every successful find scores something,
  * so a slow correct answer still beats a miss.
  */
 export function scoreFind(level: number, msTaken: number, allowedMs: number): number {

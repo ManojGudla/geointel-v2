@@ -42,7 +42,7 @@ export const useRouteStore = create<RouteState>((set, get) => ({
   activeStep: null,
 
   // Changing an endpoint or the mode invalidates which option and which step
-  // you were looking at — index 2 of the old result means nothing in the new
+  // you were looking at - index 2 of the old result means nothing in the new
   // one, and leaving it set would highlight an unrelated turn.
   setFrom: (from) => set({ from, selectedOption: 0, activeStep: null }),
   setTo: (to) => set({ to, selectedOption: 0, activeStep: null }),

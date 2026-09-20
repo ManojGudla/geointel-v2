@@ -5,7 +5,7 @@ import { EMPTY_GAME_STATS, type PlayStats, type RoundResult } from "./types";
 /**
  * Folds one finished round into the accumulated stats.
  *
- * Pure on purpose — the store just holds the result of this, so the whole
+ * Pure on purpose - the store just holds the result of this, so the whole
  * progression system (streaks, personal bests, XP, achievement unlocks) is
  * unit-testable without React, localStorage or a clock.
  */
@@ -43,7 +43,7 @@ export function applyRound(stats: PlayStats, result: RoundResult, today: string)
   };
 
   // Streak: same day keeps it, the next day extends it, a gap resets it to 1.
-  // Resetting to 1 rather than 0 matters — you played today, so today counts.
+  // Resetting to 1 rather than 0 matters - you played today, so today counts.
   let currentStreak = stats.currentStreak;
   let streakExtended = false;
   if (!stats.lastPlayedDate) {

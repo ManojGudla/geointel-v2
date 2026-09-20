@@ -10,16 +10,16 @@ import { runOverpassQuery } from "../_lib/overpass.js";
  *
  * A NOTE ON "LIVE", because the name invites a wrong expectation: population
  * is NOT live and cannot be. Nobody publishes a real-time count of the people
- * in a place — the figures below come from censuses and official estimates
+ * in a place - the figures below come from censuses and official estimates
  * and carry the year they apply to. A counter ticking upward on screen would
  * be a number this app invented, on a map whose whole promise is that it
  * doesn't. So every figure here is returned WITH its year and its source, and
  * when there is no figure the answer is "not available", never a guess.
  *
  * Two real sources, tried in order:
- *   1. Wikidata (P1082 population, P585 point-in-time, P2046 area) — sourced,
+ *   1. Wikidata (P1082 population, P585 point-in-time, P2046 area) - sourced,
  *      dated, and covers most settlements of any size worldwide.
- *   2. OpenStreetMap's `population` tag via Overpass — patchier and often
+ *   2. OpenStreetMap's `population` tag via Overpass - patchier and often
  *      undated, but it covers small places Wikidata misses.
  */
 
@@ -27,12 +27,12 @@ const cache = new TtlCache<unknown>(24 * 60 * 60 * 1000); // population changes 
 const limiter = new RateLimiter(60_000, 20);
 
 export interface PopulationDto {
-  /** The place the figure is FOR — often a whole city, not the exact point. */
+  /** The place the figure is FOR - often a whole city, not the exact point. */
   place: string;
   population: number;
   /** The year the figure applies to, when the source states one. */
   year: number | null;
-  /** Square kilometres, when known — this is what makes density possible. */
+  /** Square kilometres, when known - this is what makes density possible. */
   areaKm2: number | null;
   /** People per square kilometre, computed only when area is known. */
   densityPerKm2: number | null;
@@ -45,7 +45,7 @@ export interface PopulationDto {
  * Asks Wikidata for the population of the nearest settlement to a point.
  *
  * Uses the Wikidata Query Service's geospatial search to find settlements
- * within a radius, then takes the most populous — which is the right answer
+ * within a radius, then takes the most populous - which is the right answer
  * for "what place am I in": standing in a suburb, the number people mean is
  * the city's, not the suburb's, and the response names which place it used so
  * that choice is visible rather than hidden.
@@ -56,7 +56,7 @@ async function fromWikidata(lat: number, lon: number, radiusKm: number): Promise
    * and both were found by checking the live result rather than the code.
    *
    * Asking only for "the most populous thing with coordinates within 25 km"
-   * returned "Andhra Pradesh (1956-2014)" — 84 million — for a point in
+   * returned "Andhra Pradesh (1956-2014)" - 84 million - for a point in
    * Hyderabad. Administrative regions carry coordinates and populations too,
    * and a state's population dwarfs any city inside it. Worse, that entity is
    * a state that no longer exists.
@@ -110,7 +110,7 @@ async function fromWikidata(lat: number, lon: number, radiusKm: number): Promise
 
 /**
  * OSM fallback. Its `population` tag is free text in practice, so anything
- * that isn't a clean number is discarded rather than coerced — "approx 50000"
+ * that isn't a clean number is discarded rather than coerced - "approx 50000"
  * parsed as 50000 would be inventing a precision the tag doesn't have.
  */
 async function fromOpenStreetMap(lat: number, lon: number, radiusMeters: number): Promise<PopulationDto | null> {

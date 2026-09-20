@@ -143,7 +143,7 @@
 /*
   The tile grid.
 
-  Square, and it stays square while the tiles load — a grid that grows as each
+  Square, and it stays square while the tiles load - a grid that grows as each
   image arrives would shift the answer buttons under the player's thumb. The
   dark ground is what an unloaded satellite tile should look like: space, not
   a white flash.

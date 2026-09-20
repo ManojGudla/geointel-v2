@@ -23,10 +23,10 @@ export interface CopilotContext {
     durationSeconds?: number;
   };
   /**
-   * Official / Authority Intelligence — current officeholders tied to this
+   * Official / Authority Intelligence - current officeholders tied to this
    * location's administrative levels, sourced live from Wikidata (see
    * api/officials.ts). Every entry is either "verified" (with a name and
-   * source) or "unavailable" — the AI layer must treat this the same way
+   * source) or "unavailable" - the AI layer must treat this the same way
    * the panel does: never state a name that isn't in this list, and never
    * fill an "unavailable" entry from its own training-data memory.
    */

@@ -15,8 +15,8 @@ function timeAgo(timestamp: number | null): string {
 }
 
 /**
- * Live situational layers. Each switch reports its own state honestly —
- * loading, a real count, or the reason it isn't available — because a toggle
+ * Live situational layers. Each switch reports its own state honestly -
+ * loading, a real count, or the reason it isn't available - because a toggle
  * that silently does nothing is indistinguishable from a broken app, and
  * these depend on services this project does not control.
  */
@@ -124,7 +124,7 @@ export function LiveLayersPanel() {
         )}
       </div>
 
-      {/* Air quality is a reading, not an overlay — see useLiveLayers.ts. */}
+      {/* Air quality is a reading, not an overlay - see useLiveLayers.ts. */}
       <div className="live-layers__row">
         <div className="live-layers__aqi-head">
           <strong>💨 Air quality here</strong>

@@ -2,7 +2,7 @@ import * as turf from "@turf/turf";
 
 /**
  * Pure spatial functions behind the analysis tools. No network, no map, no
- * React — so the arithmetic that produces numbers people will quote in
+ * React - so the arithmetic that produces numbers people will quote in
  * meetings can be tested directly against known values.
  */
 
@@ -13,7 +13,7 @@ export interface Point {
 
 /**
  * The minimum a thing needs for `within`/`nearest` to work on it: where it
- * is and how far away. Deliberately not requiring a name — the callers pass
+ * is and how far away. Deliberately not requiring a name - the callers pass
  * differently-shaped records (API results carry `name`, analysis points
  * carry `label`) and neither function reads one, so demanding a particular
  * spelling would force pointless conversions at every call site.
@@ -28,7 +28,7 @@ export function distanceMeters(from: Point, to: Point): number {
   return turf.distance(turf.point([from.lon, from.lat]), turf.point([to.lon, to.lat]), { units: "meters" });
 }
 
-/** Initial bearing from `from` to `to`, normalised to 0–360° clockwise from north. */
+/** Initial bearing from `from` to `to`, normalised to 0-360° clockwise from north. */
 export function bearingDegrees(from: Point, to: Point): number {
   const raw = turf.bearing(turf.point([from.lon, from.lat]), turf.point([to.lon, to.lat]));
   return (raw + 360) % 360;
@@ -36,7 +36,7 @@ export function bearingDegrees(from: Point, to: Point): number {
 
 const COMPASS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
 
-/** "NNE", "SW" — the 16-point compass sector a bearing falls in. */
+/** "NNE", "SW" - the 16-point compass sector a bearing falls in. */
 export function compassPoint(degrees: number): string {
   const normalised = ((degrees % 360) + 360) % 360;
   return COMPASS[Math.round(normalised / 22.5) % 16]!;
@@ -63,7 +63,7 @@ export function nearest<T extends Located>(items: T[]): T | null {
 }
 
 /**
- * Maps a raw count onto 0–100 against a reference value that represents
+ * Maps a raw count onto 0-100 against a reference value that represents
  * "plenty of this".
  *
  * Deliberately saturating rather than linear-to-the-maximum-seen: with a
@@ -88,14 +88,14 @@ export interface SuitabilityFactor {
   label: string;
   /** Relative importance. Weights are normalised, so they need not sum to 1. */
   weight: number;
-  /** 0–100. */
+  /** 0-100. */
   score: number;
-  /** Exactly what this number was computed from — shown in the UI, never hidden. */
+  /** Exactly what this number was computed from - shown in the UI, never hidden. */
   basis: string;
 }
 
 /**
- * Weighted mean of the factor scores, 0–100.
+ * Weighted mean of the factor scores, 0-100.
  *
  * Weights are normalised rather than required to sum to 1, so the user can
  * drag one slider without every other one silently shifting underneath them.

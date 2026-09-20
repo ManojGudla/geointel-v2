@@ -2,7 +2,7 @@
  * Recognises a coordinate pair typed or pasted into the search box and
  * short-circuits straight to that point, instead of sending it to Nominatim
  * as free text (which doesn't reliably resolve a bare coordinate string).
- * The numbers ARE the location — there's nothing to look up.
+ * The numbers ARE the location - there's nothing to look up.
  *
  * Three input shapes are accepted, because these are what people actually
  * have on their clipboard:
@@ -38,7 +38,7 @@ const DEGREES_MINUTES_SECONDS =
 /**
  * Resolves the hemisphere letter for one component, which may legitimately
  * appear before the number ("N 17.38") or after it ("17.38 N") but never
- * both and never neither — requiring exactly one is what stops "17 38" from
+ * both and never neither - requiring exactly one is what stops "17 38" from
  * being read as a hemisphere-qualified pair.
  */
 function hemisphereSign(before: string | undefined, after: string | undefined): number | null {
@@ -87,7 +87,7 @@ export function formatCoordinateLabel(pair: CoordinatePair): string {
 }
 
 /**
- * Degrees/minutes/seconds rendering for the on-map coordinate readout — the
+ * Degrees/minutes/seconds rendering for the on-map coordinate readout - the
  * format aviation, marine and survey users read natively, and the one Google
  * Maps shows on a place card. Rounding is done on the seconds only, then
  * carried upward, so 59.96" becomes 1'00" rather than the invalid 60".

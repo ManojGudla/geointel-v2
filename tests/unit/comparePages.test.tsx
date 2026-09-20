@@ -13,7 +13,7 @@ import { CITY_BY_SLUG } from "../../src/data/cities";
 
 /**
  * "Hyderabad vs Bangalore" is a real, high-volume search, and it is one this
- * application can answer better than a listicle can — every figure is live and
+ * application can answer better than a listicle can - every figure is live and
  * dated rather than copied out of a blog post in 2019.
  *
  * Two things can quietly destroy that, and both are tested here.
@@ -23,7 +23,7 @@ import { CITY_BY_SLUG } from "../../src/data/cities";
  * other and usually leave a crawler ranking neither.
  *
  * The second is invention. A table is the most authoritative-looking format
- * there is, and an empty cell in one is almost unbearable — the pull to fill it
+ * there is, and an empty cell in one is almost unbearable - the pull to fill it
  * so the row "works" is exactly how a page ends up stating something false
  * about a real city.
  */

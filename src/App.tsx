@@ -10,14 +10,14 @@ import { Workspace } from "@/features/workspace/Workspace";
  * page and the printable report are behind a click, and /admin and /status
  * are separate URLs most visitors never see. Shipping them in the first
  * bundle made every visitor download the games engine and the admin dashboard
- * before the map could draw — which is the opposite of what someone on a
+ * before the map could draw - which is the opposite of what someone on a
  * phone on mobile data needs. Suspense fallbacks are `null` because each of
  * these renders nothing until it's opened anyway.
  */
 /*
   These six were eager, and all six render `null` until someone opens them.
 
-  Every one is a modal behind a click — feedback, help, settings, the feature
+  Every one is a modal behind a click - feedback, help, settings, the feature
   list, the join form, about. Their code, their CSS and their share of
   framer-motion were all downloaded, parsed and executed by every visitor
   before the map could draw, to render nothing. On a phone on mobile data that
@@ -92,7 +92,7 @@ export default function App() {
     Whether each modal panel has been opened. Read here rather than inside
     each panel because the decision being made is "should this code be
     downloaded at all", and a component cannot make that decision about
-    itself — by the time it runs, it has already arrived.
+    itself - by the time it runs, it has already arrived.
   */
   const feedbackOpen = useFeedbackStore((s) => s.isOpen);
   const helpOpen = useHelpStore((s) => s.isOpen);
@@ -105,7 +105,7 @@ export default function App() {
   const privacyOpen = usePrivacyStore((s) => s.isOpen);
 
   // No router in this app (see plugins/vite-plugin-api.ts's comment on why
-  // that's a deliberate choice elsewhere) — /admin is a plain pathname
+  // that's a deliberate choice elsewhere) - /admin is a plain pathname
   // check, read once since this SPA never navigates between paths itself.
   const [pathname] = useState(() => window.location.pathname.replace(/\/+$/, "") || "/");
 
@@ -116,7 +116,7 @@ export default function App() {
    * the chain had no final `else`: an unmatched path fell through all of it and
    * rendered the map workspace with HTTP 200. That made /pricing, /maps/london
    * and /asdfgh all look like real pages to a crawler, each answering 200 with
-   * byte-identical HTML — infinite duplicate content from a single bad inbound
+   * byte-identical HTML - infinite duplicate content from a single bad inbound
    * link. Adding a branch to the bottom of the chain would have fixed today's
    * version and silently broken again the next time somebody added a route and
    * forgot; a set that every branch is checked against cannot drift apart from
@@ -126,7 +126,7 @@ export default function App() {
     Comparison paths are matched by parsing rather than by membership: eight
     cities make twenty-eight valid pairs in two orderings each, and listing all
     fifty-six here would be a list nobody maintains. Only the featured ones are
-    named, so the 404 check below can still recognise the rest — see the
+    named, so the 404 check below can still recognise the rest - see the
     /compare/ branch.
   */
   const KNOWN_PATHS = new Set([
@@ -233,10 +233,10 @@ export default function App() {
   }
 
   // Real backend enforcement lives in api/_lib/maintenance.ts's
-  // withMaintenanceGuard, applied to every data endpoint — this is the
+  // withMaintenanceGuard, applied to every data endpoint - this is the
   // matching frontend gate so normal visitors see the honest maintenance
   // page instead of a workspace full of failed panels. Until the first poll
-  // resolves, `maintenance` is null and the normal app renders — a brief,
+  // resolves, `maintenance` is null and the normal app renders - a brief,
   // honest gap (not a fake "definitely live" claim) rather than a loading
   // screen on every single page view.
   if (maintenance?.enabled) {
@@ -262,7 +262,7 @@ export default function App() {
       {/*
         Every one of these is downloaded the first time it is opened, and not
         before. They were all already `React.lazy`, which split the chunks but
-        decided nothing about when they arrive — mounted unconditionally, each
+        decided nothing about when they arrive - mounted unconditionally, each
         fetched its code on page load and then rendered null because its store
         said closed. Measured: 1.55 MB of JavaScript to show a map, 209 KB of
         it the games hub. See components/LazyPanel.tsx.

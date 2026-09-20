@@ -6,7 +6,7 @@ import { saturatingScore } from "@/features/analysis/spatialMath";
  * The Location Intelligence score: one headline number for a place, built
  * from dimensions that each state their own evidence.
  *
- * The hard part of a feature like this is not the arithmetic — it is
+ * The hard part of a feature like this is not the arithmetic - it is
  * refusing to fill the gaps. A seven-dimension score card looks far more
  * impressive with seven numbers in it than with five numbers and two honest
  * "not enough data" cards, and every one of those invented numbers would be
@@ -19,7 +19,7 @@ import { saturatingScore } from "@/features/analysis/spatialMath";
  *    meaningless until you say competition FOR WHAT. It points at the
  *    suitability tool, where you choose a use and it becomes answerable.
  *  - The overall score is the weighted mean of the dimensions that actually
- *    have data, and the card says how many contributed — so a score built
+ *    have data, and the card says how many contributed - so a score built
  *    from four dimensions can't be mistaken for one built from six.
  *
  * Everything else comes from counts api/gis.ts already computed from real
@@ -32,7 +32,7 @@ export interface IntelligenceDimension {
   id: string;
   label: string;
   state: DimensionState;
-  /** 0–100. Only meaningful when state === "scored". */
+  /** 0-100. Only meaningful when state === "scored". */
   score: number | null;
   /** Relative importance in the overall score. Ignored unless scored. */
   weight: number;
@@ -43,13 +43,13 @@ export interface IntelligenceDimension {
 }
 
 export interface LocationIntelligence {
-  /** 0–100, or null when too few dimensions could be scored to mean anything. */
+  /** 0-100, or null when too few dimensions could be scored to mean anything. */
   overall: number | null;
   band: "Strong" | "Good" | "Moderate" | "Limited" | null;
   dimensions: IntelligenceDimension[];
   /** How many dimensions contributed to `overall`. */
   scoredCount: number;
-  /** Overall data confidence, derived from coverage — never a fabricated percentage. */
+  /** Overall data confidence, derived from coverage - never a fabricated percentage. */
   confidence: "High" | "Medium" | "Low";
   confidenceReason: string;
   sources: string[];
@@ -167,7 +167,7 @@ export function computeLocationIntelligence({ evidence, europeanAqi }: Intellige
       ? Math.round(scored.reduce((sum, d) => sum + (d.score as number) * d.weight, 0) / totalWeight)
       : null;
 
-  // Confidence describes COVERAGE — how much of the picture the data fills —
+  // Confidence describes COVERAGE - how much of the picture the data fills -
   // not how correct the arithmetic is. A precise number here would imply a
   // statistical basis that doesn't exist.
   const totalMapped = counts.buildings + counts.shops + counts.offices + counts.amenities + counts.transport;
@@ -206,7 +206,7 @@ export function computeLocationIntelligence({ evidence, europeanAqi }: Intellige
  * the overall figure, expressed as points above or below the midpoint.
  *
  * Signed contributions rather than raw scores because that is the question
- * being asked — not "how did each dimension do" but "what pushed this number
+ * being asked - not "how did each dimension do" but "what pushed this number
  * up and what pulled it down". A dimension scoring 50 is pulling neither way
  * and should read as roughly zero, which a raw score cannot express.
  */

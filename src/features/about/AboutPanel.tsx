@@ -14,7 +14,7 @@ const CREATOR_LINKEDIN_URL = "https://www.linkedin.com/in/manojkumar946/";
 const CREATOR_YOUTUBE_URL = "https://www.youtube.com/@maNOWj_Official";
 
 /**
- * "About" — who built this and what it is, reached from the header's More
+ * "About" - who built this and what it is, reached from the header's More
  * menu. Same open/close overlay pattern as JoinTeamForm/SettingsPanel. The
  * feature count is pulled live from featureStatus.ts (the same source of
  * truth the Feature Status page renders) rather than a separate hand-typed
@@ -26,7 +26,7 @@ export function AboutPanel() {
   /*
     Makes this behave like the role="dialog" it declares: Escape closes it,
     focus moves in on open and cycles inside, and goes back to whatever opened
-    it on close. See hooks/useDialog.ts — none of that was happening before,
+    it on close. See hooks/useDialog.ts - none of that was happening before,
     and Tab walked straight out into the map behind this panel.
   */
   const dialogRef = useDialog({ open: isOpen, onClose: close });

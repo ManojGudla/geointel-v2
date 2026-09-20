@@ -18,7 +18,7 @@ interface GisUiState {
    */
   showLayers: (ids: GISLayerId[]) => void;
   setOpacity: (opacity: number) => void;
-  /** Back to the starting set — the "Reset" in the active-analysis controls. */
+  /** Back to the starting set - the "Reset" in the active-analysis controls. */
   resetLayers: () => void;
 }
 

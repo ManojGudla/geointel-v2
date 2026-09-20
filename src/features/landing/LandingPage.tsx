@@ -12,7 +12,7 @@ import "./LandingPage.css";
  * product without ever showing a map. Every claim on it was a sentence.
  *
  * The fix is not more sentences. This is a map product, so the hero IS a
- * map — a real MapLibre instance on the same key-free satellite tiles the
+ * map - a real MapLibre instance on the same key-free satellite tiles the
  * app itself uses, which you can drag, zoom and fly around before you have
  * clicked anything. The coordinate readout under the headline is wired to
  * that map's actual camera, so the first thing the page proves is that the
@@ -20,7 +20,7 @@ import "./LandingPage.css";
  *
  * The second thing it proves is the part that actually distinguishes this
  * product: every answer carries the source it came from and the date it
- * applies to. So sources are not a logo soup in a trust bar — they are
+ * applies to. So sources are not a logo soup in a trust bar - they are
  * printed, in monospace, next to the specific question each one answers.
  */
 
@@ -92,7 +92,7 @@ const TOUR: [Stop, ...Stop[]] = [
   },
 ];
 /* The attribution table. This is the product's actual dependency list, not a
-   marketing trust bar — which is why it says what each one answers and, where
+   marketing trust bar - which is why it says what each one answers and, where
    the source has a cadence, how fresh it is. */
 const SOURCES = [
   { name: "OpenStreetMap", answers: "Places, roads, addresses", note: "Community-mapped" },
@@ -178,7 +178,7 @@ const ASKS: [Ask, ...Ask[]] = [
 
 /* Who actually opens this. Written as situations rather than as industries,
    because "Enterprise" and "Government" would be a claim about customers
-   this product does not have — these are jobs it genuinely does today. */
+   this product does not have - these are jobs it genuinely does today. */
 const USES = [
   {
     icon: "radius",
@@ -213,7 +213,7 @@ const USES = [
 ];
 
 /* Real questions people ask before trusting a tool like this, answered
-   honestly — including the places the answer is "no". */
+   honestly - including the places the answer is "no". */
 const FAQ = [
   {
     q: "Is it actually free, or free-for-now?",
@@ -430,7 +430,7 @@ function formatLng(lng: number) {
 /* The CSS media query at the bottom of LandingPage.css cannot reach a
    MapLibre camera animation, which is JavaScript, not CSS. Someone who has
    asked their OS for reduced motion would otherwise still get a map that
-   flies itself around the world every six seconds — the single most motion-
+   flies itself around the world every six seconds - the single most motion-
    heavy thing on the page. */
 function prefersReducedMotion() {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -443,7 +443,7 @@ function prefersReducedMotion() {
    app. Reverted on unmount so navigating back to the map is not left
    wearing the landing page's title. */
 /*
-   The title carried a dash ("AI Map Search – Ask Questions About Any
+   The title carried a dash ("AI Map Search - Ask Questions About Any
    Location"), which is the one piece of punctuation on this page a visitor
    sees before the page even loads, sitting in the browser tab and in the
    search result. Retitled to something a person would write, keeping the
@@ -465,7 +465,7 @@ const PAGE_DESC =
 /* Pull in Archivo and JetBrains Mono without putting them on the critical
    path. See the note at the top of LandingPage.css for why this is not an
    @import: a blocked font host must cost this page its typeface, never its
-   ability to render. Appended once and left in place — the browser caches
+   ability to render. Appended once and left in place - the browser caches
    it, and removing it on unmount would only cause a re-fetch if the visitor
    comes back. */
 const FONT_HREF =
@@ -573,7 +573,7 @@ export function LandingPage() {
   /* What the readout is allowed to NAME, as opposed to what the pills show
      as selected. A flyTo across continents takes seconds, and naming the
      destination while the coordinates above it are still over the departure
-     point makes the instrument contradict itself — the one impression this
+     point makes the instrument contradict itself - the one impression this
      page cannot afford. The pill highlights immediately (it is a selection);
      the label waits for the camera to actually arrive. */
   const [settled, setSettled] = useState(0);
@@ -593,8 +593,8 @@ export function LandingPage() {
   useDocumentMeta();
   useFaqSchema();
 
-  /* The bar starts transparent over the map — putting a solid strip across
-     a satellite photograph would waste the one thing the hero is for — and
+  /* The bar starts transparent over the map - putting a solid strip across
+     a satellite photograph would waste the one thing the hero is for - and
      earns a background only once the map has scrolled away behind it. */
   const [barSolid, setBarSolid] = useState(false);
   useEffect(() => {
@@ -703,7 +703,7 @@ export function LandingPage() {
         },
       });
       setMapReady(true);
-      /* Settle into the first stop rather than snapping — the page should
+      /* Settle into the first stop rather than snapping - the page should
          look like an instrument warming up, not a screenshot. */
       if (prefersReducedMotion()) {
         map.jumpTo({ zoom: TOUR[0].zoom, pitch: TOUR[0].pitch, bearing: 0 });
@@ -750,7 +750,7 @@ export function LandingPage() {
     };
   }, []);
 
-  /* Autoplay the tour, but stop the moment someone takes over — either by
+  /* Autoplay the tour, but stop the moment someone takes over - either by
      clicking a pill or by dragging the map themselves. Continuing to yank
      the camera away from a person who is using it would be hostile. */
   const [autoplay, setAutoplay] = useState(() => !prefersReducedMotion());

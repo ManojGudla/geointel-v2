@@ -3,7 +3,7 @@
  *
  * It is bundled rather than fetched on purpose: a game must start instantly
  * and must not break when a free API rate-limits you mid-round. Nothing here
- * is generated or approximated beyond what's stated — capital coordinates are
+ * is generated or approximated beyond what's stated - capital coordinates are
  * the capital city's own position (good to about a kilometre, which is far
  * inside the scoring bands a pin game uses), and flag emoji are derived from
  * the ISO 3166-1 alpha-2 code rather than stored, so they can't drift out of
@@ -27,13 +27,13 @@ export type Region = "Africa" | "Americas" | "Asia" | "Europe" | "Oceania";
  * Where to find a country's flag image.
  *
  * This replaced flagEmoji(), which built the flag from two Regional Indicator
- * Symbols — "IN" becomes U+1F1EE U+1F1F3 — and relied on the font to compose
+ * Symbols - "IN" becomes U+1F1EE U+1F1F3 - and relied on the font to compose
  * them into one glyph. Elegant, free, and broken on Windows, which ships no
  * flag glyphs whatsoever: every flag rendered as its two ISO letters. The Flag
  * Quiz therefore displayed "KZ" above "Which country's flag is this?".
  *
  * The images are generated into public/flags by scripts/build-flags.mjs from
- * the flag-icons SVG set, and served from this origin — the site's CSP allows
+ * the flag-icons SVG set, and served from this origin - the site's CSP allows
  * images from 'self' only, so a CDN was never an option.
  *
  * Every code in COUNTRIES below has a file; tests/unit/flags.test.ts fails the
@@ -156,7 +156,7 @@ export const COUNTRIES: Country[] = [
 
 /**
  * Places the map games ask you to find. Deliberately a mix of world-famous
- * cities and Indian cities — the product's first audience is in India, and a
+ * cities and Indian cities - the product's first audience is in India, and a
  * geography game where every answer is European is a game that tells that
  * audience it wasn't built for them.
  *

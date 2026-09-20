@@ -9,7 +9,7 @@ import { invertedScore, saturatingScore, type SuitabilityFactor } from "./spatia
  * Textbook suitability models weight things like census population, land
  * price and flood risk. None of those are available from a free source at
  * point level, so none of them are here. Every factor below is derived from
- * OpenStreetMap feature counts inside the selected radius — which is a real,
+ * OpenStreetMap feature counts inside the selected radius - which is a real,
  * defensible signal, and is described to the user in exactly those terms.
  * A factor labelled "Population" that was secretly counting mapped houses
  * would be worth more in a demo and would be a lie, so the label says
@@ -36,7 +36,7 @@ interface FactorSpec {
 
 /**
  * Reference values for "plenty of this within the radius". They set where
- * each curve flattens out, and are deliberately conservative — chosen so a
+ * each curve flattens out, and are deliberately conservative - chosen so a
  * genuinely busy urban block reaches the high 80s rather than pinning at 100
  * and making every dense area look identical.
  */
@@ -124,7 +124,7 @@ export const SUITABILITY_PRESETS: SuitabilityPreset[] = [
   { id: "warehouse", label: "Warehouse or depot", competition: "petrol", weights: { industrial: 40, transport: 30, quiet: 20, competition: 10 } },
 ];
 
-/** A factor's display name without computing its score — for weight sliders, which have no data to score against yet. */
+/** A factor's display name without computing its score - for weight sliders, which have no data to score against yet. */
 export function factorLabel(id: string): string {
   return FACTORS[id]?.label ?? id;
 }

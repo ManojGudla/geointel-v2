@@ -8,13 +8,13 @@ import { LAYER_DEFS } from "@/features/gis/layerBuckets";
  * Two jobs. First, keeping the map honest: if an analysis reports "9
  * hospitals within 5 km", the hospital layer has to actually be on, or the
  * panel and the map are telling the user two different things. Second,
- * smart layer recommendations — a person assessing a site for a café
+ * smart layer recommendations - a person assessing a site for a café
  * shouldn't have to already know that "restaurants, shops, offices and
  * transport" are the relevant OpenStreetMap layers. That knowledge belongs
  * in the product, not in the user's head.
  *
  * Categories with no dedicated layer fall back to the generic `amenities`
- * bucket, which is genuinely where those features are rendered — banks,
+ * bucket, which is genuinely where those features are rendered - banks,
  * ATMs, pharmacies, police and fuel are all amenity POIs. Claiming a
  * dedicated layer for them would put a checkbox on screen that changes
  * nothing.
@@ -61,7 +61,7 @@ export function layerLabels(ids: GISLayerId[]): string[] {
 /**
  * The layers an analysis request implies. Returned rather than applied so
  * the caller can both switch them on AND show the user which ones it
- * switched on — an analysis that silently changes the map is only marginally
+ * switched on - an analysis that silently changes the map is only marginally
  * better than one that doesn't change it at all.
  */
 export function layersForRequest(request: { operation: string; category?: NearbyCategory; presetId?: string }): GISLayerId[] {

@@ -7,7 +7,7 @@ export interface BookingLink {
 }
 
 /**
- * "Book a ride from this route" handoff links on the Directions panel — real
+ * "Book a ride from this route" handoff links on the Directions panel - real
  * provider URLs only, never a fabricated price/ETA/availability. Split out
  * from DirectionsPanel.tsx (same pattern as src/features/travel/providers.ts)
  * so this pure URL-building logic is unit-testable without a component
@@ -16,15 +16,15 @@ export interface BookingLink {
  * Uber and Google Maps have documented public deep-link schemes that accept
  * coordinates directly, so those two are genuinely prefilled. Rapido and Ola
  * do not expose a public web booking URL that accepts a pickup/drop pair
- * (both are app-only via native intents) — linking to their homepage is the
+ * (both are app-only via native intents) - linking to their homepage is the
  * honest option rather than inventing a URL scheme that doesn't exist.
  */
 export function bookingLinks(from: RoutePoint | null, to: RoutePoint | null, mode: RouteMode): BookingLink[] {
   const dest = to ? `${to.lat},${to.lon}` : "";
   const origin = from ? `${from.lat},${from.lon}` : "";
-  // Apple's own documented web URL scheme (maps.apple.com — redirects to the
+  // Apple's own documented web URL scheme (maps.apple.com - redirects to the
   // native app on iOS/macOS, renders as a web map elsewhere: developer.apple.com/library/archive/featuredarticles/iPhoneURLScheme_Reference).
-  // dirflg only has d(rive)/w(alk)/r(transit) — no dedicated bike flag — so
+  // dirflg only has d(rive)/w(alk)/r(transit) - no dedicated bike flag - so
   // "bike" falls back to driving directions rather than silently dropping
   // the mode.
   const appleDirflg = mode === "walk" ? "w" : "d";

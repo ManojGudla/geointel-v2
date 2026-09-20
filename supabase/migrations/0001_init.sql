@@ -1,8 +1,8 @@
--- maNOWj GeoIntel — Pass 2 schema
+-- maNOWj GeoIntel: initial schema
 -- Run this against your Supabase project (SQL Editor, or `supabase db push`
 -- if you use the CLI). Both tables reserve a nullable `user_id` so real
--- accounts can be added later without a migration rewrite — Pass 2 is still
--- anonymous/device-scoped, per the Phase 1 decision.
+-- accounts can be added later without a migration rewrite. Everything here
+-- is anonymous and device-scoped for now.
 
 -- ---------------------------------------------------------------------------
 -- kb_documents: product/domain knowledge base retrieved by the AI Copilot

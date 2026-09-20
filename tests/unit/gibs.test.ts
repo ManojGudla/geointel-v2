@@ -6,7 +6,7 @@ const NOW = new Date("2026-09-02T10:00:00Z");
 describe("gibsLatestDate", () => {
   /**
    * GIBS publishes a day's global mosaic only after that day is processed,
-   * so "today" reliably returns blank tiles — which on screen is
+   * so "today" reliably returns blank tiles - which on screen is
    * indistinguishable from a broken layer. The upper bound has to sit
    * behind the present.
    */
@@ -62,7 +62,7 @@ describe("buildGibsTileUrl", () => {
     const url = buildGibsTileUrl(layer, "2015-02-15");
     expect(url).toContain("/2015-02-15/");
     expect(url).toContain(layer.product);
-    // GIBS's EPSG:3857 endpoint is {z}/{y}/{x} — NOT the {z}/{x}/{y} that
+    // GIBS's EPSG:3857 endpoint is {z}/{y}/{x} - NOT the {z}/{x}/{y} that
     // most tile services use. Getting this the usual way round returns
     // tiles from the wrong place on Earth, which is far worse than an
     // error because it renders perfectly.

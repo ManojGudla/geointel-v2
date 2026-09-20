@@ -4,14 +4,14 @@ import { createRng, type Rng } from "../../lib/random";
  * Cricket, played properly: the ball is bowled at you and you have to time
  * your shot.
  *
- * The old version was a menu — pick one of five shots, read the result. That
+ * The old version was a menu - pick one of five shots, read the result. That
  * is a quiz about cricket, not cricket. Here the ball actually travels down
  * the pitch over a real number of milliseconds and the ONLY thing that
  * decides what happens is how close your swing was to the right moment. Miss
  * the moment by 30ms and you middle it for six; miss it by 300ms and you're
  * bowled.
  *
- * This file is the pure part — timing windows, outcomes, the bowler's
+ * This file is the pure part - timing windows, outcomes, the bowler's
  * choices. The animation lives in the component, so all the rules are
  * testable without a browser and cannot drift from what's on screen.
  */
@@ -66,7 +66,7 @@ export interface Delivery {
    * short ball sits up and gives you longer. Multiplies every timing window.
    */
   forgiveness: number;
-  /** Speed in km/h — shown to the player, and it's what travelMs is from. */
+  /** Speed in km/h - shown to the player, and it's what travelMs is from. */
   speedKph: number;
 }
 
@@ -87,12 +87,12 @@ const WINDOWS = {
  * The scoring windows, exported so the screen can DRAW them.
  *
  * They were private, and the game was unplayable because of it. A player was
- * told "NOW — tap or SPACE" with nothing on screen showing how wide "now" is
+ * told "NOW - tap or SPACE" with nothing on screen showing how wide "now" is
  * or how close they were to it, so timing the shot came down to guessing and
  * feedback arrived only after the ball had gone. Reported exactly that way:
  * "where to hit".
  *
- * Publishing them means the meter cannot drift out of step with the scoring —
+ * Publishing them means the meter cannot drift out of step with the scoring -
  * it is not an approximation of the windows, it is the windows.
  */
 export const CONTACT_WINDOWS = WINDOWS;
@@ -125,7 +125,7 @@ export interface BallResult {
   contact: Contact;
   /** Signed: negative is early, positive is late. Shown so you can learn. */
   offsetMs: number;
-  /** Plain-English reason, e.g. "Too early — bowled". */
+  /** Plain-English reason, e.g. "Too early - bowled". */
   detail: string;
 }
 
@@ -135,7 +135,7 @@ export interface BallResult {
  * Aim is a genuine risk/reward decision rather than decoration: hitting
  * straight is the safest way to turn good timing into runs, the leg side pays
  * best off short balls, and the off side is where the catches are. None of it
- * matters if the timing is bad — which is correct, because in cricket it
+ * matters if the timing is bad - which is correct, because in cricket it
  * doesn't either.
  */
 function scoreContact(contact: Contact, delivery: Delivery, aim: Aim, rng: Rng): BallResult {
@@ -234,7 +234,7 @@ export function nextDelivery(difficulty: Difficulty, rng: Rng): Delivery {
   const bowler = rng.pick(["pace", "medium", "spin"] as BowlerType[]);
   const [min, max] = SPEED_RANGE[difficulty];
   const travelMs = Math.round((min + rng.next() * (max - min)) * BOWLER_SPEED[bowler]);
-  // A 20m effective pitch length, converted to km/h from the travel time —
+  // A 20m effective pitch length, converted to km/h from the travel time -
   // so the speed shown is derived from the ball you actually face, not a
   // decorative number.
   const speedKph = Math.round((20 / (travelMs / 1000)) * 3.6);
@@ -340,7 +340,7 @@ export function averageTimingError(history: BallRecord[]): number | null {
  * tells you the length before the ball is released.
  *
  * Limited rather than priced, because cricket already has a natural version of
- * this — a batter picks a bowler's length from their hand, and can only do it
+ * this - a batter picks a bowler's length from their hand, and can only do it
  * so often before the bowler changes it up. Three per match is enough to save
  * you at the death and not enough to remove the guessing.
  */
@@ -365,7 +365,7 @@ export function suggestedAim(length: Length): Aim {
  * What makes a cricket chase a cricket chase.
  *
  * The engine above already models a good ball. What it did not model was
- * PRESSURE — the thing that makes the last over of a real match unbearable to
+ * PRESSURE - the thing that makes the last over of a real match unbearable to
  * watch. A batter facing 6 balls needing 4 runs plays completely differently
  * from one needing 24, and until now the game could not tell you which
  * situation you were in. You just swung at eighteen balls and found out at the
@@ -397,7 +397,7 @@ export function chaseState(state: MatchState): ChaseState {
   };
 }
 
-/** "Needs 14 off 6" — the line every chase is actually about. */
+/** "Needs 14 off 6" - the line every chase is actually about. */
 export function chaseLine(state: MatchState): string {
   const { runsNeeded, ballsLeft } = chaseState(state);
   if (runsNeeded <= 0) return "Target reached";
@@ -447,7 +447,7 @@ export function createSuperOver(previous: MatchState, rng: Rng): MatchState {
  * The bowler adapts to where you keep hitting.
  *
  * Without this the bowling is uniformly random, which means there is nothing
- * to learn after the first few overs — every ball is a fresh coin flip and
+ * to learn after the first few overs - every ball is a fresh coin flip and
  * skill tops out at pure reaction speed. A real bowler watches where you are
  * scoring and takes it away from you.
  *
@@ -567,12 +567,12 @@ export function commentary(before: MatchState, after: MatchState, result: BallRe
  * Whether the umpire actually got it right.
  *
  * Real cricket has an umpire who can be wrong, and a review system that exists
- * precisely because of it. That is not decoration — it is the source of most
+ * precisely because of it. That is not decoration - it is the source of most
  * of the drama in a modern match, and it turns a dismissal from a full stop
  * into a decision the player gets to make.
  *
  * The truth is fixed at the moment the ball is bowled, not when the review is
- * called, so reviewing cannot change what happened — it can only reveal it.
+ * called, so reviewing cannot change what happened - it can only reveal it.
  * Anything else would be a slot machine wearing a cricket costume.
  */
 /**

@@ -1,11 +1,11 @@
 /**
- * Four-in-a-Row (Connect Four) — the real thing: a 7-wide, 6-tall board where
+ * Four-in-a-Row (Connect Four) - the real thing: a 7-wide, 6-tall board where
  * discs fall to the lowest empty cell in the column you pick, and you win by
  * making four in a row horizontally, vertically or on either diagonal.
  *
  * A NOTE ON THE BOARD SIZE, because it caused confusion:
  * this is a NEW game, separate from Tic-Tac-Toe. Tic-Tac-Toe in this product
- * is, and has always been, a 3×3 board with 8 win lines — that's what's in
+ * is, and has always been, a 3×3 board with 8 win lines - that's what's in
  * src/features/games/tictactoe/engine.ts and what its tests assert. Nothing
  * here changes it. If you want "four in a row", this file is that game,
  * played the way Connect Four is actually played (gravity, 7×6), rather than
@@ -39,7 +39,7 @@ export function cellAt(board: Board, row: number, column: number): Cell {
 }
 
 /**
- * Whose turn it is, derived from the board rather than tracked separately —
+ * Whose turn it is, derived from the board rather than tracked separately -
  * so it can never disagree with what's actually on the board (the bug class
  * that produces "it's your turn" while the AI is still thinking).
  */
@@ -66,7 +66,7 @@ export function legalColumns(board: Board): number[] {
 /**
  * Drops a disc. Returns the SAME board reference for an illegal move (full
  * column, out of range, or a finished game), so a caller can cheaply detect
- * "nothing happened" — this is what stops rapid clicking from queueing extra
+ * "nothing happened" - this is what stops rapid clicking from queueing extra
  * moves through the AI's think delay.
  */
 export function applyMove(board: Board, column: number): Board {

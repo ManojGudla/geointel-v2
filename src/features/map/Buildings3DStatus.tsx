@@ -11,7 +11,7 @@ import "./Buildings3DStatus.css";
  * Building footprints are only fetched at zoom 16 and closer (the query
  * returns full polygon geometry, which is far heavier than the point queries
  * elsewhere in the app, and extrusions are meaningless when zoomed out
- * anyway) — so pressing 3D from a city-wide view tilted the camera and
+ * anyway) - so pressing 3D from a city-wide view tilted the camera and
  * loaded nothing, with no explanation. Indistinguishable from broken.
  *
  * Coverage is the other half: OSM building outlines are excellent in some

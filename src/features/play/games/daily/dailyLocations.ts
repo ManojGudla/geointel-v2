@@ -2,7 +2,7 @@
  * The places the Daily Challenge can send you to, and the clues that make them
  * guessable.
  *
- * This file IS the game. Everything else — scoring, streaks, sharing — is
+ * This file IS the game. Everything else - scoring, streaks, sharing - is
  * plumbing; whether anyone plays twice depends on whether these locations are
  * interesting to look at from above and satisfying to work out.
  *
@@ -10,7 +10,7 @@
  * SHAPE you could reason about from a satellite image with no labels? A
  * generic suburb is unguessable and teaches nothing. A star-shaped fortress
  * town, a river delta, an airport built on a man-made island, a mine visible
- * from orbit — those are solvable by looking, and they leave the player
+ * from orbit - those are solvable by looking, and they leave the player
  * knowing something they didn't.
  *
  * ── Why the clues exist ────────────────────────────────────────────────────
@@ -18,7 +18,7 @@
  * The first version of this game shipped with no help at all: a photo, a blank
  * world map, and nothing else. That was a mistake, and it was obvious the
  * moment a real player hit a round they didn't know. From directly overhead,
- * a waterfall is a river with white water in it — Iguazú, Victoria Falls and
+ * a waterfall is a river with white water in it - Iguazú, Victoria Falls and
  * Niagara are genuinely indistinguishable that way, and no amount of staring
  * helps. A player who cannot even begin to reason doesn't feel challenged,
  * they feel taunted, and they close the tab.
@@ -30,7 +30,7 @@
  *                  Free because being stuck with no way forward is the failure
  *                  mode worth eliminating entirely, not taxing.
  *   Clue 2 (paid)  what you are looking at, in plain words. Reframes the photo.
- *   Clue 3 (paid)  the geography that pins it down — a neighbouring country, a
+ *   Clue 3 (paid)  the geography that pins it down - a neighbouring country, a
  *                  named river, a coastline. Enough to place it if you know the
  *                  region at all.
  *
@@ -46,8 +46,8 @@
  *   that wasted the player's points.
  *
  * On the coordinates: each is the landmark or city centre itself, accurate to
- * roughly a kilometre. That is far inside the scoring bands — the difference
- * between 5000 and 4900 points is about 20 km — so this precision is honest
+ * roughly a kilometre. That is far inside the scoring bands - the difference
+ * between 5000 and 4900 points is about 20 km - so this precision is honest
  * for the purpose, and nothing here is interpolated or invented to fill a gap.
  */
 
@@ -70,7 +70,7 @@ export type DailyRegion =
 /**
  * Where the guess map jumps to when the free clue is taken.
  *
- * Zooms are deliberately loose — one step wider than the continent needs — so
+ * Zooms are deliberately loose - one step wider than the continent needs - so
  * the player can still see the neighbouring landmasses and reason about the
  * edges. Framed tightly, the clue would stop being a hint and start being an
  * answer.
@@ -103,7 +103,7 @@ export interface DailyLocation {
   /**
    * The two paid clues, in the order they are offered.
    * [0] what you are looking at. [1] the geography that pins it down.
-   * Neither may name this place or this country — see the tests.
+   * Neither may name this place or this country - see the tests.
    */
   clues: [string, string];
   /** Shown after the guess. The reason this place was worth visiting. */
@@ -111,7 +111,7 @@ export interface DailyLocation {
 }
 
 export const DAILY_LOCATIONS: DailyLocation[] = [
-  // ── Tier 1 — recognisable outlines most players can place ──────────────
+  // ── Tier 1 - recognisable outlines most players can place ──────────────
   {
     id: "giza",
     name: "Pyramids of Giza",
@@ -305,7 +305,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
     fact: "The statue stands on Corcovado inside Tijuca Forest, one of the largest urban forests in the world, replanted by hand in the 1860s.",
   },
 
-  // ── Tier 2 — solvable by reasoning about the shape ─────────────────────
+  // ── Tier 2 - solvable by reasoning about the shape ─────────────────────
   {
     id: "brasilia",
     name: "Brasília",
@@ -691,7 +691,7 @@ export const DAILY_LOCATIONS: DailyLocation[] = [
     fact: "A limestone cave that collapsed when sea levels were far lower, then flooded as the ice age ended.",
   },
 
-  // ── Tier 3 — for players who know the world properly ───────────────────
+  // ── Tier 3 - for players who know the world properly ───────────────────
   {
     id: "longyearbyen",
     name: "Longyearbyen, Svalbard",

@@ -10,8 +10,8 @@ import { categoryLabel } from "./categories";
 /**
  * The single implementation of every spatial operation.
  *
- * Both entry points go through here — the Tools panel's controls and the AI
- * command bar — so a question asked in words and the same question asked
+ * Both entry points go through here - the Tools panel's controls and the AI
+ * command bar - so a question asked in words and the same question asked
  * with dropdowns cannot produce different answers. That mattered enough to
  * be worth the indirection: "hospitals within 5 km" typed into the AI box
  * and selected from the panel are the same query, and a user who tried both

@@ -7,7 +7,7 @@ import { PLAY_URL } from "../../src/features/play/share";
  * Where a shared score sends people.
  *
  * A game result pasted into a chat is the only thing this product has that
- * spreads on its own — no ads, no audience, no budget — so the link inside it
+ * spreads on its own - no ads, no audience, no budget - so the link inside it
  * is the whole acquisition channel. It was written inline in eight separate
  * files, and the copy that drifted was the one in share.ts: "https://manowj.com",
  * the bare domain. Until the apex was added to Vercel that host had no
@@ -43,7 +43,7 @@ describe("the URL is written down once", () => {
 
   it("appears inline nowhere under features/play except share.ts", () => {
     /*
-      The actual defect. Eight copies of one string is not a style problem —
+      The actual defect. Eight copies of one string is not a style problem -
       it is the mechanism by which one of them became wrong and stayed wrong,
       because nothing that reads the other seven tells you the eighth exists.
     */

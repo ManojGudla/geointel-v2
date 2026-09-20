@@ -14,7 +14,7 @@ import { Header } from "../../src/components/Header";
  *
  * The first is that the panel hid most of itself. Measured in Chromium at
  * 1440x900, the Layers section was 1877px of content in a 695px window with a
- * scrollbar exactly 0px wide — both macOS and current Windows use overlay
+ * scrollbar exactly 0px wide - both macOS and current Windows use overlay
  * scrollbars that are invisible until something scrolls, so the panel looked
  * like it simply ended, and two thirds of it was unreachable by anyone who
  * did not think to try.
@@ -47,7 +47,7 @@ describe("the panel admits that it scrolls", () => {
       Four background layers: two `local` covers that scroll away with the
       content, and two `scroll` radials pinned to this box. That combination
       is what makes the shadow appear only at an end that has more beyond it
-      and vanish when you reach it — no JS, no scroll listener.
+      and vanish when you reach it - no JS, no scroll listener.
     */
     const body = css.match(/\.side-panel__body\s*\{[^}]*\}/s)?.[0] ?? "";
     expect((body.match(/gradient\(/g) ?? []).length).toBe(4);
@@ -71,7 +71,7 @@ describe("the layer panel's controls", () => {
     /*
       It was declared twice, with conflicting gap, padding and border. The
       later block silently won on everything it named, so half of the first
-      one never applied — the kind of dead CSS that makes a stylesheet lie
+      one never applied - the kind of dead CSS that makes a stylesheet lie
       about what it does.
     */
     const declarations = css.match(/^\.layer-manager__opacity\s*\{/gm) ?? [];
@@ -138,7 +138,7 @@ describe("the document head", () => {
   const html = read("index.html");
 
   it("tells crawlers they may show a large image and a full snippet", () => {
-    // Absent, the default is already index,follow — the value is in the
+    // Absent, the default is already index,follow - the value is in the
     // three limits, which decide what a result is allowed to look like.
     expect(html).toMatch(/name="robots"/);
     expect(html).toMatch(/max-image-preview:large/);

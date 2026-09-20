@@ -10,7 +10,7 @@ import "./FindIt.css";
 const MAX_MISSES = 3;
 
 /**
- * Find It — spot the one icon that matches the target, before the timer runs
+ * Find It - spot the one icon that matches the target, before the timer runs
  * out. No questions, no options to read: just look and tap.
  *
  * The run ends on the third mistake or the first time the clock beats you,
@@ -111,7 +111,7 @@ export function FindIt({ onBackToHub }: { onBackToHub: () => void }) {
       return;
     }
 
-    // A wrong tap costs a life but not the level — you keep looking.
+    // A wrong tap costs a life but not the level - you keep looking.
     const nextMisses = misses + 1;
     setMisses(nextMisses);
     setFlash("miss");

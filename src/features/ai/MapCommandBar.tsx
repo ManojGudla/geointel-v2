@@ -49,7 +49,7 @@ function toRequest(command: MapCommand, origin: { lat: number; lon: number }): A
  * The distinction that matters: the language model chooses WHICH spatial
  * operation to run and with what parameters. It never produces the answer.
  * Every count, distance and score below comes from running that operation
- * against real OpenStreetMap data — so the model being wrong shows up as
+ * against real OpenStreetMap data - so the model being wrong shows up as
  * "it searched for the wrong thing", visibly, rather than as a confident
  * fabricated number that nobody can check.
  *
@@ -58,7 +58,7 @@ function toRequest(command: MapCommand, origin: { lat: number; lon: number }): A
  * keeps working after the free AI tier's daily quota is spent.
  *
  * The step list below is not a loading animation. Each line marks a real
- * transition — understood, radius set, layers switched on, data queried —
+ * transition - understood, radius set, layers switched on, data queried -
  * and the "layers switched on" step names the layers, because an analysis
  * that silently changes the map is only marginally better than one that
  * doesn't change it at all.
@@ -106,7 +106,7 @@ export function MapCommandBar() {
     if (!text.trim()) return;
 
     // Settings commands are handled FIRST, and they don't need a selected
-    // location — "turn off weather effects" is about the map, not a place.
+    // location - "turn off weather effects" is about the map, not a place.
     // Each one applies the real store action before anything is said back, so
     // the reply can never claim a change that didn't happen.
     const setting = parseSettingCommand(text);
@@ -133,7 +133,7 @@ export function MapCommandBar() {
       let command = parseMapCommand(text);
 
       if (!command) {
-        // Local parser couldn't read it — spend one model call on working
+        // Local parser couldn't read it - spend one model call on working
         // out the operation.
         setUsedModel(true);
         const { intent } = await apiPost<{
@@ -256,7 +256,7 @@ export function MapCommandBar() {
 
       {/* The answer appears right here, under the question. Sending the user
           to another panel to read it would also unmount the line above that
-          says what the question was understood to mean — which is the part
+          says what the question was understood to mean - which is the part
           that makes a misreading obvious. */}
       {understood && !problem && <AnalysisResultView />}
     </div>

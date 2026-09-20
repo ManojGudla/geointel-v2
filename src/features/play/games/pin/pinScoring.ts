@@ -5,8 +5,8 @@ import { createRng } from "../../lib/random";
  * Scoring for the two "click the map" games: Pin the Place and Map Race.
  *
  * The curve is exponential, not linear. On a world map a linear score makes
- * the whole game feel the same — landing 300 km out and 3,000 km out both
- * read as "some points" — whereas an exponential decay makes precision
+ * the whole game feel the same - landing 300 km out and 3,000 km out both
+ * read as "some points" - whereas an exponential decay makes precision
  * actually pay, which is what makes people want another go.
  *
  * 5000 points is a perfect pin. The half-life is set so that:
@@ -34,7 +34,7 @@ export interface PinResult {
 
 /**
  * The verdict is written in plain words rather than a number alone, because
- * "218 km" means nothing to most people and "Close — right city region" does.
+ * "218 km" means nothing to most people and "Close - right city region" does.
  */
 export function judgePin(guessLat: number, guessLon: number, target: Place): PinResult {
   const distanceKm = haversineKm(guessLat, guessLon, target.lat, target.lon);

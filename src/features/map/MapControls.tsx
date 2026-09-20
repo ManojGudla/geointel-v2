@@ -17,7 +17,7 @@ const BASEMAPS: Array<{ id: Basemap; label: string; note: string }> = [
  * that spot permanently, and on a phone the four basemap buttons overflowed
  * their row and collided with the Copilot launcher. More to the point, map
  * settings scattered between a floating control and a panel is exactly the
- * "where is anything" problem the rail exists to end — so basemap, 3D and
+ * "where is anything" problem the rail exists to end - so basemap, 3D and
  * the layer switches now share one home, with room to say what each option
  * actually gives you.
  */
@@ -51,7 +51,7 @@ export function MapControls() {
       <ImageryDate />
 
       {/* The label says what pressing it DOES, including the part people were
-          not expecting — it moves the camera in as well as tilting it, because
+          not expecting - it moves the camera in as well as tilting it, because
           building outlines only load close up. Saying "switch to 3D" and then
           silently flying somewhere would be its own small surprise. */}
       <button

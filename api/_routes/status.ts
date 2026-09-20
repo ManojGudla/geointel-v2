@@ -8,7 +8,7 @@ import { getSupabaseClient } from "../_lib/supabase.js";
  * Live health of every external service this app depends on.
  *
  * Why this exists: this project's failure modes are almost entirely other
- * people's infrastructure — six free Overpass mirrors, Nominatim, Wikidata,
+ * people's infrastructure - six free Overpass mirrors, Nominatim, Wikidata,
  * OpenRouter, Supabase. When something breaks, the app degrades honestly but
  * gives no way to see WHICH dependency is at fault without reading server
  * logs. That's tolerable for one developer and not tolerable for a tool a
@@ -17,7 +17,7 @@ import { getSupabaseClient } from "../_lib/supabase.js";
  *
  * Every check here is a REAL probe with a real measured latency. Nothing is
  * assumed healthy, and nothing reports green because a key happens to be
- * present — the one exception is documented on the OpenRouter check below,
+ * present - the one exception is documented on the OpenRouter check below,
  * and it reports "configured" rather than "operational" precisely so it
  * isn't mistaken for a liveness result.
  */
@@ -41,7 +41,7 @@ interface DependencyStatus {
 // few of them) can't become a load source of its own.
 const cache = new TtlCache<{ dependencies: DependencyStatus[]; checkedAt: string }>(60 * 1000);
 const limiter = new RateLimiter(60_000, 30);
-// Probes run in parallel, so the page is as slow as the slowest one — and a
+// Probes run in parallel, so the page is as slow as the slowest one - and a
 // dead mirror burns the whole budget before failing. The first live run took
 // 5.1s because three mirrors timed out. 3.5s still gives a genuinely slow but
 // alive service room to answer, while keeping the page quick during exactly
@@ -51,7 +51,7 @@ const CACHE_KEY = "status";
 
 const USER_AGENT = "maNOWj-GeoIntel/2.0 (status check; contact: geointel app)";
 
-/** Times a probe and converts any throw into a "down" result — a status page must never itself 500. */
+/** Times a probe and converts any throw into a "down" result - a status page must never itself 500. */
 async function probe(
   id: string,
   name: string,
@@ -78,7 +78,7 @@ async function probe(
  * Overpass mirrors are reported as ONE dependency with a count, because
  * that's how the app actually consumes them: queries race across mirrors, so
  * what matters is "how many are answering", not any single one. Their own
- * /api/status endpoint is used rather than a real query — it's what mirror
+ * /api/status endpoint is used rather than a real query - it's what mirror
  * operators provide for exactly this purpose and costs them almost nothing.
  */
 async function probeOverpass(): Promise<{ status: DependencyStatus["status"]; detail: string }> {
@@ -99,7 +99,7 @@ async function probeOverpass(): Promise<{ status: DependencyStatus["status"]; de
   const detail = `${healthy} of ${total} public mirrors responding`;
 
   // Thresholds are deliberately strict. The first live run of this page
-  // reported "operational — 3 of 6 responding", which is a green light over
+  // reported "operational - 3 of 6 responding", which is a green light over
   // a real loss of half the redundancy this app depends on, and precisely
   // the kind of reassuring-but-wrong signal the rest of the project refuses
   // to emit. Losing half the mirrors is degraded: queries still succeed, but
@@ -135,7 +135,7 @@ async function probeWikidata(): Promise<{ status: DependencyStatus["status"]; de
  * Deliberately does NOT make a completion request. On OpenRouter's free tier
  * the whole app shares a 50-requests-per-day quota, so a status page that
  * generated a token every time it loaded would consume the very budget it's
- * reporting on — and would drain it fastest exactly when someone is anxiously
+ * reporting on - and would drain it fastest exactly when someone is anxiously
  * refreshing during an outage. /api/v1/models is a plain metadata read that
  * doesn't touch generation quota; it confirms the key is accepted and the
  * provider is reachable, which is what's actually diagnosable from here.
@@ -166,7 +166,7 @@ async function probeSupabase(): Promise<{ status: DependencyStatus["status"]; de
   }
   const { error } = await withTimeout(client.from("app_settings").select("id").limit(1), PROBE_TIMEOUT_MS, "Supabase probe");
   // The message is logged, not returned. /api/status needs no auth, and a raw
-  // PostgREST error names tables, roles and policies — and a DNS failure names
+  // PostgREST error names tables, roles and policies - and a DNS failure names
   // the Supabase project host. Everywhere else in this API errors are logged
   // and answered with a fixed string; this was the one place that wasn't.
   if (error) {
@@ -181,13 +181,13 @@ const handler: ApiHandler = async (req, res) => {
   if (!rate.allowed) {
     const cached = cache.get(CACHE_KEY);
     // Rate-limited callers still get the last known result rather than an
-    // error — a status page that fails under load is worse than a stale one,
+    // error - a status page that fails under load is worse than a stale one,
     // as long as it says how old the reading is.
     if (cached) return ok(res, { ...cached, stale: true });
     // Previously this branch fell through with no `else`, so a rate-limited
     // caller with a cold cache ran all ten upstream probes anyway. On
     // serverless the cache IS cold on every new instance, so that was the
-    // normal path, not an edge case — one request in, ten out.
+    // normal path, not an edge case - one request in, ten out.
     return err(res, 429, "Too many status requests. Please slow down.", "RATE_LIMITED");
   }
 

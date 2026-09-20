@@ -7,13 +7,13 @@ import { join, relative, sep } from "node:path";
  *
  * A stylesheet per component makes it very easy for each one to pick its own
  * breakpoint by eye. Do that thirty times and the app rearranges itself at a
- * dozen unrelated widths as you resize — which reads to a user as the layout
+ * dozen unrelated widths as you resize - which reads to a user as the layout
  * being unpredictable rather than designed, and to the next developer as
  * there being no rule to follow.
  *
  * There is a rule: 900px and 640px, documented in tokens.css, plus four
  * component-local exceptions that are listed by name below. This test is what
- * keeps that from being a comment nobody reads — a new value fails here, and
+ * keeps that from being a comment nobody reads - a new value fails here, and
  * adding it means either using a canonical one or writing down why not.
  */
 
@@ -51,7 +51,7 @@ function cssFiles(dir: string, found: string[] = []): string[] {
 }
 
 /**
- * Only `@media` conditions — never the `max-width` layout property.
+ * Only `@media` conditions - never the `max-width` layout property.
  *
  * Conflating the two is what made an earlier count of this claim twelve
  * breakpoints when the real number was six: `max-width: 760px` centring a
@@ -109,7 +109,7 @@ describe("how many widths the layout reflows at", () => {
 
   it("agrees with the shell's TypeScript about where the sheet starts", async () => {
     /*
-      900px is written in CSS twenty-nine times and in TypeScript twice —
+      900px is written in CSS twenty-nine times and in TypeScript twice -
       shellStore decides whether the panel starts open, useSheet decides
       whether it behaves as a sheet. If those drift there is a band of widths
       where the rail has moved to the bottom but the panel is still a column,

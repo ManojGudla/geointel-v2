@@ -9,7 +9,7 @@ import { formatDistanceKm } from "../pin/pinScoring";
 import { playTone } from "../../sound";
 
 const DURATION_SECONDS = 60;
-/** How close counts as finding it. Generous — this is a speed game. */
+/** How close counts as finding it. Generous - this is a speed game. */
 const HIT_RADIUS_KM = 500;
 
 interface Hit {
@@ -19,7 +19,7 @@ interface Hit {
 }
 
 /**
- * Map Race — sixty seconds, one place at a time, find as many as you can.
+ * Map Race - sixty seconds, one place at a time, find as many as you can.
  *
  * A miss costs you nothing but the seconds it took, which is what keeps the
  * game moving: hesitating is the real penalty, not being wrong. The hit
@@ -48,7 +48,7 @@ export function MapRace({ onBackToHub }: { onBackToHub: () => void }) {
     setPhase("done");
   }, []);
 
-  // The clock. One interval, cleared on unmount and when the round ends —
+  // The clock. One interval, cleared on unmount and when the round ends -
   // a timer that outlives the component is how a game keeps "playing" in the
   // background after you close it.
   useEffect(() => {
@@ -75,7 +75,7 @@ export function MapRace({ onBackToHub }: { onBackToHub: () => void }) {
     setApplied(
       recordRound({
         gameId: "map-race",
-        // Score IS the number found — a straightforward number people can
+        // Score IS the number found - a straightforward number people can
         // compare and beat, rather than a weighted figure nobody can predict.
         score: found,
         outcome: "complete",

@@ -19,7 +19,7 @@ interface RoundRecord {
 }
 
 /**
- * Pin the Place — you're shown a name, you click where you think it is on a
+ * Pin the Place - you're shown a name, you click where you think it is on a
  * label-free world map, and you're scored on how close you got.
  *
  * The scoring curve is in pinScoring.ts and is exponential, so precision
@@ -86,7 +86,7 @@ export function PinThePlace({
       const all = records;
       const total = all.reduce((n, r) => n + r.score, 0);
       // Flags come from the distances actually achieved this game, one entry
-      // per qualifying guess — the "5 within 100 km" achievement counts
+      // per qualifying guess - the "5 within 100 km" achievement counts
       // guesses, so each one has to be reported.
       const earned = all.flatMap((r) => {
         const out: string[] = [];

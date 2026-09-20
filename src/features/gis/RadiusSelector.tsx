@@ -4,7 +4,7 @@ import "./RadiusSelector.css";
 /**
  * Each preset carries what it MEANS, not just how far it is.
  *
- * "250 m" tells a surveyor everything and a first-time visitor nothing —
+ * "250 m" tells a surveyor everything and a first-time visitor nothing -
  * they have no idea whether that is a street or a suburb, so they have no
  * basis for choosing. The distance stays (professionals need the number)
  * and the meaning sits beside it, which is the whole beginner/expert

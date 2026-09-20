@@ -4,7 +4,7 @@ import { useRouteStore } from "@/stores/routeStore";
 
 /**
  * Shared by DirectionsPanel (reads the result to show distance/duration)
- * and MapView (reads the geometry to draw the line) — same TanStack Query
+ * and MapView (reads the geometry to draw the line) - same TanStack Query
  * key means both get the same cached response with a single network call.
  */
 export function useRoute() {

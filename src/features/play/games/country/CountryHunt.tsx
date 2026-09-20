@@ -18,7 +18,7 @@ import {
 import "./CountryHunt.css";
 
 /**
- * Country Hunt — you are told a country, you click where it is.
+ * Country Hunt - you are told a country, you click where it is.
  *
  * Built because "improve the country/map games" needed something that is not
  * another multiple-choice quiz. Clicking a map uses knowledge a quiz throws

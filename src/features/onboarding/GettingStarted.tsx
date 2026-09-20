@@ -9,14 +9,14 @@ import "./GettingStarted.css";
  * What the Place panel shows before anything is selected.
  *
  * This replaces "Search a place or use your current location to see details
- * here." — accurate, and no help at all to the people who couldn't work the
+ * here." - accurate, and no help at all to the people who couldn't work the
  * app without being walked through it. An empty state is the one screen
  * every single visitor sees, so it's the only reliable place to teach
  * anything: what this tool is, something to click that proves it, and where
  * the rest of the features live.
  *
  * The example places are real coordinates, selected directly rather than
- * round-tripped through a text search — a first click that fails because a
+ * round-tripped through a text search - a first click that fails because a
  * volunteer geocoding service is rate-limited is a bad first click.
  */
 const EXAMPLES: Array<{ name: string; where: string; lat: number; lon: number }> = [
@@ -54,7 +54,7 @@ export function GettingStarted() {
       const location = await reverseGeocode(example.lat, example.lon);
       setSelectedLocation({ ...location, name: example.name });
     } catch {
-      // The point is already selected and every panel works from it — the
+      // The point is already selected and every panel works from it - the
       // richer address is a bonus, not a requirement.
     }
   };

@@ -54,17 +54,17 @@
 }
 
 /*
-  The panel's one scrolling region — and, measured, the reason people report
+  The panel's one scrolling region - and, measured, the reason people report
   they cannot find the features on a desktop.
 
   On a 1440x900 MacBook the Layers section is 1877px of content in a 695px
   window: 1182px of it, nearly two thirds, is below the fold. That on its own
-  would be fine. What is not fine is that there was no scrollbar — measured
+  would be fine. What is not fine is that there was no scrollbar - measured
   offsetWidth minus clientWidth came back as 0, because both macOS and modern
   Windows use overlay scrollbars that are completely invisible until the
   moment something scrolls. So the panel looked like it ended at "Map data",
-  and everything past it — live feeds, imagery back to 2012, the whole lower
-  half of the section — may as well not have shipped.
+  and everything past it - live feeds, imagery back to 2012, the whole lower
+  half of the section - may as well not have shipped.
 
   Two fixes, both permanent rather than on-hover:
 
@@ -74,7 +74,7 @@
      coordinate space and scroll away with it; the two `scroll` radials stay
      pinned to the viewport of this box. The result is a soft edge that
      appears at whichever end has more content and vanishes when you reach it
-     — so "there is more below" is visible without hovering, without JS, and
+     - so "there is more below" is visible without hovering, without JS, and
      without a scroll event listener firing sixty times a second.
 */
 .side-panel__body {
@@ -179,14 +179,14 @@
 /*
   Phones and small tablets: the panel becomes a bottom sheet.
 
-  This used to be `position: absolute; inset: 0` — a full-screen overlay. On a
+  This used to be `position: absolute; inset: 0` - a full-screen overlay. On a
   map application that meant tapping "Layers" replaced the map with a list of
   controls FOR the map, and nothing on screen connected the two. It is the
   most plausible explanation for the report that people open this on a phone
   and cannot work out what it is.
 
-  The sheet never takes the whole column — `full` stops at 94%, see
-  DETENT_FRACTION in sheet.ts — so there is always map above it and the
+  The sheet never takes the whole column - `full` stops at 94%, see
+  DETENT_FRACTION in sheet.ts - so there is always map above it and the
   relationship between the control and the thing it controls stays visible.
 */
 @media (max-width: 900px) {
@@ -260,7 +260,7 @@
 }
 
 /* Someone who has asked their system to stop animating still gets every
-   detent — the sheet simply arrives at the new height instead of travelling
+   detent - the sheet simply arrives at the new height instead of travelling
    to it. Declared after the sheet block so it wins. */
 @media (prefers-reduced-motion: reduce) {
   .side-panel {

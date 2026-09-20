@@ -6,7 +6,7 @@ import { runOverpassQuery, buildEvidenceQuery, normalizeElement, type OverpassEl
 import { classifyFeatures, totalEvidenceCount, type GISFeatureDto } from "./gis.js";
 
 /**
- * Powers "click a building/POI on the map" — a tight-radius version of
+ * Powers "click a building/POI on the map" - a tight-radius version of
  * api/gis.ts's evidence query, so clicking one spot answers "what's right
  * here" instead of re-running the whole analysis-radius query. Reuses
  * classifyFeatures so the Commercial/Residential/Institutional/Industrial
@@ -16,13 +16,13 @@ import { classifyFeatures, totalEvidenceCount, type GISFeatureDto } from "./gis.
 const POI_RADIUS_METERS = 60;
 const MAX_POI_RADIUS_METERS = 150;
 
-// OSM's built environment — buildings, shops, amenities, POIs — changes over
+// OSM's built environment - buildings, shops, amenities, POIs - changes over
 // days and weeks, not minutes, so a short TTL bought nothing and cost a great
 // deal: every repeat view re-queried Overpass's free public mirrors, which are
 // the least reliable dependency in this app and were actively rate-limiting us.
 // Six hours matches what officials.ts already uses for similarly slow-moving
 // data. This is a per-instance in-memory cache on serverless (see cache.ts), so
-// it evaporates on a cold start — it reduces load and speeds up repeat views,
+// it evaporates on a cold start - it reduces load and speeds up repeat views,
 // it is not a durability guarantee.
 const cache = new TtlCache<OverpassElement[]>(6 * 60 * 60 * 1000);
 const limiter = new RateLimiter(60_000, 30);
@@ -44,7 +44,7 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
 /**
  * OSM's floor/level tagging is inconsistent, so this checks the tags that
  * actually carry it in rough order of reliability. Returns null (never a
- * guess) when nothing usable is present — the caller/UI is responsible for
+ * guess) when nothing usable is present - the caller/UI is responsible for
  * rendering that as "Unknown".
  */
 function floorsFromTags(tags: Record<string, string>): string | null {
@@ -76,7 +76,7 @@ function labelFeature(tags: Record<string, string>): string {
 }
 
 /**
- * Finds the closest feature to the exact click point, named or not — a
+ * Finds the closest feature to the exact click point, named or not - a
  * clicked bare building still deserves "here's what we found," not nothing.
  */
 function nearestFeature(elements: OverpassElement[], lat: number, lon: number) {
@@ -96,7 +96,7 @@ const NEARBY_LIMIT = 12;
 
 /**
  * Named, human-relevant features near the click point (shops, offices,
- * amenities, tourism, notable buildings) — "we need to be able to see
+ * amenities, tourism, notable buildings) - "we need to be able to see
  * nearby POIs," not just the single closest feature. Bare unnamed
  * buildings/landuse polygons are excluded here since a list of 40
  * anonymous "building" entries isn't useful; they're still counted in
@@ -154,8 +154,8 @@ const handler: ApiHandler = async (req, res) => {
   try {
     elements = await fetchElements(lat, lon, radius);
     // A tight click radius (60m default) can genuinely land on a spot with
-    // nothing mapped right there — a road centroid, a gap between building
-    // footprints, a corner of a large campus — even when real evidence
+    // nothing mapped right there - a road centroid, a gap between building
+    // footprints, a corner of a large campus - even when real evidence
     // exists just a bit further out. Rather than reporting "Vacant /
     // Unknown" off a single tight, possibly-unlucky radius, automatically
     // widen to the max once before giving up. Real click-to-inspect

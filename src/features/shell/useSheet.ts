@@ -14,7 +14,7 @@ import {
  * The drag behaviour for the mobile workspace sheet.
  *
  * Split from the maths in sheet.ts: this file owns the parts that need a DOM
- * — pointer capture, measuring the column the sheet lives in, and the media
+ * - pointer capture, measuring the column the sheet lives in, and the media
  * query that decides whether any of this applies at all.
  */
 
@@ -131,7 +131,7 @@ export function useSheet(enabled: boolean, onDismiss: () => void): Sheet {
 
       const fraction = fractionAfterDrag(active.startFraction, event.clientY - active.startY, active.height);
       // A tap produces a pointerup a pixel or two from the pointerdown. That
-      // must not be read as a drag to very nearly the same place — onClick
+      // must not be read as a drag to very nearly the same place - onClick
       // handles taps, and settling here as well would fight it.
       if (Math.abs(fraction - active.startFraction) < 0.02) return;
 

@@ -6,7 +6,7 @@ interface TimelineState {
   /** ISO date (YYYY-MM-DD) of the imagery being shown. */
   date: string;
   layerId: string;
-  /** 0–1. Blends the historical imagery against the live basemap underneath. */
+  /** 0-1. Blends the historical imagery against the live basemap underneath. */
   opacity: number;
   toggle: () => void;
   setDate: (date: string) => void;

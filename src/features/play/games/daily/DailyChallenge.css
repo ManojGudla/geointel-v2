@@ -2,7 +2,7 @@
   Daily Challenge.
 
   Laid out as a single scrolling column rather than a fixed two-pane layout,
-  because the game has to work on a phone held in one hand — which is where a
+  because the game has to work on a phone held in one hand - which is where a
   daily puzzle is actually played. The satellite view and the guess map are
   both full width and stacked; on a wide screen they sit side by side.
 */
@@ -88,7 +88,7 @@
 }
 
 /* Disabled is the normal state until a pin is placed, so it has to read as
-   "not yet" rather than "broken" — it carries the instruction itself. */
+   "not yet" rather than "broken" - it carries the instruction itself. */
 .daily__primary:disabled {
   background: var(--color-surface-2);
   color: var(--color-text-muted);

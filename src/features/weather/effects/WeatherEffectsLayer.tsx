@@ -21,14 +21,14 @@ interface WeatherCurrentDto {
 }
 
 /**
- * Draws real weather over the map — rain, snow, fog, cloud, storm — using the
+ * Draws real weather over the map - rain, snow, fog, cloud, storm - using the
  * actual reported condition at the selected location.
  *
  * Three things this does NOT do, all deliberate:
  *
  *  1. It does not run unless the user turned it on. Default off, always.
  *  2. It does not invent weather. If the lookup fails there is no effect and
- *     the toggle says "Weather unavailable" — a decorative shower over a dry
+ *     the toggle says "Weather unavailable" - a decorative shower over a dry
  *     city would be fabricated data on a map people are meant to trust.
  *  3. It does not sit on top of the data. The canvas is between the basemap
  *     and every overlay in the stacking order, is pointer-events: none, and
@@ -56,7 +56,7 @@ export function WeatherEffectsLayer() {
     queryKey: ["weather-effect", location?.lat, location?.lon],
     queryFn: ({ signal }) =>
       apiGet<WeatherCurrentDto>("/api/weather", { lat: location!.lat, lon: location!.lon }, signal),
-    // Only fetched when the effects are actually on — turning this feature off
+    // Only fetched when the effects are actually on - turning this feature off
     // must cost nothing, not even a request.
     enabled: enabled && !!location,
     staleTime: 10 * 60 * 1000,
@@ -73,7 +73,7 @@ export function WeatherEffectsLayer() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // "clear" is a real answer meaning "nothing to draw" — not a failure.
+    // "clear" is a real answer meaning "nothing to draw" - not a failure.
     if (!effect || effect === "clear") {
       const ctx = canvas.getContext("2d");
       ctx?.clearRect(0, 0, canvas.width, canvas.height);
@@ -150,7 +150,7 @@ export function WeatherEffectsLayer() {
 
     const field = fieldRef.current;
     // Web-Mercator pixels-per-degree at this zoom, which is what the map's own
-    // projection uses — so the shift matches how far the ground actually moved.
+    // projection uses - so the shift matches how far the ground actually moved.
     const scale = (256 * Math.pow(2, zoom)) / 360;
     const dx = -(center[0] - previous.center[0]) * scale;
     const latitudeScale = Math.cos((center[1] * Math.PI) / 180);

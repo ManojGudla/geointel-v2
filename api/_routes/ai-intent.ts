@@ -10,14 +10,14 @@ import { getAiCompletion } from "../_lib/ai.js";
  *
  * The model is deliberately given the narrowest possible job: pick one
  * operation and its parameters from a fixed list. It is never asked to
- * count anything, estimate anything, or describe a place — the app runs the
+ * count anything, estimate anything, or describe a place - the app runs the
  * operation itself against real data and reports real numbers. A language
  * model asked "how many hospitals are within 5 km of here" will happily
  * produce a confident number, and that number is fiction; asked "which of
  * these four operations is this question", it is doing the one thing it is
  * actually reliable at.
  *
- * Most questions never reach this endpoint at all — src/features/ai/
+ * Most questions never reach this endpoint at all - src/features/ai/
  * mapCommands.ts parses the common shapes locally, which keeps the free
  * tier's fifty-a-day quota for the questions that genuinely need it.
  */
@@ -26,7 +26,7 @@ import { getAiCompletion } from "../_lib/ai.js";
  * Durable, and sharing the "ai" scope with copilot and agent.
  *
  * This was an in-memory RateLimiter, which on Vercel is per serverless
- * instance and resets on every cold start — so parallel connections each got
+ * instance and resets on every cold start - so parallel connections each got
  * a fresh budget and the endpoint had no real ceiling at all. Its two sibling
  * AI routes were moved to the Postgres limiter precisely because a counter
  * that resets does not bound a bill; this one was missed.

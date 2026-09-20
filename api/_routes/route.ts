@@ -3,7 +3,7 @@ import { withMaintenanceGuard } from "../_lib/maintenance.js";
 import { ok, err, getQueryParam, getClientIp, withPrivateCache } from "../_lib/http.js";
 import { TtlCache, RateLimiter, fetchWithTimeout } from "../_lib/cache.js";
 
-// Multiple free OSRM-compatible mirrors, tried in order — the same
+// Multiple free OSRM-compatible mirrors, tried in order - the same
 // multi-provider failover pattern used for search/GIS.
 const ROUTERS: Record<string, string[]> = {
   car: ["https://routing.openstreetmap.de/routed-car/route/v1/driving", "https://router.project-osrm.org/route/v1/driving"],
@@ -18,7 +18,7 @@ interface OsrmManeuver {
   type: string;
   modifier?: string;
   exit?: number;
-  /** [lon, lat] — where the manoeuvre happens. */
+  /** [lon, lat] - where the manoeuvre happens. */
   location?: [number, number];
 }
 
@@ -58,7 +58,7 @@ const MODIFIER_TEXT: Record<string, string> = {
 
 /**
  * Turns one OSRM step's `maneuver` (a {type, modifier} pair from a fixed,
- * documented vocabulary — https://project-osrm.org/docs/.../StepManeuver)
+ * documented vocabulary - https://project-osrm.org/docs/.../StepManeuver)
  * into a human sentence. Never invents a street name or direction that
  * isn't in the maneuver/step data itself.
  */
@@ -185,7 +185,7 @@ const handler: ApiHandler = async (req, res) => {
    * Flattens every leg's steps into one ordered list. There's only ever one
    * leg for a simple from->to route, but multi-leg still works. Zero-distance
    * "notification" steps are dropped (OSRM emits them) so the list isn't a
-   * wall of near-duplicates — except "arrive", which is always the last thing
+   * wall of near-duplicates - except "arrive", which is always the last thing
    * you want to read.
    */
   const stepsOf = (route: OsrmRoute) =>
@@ -205,7 +205,7 @@ const handler: ApiHandler = async (req, res) => {
 
   /**
    * How each alternative differs from the fastest one, in the words a person
-   * would use. Computed from the real numbers — never a generic label like
+   * would use. Computed from the real numbers - never a generic label like
    * "scenic route", which OSRM does not tell us and we would be inventing.
    */
   const summarise = (route: OsrmRoute, index: number): string => {

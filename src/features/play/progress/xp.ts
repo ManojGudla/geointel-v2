@@ -5,7 +5,7 @@
  * happened. There is no XP for opening the hub, no daily login bonus, no
  * "welcome" grant. If the number goes up, you played a round.
  *
- * The curve is a gentle quadratic — each level costs a bit more than the last,
+ * The curve is a gentle quadratic - each level costs a bit more than the last,
  * so early levels come quickly (which is what makes a new player keep going)
  * without the later ones becoming a grind that nobody reaches.
  */
@@ -29,7 +29,7 @@ export interface LevelProgress {
   intoLevel: number;
   /** XP the current level spans. */
   levelSpan: number;
-  /** 0–1, for the progress bar. */
+  /** 0-1, for the progress bar. */
   fraction: number;
   xpToNext: number;
 }

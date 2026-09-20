@@ -4,7 +4,7 @@ import type { MeasureMode } from "@/stores/measureStore";
  * Converts the in-progress measurement to a GeoJSON FeatureCollection for
  * the map preview: one Point feature per vertex, plus a LineString (distance
  * mode, or area mode before the 3rd point) or closed Polygon (area mode from
- * the 3rd point on). A single MapLibre source holds all of it — the fill,
+ * the 3rd point on). A single MapLibre source holds all of it - the fill,
  * line, and circle layers each render only the geometry types they support.
  */
 export function buildMeasureGeoJSON(mode: MeasureMode, points: Array<[number, number]>): GeoJSON.FeatureCollection {

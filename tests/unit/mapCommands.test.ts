@@ -43,7 +43,7 @@ describe("parseMapCommand", () => {
   /**
    * Ordering matters in the category table: "public transport" contains
    * "transport", and "petrol station" contains "station". A shorter pattern
-   * matching first would silently classify these wrongly — the results would
+   * matching first would silently classify these wrongly - the results would
    * still render, just for the wrong thing, which is the hardest kind of
    * error to notice in a demo.
    */
@@ -62,7 +62,7 @@ describe("parseMapCommand", () => {
 
   /**
    * "Is this a good place for a hospital" names a category AND asks an
-   * assessment question. Read as a search it returns a list of hospitals —
+   * assessment question. Read as a search it returns a list of hospitals -
    * a plausible-looking answer to a question nobody asked.
    */
   it("reads an assessment question as suitability, not as a search for that category", () => {

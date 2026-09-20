@@ -3,7 +3,7 @@
  * (Help Guide, Feedback, Copilot, Command Palette, Directions, POI
  * Inspector...) so every one of them enters/exits with the same feel
  * instead of each inventing its own numbers. Read useMotionPreference()
- * before using these — when it's false, skip Framer Motion entirely rather
+ * before using these - when it's false, skip Framer Motion entirely rather
  * than passing a zero-duration transition, so there's no motion code path
  * running at all.
  */

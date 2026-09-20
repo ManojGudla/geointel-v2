@@ -6,7 +6,7 @@ import { join } from "node:path";
  * Guards the vercel.json SPA rewrite.
  *
  * This test exists because of a live outage on manowj.com. The rewrite was
- * `/((?!api/).*)` — everything except /api/ — which meant a request for an
+ * `/((?!api/).*)` - everything except /api/ - which meant a request for an
  * asset hash that no longer existed returned index.html with HTTP 200 and
  * content-type text/html. The browser refuses HTML as a stylesheet or a
  * module, so the site rendered a completely blank page, and the service
@@ -34,7 +34,7 @@ describe("SPA rewrite", () => {
     }
   });
 
-  it("does NOT swallow build assets — a missing one must 404", () => {
+  it("does NOT swallow build assets - a missing one must 404", () => {
     for (const p of [
       "/assets/index-CQOnuD4P.js",
       "/assets/index-D6-G6fe5.css",
@@ -47,7 +47,7 @@ describe("SPA rewrite", () => {
 
   it("does not swallow the files crawlers and social scrapers fetch", () => {
     // A rewrite that answers /og-image.png with index.html gives every
-    // scraper an HTML page where an image should be — the link preview then
+    // scraper an HTML page where an image should be - the link preview then
     // renders with no picture and nothing explains why. Same for robots and
     // the sitemap: Google would read HTML as a directives file.
     for (const p of ["/robots.txt", "/sitemap.xml", "/og-image.jpg", "/icons/icon-192.png"]) {
@@ -58,7 +58,7 @@ describe("SPA rewrite", () => {
   it("does not swallow a search-engine verification file", () => {
     // Google Search Console fetches /google<hash>.html and expects the exact
     // one line that file contains. Answered with index.html it reads as a
-    // wrong file, verification fails, and the reason is invisible — the URL
+    // wrong file, verification fails, and the reason is invisible - the URL
     // returns HTTP 200, so nothing looks broken. Vercel serves real static
     // files ahead of rewrites anyway; this makes that independent of ordering.
     expect(rewrites("/googleb676b63b365dcfba.html")).toBe(false);

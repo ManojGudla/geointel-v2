@@ -95,7 +95,7 @@ describe("api/admin/submissions", () => {
   // Security regression: this endpoint returns real visitor PII (feedback +
   // team-application rows, including recorded IP address and user agent)
   // behind the same shared admin key as maintenance mode, and previously had
-  // no rate limit at all — unlimited attempts to guess GEOINTEL_ADMIN_KEY.
+  // no rate limit at all - unlimited attempts to guess GEOINTEL_ADMIN_KEY.
   it("rate-limits repeated requests from the same IP, including wrong-key guesses", async () => {
     vi.resetModules();
     process.env.GEOINTEL_ADMIN_KEY = ADMIN_KEY;

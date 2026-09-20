@@ -4,7 +4,7 @@
  *
  * "Turn off weather effects" has to actually turn them off. A Copilot that
  * replies "sure, weather effects are now off" while the rain keeps falling is
- * worse than one that says it can't do that — so each of these maps to a real
+ * worse than one that says it can't do that - so each of these maps to a real
  * store action, and the caller applies it before it says anything.
  *
  * Deterministic string matching, no model call: these are short, fixed
@@ -24,7 +24,7 @@ export function parseSettingCommand(input: string): SettingCommand | null {
   const text = input.toLowerCase().trim();
   if (!text) return null;
 
-  // Weather effects. Matched on the effect words, not on "weather" alone —
+  // Weather effects. Matched on the effect words, not on "weather" alone -
   // "what's the weather here" is a question, not a command, and must fall
   // through to the normal answer path.
   const mentionsEffects = /\b(weather effect|weather effects|rain effect|weather animation|weather overlay)\b/.test(text);

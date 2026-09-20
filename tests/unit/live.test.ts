@@ -47,7 +47,7 @@ describe("api/live", () => {
     const body = result.body as { events: Array<{ id: string; magnitude: number; lat: number; lon: number }> };
     expect(body.events).toHaveLength(2);
     expect(body.events[0]!.magnitude).toBe(6.1);
-    // GeoJSON is [lon, lat, depth] — getting this backwards would put every
+    // GeoJSON is [lon, lat, depth] - getting this backwards would put every
     // quake in the wrong hemisphere, which is exactly the kind of error that
     // looks fine until someone who knows the region sees it.
     expect(body.events[1]!.lon).toBe(78.4);
@@ -106,7 +106,7 @@ describe("api/live", () => {
     expect(body.source).toContain("Open-Meteo");
   });
 
-  it("never throws when a provider is unreachable — reports unavailable instead", async () => {
+  it("never throws when a provider is unreachable - reports unavailable instead", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => {

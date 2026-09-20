@@ -8,7 +8,7 @@ import { join } from "node:path";
  * This test exists because of a bug real users reported. The RainViewer radar
  * source had no maxzoom, so MapLibre kept requesting tiles past the depth
  * RainViewer actually serves. Crucially, RainViewer does NOT answer those with
- * a 404 — it returns a PNG with "Zoom Level Not Supported" printed on it, and
+ * a 404 - it returns a PNG with "Zoom Level Not Supported" printed on it, and
  * MapLibre paints that like any other tile. The result was grey placards
  * plastered over the streets whenever the radar layer was on and the user
  * zoomed in.
@@ -33,7 +33,7 @@ const FILES = [
  * counting tiles keys counts exactly the things that fetch from a provider.
  * An earlier version matched `tiles: [` and silently found nothing in
  * basemaps.ts, where the array is passed by reference as
- * `tiles: RASTER_TILES[basemap]` — a test that quietly checks nothing is
+ * `tiles: RASTER_TILES[basemap]` - a test that quietly checks nothing is
  * worse than no test.
  */
 function counts(source: string): { tileSources: number; maxzooms: number } {
@@ -53,7 +53,7 @@ describe("raster tile sources", () => {
       expect(tileSources).toBeGreaterThan(0);
       expect(
         maxzooms,
-        `${file} has ${tileSources} tile source(s) but only ${maxzooms} maxzoom declaration(s). Without a maxzoom, MapLibre requests tiles the provider does not serve — and providers like RainViewer answer with a "Zoom Level Not Supported" IMAGE rather than a 404, which then gets painted over the map.`
+        `${file} has ${tileSources} tile source(s) but only ${maxzooms} maxzoom declaration(s). Without a maxzoom, MapLibre requests tiles the provider does not serve - and providers like RainViewer answer with a "Zoom Level Not Supported" IMAGE rather than a 404, which then gets painted over the map.`
       ).toBeGreaterThanOrEqual(tileSources);
     });
   }

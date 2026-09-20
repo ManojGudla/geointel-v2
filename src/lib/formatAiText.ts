@@ -1,11 +1,11 @@
 /**
  * Every AI surface in this app (Copilot answers, agent result cards) renders
- * model output as plain text — `<p>{content}</p>`, no markdown renderer (see
+ * model output as plain text - `<p>{content}</p>`, no markdown renderer (see
  * CopilotPanel.tsx, AgentCard.tsx). The system prompts (api/ai/copilot.ts,
  * api/ai/agent.ts) now explicitly tell the model never to use markdown or
  * show its reasoning, but OpenRouter's free tier randomly routes across many
  * different underlying models, and not every one of them reliably follows
- * that instruction — some still emit "**bold**", bullet/numbered lists, or a
+ * that instruction - some still emit "**bold**", bullet/numbered lists, or a
  * leaked "Here's my thinking process..." preamble. Rather than trust every
  * random free model to comply perfectly, this is a defense-in-depth pass
  * that cleans up the common artifacts client-side before display, so a
@@ -23,14 +23,14 @@
  *    focusing purely on GIS evidence counts and category scores... No
  *    markdown, no bold, no lists, no headers. 3-5 plain flowing sentences."
  *
- * — the system prompt, paraphrased back as the answer. The old guard matched
+ * - the system prompt, paraphrased back as the answer. The old guard matched
  * a short list of opener phrases ("Let me analyze", "Here's my thinking
  * process") and "We need to" was simply not on it. Chasing openers one at a
  * time is a losing game: every model paraphrases differently.
  *
  * So the second family matches on SUBJECT rather than phrasing. A sentence
  * about markdown, bullet lists, sentence counts or "the result card" is a
- * sentence about how to write the answer, not about the place — no genuine
+ * sentence about how to write the answer, not about the place - no genuine
  * description of a neighbourhood mentions headers. That generalises across
  * models in a way an opener list cannot.
  */
@@ -40,7 +40,7 @@ const PLANNING_OPENER =
 
 /** A sentence about how the answer should be written rather than about the place. */
 const ABOUT_THE_FORMAT =
-  /\b(?:no markdown|avoid markdown|no bold|no lists?|no headers?|no bullet|plain flowing sentence|flowing sentences|result card|\d\s*[-–]\s*\d\s+(?:plain\s+)?(?:flowing\s+)?sentences|use only (?:the )?(?:current|provided|given|supplied)|never invent|do not (?:use|invent|include)|must not (?:use|invent|include))\b/i;
+  /\b(?:no markdown|avoid markdown|no bold|no lists?|no headers?|no bullet|plain flowing sentence|flowing sentences|result card|\d\s*[--]\s*\d\s+(?:plain\s+)?(?:flowing\s+)?sentences|use only (?:the )?(?:current|provided|given|supplied)|never invent|do not (?:use|invent|include)|must not (?:use|invent|include))\b/i;
 
 const looksLikePlanning = (sentence: string) => PLANNING_OPENER.test(sentence) || ABOUT_THE_FORMAT.test(sentence);
 
@@ -53,7 +53,7 @@ function sentences(text: string): string[] {
 const PREAMBLE_WINDOW = 6;
 
 export function stripLeakedReasoning(raw: string): string {
-  // Explicit thinking blocks first — some models emit these verbatim, and an
+  // Explicit thinking blocks first - some models emit these verbatim, and an
   // unclosed opener means everything after it is reasoning.
   const text = raw.replace(/<(think|thinking|reasoning)>[\s\S]*?<\/\1>/gi, " ").replace(/<(?:think|thinking|reasoning)>[\s\S]*$/i, " ").trim();
 
@@ -63,7 +63,7 @@ export function stripLeakedReasoning(raw: string): string {
     The first sentence decides whether any stripping happens at all.
 
     An earlier version walked forward while each sentence looked like
-    planning and stopped at the first that didn't — which its own test
+    planning and stopped at the first that didn't - which its own test
     caught: the live leak's fourth sentence ("Use only current location
     data") wasn't recognised, so the walk halted there and shipped that
     sentence to the reader as if it were the answer. Requiring only the
@@ -82,7 +82,7 @@ export function stripLeakedReasoning(raw: string): string {
   const kept = parts.slice(lastMeta + 1).join(" ").trim();
   // Never trade a bad answer for no answer. An empty card is a worse
   // outcome than a visibly rambling one, and the reader can at least judge
-  // rambling for themselves — the model line underneath now says who wrote it.
+  // rambling for themselves - the model line underneath now says who wrote it.
   return kept.length >= 60 ? kept : text;
 }
 
@@ -102,7 +102,7 @@ export function formatAiText(raw: string): string {
   */
   // Written as escapes so the character itself appears nowhere in the source,
   // and a repo-wide search for it stays clean.
-  text = text.replace(/\s+—\s+/g, ", ").replace(/—/g, "-");
+  text = text.replace(/\s+\u2014\s+/g, ", ").replace(/\u2014/g, "-");
 
   // A leaked preamble sometimes ends with the model announcing its real
   // answer instead of just starting it.

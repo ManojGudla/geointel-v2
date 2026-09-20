@@ -10,8 +10,8 @@ import { useUiStore } from "@/stores/uiStore";
 /**
  * The one way an analysis is run, from anywhere in the app.
  *
- * Every entry point — the Analyze panel's controls, the AI command bar, a
- * suggestion chip — goes through this, because running an analysis is not
+ * Every entry point - the Analyze panel's controls, the AI command bar, a
+ * suggestion chip - goes through this, because running an analysis is not
  * just "fetch and display". It has to move four pieces of state together:
  *
  *   1. the analysis result itself
@@ -23,8 +23,8 @@ import { useUiStore } from "@/stores/uiStore";
  *
  * Split those across call sites and they drift: the AI says "within 5 km"
  * while the map still draws 250 m, or reports nine hospitals while the
- * hospital layer is off. Both are the same failure — the answer and the map
- * disagreeing — and both destroy trust faster than a wrong number would,
+ * hospital layer is off. Both are the same failure - the answer and the map
+ * disagreeing - and both destroy trust faster than a wrong number would,
  * because the user can see the contradiction.
  */
 export function useRunAnalysis() {

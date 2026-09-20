@@ -12,7 +12,7 @@ import { agentSubject, isSamePlace, stalenessNotice, NO_SUBJECT, SAME_PLACE_METR
  *      that says GIS Intelligence, in a panel describing Mumbai.
  *
  * Nothing in the store recorded which place an answer was about, and nothing
- * ever cleared one. It is the worst shape of error this product can make —
+ * ever cleared one. It is the worst shape of error this product can make -
  * not a missing answer but a plausible one about the wrong place, in prose,
  * where there are no units to sanity-check.
  */
@@ -26,7 +26,7 @@ describe("identifying what an answer is about", () => {
 
       This assertion is the reason the implementation is a distance
       comparison rather than a rounded key. The first version rounded both
-      coordinates to 4dp and compared strings, and this pair — 20cm apart —
+      coordinates to 4dp and compared strings, and this pair - 20cm apart -
       failed it, because these two values round either side of a grid line.
       No grid size fixes that; only asking the real question does.
     */
@@ -129,7 +129,7 @@ describe("the agent card", () => {
   it("warns when the answer is about somewhere you have since left", async () => {
     await renderCard({ location: MUMBAI, run: answer(agentSubject(HYDERABAD)) });
 
-    // The answer is kept — you may still want to read it — but it can no
+    // The answer is kept - you may still want to read it - but it can no
     // longer pass itself off as a description of what is on screen.
     expect(screen.getByText(/Dense retail evidence/)).toBeTruthy();
     expect(screen.getByText(/This answer is about Hyderabad, not Mumbai\./)).toBeTruthy();
@@ -139,7 +139,7 @@ describe("the agent card", () => {
     /*
       And the label must not carry the place name. It did at first, and a
       real Indian place name ("Chhatrapati Shivaji Maharaj International
-      Airport") truncated it to "Run for Chhatra…" in a 160px card — checked
+      Airport") truncated it to "Run for Chhatra…" in a 160px card - checked
       in a browser, not guessed at. The notice above already names the place.
     */
     await renderCard({ location: MUMBAI, run: answer(agentSubject(HYDERABAD)) });
@@ -156,7 +156,7 @@ describe("the agent card", () => {
   it("spends no provider request when there is nothing to analyse", async () => {
     /*
       With nothing selected, the data block every agent reads is the single
-      line "No location is currently selected in the app." — so the button
+      line "No location is currently selected in the app." - so the button
       used to spend one of 15 requests a minute, shared across all six cards
       and Ask maNOWj, to be told what the card can say for free.
     */

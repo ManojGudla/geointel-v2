@@ -90,7 +90,7 @@ export function step(particles: Particle[], field: Field, dt: number): void {
 /**
  * Shifts every particle by a screen-space delta. Called when the map pans or
  * zooms, so the weather appears to be attached to the world underneath rather
- * than painted on the glass — which is what makes it read as weather over a
+ * than painted on the glass - which is what makes it read as weather over a
  * place instead of a screensaver.
  *
  * Rain and snow only. Cloud and fog banks are treated as high-altitude and

@@ -8,7 +8,7 @@ import { getAiCompletion } from "../../api/_lib/ai";
  * The GIS agent on Banjara Hills, answered by
  * nvidia/nemotron-3-super-120b-a12b:free, opened by reciting the system
  * prompt back at the reader. The prompt forbids exactly this, in as many
- * words ("Never show your reasoning, planning, or thinking process") — a
+ * words ("Never show your reasoning, planning, or thinking process") - a
  * reasoning model emitted it regardless, which is why the fix cannot be
  * another sentence of instruction.
  */
@@ -29,8 +29,8 @@ describe("stripping a model's planning out of its answer", () => {
 
   it("catches it by subject, not by opener phrase", () => {
     /*
-      The old guard matched a fixed list of openers — "Let me analyze",
-      "Here's my thinking process" — and "We need to" was simply not on it.
+      The old guard matched a fixed list of openers - "Let me analyze",
+      "Here's my thinking process" - and "We need to" was simply not on it.
       Chasing openers one at a time is a losing game, so a sentence about
       markdown or sentence counts is treated as planning whatever it opens
       with: no real description of a neighbourhood mentions headers.
@@ -63,7 +63,7 @@ describe("stripping a model's planning out of its answer", () => {
   it("never trades a bad answer for an empty card", () => {
     /*
       If a response is nothing BUT planning, stripping it would leave a blank
-      card — which reads as broken rather than as poor. Better to show the
+      card - which reads as broken rather than as poor. Better to show the
       rambling and let the reader judge it; the model line underneath now
       tells them who wrote it.
     */
@@ -95,7 +95,7 @@ describe("what may be sent to the provider", () => {
    * A `reasoning: { exclude: true }` was added to the request body to stop
    * reasoning models reciting the prompt back at the reader. OpenRouter does
    * not ignore a parameter that no endpoint supports, and does not answer
-   * 400 — it answers **404, "No endpoints found that support the provided
+   * 400 - it answers **404, "No endpoints found that support the provided
    * ... value"**. The guard written alongside it only retried on 400, so
    * with `openrouter/free` picking a different model per request, whether
    * any answer came back at all became a coin flip. Every agent broke.
@@ -152,7 +152,7 @@ describe("what may be sent to the provider", () => {
     const result = await getAiCompletion([{ role: "user", content: "hi" }], { model: "some/model:free" });
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      // Names the CONFIGURED slug, not the free router it fell through to —
+      // Names the CONFIGURED slug, not the free router it fell through to -
       // otherwise it sends the reader to change a value they never set.
       expect(result.error).toContain("some/model:free");
       expect(result.error).toMatch(/configuration/i);
@@ -172,7 +172,7 @@ describe("a bad roll from the free model router", () => {
    * thinking and returned empty content.
    *
    * Against random routing, the effective answer to a bad roll is to roll
-   * again — not to report failure to someone who can only press the same
+   * again - not to report failure to someone who can only press the same
    * button themselves.
    */
   const ORIGINAL_ENV = { ...process.env };
@@ -248,18 +248,18 @@ describe("em dashes never reach the screen", () => {
    * every request, so it only has to be ignored once.
    */
   it("turns a clause-joining dash into a comma", () => {
-    expect(formatAiText("The area is dense — 156 buildings sit inside the 250 metre ring, with almost no retail.")).toBe(
+    expect(formatAiText("The area is dense \u2014 156 buildings sit inside the 250 metre ring, with almost no retail.")).toBe(
       "The area is dense, 156 buildings sit inside the 250 metre ring, with almost no retail."
     );
   });
 
   it("turns an unspaced dash into a hyphen, since that is what was meant", () => {
     // A range or a compound, not a joined clause.
-    expect(formatAiText("Expect 20—30 minutes on foot from the station to the office park entrance.")).toContain("20-30");
+    expect(formatAiText("Expect 20\u201430 minutes on foot from the station to the office park entrance.")).toContain("20-30");
   });
 
   it("leaves no em dash behind under any spacing", () => {
-    const messy = "One —two— three — four, and a fifth clause to carry the sentence past the length floor.";
-    expect(formatAiText(messy)).not.toContain("—");
+    const messy = "One \u2014two\u2014 three \u2014 four, and a fifth clause to carry the sentence past the length floor.";
+    expect(formatAiText(messy)).not.toContain("\u2014");
   });
 });

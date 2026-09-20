@@ -142,7 +142,7 @@
 
 /* Keyboard highlight. The input keeps DOM focus while the arrow keys move
    through the list (aria-activedescendant), so :focus-visible can never
-   express this — without an explicit class, arrowing down would move an
+   express this - without an explicit class, arrowing down would move an
    invisible selection. */
 .search-bar__suggestions li button.search-bar__suggestion--active {
   background: var(--color-brand-100);
@@ -163,8 +163,8 @@
 }
 
 /* The "Find on map" row. Deliberately not styled like a place suggestion:
-   it does something categorically different — it runs an analysis rather
-   than moving the map to a place — and the two must never be confusable in
+   it does something categorically different - it runs an analysis rather
+   than moving the map to a place - and the two must never be confusable in
    a single dropdown. */
 .search-bar__ask {
   position: absolute;
@@ -237,7 +237,7 @@
   Brief outline played when a quick action is pressed with no place selected.
 
   Those buttons move focus here, which is the correct next step, but a focus
-  ring on a box the user is not looking at is invisible in practice — the
+  ring on a box the user is not looking at is invisible in practice - the
   button reads as broken. This makes the connection between the press and the
   box visible for about a second.
 
@@ -327,7 +327,7 @@
   Recent places.
 
   The history behind this panel was already being written on every search and
-  read by nothing — see the note in SearchBar.tsx. The panel is the container
+  read by nothing - see the note in SearchBar.tsx. The panel is the container
   here, and the list inside it drops the border, radius and shadow it would
   otherwise draw for itself, so the two read as one surface rather than a box
   inside a box.

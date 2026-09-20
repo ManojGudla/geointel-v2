@@ -5,7 +5,7 @@ import { qidFromUri, entityUrl, sparqlEscape } from "../../api/_lib/wikidata";
  * These are the pure, network-free helpers in wikidata.ts. The
  * network-dependent resolver functions (resolveCountryWithOfficeholders,
  * etc.) are exercised indirectly via tests/unit/officials.test.ts, which
- * mocks fetch — see that file's header comment for why.
+ * mocks fetch - see that file's header comment for why.
  */
 describe("qidFromUri", () => {
   it("extracts a QID from a full Wikidata entity URI", () => {

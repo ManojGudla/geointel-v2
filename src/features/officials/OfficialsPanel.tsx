@@ -53,10 +53,10 @@ function OfficialRow({ entry }: { entry: OfficialEntry }) {
 }
 
 /**
- * Official / Authority Intelligence — the current government officials tied
+ * Official / Authority Intelligence - the current government officials tied
  * to the selected location's country/state/district/city, sourced live from
  * Wikidata (see api/officials.ts). Every entry is either a sourced,
- * verified statement or an explicit "Unable to verify" — this panel never
+ * verified statement or an explicit "Unable to verify" - this panel never
  * shows a name it can't back with a source, and never hides that a level
  * simply isn't covered yet (district-level coverage especially is
  * genuinely thin worldwide).

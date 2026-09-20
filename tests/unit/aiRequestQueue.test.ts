@@ -6,8 +6,8 @@ import { createRequestGate } from "../../src/services/aiRequestQueue";
  * agent cards fired six near-simultaneous calls at OpenRouter's free tier,
  * and two came back HTTP 429 ("The AI provider's rate limit or free-tier
  * quota was hit") while the other four returned real answers. Nothing spaced
- * the requests out. These tests assert the gate's actual behavior — bounded
- * concurrency, spaced starts, honest queued→running signalling — rather than
+ * the requests out. These tests assert the gate's actual behavior - bounded
+ * concurrency, spaced starts, honest queued→running signalling - rather than
  * the end-to-end symptom.
  */
 afterEach(() => vi.useRealTimers());
@@ -107,7 +107,7 @@ describe("createRequestGate", () => {
     const second = gate.run(async () => {}, { onStart: () => started.push("second") });
     await settle();
 
-    // Second is queued behind first — it must not have reported "running" yet.
+    // Second is queued behind first - it must not have reported "running" yet.
     expect(started).toEqual(["first"]);
 
     releaseFirst!();

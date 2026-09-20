@@ -32,17 +32,17 @@ import adminSubmissions from "./admin/submissions.js";
  * every file under api/ as its own serverless function, and the Hobby plan
  * caps a deployment at 12. This project has 17 endpoints, so `vercel --prod`
  * failed outright with "No more than 12 Serverless Functions can be added to
- * a Deployment on the Hobby plan" — which is also why the live site served a
+ * a Deployment on the Hobby plan" - which is also why the live site served a
  * frontend with no working API at all. Moving the handlers under api/_routes/
  * (a leading underscore tells Vercel these are support files, not entry
- * points) and dispatching them from one catch-all — api/[...path].ts — makes
+ * points) and dispatching them from one catch-all - api/[...path].ts - makes
  * the whole API a single function, so the endpoint count can grow freely
  * from here.
  *
  * Both the production catch-all AND the local dev server
  * (plugins/vite-plugin-api.ts) resolve routes through this same table, so a
  * handler that isn't registered here 404s identically in dev and in
- * production — the mismatch can't hide until deploy time.
+ * production - the mismatch can't hide until deploy time.
  */
 export const ROUTES: Record<string, ApiHandler> = {
   buildings,

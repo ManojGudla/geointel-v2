@@ -1,7 +1,7 @@
 /**
  * Attribution for an AI answer: which model wrote it, and when.
  *
- * Every other figure in this application carries its source and its date —
+ * Every other figure in this application carries its source and its date -
  * population says "Wikidata", air quality says "Open-Meteo", an officeholder
  * that can't be verified says so rather than being filled in from memory. The
  * AI answers were the one exception: they arrived with neither, in the part
@@ -9,7 +9,7 @@
  * themselves.
  *
  * That matters more here than it would elsewhere, because the default
- * provider slug (`openrouter/free`) is a router rather than a model — it
+ * provider slug (`openrouter/free`) is a router rather than a model - it
  * picks a free model at random per request. So the same agent, run twice,
  * genuinely is two different authors, and "which one" is not a detail.
  */
@@ -18,7 +18,7 @@
 export const UNKNOWN_MODEL_LABEL = "model not reported";
 
 /**
- * The model slug, as the provider gave it — not prettified.
+ * The model slug, as the provider gave it - not prettified.
  *
  * A cleaned-up display name ("Llama 3.3") would read better and be worth
  * less: the slug is the string someone can actually look up, and the
@@ -36,7 +36,7 @@ export function formatModelLabel(model: string | undefined | null): string {
 
 /**
  * Local clock time for an ISO timestamp, with the date added once the answer
- * is no longer from today — so a card left open overnight can't read as if
+ * is no longer from today - so a card left open overnight can't read as if
  * it were written a moment ago.
  */
 export function formatGeneratedAt(iso: string | undefined | null, now: Date = new Date()): string {

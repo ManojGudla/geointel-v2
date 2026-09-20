@@ -4,7 +4,7 @@ import { buildQuiz, type QuizQuestion } from "../quiz/quizEngine";
 import { PLAY_URL } from "@/features/play/share";
 
 /**
- * 60 Seconds — one minute, as many questions as you can take.
+ * 60 Seconds - one minute, as many questions as you can take.
  *
  * ── What makes this different from the quiz that already exists ───────────
  *
@@ -16,8 +16,8 @@ import { PLAY_URL } from "@/features/play/share";
  *   The question TYPE changes constantly. A minute of "what is the capital
  *   of..." becomes a chore by question five, because after the first one you
  *   already know the shape of every question that follows. Rotating between
- *   six kinds — including two-option comparisons that are read in a second
- *   and four-option recalls that take longer — keeps the rhythm uneven, and
+ *   six kinds - including two-option comparisons that are read in a second
+ *   and four-option recalls that take longer - keeps the rhythm uneven, and
  *   uneven is what keeps attention.
  *
  *   A wrong answer costs TIME, not points. Losing points is arithmetic that
@@ -32,7 +32,7 @@ import { PLAY_URL } from "@/features/play/share";
  * ── On where the questions come from ─────────────────────────────────────
  *
  * Every question is computed from the bundled country dataset: capitals,
- * coordinates and regions. Nothing is asserted trivia. That is deliberate —
+ * coordinates and regions. Nothing is asserted trivia. That is deliberate -
  * this product's whole claim is that what it tells you is traceable to a
  * source, and a game inside it that confidently states unsourced facts would
  * quietly undermine that everywhere else.
@@ -95,7 +95,7 @@ export function initialState(): SixtyState {
  * The whole game rule set, as one pure function.
  *
  * Kept free of timers and React so the scoring can be tested exactly rather
- * than by driving a clock — the Ultimate Tic-Tac-Toe freeze earlier in this
+ * than by driving a clock - the Ultimate Tic-Tac-Toe freeze earlier in this
  * project came from logic tangled up with an effect, and it passed every test
  * that existed at the time.
  */
@@ -134,7 +134,7 @@ export function accuracy(state: SixtyState): number {
  *
  * Both are generated with a MINIMUM GAP between the two candidates. Without
  * it the generator eventually produces a pair separated by half a degree of
- * latitude, which is not a question, it is a coin toss with a scoreboard —
+ * latitude, which is not a question, it is a coin toss with a scoreboard -
  * and being punished four seconds for losing a coin toss is the fastest way
  * to make someone stop playing.
  */
@@ -187,7 +187,7 @@ function closerTo(rng: Rng, index: number): QuizQuestion | null {
 /**
  * The queue for one round.
  *
- * Built long and up front — far more questions than a minute allows — so the
+ * Built long and up front - far more questions than a minute allows - so the
  * game never pauses to generate one mid-round, and so a fast player is never
  * the one who discovers the queue can run out.
  *

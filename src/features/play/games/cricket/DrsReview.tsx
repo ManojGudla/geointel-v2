@@ -20,7 +20,7 @@ import "./DrsReview.css";
  *
  * That is worth the discipline. The moment a replay shows a ball crashing
  * into middle stump while the verdict reads NOT OUT, the player stops
- * believing any of it — and once they stop believing it, the reviews
+ * believing any of it - and once they stop believing it, the reviews
  * remaining counter is just a number going down.
  *
  * Drawn as SVG rather than canvas or a 3D library: it is a handful of

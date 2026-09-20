@@ -5,7 +5,7 @@ import { aiAttribution, formatGeneratedAt, formatModelLabel, UNKNOWN_MODEL_LABEL
 
 /**
  * An AI answer is the least checkable thing this application shows. Every
- * other figure carries its source — population says Wikidata, air quality
+ * other figure carries its source - population says Wikidata, air quality
  * says Open-Meteo, an officeholder that can't be confirmed says "Unable to
  * verify" rather than being filled in from memory. The AI answers were the
  * one exception, and they were the exception twice over: the server reported
@@ -111,7 +111,7 @@ describe("how attribution reads", () => {
   it("adds the date once an answer is no longer from today", () => {
     /*
       A card left open overnight must not read as if it were written a moment
-      ago — the time alone would say "18:42" for an answer a week old.
+      ago - the time alone would say "18:42" for an answer a week old.
     */
     const now = new Date(2026, 8, 14, 20, 0, 0);
     const today = formatGeneratedAt(new Date(2026, 8, 14, 18, 42, 0).toISOString(), now);

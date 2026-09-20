@@ -5,14 +5,14 @@ import type { OfficialEntry } from "../../api/_routes/officials";
 
 /**
  * api/officials.ts (Official / Authority Intelligence) is built around one
- * hard rule: never invent a name. These tests exercise that rule directly —
+ * hard rule: never invent a name. These tests exercise that rule directly -
  * a resolved Wikidata officeholder must come through as "verified" with a
  * name + source, and every path where resolution fails or is ambiguous must
  * come through as "unavailable" with name: null, never a guess. Wikidata's
  * own SPARQL endpoint isn't reachable from this sandbox (see project notes),
  * so `fetch` is mocked here with canned SPARQL JSON responses in the exact
  * call order api/officials.ts makes them (country, then state, then city,
- * then district) — the real end-to-end query needs verification on a
+ * then district) - the real end-to-end query needs verification on a
  * machine that can reach query.wikidata.org.
  */
 
@@ -28,7 +28,7 @@ function sparqlBody(bindings: unknown[]) {
 
 function mockFetchSequence(responses: Array<{ ok: boolean; body: unknown }>) {
   // vitest records a call in fn.mock.calls synchronously, before this
-  // implementation runs — so by the time we're executing for the Nth call,
+  // implementation runs - so by the time we're executing for the Nth call,
   // mock.calls.length is already N. Index with -1 to land on the response
   // meant for *this* call, not the next one.
   const fn = vi.fn(async () => {
@@ -136,10 +136,10 @@ describe("api/officials handler", () => {
   // Regression test for a real bug seen live: a Prime Minister card that
   // literally read "Q1058" instead of a name. Wikidata's own SERVICE
   // wikibase:label falls back to returning the entity's bare QID as the
-  // label value when no real label is found in any language — this treats
+  // label value when no real label is found in any language - this treats
   // that fallback as "no label", not a name, so it degrades to "Unable to
   // verify" instead of ever showing a raw Wikidata ID to the user.
-  it('treats a bare QID coming back as a *Label value as "no real label" — reports Unable to verify, never shows a Wikidata ID as a name', async () => {
+  it('treats a bare QID coming back as a *Label value as "no real label" - reports Unable to verify, never shows a Wikidata ID as a name', async () => {
     mockFetchSequence([
       {
         ok: true,
@@ -167,13 +167,13 @@ describe("api/officials handler", () => {
     const pm = body.officials.find((o) => o.role === "Prime Minister");
     expect(pm).toMatchObject({ name: null, status: "unavailable" });
     expect(pm?.name).not.toBe("Q1058");
-    // Head of state resolved normally in the same response — this isn't a
+    // Head of state resolved normally in the same response - this isn't a
     // blanket failure, just the one field that had no real label.
     const president = body.officials.find((o) => o.role === "President");
     expect(president).toMatchObject({ name: "Droupadi Murmu", status: "verified" });
   });
 
-  it('reports "Unable to verify" — never a guessed name — when the country can\'t be resolved on Wikidata', async () => {
+  it('reports "Unable to verify" - never a guessed name - when the country can\'t be resolved on Wikidata', async () => {
     mockFetchSequence([{ ok: true, body: sparqlBody([]) }]);
 
     const result = fakeReqRes({ country: "Nowhereland", countryCode: "ZZ" });
@@ -212,7 +212,7 @@ describe("api/officials handler", () => {
     expect(stateEntry!.note).toMatch(/No precise subdivision code/);
   });
 
-  it("refuses to guess among multiple same-named cities — marks city unavailable instead of picking one", async () => {
+  it("refuses to guess among multiple same-named cities - marks city unavailable instead of picking one", async () => {
     mockFetchSequence([
       {
         ok: true,
@@ -310,7 +310,7 @@ describe("api/officials handler", () => {
     expect((second.body as { officials: OfficialEntry[] }).officials).toEqual((first.body as { officials: OfficialEntry[] }).officials);
   });
 
-  it("never throws when Wikidata is unreachable — every level reports unavailable instead", async () => {
+  it("never throws when Wikidata is unreachable - every level reports unavailable instead", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => {

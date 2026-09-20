@@ -9,8 +9,8 @@ import { track } from "@/services/analytics";
  * Reported by more than a hundred users as some version of "I can't find the
  * images". They were right: satellite imagery lived only inside the Layers
  * panel, behind a rail button labelled "Data", and the map itself carried no
- * basemap control at all. Every map anyone has already used — Google, Apple,
- * Bing, OpenStreetMap — puts this on the map, so that is the first and only
+ * basemap control at all. Every map anyone has already used - Google, Apple,
+ * Bing, OpenStreetMap - puts this on the map, so that is the first and only
  * place most people look, and finding nothing there they conclude the app
  * has no satellite view rather than going hunting through a panel.
  *

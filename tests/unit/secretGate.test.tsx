@@ -16,7 +16,7 @@ import { ADMIN_SESSION_KEY } from "../../src/features/admin/adminSession";
  * There are two separate things to defend here and they are easy to confuse.
  *
  * The gesture is OBSCURITY. It hides the door so that a visitor clicking the
- * logo — which is what people do to logos — sees nothing unusual, and so that
+ * logo - which is what people do to logos - sees nothing unusual, and so that
  * the existence of an admin area is not advertised to everyone who lands on
  * the page. It is not a security control and nothing here pretends it is.
  *

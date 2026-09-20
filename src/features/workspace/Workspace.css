@@ -37,7 +37,7 @@
   overflow: hidden;
 }
 
-/* Search floats over the map, top-left, always visible — the first thing
+/* Search floats over the map, top-left, always visible - the first thing
    anyone does with a map application should never be behind a click. */
 .workspace__search {
   position: absolute;
@@ -114,13 +114,13 @@
     All three of these are anchored to the stage's bottom: the coordinate chip
     at space-2, the map-style pill just above it, and the Ask launcher at
     roughly 60px. The sheet's lowest rest position is 34% of the stage, so
-    every one of them is inside its footprint — and the launcher (z-index 19)
+    every one of them is inside its footprint - and the launcher (z-index 19)
     outranks the sheet (18), so it would not even be politely hidden behind
     it; it would paint on top of a panel it has nothing to do with.
 
     Hiding them costs little. The sheet that replaced them carries the map
     style controls in Layers and an "Ask me" button in AI, and all three
-    return the instant the sheet is dismissed — which is also the first moment
+    return the instant the sheet is dismissed - which is also the first moment
     anyone goes looking for them.
   */
   .workspace__stage--sheeted .coordinate-readout,
@@ -133,7 +133,7 @@
     The getting-started card stands down too, for a different reason.
 
     It is anchored to this same bottom edge at z-index 12, under the sheet's
-    18. With the sheet up it was neither readable nor dismissable — just the
+    18. With the sheet up it was neither readable nor dismissable - just the
     top inch of a second panel poking out above the first, which on a 390px
     screen reads as the layout having broken rather than as two surfaces.
 
@@ -152,7 +152,7 @@
   MapLibre is loaded separately from the rest of the app (see Workspace.tsx),
   so for a moment on a slow connection there is no canvas. This fills the
   stage exactly rather than collapsing it, which keeps every control that is
-  positioned against the stage in its final place from the first paint —
+  positioned against the stage in its final place from the first paint -
   a collapsing placeholder would move the whole layout when the map arrived.
 */
 .workspace__maploading {

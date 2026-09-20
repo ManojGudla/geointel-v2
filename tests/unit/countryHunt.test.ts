@@ -19,7 +19,7 @@ import {
  * Country Hunt, and the hint system.
  *
  * Two things here are easy to get wrong in ways nobody would notice for a
- * while. The first is a hint that contradicts its own answer — worse than no
+ * while. The first is a hint that contradicts its own answer - worse than no
  * hint, because it actively misleads. Every hint is derived from the same
  * bundled data as the answer, and these tests hold that.
  *

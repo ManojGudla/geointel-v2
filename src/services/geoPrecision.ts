@@ -65,12 +65,12 @@ export const COORD_PRECISION: Record<string, number> = {
   "/api/live": 2,
 
   // Deliberately NOT listed, and each for a reason:
-  //   /api/reverse-geocode — names the exact spot the user clicked. Moving it
+  //   /api/reverse-geocode - names the exact spot the user clicked. Moving it
   //     50 m can return the next street. It is already ~20 ms, so there is
   //     nothing to win and a correct answer to lose.
-  //   /api/route — the start and end are the user's actual endpoints; snapping
+  //   /api/route - the start and end are the user's actual endpoints; snapping
   //     them would redraw the route from somewhere they did not choose.
-  //   /api/buildings — takes a bounding box rather than a centre.
+  //   /api/buildings - takes a bounding box rather than a centre.
 };
 
 /** How far a point can move at a given precision, in metres. Used in tests. */
@@ -83,7 +83,7 @@ export function maxShiftMetres(decimals: number): number {
  *
  * Number(x.toFixed(n)) rather than Math.round(x * 10**n) / 10**n: the latter
  * reintroduces float noise for values like 17.385, producing 17.384999999
- * and a URL that differs from another client's for the same grid square —
+ * and a URL that differs from another client's for the same grid square -
  * which is the exact failure being fixed.
  */
 export function snapCoordinate(value: number, decimals: number): number {
@@ -95,7 +95,7 @@ export function snapCoordinate(value: number, decimals: number): number {
  * Returns a copy of `params` with lat/lon snapped to this route's grid.
  *
  * Untouched when the route is not in the table, when the values are missing,
- * or when they are not finite — a bad coordinate should reach the server and
+ * or when they are not finite - a bad coordinate should reach the server and
  * get the server's own validation error, not be quietly reshaped here into
  * something that looks valid.
  */

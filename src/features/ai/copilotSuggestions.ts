@@ -3,7 +3,7 @@ import type { GISLayerId } from "@/types/gis";
 /**
  * Suggested questions that depend on what the user is actually looking at.
  *
- * A fixed list of prompts is a decoration — it says the same thing whether
+ * A fixed list of prompts is a decoration - it says the same thing whether
  * you have selected a place or not, whether the restaurant layer is on or
  * off. These are derived from the live state, so the Copilot appears to know
  * where you are because it does: the same context object it is given to

@@ -25,8 +25,8 @@ describe("featureStatus data", () => {
   });
 
   it("covers a substantial, real feature set", () => {
-    // Not pinned to an exact number — this is a living inventory that grows
-    // as passes ship — just a floor so an accidental near-empty file fails.
+    // Not pinned to an exact number - this is a living inventory that grows
+    // as passes ship - just a floor so an accidental near-empty file fails.
     expect(totalFeatureCount()).toBeGreaterThan(80);
   });
 });

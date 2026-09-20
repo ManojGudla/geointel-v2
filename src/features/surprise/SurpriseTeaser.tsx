@@ -15,7 +15,7 @@ import "./SurpriseTeaser.css";
  * date, dismissible, and gone on its own afterwards.
  *
  * It says three lines and nothing else. It does not name the occasion, say
- * whose it is, or hint at what the surprise is — that's the entire point of a
+ * whose it is, or hint at what the surprise is - that's the entire point of a
  * teaser, and a card that explains itself isn't one.
  *
  * It also gets out of the way: it never blocks a map click except on its own
@@ -25,7 +25,7 @@ import "./SurpriseTeaser.css";
  * Sitting below everything is why it waits for the first-run onboarding card.
  * Both are pinned over the map, and on a laptop-width window the card drew
  * over this one and cut its date line in half. The intro is what a brand-new
- * visitor needs first, so this holds until the intro is gone — the window
+ * visitor needs first, so this holds until the intro is gone - the window
  * state below is kept, so it appears the moment that happens rather than
  * being lost. The rule itself is `teaserVisible` in teaserRules.ts.
  */
@@ -48,7 +48,7 @@ export function SurpriseTeaser() {
    *
    * A card pinned over the top-right of the map is fine for the moment it
    * takes to read three short lines, and clutter for every minute after
-   * that — it sits exactly where someone panning north-east is looking. So
+   * that - it sits exactly where someone panning north-east is looking. So
    * reading it is all that is required of anyone; nobody has to tidy it away.
    *
    * Two things this deliberately does NOT do:
@@ -58,7 +58,7 @@ export function SurpriseTeaser() {
    *   showing me this", and only that is remembered for the year.
    * - It does not start counting on mount. The card is hidden while the
    *   first-run intro is up, and a timer started behind that intro would
-   *   expire while someone was reading it — the teaser would then never
+   *   expire while someone was reading it - the teaser would then never
    *   appear at all for exactly the new visitors it is for. The countdown
    *   starts when the card is actually on screen.
    */

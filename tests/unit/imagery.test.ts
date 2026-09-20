@@ -7,8 +7,8 @@ import { describeAge } from "../../src/features/map/ImageryDate";
  * Satellite imagery capture dates.
  *
  * This feature exists because real users said "old imagery is coming
- * everywhere". The imagery genuinely IS old in places — Esri World Imagery is
- * a free mosaic photographed area by area over years — and the fault was not
+ * everywhere". The imagery genuinely IS old in places - Esri World Imagery is
+ * a free mosaic photographed area by area over years - and the fault was not
  * the age but the silence about it. A photograph with no date invites the
  * assumption that it is current.
  *
@@ -33,7 +33,7 @@ function mockLayers(featuresPerCall: unknown[][]) {
   );
 }
 
-/** Each test needs fresh coordinates — the handler caches by rounded lat/lon. */
+/** Each test needs fresh coordinates - the handler caches by rounded lat/lon. */
 let seed = 0;
 const coords = () => {
   seed += 0.05;
@@ -81,7 +81,7 @@ describe("selectFootprint", () => {
 
   it("prefers a footprint whose zoom range covers the current zoom", () => {
     // The coarse one is not "wrong", it is simply not what is being drawn at
-    // z18 — reporting its date would describe a different picture.
+    // z18 - reporting its date would describe a different picture.
     const coarse = { SRC_DATE: 20180101, SAMP_RES: 15, MinMapLevel: 0, MaxMapLevel: 10 };
     const fine = { SRC_DATE: 20251115, SAMP_RES: 0.3, MinMapLevel: 12, MaxMapLevel: 19 };
     expect(selectFootprint([coarse, fine], 18)).toBe(fine);

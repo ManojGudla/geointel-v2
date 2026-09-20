@@ -35,7 +35,7 @@ describe("bookingLinks", () => {
     expect(links.find((l) => l.label === "Uber")?.url).toContain("pickup=my_location");
   });
 
-  it("never fabricates a prefill URL for Rapido or Ola — links to their real homepage instead", () => {
+  it("never fabricates a prefill URL for Rapido or Ola - links to their real homepage instead", () => {
     const links = bookingLinks(from, to, "car");
     expect(links.find((l) => l.label === "Rapido")?.url).toBe("https://www.rapido.bike/");
     expect(links.find((l) => l.label === "Ola")?.url).toBe("https://www.olacabs.com/");

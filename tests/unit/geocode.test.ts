@@ -48,7 +48,7 @@ describe("api/geocode handler", () => {
 
   it("degrades to an 'unavailable' response instead of throwing when the provider fails", async () => {
     mockFetchOnce(503, {});
-    // Deliberately a different query than the earlier test — api/geocode.ts
+    // Deliberately a different query than the earlier test - api/geocode.ts
     // caches successful responses by query text, and a shared cache key
     // would hit that cache instead of exercising the failure path here.
     const result = fakeReqRes({ q: "Unreachable Test Query" });

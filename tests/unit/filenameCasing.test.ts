@@ -23,7 +23,7 @@ import { extname, basename, join } from "node:path";
  *           file name '...surpriseTeaser.ts' only in casing.
  *
  * The build container these tests usually run in is Linux, so it can never
- * reproduce that failure by compiling — which is exactly why the rule is
+ * reproduce that failure by compiling - which is exactly why the rule is
  * checked as data here rather than left to the compiler. It reads the
  * directory listing, so it holds on any platform.
  *
@@ -72,7 +72,7 @@ describe("module filenames", () => {
   });
 
   it("actually scanned the source tree", () => {
-    // Without this the test above would pass on an empty walk — a silent
+    // Without this the test above would pass on an empty walk - a silent
     // false green is worse than no test, and this is a rule nothing else
     // enforces.
     const count = ROOTS.reduce((n, root) => n + walk(root).length, 0);

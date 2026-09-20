@@ -3,7 +3,7 @@
  *
  * Google Tag Manager loads Google Analytics, which sets cookies and reports
  * visits to Google. That is a real change to what this site does with a
- * visitor, and the Privacy page has to stop saying otherwise — it previously
+ * visitor, and the Privacy page has to stop saying otherwise - it previously
  * stated, as a checkable fact, that there were no analytics and no
  * third-party tags at all.
  *
@@ -17,7 +17,7 @@
  *   DECLINING STICKS. The choice is remembered, so a visitor who says no is
  *   not asked again on every page load until they give in.
  *
- * If VITE_GTM_ID is not set, none of this runs and no banner appears — the
+ * If VITE_GTM_ID is not set, none of this runs and no banner appears - the
  * site behaves exactly as it did before. That is what makes it safe to deploy
  * this code before the container even exists.
  */
@@ -26,7 +26,7 @@ const STORAGE_KEY = "manowj.consent.v1";
 
 export type ConsentChoice = "granted" | "denied";
 
-/** The container id, from the environment. Not a secret — it ships in the page. */
+/** The container id, from the environment. Not a secret - it ships in the page. */
 export function gtmId(): string | null {
   const raw = import.meta.env.VITE_GTM_ID as string | undefined;
   const id = raw?.trim();
@@ -64,7 +64,7 @@ export function readConsent(): ConsentChoice | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw === "granted" || raw === "denied" ? raw : null;
   } catch {
-    // Storage blocked. Treat it as "not asked yet" rather than as consent —
+    // Storage blocked. Treat it as "not asked yet" rather than as consent -
     // the safe direction when we cannot know.
     return null;
   }
@@ -91,7 +91,7 @@ let sentryEnabled = false;
  *
  * Deliberately NOT the copy-paste snippet Google gives you. That snippet is an
  * inline <script>, and this site's Content-Security-Policy is `script-src
- * 'self'` with no 'unsafe-inline' — the browser would silently refuse to run
+ * 'self'` with no 'unsafe-inline' - the browser would silently refuse to run
  * it, exactly as it once refused the blank-page recovery guard. Building the
  * same thing with DOM calls from an already-trusted module means the policy
  * only has to allow Google's domain, not inline script everywhere.

@@ -15,7 +15,7 @@ import "./change.css";
 import { PLAY_URL } from "@/features/play/share";
 
 /**
- * Spot the Change — two satellite views of the same place, years apart.
+ * Spot the Change - two satellite views of the same place, years apart.
  *
  * This is the only game in the hub built on the product's own data rather than
  * a generic quiz bank: the images are live NASA GIBS tiles, fetched at the two
@@ -23,7 +23,7 @@ import { PLAY_URL } from "@/features/play/share";
  * Nothing here is a stock photo or an illustration.
  *
  * The honesty constraint drove the whole design. GIBS is 250 metres per pixel,
- * so it shows lakes drying, forests going, reservoirs filling — and cannot
+ * so it shows lakes drying, forests going, reservoirs filling - and cannot
  * show a new building or a new road. changeSites.ts explains why the obvious
  * crowd-pleasers had to be left out rather than included as vague smudges.
  *
@@ -47,7 +47,7 @@ function TileGrid({
    * Counts how many of the nine tiles actually arrived.
    *
    * GIBS has real holes in its archive, and a date it does not hold does not
-   * return a helpful error — it returns nothing, or an empty tile. Without
+   * return a helpful error - it returns nothing, or an empty tile. Without
    * this the player would be shown a black square and asked what changed,
    * which is the worst possible version of this game: they cannot answer, and
    * they have no way to tell whether that is their fault.

@@ -16,7 +16,7 @@
     This card is centred in the stage, and the search box and action row are
     positioned over the same stage at the top. On a 1080p screen there is
     enough height that the two never meet, which is why this survived. On
-    anything shorter they do — measured, the card's heading sat UNDER the
+    anything shorter they do - measured, the card's heading sat UNDER the
     action row's hint text at 1366x768 (68px of overlap), 1280x800 (52px),
     1536x864 (20px) and two more. Those are the two commonest laptop
     resolutions there are, so most desktop visitors were reading the sentence
@@ -25,7 +25,7 @@
     Two things made it worse than a near miss. The card is centred, so every
     pixel of height the window loses moves it up half a pixel. And the
     `--above-consent` padding-bottom below shoves a centred child up by half
-    its value again — and that only applies on a first visit, which is the
+    its value again - and that only applies on a first visit, which is the
     one visit this card is shown on.
 
     Reserving the space here rather than moving the card keeps the design
@@ -149,7 +149,7 @@
   display: grid;
   /* 134, not 148. At 360px the card's content box is 302px, so two 148px
      columns plus the gap needed 304 and the grid silently fell back to one
-     column — the examples stacked five deep and pushed the card's own footer
+     column - the examples stacked five deep and pushed the card's own footer
      under the consent banner. Measured at 360px, not guessed. */
   grid-template-columns: repeat(auto-fit, minmax(134px, 1fr));
   gap: var(--space-2);
@@ -215,7 +215,7 @@
     align-items: flex-end;
     padding: var(--space-3);
     /* Clear of the floating search above, the rail below, and the map credit
-       that MapLibre pins to this same bottom edge — the card used to finish
+       that MapLibre pins to this same bottom edge - the card used to finish
        on top of the attribution, which the OSM licence requires stay
        readable. 22px is the credit's own line box. */
     padding-bottom: calc(var(--space-4) + 22px);
@@ -238,7 +238,7 @@
     44px, measured rather than assumed.
 
     Rendering the real app at 360px and reading every button's bounding box
-    found these at 40 — under the 44px both Apple and Google give as the
+    found these at 40 - under the 44px both Apple and Google give as the
     minimum reliable touch target, on the single screen a brand-new visitor
     meets first. Four pixels sounds like nothing and is the difference between
     a tap that works and one that lands next to the button.

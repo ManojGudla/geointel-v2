@@ -7,7 +7,7 @@
 
   Both buttons are deliberately the same size, weight and prominence. Styling
   "No thanks" as a faint link is the standard dark pattern and would make the
-  choice nominal — the whole point of asking is that either answer is real.
+  choice nominal - the whole point of asking is that either answer is real.
 */
 .consent {
   position: fixed;
@@ -107,7 +107,7 @@
   This offset used to start at 640px while the bottom tab bar exists all the
   way up to 900px, so on every screen between the two the banner sat directly
   on top of the navigation and hid it completely. On a tablet the first screen
-  had no visible navigation at all — which is a large part of "I cannot find
+  had no visible navigation at all - which is a large part of "I cannot find
   anything in this app". The two numbers have to match, and now they do.
 */
 @media (max-width: 900px) {

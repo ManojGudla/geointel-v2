@@ -32,7 +32,7 @@ const MODES: Array<{ id: RouteMode; label: string; icon: string }> = [
  * Beyond making it work, this is the interactive version: a swap button, live
  * status while it's routing, selectable alternative routes, arrival time, and
  * a turn list where every step is a button that flies the map to that exact
- * manoeuvre and marks it — the behaviour people expect from a maps app.
+ * manoeuvre and marks it - the behaviour people expect from a maps app.
  */
 export function DirectionsPanel() {
   const from = useRouteStore((s) => s.from);
@@ -61,7 +61,7 @@ export function DirectionsPanel() {
 
   // The store is the source of truth for the endpoints, and it can be changed
   // from outside this panel (Quick Actions' "Directions", the Copilot, the
-  // swap button). Mirroring it into the text fields keeps the boxes honest —
+  // swap button). Mirroring it into the text fields keeps the boxes honest -
   // without this, swapping changed the route but not what you could read.
   useEffect(() => {
     setFromText(from?.displayName ?? "");
@@ -96,7 +96,7 @@ export function DirectionsPanel() {
   const steps = option?.steps ?? [];
 
   const bothSet = !!from && !!to;
-  // Typed text that hasn't become a place yet — the exact state that used to
+  // Typed text that hasn't become a place yet - the exact state that used to
   // fail silently. Now it says so.
   const pendingFrom = !from && fromText.trim().length > 0;
   const pendingTo = !to && toText.trim().length > 0;
@@ -155,7 +155,7 @@ export function DirectionsPanel() {
       </div>
 
       {/* Every state below says what is happening. The old panel's failure
-          mode — both boxes filled, nothing rendered, no reason given — is
+          mode - both boxes filled, nothing rendered, no reason given - is
           the one thing that must not be possible here. */}
       {!bothSet && (
         <p className="directions-panel__prompt">
@@ -217,7 +217,7 @@ export function DirectionsPanel() {
 
           {/* Start navigation. Uses the real GPS, follows you, advances the
               instruction as you pass each turn and fetches a new route if you
-              go off course — see navigation/useNavigation.ts. Disabled for a
+              go off course - see navigation/useNavigation.ts. Disabled for a
               route you can't actually travel live. */}
           <button
             type="button"
@@ -226,7 +226,7 @@ export function DirectionsPanel() {
              * Closes the panel as well as starting.
              *
              * The navigation banner is z-index 25 and this panel is 15, so the
-             * banner was drawn straight over the top of it — the FROM field
+             * banner was drawn straight over the top of it - the FROM field
              * ended up half hidden underneath, which is exactly what the
              * reported screenshot shows. The panel also stayed interactive
              * behind the banner, and tapping a step in the list flew the

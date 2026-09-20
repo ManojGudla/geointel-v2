@@ -6,7 +6,7 @@ import { IMPOSTOR_ROUNDS, buildImpostorGame, impostorPoints, impostorShare } fro
 import "./arcade.css";
 
 /**
- * The Impostor — five statements, exactly one is false.
+ * The Impostor - five statements, exactly one is false.
  *
  * A different kind of thinking from the other games in the hub. Those ask
  * whether you know something; this asks which of five is the weak one, which
@@ -85,7 +85,7 @@ export function Impostor({ onBackToHub }: { onBackToHub: () => void }) {
       }
       timer.current = window.setTimeout(() => {
         setPicked(null);
-        // Unlike Impossible or Real, a miss does not end the game — with five
+        // Unlike Impossible or Real, a miss does not end the game - with five
         // statements a wrong pick is often a near miss, and ending there would
         // make most runs one round long.
         if (round + 1 >= rounds.length) setPhase("over");

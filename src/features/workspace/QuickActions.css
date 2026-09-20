@@ -22,7 +22,7 @@
   font-weight: 700;
   /* Full-strength text, not muted. These sit under the search bar's drop
      shadow, and muted type under a shadow read as disabled even when the
-     button worked — which is exactly how they were reported as broken. */
+     button worked - which is exactly how they were reported as broken. */
   color: var(--color-text);
   cursor: pointer;
   white-space: nowrap;
@@ -35,7 +35,7 @@
 }
 
 /* "Needs a place" is NOT disabled. It's a live button that takes you to the
-   search box — see the note in QuickActions.tsx. A dashed border says
+   search box - see the note in QuickActions.tsx. A dashed border says
    "not ready yet" without the half-opacity that made these look faulty. */
 .quick-actions__needs-place {
   border-style: dashed !important;
@@ -62,7 +62,7 @@
 }
 
 /* Phones: one scrollable row rather than two wrapped rows. Two rows of
-   chips over a phone-width map cost about 90px of map for no gain — a
+   chips over a phone-width map cost about 90px of map for no gain - a
    horizontal swipe reaches the rest, and the row still shows enough of the
    next chip to signal that it scrolls. */
 @media (max-width: 900px) {

@@ -22,7 +22,7 @@ function place(id: string, distanceMeters: number, lat = 17.36, lon = 78.47): Lo
 describe("distance and bearing", () => {
   /**
    * Checked against a known pair rather than against turf's own output, so
-   * this would catch a units mistake (the single most likely error here —
+   * this would catch a units mistake (the single most likely error here -
    * turf defaults to kilometres, and a silent 1000x is the kind of thing that
    * looks plausible on screen).
    */

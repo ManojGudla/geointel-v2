@@ -15,7 +15,7 @@
 // cleans itself up instead of persisting the damage.
 //
 // The cache name is bumped on purpose. The previous version was cache-first
-// for EVERY GET, including the HTML document — so once a visitor had loaded
+// for EVERY GET, including the HTML document - so once a visitor had loaded
 // the site, their browser served them that same index.html forever, pointing
 // at the same old hashed bundle. Deploys went out and returning visitors kept
 // seeing the previous build with no way to tell; only a hard refresh or a
@@ -38,7 +38,7 @@ self.addEventListener("activate", (event) => {
 
 /**
  * Vite fingerprints every built asset (index-a1b2c3d4.js), so a given URL's
- * content can never change — those are safe to serve from cache immediately
+ * content can never change - those are safe to serve from cache immediately
  * and forever. The HTML document is the opposite: its URL is stable and its
  * contents change on every deploy, because it's what names the current
  * bundle. Caching it first is what broke deploys.
@@ -52,7 +52,7 @@ function isDocument(request, url) {
 }
 
 /**
- * True when the server answered an asset request with an HTML page — which
+ * True when the server answered an asset request with an HTML page - which
  * always means "this file is gone and something rewrote the request", never
  * a real asset. Never cache one of these, and treat it as a signal that this
  * worker's whole cache is describing a build that no longer exists.
@@ -66,7 +66,7 @@ function isHtmlResponse(response) {
  *
  * Only called when a fingerprinted asset comes back as HTML, i.e. the cached
  * document points at a build that is no longer deployed. Without this the
- * only cure is the user knowing to hard-refresh — which is not something a
+ * only cure is the user knowing to hard-refresh - which is not something a
  * normal visitor will ever do; they will just see a white page and leave.
  */
 async function selfHeal() {
@@ -84,7 +84,7 @@ async function selfHeal() {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Never cache API calls — live location/weather/GIS/route data is never
+  // Never cache API calls - live location/weather/GIS/route data is never
   // served stale.
   if (url.pathname.startsWith("/api/")) return;
   if (event.request.method !== "GET") return;
@@ -93,7 +93,7 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   // The document: network first, cache only as an offline fallback. This is
-  // the whole fix — a new deploy is picked up on the next load, every time.
+  // the whole fix - a new deploy is picked up on the next load, every time.
   if (isDocument(event.request, url)) {
     event.respondWith(
       fetch(event.request)
@@ -118,8 +118,8 @@ self.addEventListener("fetch", (event) => {
           cached ||
           fetch(event.request).then((response) => {
             // An HTML answer to a .js/.css request means this asset is gone
-            // from the deployment. Do NOT cache it — that is what made the
-            // failure permanent — and tear this worker down so the next load
+            // from the deployment. Do NOT cache it - that is what made the
+            // failure permanent - and tear this worker down so the next load
             // comes fresh from the network.
             if (isHtmlResponse(response)) {
               event.waitUntil(selfHeal());

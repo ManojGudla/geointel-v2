@@ -25,7 +25,7 @@ import { GIBS_EARLIEST, GIBS_LAYERS } from "@/features/timeline/gibs";
  *
  * The second is that a question can give itself away. If the correct answer is
  * the only long option, or the only one that mentions water, the player learns
- * to pick on shape rather than look at the images — which is the entire game.
+ * to pick on shape rather than look at the images - which is the entire game.
  */
 
 describe("the change sites are real and checkable", () => {
@@ -88,7 +88,7 @@ describe("a question cannot be answered without looking", () => {
     /**
      * The classic tell. If the correct answer is reliably the wordiest one, a
      * player learns to pick the longest string and never looks at the imagery
-     * again — and their score keeps going up, which is worse than the game
+     * again - and their score keeps going up, which is worse than the game
      * being hard.
      */
     let longest = 0;
@@ -168,7 +168,7 @@ describe("the tile maths", () => {
       for (const url of urls) {
         expect(url.startsWith("https://gibs.earthdata.nasa.gov/"), url).toBe(true);
         expect(url).toContain(`/${site.before}/`);
-        // No NaN or undefined anywhere in the path — the failure mode that
+        // No NaN or undefined anywhere in the path - the failure mode that
         // renders as nine broken images.
         expect(/NaN|undefined/.test(url), url).toBe(false);
       }

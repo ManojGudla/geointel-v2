@@ -7,15 +7,15 @@ import { join } from "node:path";
  * and it must be the host the site actually serves from.
  *
  * This is checked because the site had it wrong. It serves from
- * www.manowj.com — that is what the browser reports as the page's origin, and
- * the address Search Console was verified against — but index.html's canonical
+ * www.manowj.com - that is what the browser reports as the page's origin, and
+ * the address Search Console was verified against - but index.html's canonical
  * link, the Open Graph url and image, the sitemap's entries and robots.txt all
  * named the bare manowj.com. None of those are cosmetic:
  *
  *   - A sitemap whose URLs are outside the verified property is rejected by
  *     Search Console, so nothing gets submitted.
  *   - A canonical pointing at a different host tells Google to index that
- *     host instead — the one that may not answer.
+ *     host instead - the one that may not answer.
  *   - An og:image on a host that doesn't resolve is why a shared link shows
  *     a title with no picture.
  *
@@ -57,9 +57,9 @@ describe("public URLs", () => {
 
       The checks above read static files. But the canonical tag on a city page
       is set at runtime by usePageMeta, and CityPage used to build the URL from
-      `window.location.origin`. This app answers on at least two hosts —
+      `window.location.origin`. This app answers on at least two hosts -
       www.manowj.com and the manowj-geointel.vercel.app address Vercel keeps
-      live — so a crawler reaching a city page on the second one was told that
+      live - so a crawler reaching a city page on the second one was told that
       the vercel.app URL was the canonical version of it. Two hosts then
       compete as duplicates of each other on precisely the pages this site is
       trying to rank.
@@ -74,7 +74,7 @@ describe("public URLs", () => {
         /*
           Line comments, but not the "//" in a URL. A naive /\/\/.*$/ turns
           `url: "https://www.manowj.com/"` into `url: "https:` and then this
-          test reports that the file never names the canonical host — which is
+          test reports that the file never names the canonical host - which is
           exactly what it did on the first run.
         */
         .replace(/(^|[^:])\/\/.*$/gm, "$1");
@@ -84,7 +84,7 @@ describe("public URLs", () => {
   });
 
   it("actually found URLs to check", () => {
-    // Otherwise the test above passes on an empty list — and this rule only
+    // Otherwise the test above passes on an empty list - and this rule only
     // matters because these URLs exist.
     const total = Object.values(SOURCES).reduce((n, t) => n + projectUrls(t).length, 0);
     expect(total).toBeGreaterThanOrEqual(6);
@@ -96,7 +96,7 @@ describe("public URLs", () => {
   });
 
   it("keeps og:image absolute, which is the only form scrapers accept", () => {
-    // A relative og:image is silently ignored by every scraper — the card
+    // A relative og:image is silently ignored by every scraper - the card
     // then renders as text with an empty space where the picture should be.
     const og = /<meta property="og:image" content="([^"]+)"/.exec(SOURCES["index.html"])?.[1];
     expect(og).toBeDefined();

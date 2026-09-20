@@ -7,7 +7,7 @@
  * dashboard that then asks for the key again.
  *
  * sessionStorage rather than localStorage, deliberately. The key is a shared
- * secret with no expiry and no revocation — the only thing limiting the
+ * secret with no expiry and no revocation - the only thing limiting the
  * damage of one sitting in a browser is how long it sits there, and
  * sessionStorage is gone when the tab closes. localStorage would keep it on
  * disk indefinitely, which for a key that unlocks maintenance mode is not a
@@ -39,6 +39,6 @@ export function clearAdminKey(): void {
   try {
     sessionStorage.removeItem(ADMIN_SESSION_KEY);
   } catch {
-    // Nothing to do — if it cannot be read it cannot be used either.
+    // Nothing to do - if it cannot be read it cannot be used either.
   }
 }

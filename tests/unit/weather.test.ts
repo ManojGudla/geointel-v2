@@ -39,14 +39,14 @@ describe("api/weather handler", () => {
     expect(parsed.weather.forecast).toHaveLength(2);
   });
 
-  it("never throws when the provider is unreachable — reports unavailable instead", async () => {
+  it("never throws when the provider is unreachable - reports unavailable instead", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => {
         throw new Error("network down");
       })
     );
-    // Different coordinates than the earlier test — api/weather.ts caches
+    // Different coordinates than the earlier test - api/weather.ts caches
     // successful responses by rounded lat/lon, and reusing the same point
     // would hit that cache instead of exercising the failure path here.
     const result = fakeReqRes({ lat: "5.11", lon: "9.22" });
@@ -58,12 +58,12 @@ describe("api/weather handler", () => {
   /**
    * Feature Status audit finding: this endpoint had caching but no rate
    * limiting at all, unlike every other data-fetching handler in the
-   * project (geocode, gis, nearby, route, ...). This asserts the fix —
+   * project (geocode, gis, nearby, route, ...). This asserts the fix -
    * a shared IP requesting past the limit gets a real 429, not silently
    * unlimited access to the upstream provider.
    */
   it("rate-limits repeated requests from the same client", async () => {
-    // A fresh module instance so this test gets its own, empty RateLimiter —
+    // A fresh module instance so this test gets its own, empty RateLimiter -
     // otherwise the earlier tests in this file (which already made a couple
     // of real calls through the shared module-level limiter) would throw
     // off the exact call count this test depends on.
@@ -81,7 +81,7 @@ describe("api/weather handler", () => {
     );
     const { default: freshHandler } = await import("../../api/_routes/weather");
 
-    // Distinct coordinates so the cache never short-circuits the handler —
+    // Distinct coordinates so the cache never short-circuits the handler -
     // each call must actually run through the rate-limit check.
     let lastResult = fakeReqRes({ lat: "1.000", lon: "1.000" });
     for (let i = 0; i < 30; i++) {

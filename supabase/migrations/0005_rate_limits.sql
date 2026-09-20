@@ -29,7 +29,7 @@ alter table rate_limits enable row level security;
 -- One statement, so counting is atomic.
 --
 -- Read-then-write from the application would let two concurrent requests both
--- read count = 4, both decide they are under a limit of 5, and both write 5 —
+-- read count = 4, both decide they are under a limit of 5, and both write 5 -
 -- which is exactly the concurrency the in-memory version already lost to. The
 -- insert-on-conflict below takes a row lock, so N simultaneous callers get N
 -- distinct counts.

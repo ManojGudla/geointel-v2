@@ -36,7 +36,7 @@ const REQUIRED_FIELDS = ["city", "state", "country"] as const;
  * meant a single map click could spend five seconds of the app's entire
  * global budget, and one "type a place, pick a result" flow put roughly eight
  * requests on the wire in about two seconds. Under real traffic that is not a
- * rate limit being approached, it is one being ignored — and Nominatim blocks
+ * rate limit being approached, it is one being ignored - and Nominatim blocks
  * by IP, without notice, which would take out search and click-to-inspect
  * together.
  *
@@ -50,7 +50,7 @@ const ZOOM_FALLBACKS = [18, 12];
 /**
  * Nominatim returns the ISO 3166-2 subdivision code under a key whose exact
  * name depends on which admin level it applies at ("ISO3166-2-lvl4",
- * "-lvl3", "-lvl6", ...) — there's no single fixed key. Scanning for the
+ * "-lvl3", "-lvl6", ...) - there's no single fixed key. Scanning for the
  * first "ISO3166-2-lvl*" key present is the standard way to pick it up
  * regardless of which level it landed on for this particular place.
  */

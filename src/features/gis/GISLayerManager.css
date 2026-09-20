@@ -18,7 +18,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  /* No max-height/overflow of its own — this flows as part of the
+  /* No max-height/overflow of its own - this flows as part of the
      right panel's single scrollbar (.workspace__panel--right). */
 }
 
@@ -37,7 +37,7 @@
 /*
   The label is the hit area, not the 16px box inside it.
 
-  A 16px checkbox is a normal size to LOOK at and a poor thing to aim at —
+  A 16px checkbox is a normal size to LOOK at and a poor thing to aim at -
   measured, twenty-one controls in this panel were under 32px tall. Growing
   the box would make the panel look like a form for toddlers; growing the
   label costs nothing visually and gives the whole row, checkbox and text
@@ -62,7 +62,7 @@
    rounded square tinted by the per-layer --layer-color custom property
    (passed inline from GISLayerManager.tsx), with a filled-square check
    indicator grown in via ::after on :checked. Replaces the old always-on
-   .layer-manager__swatch color dot — the color now lives on the control
+   .layer-manager__swatch color dot - the color now lives on the control
    itself instead of a separate decoration next to it. */
 .layer-manager__checkbox {
   appearance: none;
@@ -116,7 +116,7 @@
 }
 
 /*
-  This class was declared twice in this file — here and again further down —
+  This class was declared twice in this file - here and again further down -
   with conflicting gap, padding and border. The later block won on everything
   it named, so half of what was written here never applied and the rule read
   as doing something it did not. The two are merged at the second site; only
@@ -152,8 +152,8 @@
 }
 
 .layer-manager__reset {
-  /* Measured at 53x25. The text can stay small — this is a secondary action
-     and should not shout — but the box it sits in has to be catchable. */
+  /* Measured at 53x25. The text can stay small - this is a secondary action
+     and should not shout - but the box it sits in has to be catchable. */
   display: inline-flex;
   align-items: center;
   min-height: 32px;
@@ -231,7 +231,7 @@
   padding-top: 2px;
 }
 
-/* The single, merged rule — see the note at the former second declaration. */
+/* The single, merged rule - see the note at the former second declaration. */
 .layer-manager__opacity {
   display: flex;
   flex-direction: column;
@@ -252,7 +252,7 @@
 
 /*
   Measured at 1440px: this box reported scrollWidth 325 against clientWidth
-  323 — a two-pixel horizontal overflow inside the panel, caused by the range
+  323 - a two-pixel horizontal overflow inside the panel, caused by the range
   input's own margins, which are not zero by default in any browser. Two
   pixels is invisible but it is a real sideways scroll in a column that is
   supposed to have none, and it is the kind of thing that compounds.

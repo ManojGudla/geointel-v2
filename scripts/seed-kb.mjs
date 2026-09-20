@@ -25,7 +25,7 @@ const client = createClient(url, key, { auth: { persistSession: false } });
 
 const { data: existing, error: fetchError } = await client.from("kb_documents").select("title");
 if (fetchError) {
-  console.error("Could not read kb_documents — has the migration in supabase/migrations/0001_init.sql been run yet?");
+  console.error("Could not read kb_documents - has the migration in supabase/migrations/0001_init.sql been run yet?");
   console.error(fetchError.message);
   process.exit(1);
 }

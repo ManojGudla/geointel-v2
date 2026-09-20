@@ -1,5 +1,5 @@
 /**
- * What this app actually does with your data — written from the code, not
+ * What this app actually does with your data - written from the code, not
  * from a template.
  *
  * Every claim below corresponds to something verifiable in this repository,
@@ -120,7 +120,7 @@ export const SUBMITTED_FACTS: Fact[] = [
 
 /**
  * Not true yet. Listed because a security page that only lists strengths is
- * marketing, not information — and because anyone deciding whether to trust
+ * marketing, not information - and because anyone deciding whether to trust
  * this with real work needs to know the gaps.
  */
 export const NOT_YET: Fact[] = [

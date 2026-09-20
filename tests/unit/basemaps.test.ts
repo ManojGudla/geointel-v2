@@ -6,7 +6,7 @@ import { buildBasemapStyle } from "../../src/features/map/basemaps";
  * checkerboard reading "Map data not yet available" once zoomed in past a
  * certain point. Esri's free Dark Gray Canvas base/reference tiles only
  * have real imagery out to ~z16 (a lower-resolution cartographic basemap,
- * unlike the z19 satellite imagery layer) — declaring maxzoom: 19 for it
+ * unlike the z19 satellite imagery layer) - declaring maxzoom: 19 for it
  * made MapLibre request tiles past what the service actually has, and
  * ArcGIS Online serves its own "not yet available" placeholder for those.
  */
@@ -17,7 +17,7 @@ describe("buildBasemapStyle", () => {
     expect((style.sources.labels as { maxzoom?: number }).maxzoom).toBe(16);
   });
 
-  it("keeps the satellite basemap at z19 — Esri World Imagery genuinely has coverage that deep", () => {
+  it("keeps the satellite basemap at z19 - Esri World Imagery genuinely has coverage that deep", () => {
     const style = buildBasemapStyle("satellite");
     expect((style.sources.base as { maxzoom?: number }).maxzoom).toBe(19);
   });

@@ -16,7 +16,7 @@ import { readConsent } from "@/features/analytics/consent";
  *
  * NOTHING FIRES WITHOUT CONSENT. Every call checks the stored choice at the
  * moment it happens. A visitor who declined generates no events at all, and a
- * visitor who has not answered yet generates none either — not queued, not
+ * visitor who has not answered yet generates none either - not queued, not
  * buffered for later, simply not collected. Queuing them would make the
  * consent question retroactive, which is not consent.
  *
@@ -25,7 +25,7 @@ import { readConsent } from "@/features/analytics/consent";
  * to an event would ship exactly the thing this app's privacy page says it
  * does not collect. Properties are filtered to a small allowlist of shapes,
  * strings are capped, and anything numeric that looks like a coordinate is
- * refused outright by `scrubProps`. Search text is never sent — only its
+ * refused outright by `scrubProps`. Search text is never sent - only its
  * length and whether it parsed.
  *
  * EVENT NAMES ARE A CLOSED SET. A typo'd event name is not an error, it is a
@@ -78,7 +78,7 @@ interface DataLayerWindow extends Window {
 /**
  * Anything that could be a coordinate is refused.
  *
- * Not "rounded", not "truncated" — refused. A rounded coordinate is still a
+ * Not "rounded", not "truncated" - refused. A rounded coordinate is still a
  * coordinate, and the moment one becomes acceptable in an event the rule stops
  * being checkable. The bound is deliberately wide: any finite number that
  * could be a latitude or longitude is treated as one unless the property name
@@ -124,7 +124,7 @@ export function scrubProps(props: AnalyticsProps | undefined): AnalyticsProps {
  * Records one thing that happened.
  *
  * Never throws and never awaits. An analytics call sits in the middle of real
- * user actions — a search submit, a share tap — and an exception or a delay
+ * user actions - a search submit, a share tap - and an exception or a delay
  * there would break the feature it is measuring, which is the one outcome
  * worse than having no measurement at all.
  */

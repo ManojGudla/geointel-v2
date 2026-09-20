@@ -11,7 +11,7 @@ import type { ShellSection } from "@/stores/shellStore";
  * moved on. IDs appear in persisted state and in every call site that opens
  * a section; renaming them would buy nothing a user can see and would risk
  * breaking those. What changed is the mental model the labels describe:
- * from "here are our features" to the order someone actually works in —
+ * from "here are our features" to the order someone actually works in -
  * explore a place, bring in data, analyse it, ask about it, act on it.
  *
  * `hint` is written for someone who has never seen the app, and says what
@@ -73,7 +73,7 @@ export const SECTIONS: SectionDef[] = [
     label: "Ask",
     icon: "🤖",
     // The title stays broader than the label on purpose. This section holds
-    // four things — find on the map, Ask maNOWj, the agents, the report — and
+    // four things - find on the map, Ask maNOWj, the agents, the report - and
     // titling the whole panel after one of them ("Ask maNOWj") put that name
     // twice on one screen, once as a heading over three features it does not
     // cover. The feature keeps its name where the feature actually is.

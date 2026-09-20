@@ -2,7 +2,7 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 import { fakeReqRes } from "./testUtils";
 import handler from "../../api/_routes/nearby";
 
-// See api/_lib/overpass.ts's hasPlausibleReplicaTimestamp — a real mirror
+// See api/_lib/overpass.ts's hasPlausibleReplicaTimestamp - a real mirror
 // response always carries a genuine osm3s replica timestamp.
 const FAKE_OSM3S = { timestamp_osm_base: "2026-08-31T00:00:00Z" };
 
@@ -56,7 +56,7 @@ describe("api/nearby handler", () => {
   });
 
   // The old "shopping" filter only matched shop=mall/supermarket/
-  // department_store — it never matched the far more common case of
+  // department_store - it never matched the far more common case of
   // individual small shops, even though the GIS evidence scorer already
   // treats ANY shop=* tag as real commercial evidence. This is the specific
   // real-world gap that made "Shopping" read empty in ordinary areas.
@@ -72,7 +72,7 @@ describe("api/nearby handler", () => {
     expect(parsed.items.every((i) => i.category === "shopping")).toBe(true);
   });
 
-  // publicTransport's bare "[public_transport]" filter has no "=value" —
+  // publicTransport's bare "[public_transport]" filter has no "=value" -
   // it's an Overpass presence filter ("has this key, any value"). The old
   // categoryOf() only understood "[key=value]" strings via regex, so an
   // element fetched by that exact filter (any public_transport=* tag
@@ -102,7 +102,7 @@ describe("api/nearby handler", () => {
 
   it("degrades to 'temporarily unavailable' instead of throwing when Overpass is unreachable", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("network down"); }));
-    // Distinct coordinates from every other test in this file — the module-
+    // Distinct coordinates from every other test in this file - the module-
     // level TtlCache persists across tests within a run, so reusing an
     // already-cached (lat, lon, category) here would silently serve that
     // earlier successful result instead of exercising this failure path.

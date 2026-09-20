@@ -22,7 +22,7 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = { easy: "Easy", medium: "Me
 const PLAYER_NAME: Record<Player, string> = { R: "Red", Y: "Yellow" };
 
 /**
- * Four-in-a-Row. Unlimited rounds, no timer, no lives, no paywall — press
+ * Four-in-a-Row. Unlimited rounds, no timer, no lives, no paywall - press
  * "New game" as many times as you like.
  *
  * You play Red and always move first against the computer, which is the
@@ -39,7 +39,7 @@ export function FourInARow({ onBackToHub }: { onBackToHub: () => void }) {
 
   const recordRound = usePlayStore((s) => s.recordRound);
   const soundEnabled = usePlayStore((s) => s.soundEnabled);
-  // Guards against recording the same finished game twice — the status
+  // Guards against recording the same finished game twice - the status
   // effect below runs on every render while the board sits in its final
   // state, and each run would otherwise be another round in the stats.
   const recordedRef = useRef(false);
@@ -57,7 +57,7 @@ export function FourInARow({ onBackToHub }: { onBackToHub: () => void }) {
     setLastColumn(null);
   }, []);
 
-  // Changing the mode or difficulty starts a fresh game — continuing a
+  // Changing the mode or difficulty starts a fresh game - continuing a
   // half-played board against a different opponent isn't a meaningful result.
   useEffect(() => {
     reset();
@@ -93,7 +93,7 @@ export function FourInARow({ onBackToHub }: { onBackToHub: () => void }) {
       setBoard((b) => {
         // Re-derive from the latest board: a reset while the timer was
         // pending must not have the AI's move land on the fresh board.
-        // Bound to a local so the union narrows — calling statusOf() twice
+        // Bound to a local so the union narrows - calling statusOf() twice
         // gives TypeScript two unrelated values and `.turn` isn't on both.
         const latest = statusOf(b);
         if (latest.kind !== "playing" || latest.turn === humanPlayer) return b;

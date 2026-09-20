@@ -7,7 +7,7 @@ import { buildShareText } from "../share";
 interface Props {
   gameTitle: string;
   headline: string;
-  /** One line of plain-English detail — what actually happened. */
+  /** One line of plain-English detail - what actually happened. */
   detail?: string;
   score: number;
   applied: AppliedRound | null;
@@ -24,7 +24,7 @@ interface Props {
   /**
    * Whether this round earned a certificate.
    *
-   * Defaults to TRUE, because most games here have no opponent — finishing a
+   * Defaults to TRUE, because most games here have no opponent - finishing a
    * round of Pin the Place or the Daily IS the achievement, and there is
    * nothing else it could mean to "win" one. The two games you can genuinely
    * lose, Cricket and Four in a Row, pass the real result.
@@ -39,7 +39,7 @@ interface Props {
  * in Four-in-a-Row feel like the same product, and so the XP, personal-best
  * and achievement feedback can't drift between games.
  *
- * The share text is built from what actually happened — no invented ranking,
+ * The share text is built from what actually happened - no invented ranking,
  * no "you beat 87% of players", because there is no server and therefore no
  * such number. Copying is the only share action: a Web Share sheet that
  * silently does nothing on desktop is worse than a button that always works.

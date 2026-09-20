@@ -7,7 +7,7 @@ import "./NavRail.css";
  * desktop, a bottom tab bar on phones.
  *
  * Every button carries a visible text label, not just an icon. Icon-only
- * rails look tidier and are the reason people ask "where is that?" — the
+ * rails look tidier and are the reason people ask "where is that?" - the
  * label is the feature that makes the app usable by someone who wasn't given
  * a tour, which is the specific failure this replaces.
  */

@@ -13,13 +13,13 @@ import {
  * Google Analytics, and the promise attached to it.
  *
  * Adding analytics to this site broke a claim the Privacy page made as a
- * checkable fact — that there were no analytics and no third-party tags at
+ * checkable fact - that there were no analytics and no third-party tags at
  * all. The replacement claim is narrower and has to actually hold: nothing
  * from Google is fetched until the visitor accepts.
  *
  * That is the property these tests exist for. A banner that loads the tracker
  * first and asks second is the pattern everyone complains about, and it would
- * make the Privacy page false for every visitor who declines — which is worse
+ * make the Privacy page false for every visitor who declines - which is worse
  * than having no banner, because it is a written promise being broken.
  */
 
@@ -159,7 +159,7 @@ describe("the security policy still forbids inline script", () => {
   it("still refuses inline script, which is why the loader uses DOM calls", () => {
     // Google's copy-paste snippet is an inline <script> and would need
     // 'unsafe-inline' site-wide. Building the same tag from an already-trusted
-    // module avoids that — the exact failure that silently killed the
+    // module avoids that - the exact failure that silently killed the
     // blank-page recovery guard.
     expect(scriptSrc).not.toContain("unsafe-inline");
     expect(scriptSrc).not.toContain("unsafe-eval");

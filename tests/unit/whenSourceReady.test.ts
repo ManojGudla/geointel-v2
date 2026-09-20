@@ -4,7 +4,7 @@ import { whenSourceReady, type SourceReadyEvent, type SourceReadyMap } from "@/f
 /**
  * A minimal fake of the slice of MapLibre's Map this needs, with no real map
  * or WebGL involved. `on` registers a PERSISTENT listener (MapLibre's real
- * on() semantics) — the previous version of this fake used once(), which
+ * on() semantics) - the previous version of this fake used once(), which
  * quietly made the "waits through a spurious event" case untestable.
  */
 function fakeMap(initialSources: string[] = []) {
@@ -51,16 +51,16 @@ describe("whenSourceReady", () => {
 
   /**
    * Regression test for the reported bug: switch the basemap while
-   * measuring and only the vertex dots stay on screen — the line and the
+   * measuring and only the vertex dots stay on screen - the line and the
    * area fill disappear.
    *
    * This function used to wait on "style.load", and this test used to assert
-   * that it resolved when "style.load" fired — a test that passed while the
+   * that it resolved when "style.load" fired - a test that passed while the
    * app was broken, because it asserted the wrong world. MapLibre's
    * setStyle() defaults to diffing into the EXISTING Style object rather
    * than building a new one, and "style.load" is fired only when a Style
    * loads from scratch. So a basemap switch emits "styledata" and never
-   * "style.load" or "load" — which is precisely what this test now
+   * "style.load" or "load" - which is precisely what this test now
    * reproduces, and what the old implementation would fail.
    */
   it("resolves on 'styledata' alone, since a basemap swap fires neither 'load' nor 'style.load'", () => {
@@ -84,7 +84,7 @@ describe("whenSourceReady", () => {
 
   /**
    * "styledata" fires for style changes that have nothing to do with this
-   * source, so an early one must not consume the wait — the listener has to
+   * source, so an early one must not consume the wait - the listener has to
    * stay armed until the source genuinely appears. Under the old once()-based
    * implementation the first spurious event would deregister the handler and
    * the update would be lost forever.

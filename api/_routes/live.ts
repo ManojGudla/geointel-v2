@@ -20,7 +20,7 @@ import { TtlCache, RateLimiter, fetchWithTimeout } from "../_lib/cache.js";
  *              Flights / ships       free tiers withdrawn or unusable
  *
  * The excluded ones are not stubbed, faked or shown as "coming soon"
- * toggles that do nothing — they're simply absent, and the panel says why.
+ * toggles that do nothing - they're simply absent, and the panel says why.
  * A layer switch that produces no layer is worse than no switch.
  *
  * Everything is proxied rather than fetched from the browser because the

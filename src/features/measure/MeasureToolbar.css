@@ -1,6 +1,6 @@
 /* In-panel now, not floating over the map.
    The tools used to float at the map's bottom-left, which is a fine place
-   for them once you know they exist and no place at all if you don't —
+   for them once you know they exist and no place at all if you don't -
    nothing in the interface said "measuring lives here". They sit under
    Tools on the rail instead, where someone looking for them will look.
    The live figure still follows you onto the map while measuring; that's

@@ -5,7 +5,7 @@ import type { PlayStats } from "./types";
  *
  * Every one of these is checked against the recorded stats, so an achievement
  * can only be unlocked by actually doing the thing. There is no participation
- * badge and nothing unlocks on first open — a wall of trophies you didn't
+ * badge and nothing unlocks on first open - a wall of trophies you didn't
  * earn is worth nothing, and people can tell.
  *
  * `check` is a pure function of the accumulated stats, which is what lets the
@@ -113,7 +113,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   /*
     "Quick Off the Mark" (score 10+ in Map Race) and "Daily Habit" (finish 5
     Daily Challenges) were removed with the map-based games. An achievement
-    whose game is no longer in the hub cannot be earned by anyone, ever — it
+    whose game is no longer in the hub cannot be earned by anyone, ever - it
     just sits in the list making the total unreachable, which is the same
     broken promise as a game card that does not open.
   */
@@ -137,7 +137,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     requirement: "Clear a Geo Memory board with no wasted moves",
     icon: "🧠",
     // Its OWN flag. An earlier version checked the shared "quiz:perfect"
-    // counter, which any perfect quiz sets — so this would have unlocked
+    // counter, which any perfect quiz sets - so this would have unlocked
     // without ever clearing a memory board, and the requirement printed
     // beside it would have been a lie.
     check: (s) => (s.flags["geo-memory:perfect"] ?? 0) >= 1,

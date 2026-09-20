@@ -43,7 +43,7 @@ const cache = new TtlCache<MaintenanceState>(5_000);
 // This check runs on nearly every request in the app (withMaintenanceGuard
 // wraps almost every handler below), so it needs its own tight, independent
 // bound rather than inheriting whatever budget the handler it's guarding
-// happens to have — see withTimeout in cache.ts for why this exists at all:
+// happens to have - see withTimeout in cache.ts for why this exists at all:
 // a Supabase read here previously had no timeout whatsoever, which is what
 // actually caused "every feature hangs for 5+ minutes."
 const SUPABASE_CHECK_TIMEOUT_MS = 4_000;
@@ -63,7 +63,7 @@ interface AppSettingsRow {
 
 /**
  * Reads the single app_settings row (RLS-protected, service-role only).
- * Falls back to DEFAULT_STATE — i.e. "not in maintenance" — whenever
+ * Falls back to DEFAULT_STATE - i.e. "not in maintenance" - whenever
  * Supabase isn't configured or the row is missing, so a misconfigured or
  * not-yet-migrated deployment can never accidentally lock everyone out. The
  * only real way into maintenance is an explicit admin POST that writes this
@@ -105,7 +105,7 @@ export async function getMaintenanceState(): Promise<MaintenanceState> {
     // unreachable Supabase project must never turn into "hold every visitor
     // hostage until it responds." This is the timeout case (see
     // SUPABASE_CHECK_TIMEOUT_MS / withTimeout in cache.ts) as well as any
-    // other unexpected throw — either way, "not in maintenance" is the safe
+    // other unexpected throw - either way, "not in maintenance" is the safe
     // default, same as the rest of this function.
     console.error("[maintenance] getMaintenanceState degraded", error instanceof Error ? error.message : error);
     return DEFAULT_STATE;
@@ -119,7 +119,7 @@ export function invalidateMaintenanceCache() {
 
 /**
  * Wraps a normal api/*.ts handler so it refuses to run while maintenance
- * mode is on — real backend enforcement, not a frontend-only check a direct
+ * mode is on - real backend enforcement, not a frontend-only check a direct
  * API call could bypass. A request carrying a valid admin key always passes
  * through unaffected, mirroring "Administrators MUST still be able to
  * access" from the spec at the API layer, not just the /admin page.

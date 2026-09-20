@@ -72,7 +72,7 @@
   cursor: not-allowed;
 }
 
-/* Same muted look as a disabled command, but this one is still clickable —
+/* Same muted look as a disabled command, but this one is still clickable -
    it focuses the search bar instead of running, since picking a location is
    the actual next step (see the requiresLocation note in CommandPalette.tsx). */
 .command-palette__list button.command-palette__needs-location {

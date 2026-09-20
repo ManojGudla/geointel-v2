@@ -10,7 +10,7 @@ export interface LayerDef {
 
 // Only layers api/gis.ts actually populates are marked available=true.
 // Roads and administrative boundaries need a tiled/paginated fetch strategy
-// to avoid overloading the public Overpass instances with huge geometries —
+// to avoid overloading the public Overpass instances with huge geometries -
 // listed here so the layer manager is honest about what's real today rather
 // than shipping a checkbox that toggles nothing.
 export const LAYER_DEFS: LayerDef[] = [
@@ -74,7 +74,7 @@ export function bucketFeature(feature: GISFeature): GISLayerId[] {
 // happens to come first in bucketFeature()'s insertion order meant a
 // feature was always attributed to the generic bucket, so toggling a
 // specific checkbox like "Residential" had no visible effect as long as
-// "Buildings" stayed checked — the point was already being rendered, just
+// "Buildings" stayed checked - the point was already being rendered, just
 // under the generic layer/color.
 const GENERIC_LAYERS = new Set<GISLayerId>(["buildings", "amenities"]);
 
@@ -107,8 +107,8 @@ export function groupFeaturesByLayer(features: GISFeature[]): Record<string, GIS
  * The flat list was the most technical thing a first-time visitor met: no
  * hierarchy, no sense of which switches belong together, and "Institutional"
  * sitting beside "Land use" with nothing to say how they differ. Grouping
- * costs nothing in capability — every layer is still here, still individually
- * switchable — and turns scanning eighteen items into scanning five headings.
+ * costs nothing in capability - every layer is still here, still individually
+ * switchable - and turns scanning eighteen items into scanning five headings.
  *
  * Order matters: the groups people reach for most often come first.
  */

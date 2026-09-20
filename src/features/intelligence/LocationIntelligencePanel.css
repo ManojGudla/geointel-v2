@@ -158,7 +158,7 @@
 }
 
 /* Dimensions without a score say so in words, and are muted rather than
-   coloured — state is never carried by colour alone. */
+   coloured - state is never carried by colour alone. */
 .li__dim--insufficient .li__dim-value,
 .li__dim--needs-choice .li__dim-value {
   font-size: var(--text-xs);

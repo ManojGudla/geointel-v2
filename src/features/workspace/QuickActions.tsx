@@ -19,7 +19,7 @@ import "./QuickActions.css";
  * Two bugs are fixed here, both of which made these read as broken:
  *
  * 1. They used to only set an internal tab. If the panel holding that tab
- *    was closed — which it was, most of the time — pressing "Nearby"
+ *    was closed - which it was, most of the time - pressing "Nearby"
  *    changed nothing visible. Every one of them now opens the surface it
  *    names as well as selecting within it.
  *
@@ -27,12 +27,12 @@ import "./QuickActions.css";
  *    chosen they were rendered `disabled` at half opacity with no
  *    explanation. That is the worst of both worlds: they look broken, and
  *    pressing them does nothing to tell you otherwise. They are now live
- *    buttons in a "needs a place" state — pressing one puts the cursor in
+ *    buttons in a "needs a place" state - pressing one puts the cursor in
  *    the search box, which is the actual next step, and the row says so in
  *    one line underneath.
  *
  * The middle button used to read "Analyse", which collided with the rail's
- * own "Analyse" section — same word, two destinations. This one opens the
+ * own "Analyse" section - same word, two destinations. This one opens the
  * evidence for the selected place; the rail's opens the measurement and
  * spatial-analysis tools. Naming this one for what it shows removes the
  * collision without moving either feature.
@@ -113,13 +113,13 @@ export function QuickActions() {
    *
    * The focus call alone was not enough, and that is worth spelling out
    * because it looked finished. Pressing Directions with no place selected
-   * DID move the caret into the search box — but a focus ring on a box the
+   * DID move the caret into the search box - but a focus ring on a box the
    * user was not looking at is invisible in practice. Watching someone use
    * it, the button reads as broken: they press, nothing appears to happen,
    * and they conclude the site does not work.
    *
    * So the box is now briefly outlined as well. Same behaviour, made
-   * visible — the point is to connect the press to the thing it wants you to
+   * visible - the point is to connect the press to the thing it wants you to
    * do next, not to explain it in text nobody reads.
    */
   const promptForPlace = () => {
@@ -143,7 +143,7 @@ export function QuickActions() {
    * "What's here" and "Nearby" used to do nothing at all until a place had
    * been selected: the press was swallowed and the search box was outlined
    * for 1.4 seconds. Reported by more than a hundred users as the app not
-   * working, and reasonably so — you land on a map showing your city, press
+   * working, and reasonably so - you land on a map showing your city, press
    * the most obvious button on the screen, and nothing happens.
    *
    * There was never a good reason for it. Both questions are about a point,
@@ -210,7 +210,7 @@ export function QuickActions() {
         >
           📍 Nearby
         </button>
-        {/* Measure needs no place — you can measure anywhere on the map — so
+        {/* Measure needs no place - you can measure anywhere on the map - so
             it is never in the "needs a place" state. */}
         <button
           type="button"
@@ -222,7 +222,7 @@ export function QuickActions() {
         >
           📏 Measure
         </button>
-        {/* Neither does 3D — it is a property of the view, not of a place. */}
+        {/* Neither does 3D - it is a property of the view, not of a place. */}
         <button
           type="button"
           className={is3D ? "quick-actions__on" : undefined}
@@ -241,7 +241,7 @@ export function QuickActions() {
       {/* Was "to use the first three", which is no longer true and was never
           a useful sentence: it told you what you could not do rather than
           what you could. Only Directions needs a destination now, and the
-          line says the thing worth knowing — that the other buttons will
+          line says the thing worth knowing - that the other buttons will
           answer for whatever you have centred. */}
       {needsPlace && (
         <p className="quick-actions__hint">

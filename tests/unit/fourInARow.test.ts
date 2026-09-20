@@ -109,7 +109,7 @@ describe("four-in-a-row win detection", () => {
   });
 
   it("does not join two players' discs into a line", () => {
-    const b = play([0, 3, 1, 4, 2]); // R at 0,1,2 — Y at 3,4. Not a win.
+    const b = play([0, 3, 1, 4, 2]); // R at 0,1,2 - Y at 3,4. Not a win.
     expect(getWinner(b)).toBeNull();
   });
 
@@ -136,7 +136,7 @@ describe("four-in-a-row AI", () => {
 
   it("blocks an opponent's immediate win at medium and hard", () => {
     // R has 0,1,2 on the bottom row and it is Y's move, so Y must play 3.
-    // Y's own discs are spread across three different columns on purpose —
+    // Y's own discs are spread across three different columns on purpose -
     // an earlier version of this test stacked them all in one column, which
     // gave Y a vertical win of its own, and the AI correctly took the win
     // instead of blocking. Taking a win beats blocking; the position has to
@@ -181,8 +181,8 @@ describe("four-in-a-row AI", () => {
   it("scores an open three as good for the player who owns it", () => {
     // R has 0,1,2 open at 3; Y has two scattered discs and no threat of its
     // own. (Giving Y a stacked column here would give Y its own open three,
-    // which the evaluation weights MORE heavily than R's — deliberately, so
-    // the search treats an incoming loss as more urgent than its own win —
+    // which the evaluation weights MORE heavily than R's - deliberately, so
+    // the search treats an incoming loss as more urgent than its own win -
     // and the position would correctly score negative for R.)
     const b = play([0, 6, 1, 4, 2]);
     expect(evaluate(b, "R")).toBeGreaterThan(0);
@@ -198,7 +198,7 @@ describe("four-in-a-row AI", () => {
   });
 
   it("hard beats easy over a full game", () => {
-    // Hard plays red, easy plays yellow. Not a coin flip — if this ever
+    // Hard plays red, easy plays yellow. Not a coin flip - if this ever
     // fails, the search has genuinely regressed.
     let board: Board = EMPTY_BOARD;
     for (let move = 0; move < 42; move++) {

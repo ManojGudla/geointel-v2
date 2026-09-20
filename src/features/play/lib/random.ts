@@ -2,7 +2,7 @@
  * A small, seedable random number generator.
  *
  * Math.random() would be fine for a casual round, but the Daily Challenge has
- * to give every player on a given date the SAME questions — otherwise
+ * to give every player on a given date the SAME questions - otherwise
  * comparing scores is meaningless and the shared result card is a lie. A
  * seeded generator makes the day's round reproducible from nothing but the
  * date, with no server involved.

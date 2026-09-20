@@ -12,7 +12,7 @@ import type { StyleSpecification } from "maplibre-gl";
  *
  * It also has to be LABEL-FREE. A geography game rendered on a basemap that
  * prints "Hyderabad" next to the answer isn't a game. Both styles below are
- * imagery/terrain only, with no place names, no boundaries and no roads —
+ * imagery/terrain only, with no place names, no boundaries and no roads -
  * which is why they're defined here rather than reusing the app's basemaps,
  * where labels are the point.
  */
@@ -33,7 +33,7 @@ const NO_LABEL_SATELLITE: StyleSpecification = {
 
 /**
  * Esri's Dark Gray Canvas BASE layer, without the reference (labels) overlay
- * the main app pairs it with — landmasses and coastlines, no names. Exactly
+ * the main app pairs it with - landmasses and coastlines, no names. Exactly
  * what a "point at where you think this is" game needs.
  */
 const NO_LABEL_WORLD: StyleSpecification = {

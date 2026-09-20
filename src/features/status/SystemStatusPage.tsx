@@ -30,8 +30,8 @@ const LABEL: Record<DependencyState, string> = {
  * Live dependency health, read from /api/status.
  *
  * This app's failure modes are overwhelmingly other people's
- * infrastructure — six free Overpass mirrors, Nominatim, Wikidata,
- * OpenRouter, Supabase — so when a panel says "temporarily unavailable" the
+ * infrastructure - six free Overpass mirrors, Nominatim, Wikidata,
+ * OpenRouter, Supabase - so when a panel says "temporarily unavailable" the
  * useful question is which dependency is at fault. Answering that used to
  * require reading server logs, which is fine for one developer and not fine
  * for a tool a team relies on daily.

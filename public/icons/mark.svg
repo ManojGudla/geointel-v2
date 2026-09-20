@@ -8,7 +8,7 @@
 
     Two colours, and that is the point rather than decoration. An all-white
     "MG" on a blue tile is precisely what Google draws for a site whose icon
-    it cannot find — so a mark that looked like that would be indistinguishable
+    it cannot find - so a mark that looked like that would be indistinguishable
     from having no mark at all. The amber G is the one accent this brand
     spends, and it gives the tile a colour signature that survives at 16px,
     well past the size where the letterforms stop being legible.
@@ -16,7 +16,7 @@
     Sized against the size it is actually seen at. A favicon in a search result
     is 16 pixels: the cap height here is 36% of the tile, which is
     5.7px at that size, and the stroke weights of Poppins Bold hold up at
-    it. The previous mark drew a ring at a 15/512 stroke — 0.47px at 16px —
+    it. The previous mark drew a ring at a 15/512 stroke - 0.47px at 16px -
     which did not thin, it smeared.
   -->
   <defs>

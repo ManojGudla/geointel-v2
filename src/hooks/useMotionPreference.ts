@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useUiStore } from "@/stores/uiStore";
 
 /**
- * Single source of truth for "should this panel animate?" — combines the
+ * Single source of truth for "should this panel animate?" - combines the
  * user's explicit in-app choice (Settings → animationIntensity, currently
  * defaulted to "full" since there's no settings UI for it yet) with the
  * OS-level prefers-reduced-motion signal, which always wins regardless of

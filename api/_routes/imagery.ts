@@ -8,7 +8,7 @@ import { TtlCache, RateLimiter, fetchWithTimeout } from "../_lib/cache.js";
  *
  * This exists because of a real complaint: "old imagery is coming
  * everywhere". The satellite basemap is Esri World Imagery, which is a mosaic
- * — every area was photographed on its own date, so one city can look current
+ * - every area was photographed on its own date, so one city can look current
  * and the next town over can look years old. Without a date on screen that
  * reads as a bug in this app. With one it reads as what it is: a fact about
  * the imagery, which the visitor can now judge for themselves.
@@ -30,7 +30,7 @@ const ESRI_METADATA =
  * Which metadata sublayers to ask.
  *
  * The layer names ("30cm Resolution Metadata") describe the layer's own
- * display scale, NOT the resolution of the footprints inside it — checked
+ * display scale, NOT the resolution of the footprints inside it - checked
  * against the live service, where layer 15 returned a 1.2 m footprint. So the
  * layer number can't be used to rank quality, and the selection below uses
  * each footprint's own SAMP_RES instead.
@@ -50,7 +50,7 @@ export interface ImageryDto {
   /** ISO date (YYYY-MM-DD) the picture was captured. */
   captured: string;
   year: number;
-  /** Ground sample distance in metres — how much real ground one pixel covers. */
+  /** Ground sample distance in metres - how much real ground one pixel covers. */
   resolutionMeters: number | null;
   /** Who supplied the picture, in Esri's own words. */
   provider: string | null;

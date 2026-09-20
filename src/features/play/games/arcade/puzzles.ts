@@ -2,10 +2,10 @@ import { createRng, type Rng } from "../../lib/random";
 
 /**
  * Two generated puzzle games. No dataset, so the content never runs out and
- * no claim can ever be wrong — the answer is derived from the puzzle itself.
+ * no claim can ever be wrong - the answer is derived from the puzzle itself.
  *
- *   Crack the Code — deduce a symbol's value from a system of equations.
- *   Pattern Breaker — continue a number sequence against a clock.
+ *   Crack the Code - deduce a symbol's value from a system of equations.
+ *   Pattern Breaker - continue a number sequence against a clock.
  */
 
 // ── Crack the Code ────────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ export interface CodePuzzle {
  * Builds a genuinely solvable system.
  *
  * The obvious way to write this game is the way it is usually presented
- * online — three lines that are permutations of the same three symbols:
+ * online - three lines that are permutations of the same three symbols:
  *
  *     ▲ ● ■ = 7
  *     ● ■ ▲ = 11
@@ -112,7 +112,7 @@ type Generator = (rng: Rng, level: number) => { terms: number[]; next: number; r
  *
  * Every rule produces exactly one defensible continuation. Sequences with
  * more than one reasonable answer are the classic complaint magnet for this
- * genre — the player is right, the game says wrong, and they never come back.
+ * genre - the player is right, the game says wrong, and they never come back.
  */
 const GENERATORS: Generator[] = [
   // Add a constant.

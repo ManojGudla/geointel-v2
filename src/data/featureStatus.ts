@@ -3,7 +3,7 @@ export type FeatureStatus = "live" | "partial" | "planned";
 export interface FeatureEntry {
   name: string;
   status: FeatureStatus;
-  /** Optional context — what's true today, what's missing, or where to look. Most useful on "partial"/"planned", but fine on "live" too. */
+  /** Optional context - what's true today, what's missing, or where to look. Most useful on "partial"/"planned", but fine on "live" too. */
   note?: string;
 }
 
@@ -13,11 +13,11 @@ export interface FeatureCategory {
 }
 
 /**
- * Single source of truth for "what does GeoIntel actually do" — rendered by
+ * Single source of truth for "what does GeoIntel actually do" - rendered by
  * FeatureStatusPage.tsx and linked from the header and Help Guide. Every
  * "live" claim here should be checkable against real code (cross-reference
  * README.md / the relevant src/features/* or api/* file before flipping a
- * status) — this page exists specifically so it can be shown to a client,
+ * status) - this page exists specifically so it can be shown to a client,
  * manager, or teammate without overclaiming. When a feature ships or a gap
  * closes, update the entry here rather than leaving this page stale.
  */
@@ -85,7 +85,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       { name: "Evidence trust badges (Verified / Inferred / Unavailable)", status: "live" },
       { name: '"Why this result" reasoning', status: "live" },
       { name: "GIS evidence layers with adjustable opacity", status: "live", note: "One shared opacity slider for all visible layers today, not an independent control per layer." },
-      { name: "Adjustable analysis radius (100m–5km)", status: "live" },
+      { name: "Adjustable analysis radius (100m-5km)", status: "live" },
       { name: "Building footprint & height data", status: "live" },
       { name: "Full address identity (road, suburb, city, district, state, postcode)", status: "live" },
       {
@@ -128,7 +128,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       { name: "Nearby police stations", status: "live" },
       { name: "Nearby public transport stops", status: "live" },
       // Was "planned" while the identical capability was correctly marked live
-      // under Map & Visualization — the page contradicted itself. It is built:
+      // under Map & Visualization - the page contradicted itself. It is built:
       // api/_routes/live.ts serves Open-Meteo CAMS, and three panels render it.
       {
         name: "Air quality index",
@@ -217,7 +217,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       },
       // Removed rather than downgraded: this was "Nearest-facility analysis"
       // listed a second time under another name. runAnalysis.ts supports
-      // exactly buffer, within, nearest and suitability — there is no separate
+      // exactly buffer, within, nearest and suitability - there is no separate
       // proximity operation, and counting one feature twice inflates the page.
       { name: "Catchment area analysis", status: "planned", note: "Needs travel-time isochrones, which the free routing tier does not provide." },
       { name: "Density / heatmap analysis", status: "planned" },
@@ -304,7 +304,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       },
       // Was "planned", which undersold a real, working audit table. It covers
       // admin maintenance actions only (0004_maintenance_mode.sql, written on
-      // every change and read back in the dashboard) — narrower than a full
+      // every change and read back in the dashboard) - narrower than a full
       // audit trail, so "partial" rather than "live".
       {
         name: "Audit trail",

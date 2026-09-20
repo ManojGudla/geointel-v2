@@ -21,7 +21,7 @@ import {
  * Nominatim has no support for it at all.
  *
  * The risk with decoding an address format yourself is that a wrong answer is
- * worse than no answer — a pin 400 km away looks like it worked. So these
+ * worse than no answer - a pin 400 km away looks like it worked. So these
  * tests check the arithmetic against Google's published values, check the
  * user's actual failing string, and check that the ambiguity of short codes is
  * handled rather than papered over.
@@ -96,8 +96,8 @@ describe("the user's actual failing address", () => {
 
   it("lands hundreds of kilometres away from the WRONG reference, which is why context is geocoded first", () => {
     /**
-     * The trap this documents. A short code repeats every degree — about
-     * 110 km — so resolving it against wherever the map happens to be pointing
+     * The trap this documents. A short code repeats every degree - about
+     * 110 km - so resolving it against wherever the map happens to be pointing
      * returns a real, confident, completely wrong point. Hyderabad is the
      * app's default centre, so this is the exact mistake that would have
      * shipped if the surrounding text were discarded.
@@ -120,7 +120,7 @@ describe("what counts as a Plus Code", () => {
 
   it("rejects things that merely contain a plus sign", () => {
     // Anything ambiguous must fall through to ordinary place search rather
-    // than being force-decoded into a wrong point — the same rule
+    // than being force-decoded into a wrong point - the same rule
     // coordinateSearch.ts already follows for half-typed coordinates.
     for (const notACode of ["a+b", "C++ tutorial", "+91 9876543210", "1+1", "Hyderabad", "17.38, 78.48", "++", "AEIOU+AEIOU"]) {
       expect(findPlusCode(notACode), notACode).toBeNull();

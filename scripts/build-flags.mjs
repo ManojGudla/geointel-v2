@@ -1,5 +1,5 @@
 /**
- * Generates public/flags/*.png — the flag images every game uses.
+ * Generates public/flags/*.png - the flag images every game uses.
  *
  * Run with `npm run flags`. That installs the flag-icons SVG set without
  * saving it to package.json, renders each flag this project needs, and leaves
@@ -10,7 +10,7 @@
  * Indicator Symbols and left to the font to compose. Windows ships no flag
  * glyphs, so every flag rendered as its two ISO letters, and the Flag Quiz
  * printed "KZ" directly above "Which country's flag is this?". A year of
- * passing tests never caught it, because the emoji strings were correct — the
+ * passing tests never caught it, because the emoji strings were correct - the
  * font was the problem.
  *
  * WHY PNG AND NOT SVG. The SVGs are real path data and the ones with a coat of
@@ -42,7 +42,7 @@ if (!existsSync(SOURCE)) {
 const world = readFileSync("src/features/play/data/world.ts", "utf8");
 const codes = [...new Set([...world.matchAll(/code: "([A-Z]{2})"/g)].map((m) => m[1]))];
 if (codes.length < 50) {
-  console.error(`Only found ${codes.length} country codes in world.ts — that looks wrong. Stopping.`);
+  console.error(`Only found ${codes.length} country codes in world.ts - that looks wrong. Stopping.`);
   process.exit(1);
 }
 
@@ -79,7 +79,7 @@ const sizes = readdirSync(OUT)
   .map((f) => [f, statSync(join(OUT, f)).size])
   .sort((a, b) => b[1] - a[1]);
 console.log(
-  `${codes.length} flags written to ${OUT}/ — ${Math.round(total / 1024)} KB total, ` +
+  `${codes.length} flags written to ${OUT}/ - ${Math.round(total / 1024)} KB total, ` +
     `largest ${sizes[0][0]} ${Math.round(sizes[0][1] / 1024)} KB, ` +
     `median ${Math.round(sizes[Math.floor(sizes.length / 2)][1] / 1024)} KB`
 );

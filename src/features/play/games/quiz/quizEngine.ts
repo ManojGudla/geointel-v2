@@ -2,12 +2,12 @@ import { COUNTRIES, type Country, type Region } from "../../data/world";
 import { createRng, type Rng } from "../../lib/random";
 
 /**
- * One question generator shared by every quiz in the hub — World Quiz, Flag
+ * One question generator shared by every quiz in the hub - World Quiz, Flag
  * Quiz and the quiz leg of the Daily Challenge all come out of here.
  *
  * Distractors are drawn from the SAME region as the answer wherever there are
  * enough countries to do it. That's the difference between a quiz and a
- * giveaway: "capital of France — Paris, Tokyo, Nairobi, Lima" answers itself,
+ * giveaway: "capital of France - Paris, Tokyo, Nairobi, Lima" answers itself,
  * "Paris, Berlin, Madrid, Rome" actually asks you something.
  */
 
@@ -90,7 +90,7 @@ function buildQuestion(rng: Rng, kind: QuizKind, pool: readonly Country[], index
         flagCode: answerCountry.code,
         options,
         answer: answerCountry.name,
-        // No flag in the explanation text — the answer is already named here,
+        // No flag in the explanation text - the answer is already named here,
         // and the component shows the flag beside it.
         explanation: `That is the flag of ${answerCountry.name}, capital ${answerCountry.capital}.`,
       };
@@ -123,7 +123,7 @@ export interface QuizOptions {
 
 /**
  * A whole round. Questions never repeat the same answer country inside one
- * round — being asked about France three times in five questions feels broken
+ * round - being asked about France three times in five questions feels broken
  * even though it's technically random.
  */
 export function buildQuiz({ count, kinds, region, seed }: QuizOptions): QuizQuestion[] {

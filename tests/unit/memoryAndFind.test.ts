@@ -102,7 +102,7 @@ describe("geo memory play", () => {
     const wrong = cards.findIndex((c, i) => i !== a && i !== b);
     const two = flipCard(flipCard(cards, a).cards, wrong);
     const third = flipCard(two.cards, cards.findIndex((c, i) => i !== a && i !== b && i !== wrong));
-    expect(third.cards).toBe(two.cards); // same reference — nothing happened
+    expect(third.cards).toBe(two.cards); // same reference - nothing happened
     expect(third.movesDelta).toBe(0);
   });
 
@@ -248,7 +248,7 @@ describe("achievement honesty", () => {
 describe("Geo Memory teaches something now", () => {
   /**
    * The board used to pair a flag with an identical flag, so you could clear
-   * it without knowing a single country — a pure memory drill with geography
+   * it without knowing a single country - a pure memory drill with geography
    * painted on. Every pair is now one flag card and one country-name card, so
    * finishing the board means you matched each flag to its country.
    */

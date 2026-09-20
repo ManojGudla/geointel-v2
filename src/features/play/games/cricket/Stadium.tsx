@@ -11,7 +11,7 @@ import "./Stadium.css";
  * reads as a ball travelling towards YOU, which is the entire game. A side-on
  * view would be prettier and would destroy the timing.
  *
- * The first version of this scene was a diagram — two flat ellipses for the
+ * The first version of this scene was a diagram - two flat ellipses for the
  * stands, four arcs of dots for a crowd, a couple of sticks for floodlights. It
  * was honest about what it was and it looked like it. This one is built the way
  * a scene is built rather than the way a chart is: a bowl with tiers and a roof
@@ -20,7 +20,7 @@ import "./Stadium.css";
  * that converge towards the far end, haze thickening at the boundary, and a
  * sight screen sitting exactly where a sight screen sits.
  *
- * Everything is still drawn — SVG and CSS, no images, not one downloaded byte —
+ * Everything is still drawn - SVG and CSS, no images, not one downloaded byte -
  * so it stays sharp at any size and costs the page nothing. It is a stylised
  * ground, not a photographed one, and it is not pretending otherwise.
  *
@@ -29,7 +29,7 @@ import "./Stadium.css";
  * `progress` changes sixty times a second. The scene behind the play has
  * several hundred elements in it and none of them depend on the ball, so it
  * lives in its own memoised component keyed only on the crowd's mood. Without
- * that, adding this much detail would have cost frames — and a timing game that
+ * that, adding this much detail would have cost frames - and a timing game that
  * drops frames is a timing game that feels unfair.
  */
 
@@ -76,8 +76,8 @@ interface Fan {
  *
  * The first pass generated hues right round the wheel, and the result was
  * candy: a stand full of pastel confetti. A crowd under floodlight is nothing
- * like that. It is overwhelmingly dark and desaturated — navy, charcoal, brown,
- * olive, faded denim — with a handful of bright shirts scattered through it,
+ * like that. It is overwhelmingly dark and desaturated - navy, charcoal, brown,
+ * olive, faded denim - with a handful of bright shirts scattered through it,
  * and it is precisely that ratio of dull to bright that makes a texture read as
  * thousands of people rather than as decoration.
  */
@@ -297,7 +297,7 @@ const Ground = memo(function Ground() {
         </pattern>
 
         {/* Perimeter boards. Abstract colour blocks, which is exactly what
-            advertising hoardings look like at this distance under lights —
+            advertising hoardings look like at this distance under lights -
             and carries nobody else's name. */}
         <pattern id="cr-boards" width="34" height="10" patternUnits="userSpaceOnUse">
           <rect width="34" height="10" fill="#0f1a2c" />
@@ -322,8 +322,8 @@ const Ground = memo(function Ground() {
         shadows, not as beams: a translucent wash laid over a lit crowd flattens
         it, and the eye calls anything flatter than its surroundings a shadow.
         Drawn first, so the bowl covers them, they do the one job a visible beam
-        should do — say that there is haze above the ground and something is
-        shining through it — and then get out of the way.
+        should do - say that there is haze above the ground and something is
+        shining through it - and then get out of the way.
       */}
       {PYLONS.map((p) => (
         <path
@@ -529,7 +529,7 @@ const FieldSet = memo(function FieldSet({ sx, sy }: { sx: number; sy: number }) 
          *
          * The depth axis runs 0 at the far boundary to 1 at the batter, so a
          * slip fielder belongs LOW on the screen; the first version put him at
-         * 28% — standing in the crowd. The grass runs from about 48% to 93%,
+         * 28% - standing in the crowd. The grass runs from about 48% to 93%,
          * and fielders are mapped into exactly that band.
          *
          * And x converges with depth. The ground is drawn in perspective, so
@@ -595,7 +595,7 @@ export function Stadium({
   guarding: Aim | null;
   /** How long this ball takes to reach the bat, so the meter matches it. */
   travelMs: number;
-  /** How wide this ball's windows are — a bouncer is far more forgiving. */
+  /** How wide this ball's windows are - a bouncer is far more forgiving. */
   forgiveness: number;
   fullscreen: boolean;
   onToggleFullscreen: () => void;
@@ -624,7 +624,7 @@ export function Stadium({
    * The windows are drawn from the SAME constants the scoring uses
    * (CONTACT_WINDOWS in timing.ts), converted from milliseconds into a fraction
    * of the ball's flight, so what the player aims at is exactly what they are
-   * judged against — not an illustration of it.
+   * judged against - not an illustration of it.
    */
   const METER_END = 1.35;
   const windowFraction = (ms: number) => (ms * forgiveness) / travelMs / METER_END;
@@ -656,7 +656,7 @@ export function Stadium({
         it pushes in as the bowler runs and holds tight through the delivery,
         the way a broadcast camera does. Because the ball, the contact band and
         the batter all scale together inside it, the move cannot put what you
-        see out of step with what you are scored on — which is why the meter and
+        see out of step with what you are scored on - which is why the meter and
         the prompt deliberately stay outside.
       */}
       <div className="stadium__camera">
@@ -733,7 +733,7 @@ export function Stadium({
           A slip fielder, right on the lens.
 
           One figure in the near foreground, thrown out of focus, does more for
-          depth than anything drawn behind the action — it gives the eye
+          depth than anything drawn behind the action - it gives the eye
           something to measure the distance to the pitch against. Pushed to the
           off-side edge and cropped, so it frames the shot without ever sitting
           between the player and the ball.
@@ -761,7 +761,7 @@ export function Stadium({
           The contact band, on the pitch where the shot is actually played.
 
           The flat-pitch version had one and replacing it with the stadium
-          silently dropped it. That is the whole of "where to hit" — a beautiful
+          silently dropped it. That is the whole of "where to hit" - a beautiful
           ground with no indication of when to swing is worse to play than an
           ugly one with a stripe on it. It is cut to the pitch's own perspective
           now, so it reads as light falling on the strip rather than as a bar
@@ -814,7 +814,7 @@ export function Stadium({
         {fullscreen ? "✕" : "⛶"}
       </button>
 
-      {/* The meter. Drawn from the real scoring windows — see above. */}
+      {/* The meter. Drawn from the real scoring windows - see above. */}
       {(travelling || phase === "runup") && (
         <div className="stadium__meter" aria-hidden="true">
           <div className="stadium__meter-track">
@@ -849,7 +849,7 @@ export function Stadium({
       </div>
 
       {/* A corner chip, not a pill on the pitch. The previous version floated
-          over the crease and the ball's flight path — the two things the eye
+          over the crease and the ball's flight path - the two things the eye
           must never be pulled away from. */}
       <div className="stadium__aim" aria-hidden="true">
         Aim <strong>{AIM_LABEL[aim]}</strong>

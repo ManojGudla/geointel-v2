@@ -81,7 +81,7 @@ describe("the durable rate limiter", () => {
     /**
      * The opposite mistake, and the more tempting one. Refusing every admin
      * request while Supabase is unreachable would lock the owner out of the
-     * endpoint that turns maintenance mode OFF — at exactly the moment
+     * endpoint that turns maintenance mode OFF - at exactly the moment
      * something is already broken.
      */
     vi.spyOn(console, "error").mockImplementation(() => {});

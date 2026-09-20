@@ -10,7 +10,7 @@ import path from "node:path";
  * are normally two separate processes (`vite dev` + `vercel dev`), which is
  * exactly the split that broke local development in the previous version of
  * this project. Each handler default-exports a function shaped like
- * `(req: ApiRequest, res: ApiResponse) => void | Promise<void>` — the same
+ * `(req: ApiRequest, res: ApiResponse) => void | Promise<void>` - the same
  * shape Vercel's Node runtime uses in production. This plugin adapts Vite's
  * raw connect middleware requests into that shape in dev, so `npm run dev`
  * alone is enough.
@@ -53,7 +53,7 @@ function decorateResponse(res: ServerResponse): ApiResponse {
 
 // Hosts this app actually talks to from the browser: same-origin /api/*
 // (which proxies Nominatim, Overpass, Open-Meteo, OSRM, News, and Supabase
-// server-side — none of those need a browser-side CSP allowance) plus the
+// server-side - none of those need a browser-side CSP allowance) plus the
 // four keyless raster tile providers MapLibre fetches tiles from directly
 // (see src/features/map/basemaps.ts). Keep this list in sync with that
 // file, and with the equivalent CSP in vercel.json for production.
@@ -75,9 +75,9 @@ const TILE_HOSTS = [
 /**
  * Applied to every dev-server response (not just /api/*), mirroring the
  * production headers in vercel.json as closely as the dev server allows.
- * CSP here is intentionally looser than production — Vite's HMR client
+ * CSP here is intentionally looser than production - Vite's HMR client
  * needs 'unsafe-eval'/'unsafe-inline' and a websocket connection to itself
- * — so this is "sane defaults for local dev," not the production policy.
+ * - so this is "sane defaults for local dev," not the production policy.
  */
 function setSecurityHeaders(res: ServerResponse) {
   res.setHeader("X-Content-Type-Options", "nosniff");

@@ -14,7 +14,7 @@ import { create } from "zustand";
 /**
  * Any game id in the PLAY registry (src/features/play/registry.tsx). A plain
  * string rather than a union so adding a game is one entry in the registry,
- * not an edit here as well — the registry is the single source of truth for
+ * not an edit here as well - the registry is the single source of truth for
  * what exists, and PlayHub validates the id before opening anything.
  */
 export type GameId = string;

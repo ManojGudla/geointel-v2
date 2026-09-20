@@ -41,7 +41,7 @@ describe("computeLocationIntelligence", () => {
   /**
    * The central honesty rule. There is no free flood, seismic or crime data
    * behind this app, so with no air-quality reading the risk dimension has
-   * nothing real to say — and a plausible-looking number there would be
+   * nothing real to say - and a plausible-looking number there would be
    * indistinguishable from a measured one.
    */
   it("refuses to score risk without a real air-quality reading", () => {
@@ -61,7 +61,7 @@ describe("computeLocationIntelligence", () => {
 
   /**
    * "Competition" cannot be answered until the user says competition for
-   * what — so it is never scored here, and points at the tool where the
+   * what - so it is never scored here, and points at the tool where the
    * question becomes answerable instead of showing a meaningless number.
    */
   it("never scores competition, and says where it becomes answerable", () => {
@@ -95,7 +95,7 @@ describe("computeLocationIntelligence", () => {
   it("returns no overall score when too few dimensions could be scored", () => {
     const bare = computeLocationIntelligence({ evidence: evidence({}) });
     // With everything at zero, the scored dimensions still exist but the
-    // area is empty — the guard that matters is that an overall number is
+    // area is empty - the guard that matters is that an overall number is
     // only produced from enough contributing dimensions.
     expect(bare.scoredCount).toBeLessThanOrEqual(4);
     expect(bare.confidence).toBe("Low");
@@ -138,7 +138,7 @@ describe("scoreContributions", () => {
 
   /**
    * A dimension sitting at the midpoint is pushing the overall score neither
-   * up nor down, and must read that way — a raw score of 50 shown as "+50"
+   * up nor down, and must read that way - a raw score of 50 shown as "+50"
    * would be actively misleading about what drove the result.
    */
   it("scores a mid-range dimension near zero rather than as a large positive", () => {

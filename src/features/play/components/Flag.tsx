@@ -6,7 +6,7 @@ import "./Flag.css";
  *
  * This replaced flag emoji, which were broken for a large share of visitors.
  * Flag emoji are two Regional Indicator Symbols that a font is supposed to
- * compose into one glyph — and Windows ships no flag glyphs at all, so every
+ * compose into one glyph - and Windows ships no flag glyphs at all, so every
  * flag rendered as its two ISO letters instead. In the Flag Quiz that printed
  * "KZ" above "Which country's flag is this?", which is the answer. The game
  * was unplayable on the most common desktop platform, and looked like a
@@ -19,7 +19,7 @@ import "./Flag.css";
  * `alt` defaults to EMPTY, and that is deliberate rather than an oversight.
  * In a quiz the flag IS the question, so naming the country in alt text hands
  * the answer to anyone using a screen reader, and to anyone who hovers or
- * views source. Pass `name` only where the answer is already on screen — a
+ * views source. Pass `name` only where the answer is already on screen - a
  * results list, a revealed answer.
  */
 export function Flag({

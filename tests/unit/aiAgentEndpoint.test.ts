@@ -6,8 +6,8 @@ import { fakeReqRes } from "./testUtils";
  * used to push "Active route: none set." into the data block for EVERY
  * agent kind, not just "navigation". The GIS Intelligence agent (asked
  * about property/GIS evidence, nothing to do with directions) would latch
- * onto that stray unrelated line and start talking about routing — "the
- * active route is set to none" — instead of answering the question it was
+ * onto that stray unrelated line and start talking about routing - "the
+ * active route is set to none" - instead of answering the question it was
  * actually asked. These tests capture the exact system prompt sent to the
  * model and assert route noise only reaches agents that care about routes.
  */

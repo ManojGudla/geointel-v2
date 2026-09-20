@@ -32,7 +32,7 @@ describe("the not-found page", () => {
     /*
       index.html hard-codes canonical → the home page. Leaving it here would
       say "this URL is a duplicate of the home page" at the same moment the
-      robots tag says "do not index this URL" — two contradictory instructions
+      robots tag says "do not index this URL" - two contradictory instructions
       about the same page. noindex has to speak alone.
     */
     const link = document.createElement("link");

@@ -4,14 +4,14 @@ import { totalEvidenceCount } from "@/features/gis/evidenceTotal";
 const MIN_EVIDENCE_FOR_CONFIDENCE = 6;
 
 /**
- * Deterministic, evidence-based classification — no AI involved. Runs
+ * Deterministic, evidence-based classification - no AI involved. Runs
  * instantly client-side against the counts/scores api/gis.ts already
  * computed from real Overpass data, so changing how confidence or evidence
  * text reads never requires a second network round-trip.
  *
  * This is the same principle the audit confirmed as sound in the previous
  * project's propertyAnalyzer: never invent a classification when there's no
- * mapped evidence to support it — say so instead.
+ * mapped evidence to support it - say so instead.
  */
 export function analyzeProperty(evidence: GISEvidence): PropertyAnalysis {
   const { scores, counts } = evidence;
@@ -90,12 +90,12 @@ export function analyzeProperty(evidence: GISEvidence): PropertyAnalysis {
   if (counts.transport) evidenceLines.push(`${counts.transport} transit feature${counts.transport === 1 ? "" : "s"}`);
   evidenceLines.push(`${counts.buildings} mapped buildings total within ${evidence.radiusMeters}m`);
 
-  // topScore can be 0 even though totalEvidence > 0 — e.g. only generic
+  // topScore can be 0 even though totalEvidence > 0 - e.g. only generic
   // `building=yes` ways with no shop/office/amenity/tourism/transport tag
   // nearby, so every score bucket lands at 0. That's real, if unclassified,
   // evidence, not literal vacancy, so the reasoning text has to say that
   // rather than reusing the "concentrated in vacant / unknown features"
-  // phrasing this used to fall into (which reads as nonsense — you can't be
+  // phrasing this used to fall into (which reads as nonsense - you can't be
   // "concentrated in" a classification that means "no classification").
   /*
     Say which question was answered.

@@ -21,7 +21,7 @@ import "./NotFoundPage.css";
  * about which URL is canonical. A site with two real pages can be made to look
  * like a site with thousands of worthless ones by a single bad inbound link.
  *
- * This page cannot return a real 404 status — the app is static, the rewrite
+ * This page cannot return a real 404 status - the app is static, the rewrite
  * has already answered 200, and changing that would need server rendering. So
  * it does the two things a client CAN do, and says so honestly rather than
  * pretending the status is right: it emits `robots: noindex, follow`, which is
@@ -43,7 +43,7 @@ export function NotFoundPage({ pathname }: { pathname: string }) {
 
     // The canonical in index.html points at the home page. Leaving it in place
     // would tell a crawler this URL is a duplicate of the home page, which is
-    // the opposite of the intended signal — noindex says "do not list this",
+    // the opposite of the intended signal - noindex says "do not list this",
     // canonical says "list the home page instead of this". Removing it for the
     // lifetime of this page leaves noindex to speak alone.
     const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');

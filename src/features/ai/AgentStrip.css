@@ -1,5 +1,5 @@
 /* Lives in the AI section of the workspace panel. It used to sit in a
-   full-width strip below the map, which meant it was below the page fold —
+   full-width strip below the map, which meant it was below the page fold -
    the six agents were, in practice, invisible to anyone who didn't scroll
    past the map, which is most people. No max-height and no overflow of its
    own: .side-panel__body is the single scroll region around it. */

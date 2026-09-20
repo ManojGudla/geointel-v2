@@ -1,7 +1,7 @@
 /**
  * Where a bottom sheet is allowed to come to rest.
  *
- * On a phone the workspace panel used to be `position: absolute; inset: 0` —
+ * On a phone the workspace panel used to be `position: absolute; inset: 0` -
  * a full-screen overlay. Tapping "Layers" on a map application therefore made
  * the map disappear, which is the single most disorienting thing this product
  * could do: the thing you came for is replaced by a list of controls for it,
@@ -11,7 +11,7 @@
  *
  * A sheet fixes that by refusing to take the whole screen. It rests at one of
  * three heights, the map stays visible above every one of them, and dragging
- * it down past the lowest one closes it — the same gesture people already know
+ * it down past the lowest one closes it - the same gesture people already know
  * from every maps and transit app on their phone.
  *
  * The maths lives here, away from React and the DOM, because "which detent is
@@ -29,7 +29,7 @@ export const DETENTS: readonly Detent[] = ["peek", "half", "full"] as const;
  *
  * `full` deliberately stops at 94%. A sheet that reaches the very top is
  * indistinguishable from the full-screen overlay this replaces, and that
- * remaining sliver of map is the whole point — it says "the map is still
+ * remaining sliver of map is the whole point - it says "the map is still
  * there, this is covering it" rather than "the map is gone".
  */
 export const DETENT_FRACTION: Record<Detent, number> = {
@@ -101,7 +101,7 @@ export function lowerDetent(current: Detent): Detent {
  * Converts a pointer movement into a height.
  *
  * Dragging DOWN (a positive delta, because screen Y grows downward) makes the
- * sheet shorter — the inversion that is wrong in half the hand-rolled sheets
+ * sheet shorter - the inversion that is wrong in half the hand-rolled sheets
  * on the web, and the reason this is a named function with a test rather than
  * an expression buried in a pointermove handler.
  */

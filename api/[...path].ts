@@ -11,7 +11,7 @@ import { ROUTES, routeKeyFromUrl } from "./_routes/index.js";
  * can be added to a Deployment on the Hobby plan" and shipped a frontend
  * with no API behind it. Everything now lives under api/_routes/ (the
  * underscore keeps Vercel from treating those as entry points) and this
- * catch-all dispatches to them — one function, no ceiling on how many
+ * catch-all dispatches to them - one function, no ceiling on how many
  * endpoints the app can have.
  *
  * The handlers themselves are unchanged: each still default-exports the same
@@ -25,7 +25,7 @@ const handler: ApiHandler = async (req, res) => {
    *
    * ROUTES is an object literal, so a plain lookup also finds everything on
    * Object.prototype. `/api/toString` returned a truthy value, passed the 404
-   * check, and then called `Object.prototype.toString(req, res)` — which
+   * check, and then called `Object.prototype.toString(req, res)` - which
    * returns a string and never writes a response, so the request hung until
    * the platform killed the function. `/api/__proto__` reached the call and
    * threw "route is not a function".
@@ -38,7 +38,7 @@ const handler: ApiHandler = async (req, res) => {
 
   /**
    * The last line of defence. Every handler has its own try/catch, but a throw
-   * outside one — a bad query string reaching code above the try — became a
+   * outside one - a bad query string reaching code above the try - became a
    * raw platform 500 with no JSON body, and the client parses every response
    * as JSON. The dev middleware already wrapped handlers this way; production
    * did not, so this class of bug was invisible locally.

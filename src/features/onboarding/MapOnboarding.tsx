@@ -17,12 +17,12 @@ import { track } from "@/services/analytics";
  * The brief for this screen was ten seconds: someone who has never heard of
  * GIS should understand what this application is for, and be one click from
  * proving it. So it states the promise in two short lines and then hands
- * over five things to press — every one of which runs a real query, not a
+ * over five things to press - every one of which runs a real query, not a
  * tour.
  *
  * Two deliberate constraints. It never covers the whole map (the map is the
  * product, and hiding it to explain it would be self-defeating), and it
- * disappears the moment a location exists — including when the user ignores
+ * disappears the moment a location exists - including when the user ignores
  * it entirely and just clicks the map, which the copy explicitly invites.
  */
 interface Example {
@@ -54,7 +54,7 @@ export function MapOnboarding() {
   // card is up, or the two overlap. See onboardingVisibility.ts.
   const visible = useOnboardingVisible();
   /*
-    Not a condition on showing this card — it used to be, and that meant the
+    Not a condition on showing this card - it used to be, and that meant the
     card never appeared on a first visit, which is the only visit it is for.
     It is spacing: while the banner is up, the card sits higher so the two
     cannot overlap and the Dismiss button stays clickable.

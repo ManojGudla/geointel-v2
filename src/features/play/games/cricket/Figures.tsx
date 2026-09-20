@@ -11,8 +11,8 @@
  *
  * So everything here is built on one figure canon: a 40x60 grid, soles on the
  * ground line at y=58, and a head about one seventh of standing height. The
- * landmarks are the ones life drawing uses — shoulders at 1.5 heads, hips at
- * half height, knees at 5.4 heads — because a silhouette that hits those reads
+ * landmarks are the ones life drawing uses - shoulders at 1.5 heads, hips at
+ * half height, knees at 5.4 heads - because a silhouette that hits those reads
  * as a person even at thirty pixels tall, and one that misses them reads as a
  * toy at any size.
  *
@@ -46,7 +46,7 @@ function shade(hex: string): string {
 }
 
 /**
- * The batter, seen from behind — which is the only correct view from this
+ * The batter, seen from behind - which is the only correct view from this
  * camera, and the one the old side-on drawing got wrong.
  *
  * The camera sits behind the keeper looking down the pitch, so a right-hander

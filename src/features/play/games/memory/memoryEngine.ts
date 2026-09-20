@@ -2,7 +2,7 @@ import { COUNTRIES } from "../../data/world";
 import { createRng } from "../../lib/random";
 
 /**
- * Geo Memory — match each flag to its country's name.
+ * Geo Memory - match each flag to its country's name.
  *
  * It used to pair a flag with an identical flag, which was a pure memory
  * exercise that taught nothing: you could clear a whole board without knowing
@@ -70,14 +70,14 @@ export interface FlipResult {
   cards: Card[];
   /** Set when this flip completed a pair. */
   matched: boolean;
-  /** Set when two cards are face up and do NOT match — the UI hides them. */
+  /** Set when two cards are face up and do NOT match - the UI hides them. */
   mismatch: boolean;
   /** Counts a completed attempt (two cards turned), not every tap. */
   movesDelta: number;
 }
 
 /**
- * Flips one card. Pure — the caller holds the board and the timer.
+ * Flips one card. Pure - the caller holds the board and the timer.
  *
  * Deliberately refuses a third flip while two unmatched cards are face up:
  * without that, rapid clicking turns the whole board over and the game
@@ -135,7 +135,7 @@ export function memoryScore(size: GridSize, moves: number, seconds: number): num
  *
  * Priced rather than free. A free peek would let anyone clear the board
  * instantly and every score would be identical, which makes the score
- * meaningless — the same reason Country Hunt charges for its hints. The cost
+ * meaningless - the same reason Country Hunt charges for its hints. The cost
  * below is a flat share of the final score, applied once however long you
  * look, so it is one decision rather than a thing to spam.
  */

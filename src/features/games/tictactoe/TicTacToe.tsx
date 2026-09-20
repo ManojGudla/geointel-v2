@@ -136,7 +136,7 @@ export function TicTacToe() {
       </p>
 
       {/* A real grid role so screen readers announce this as a board, and
-          every cell carries its position and contents in words — the X and O
+          every cell carries its position and contents in words - the X and O
           glyphs are not the only way to read the game. */}
       <div className="ttt__board" role="grid" aria-label="Tic-tac-toe board">
         {board.map((cell, index) => (
@@ -181,7 +181,7 @@ export function TicTacToe() {
         </div>
 
         {/* New game and Reset statistics are deliberately far apart and
-            differently weighted — wiping a running score by mistake while
+            differently weighted - wiping a running score by mistake while
             reaching for "play again" would be infuriating. */}
         {confirmingReset ? (
           <p className="ttt__confirm">

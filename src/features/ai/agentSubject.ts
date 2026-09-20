@@ -6,7 +6,7 @@ import type { Location } from "@/types/location";
  * Agent results were held in the store with no record of which place they
  * described, and nothing ever cleared them. So: run the GIS agent on
  * Hyderabad, read the answer, then search Mumbai. The map moves, every panel
- * refreshes with Mumbai's data — and the agent card still shows a confident
+ * refreshes with Mumbai's data - and the agent card still shows a confident
  * paragraph about Hyderabad, presented as the current read of the location
  * you are now looking at.
  *
@@ -14,7 +14,7 @@ import type { Location } from "@/types/location";
  * missing answer, but a plausible answer about the wrong place. It is worse
  * than a wrong number, because a paragraph carries no units to check.
  *
- * The fix is not to throw the answer away the moment you pan — you may still
+ * The fix is not to throw the answer away the moment you pan - you may still
  * want to read it. It is to say plainly what it is about.
  */
 export interface AgentSubject {
@@ -48,7 +48,7 @@ export function agentSubject(location: Pick<Location, "name" | "lat" | "lon"> | 
  * The first version of this rounded both coordinates to 4 decimal places and
  * compared the strings. Its own test caught that: rounding to a grid still
  * splits at the grid lines, so two points 20cm apart landed either side of a
- * boundary and were called different places. No grid size fixes that — "are
+ * boundary and were called different places. No grid size fixes that - "are
  * these the same place" is a distance question, so it is asked as one.
  *
  * Deliberately not turf, which every other distance helper here uses
@@ -75,7 +75,7 @@ export function isSamePlace(a: AgentSubject, b: AgentSubject): boolean {
 
 /**
  * The sentence to print above an answer that is no longer about what's on
- * screen — or null when it still is.
+ * screen - or null when it still is.
  *
  * Returns null for an answer with no recorded subject too. An answer we
  * can't place might be stale, but saying so would be crying wolf, and a

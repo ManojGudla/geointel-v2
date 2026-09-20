@@ -17,7 +17,7 @@ export type AgentRunState = {
    * Not when the answer arrived: the context is serialised into the request
    * at click time, so an answer that lands after the user has moved on is
    * still an answer about where they were. Recording it at arrival would
-   * relabel it as being about the new place — which is the misattribution
+   * relabel it as being about the new place - which is the misattribution
    * this field exists to prevent. See agentSubject.ts.
    */
   subject?: AgentSubject;

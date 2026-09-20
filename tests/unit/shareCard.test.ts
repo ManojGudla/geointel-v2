@@ -12,8 +12,8 @@ import { accuracy, applyAnswer, initialState } from "../../src/features/play/gam
 /**
  * The shareable result card.
  *
- * The drawing itself cannot be asserted in a unit test — canvas does not
- * render under jsdom — so the model is kept separate from the painting and
+ * The drawing itself cannot be asserted in a unit test - canvas does not
+ * render under jsdom - so the model is kept separate from the painting and
  * everything worth protecting lives in the model.
  *
  * Two things are worth protecting. First, the card must not spoil the game
@@ -21,7 +21,7 @@ import { accuracy, applyAnswer, initialState } from "../../src/features/play/gam
  * score ever did, so a leaked answer does more damage. Second, it must not
  * read as a credential. There are no accounts and no server-side scoring
  * here, so a card that looked like a certificate would be asserting something
- * this system cannot back — on a product whose whole claim is that it does
+ * this system cannot back - on a product whose whole claim is that it does
  * not overclaim.
  */
 
@@ -42,7 +42,7 @@ describe("the card model", () => {
     });
     expect(card.game).toBe("60 SECONDS");
     expect(card.stats[0]!.label).toBe("ACCURACY");
-    // The value is left exactly as given — uppercasing "87%" gains nothing
+    // The value is left exactly as given - uppercasing "87%" gains nothing
     // and would mangle anything with a unit in it.
     expect(card.stats[0]!.value).toBe("87%");
   });

@@ -14,7 +14,7 @@ describe("duration and arrival formatting", () => {
 
   it("computes an arrival clock time from now plus the duration", () => {
     const now = new Date(2026, 8, 1, 17, 30, 0);
-    // 45 minutes later is 18:15 — checked without asserting the locale's
+    // 45 minutes later is 18:15 - checked without asserting the locale's
     // exact separator or 12/24-hour choice.
     const result = arrivalTime(45 * 60, now);
     expect(result).toMatch(/\b(18|6)\b/);

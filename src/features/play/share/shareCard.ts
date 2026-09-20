@@ -14,7 +14,7 @@
  * claim this system cannot back, on a product whose entire position is that
  * it shows its sources and does not overclaim.
  *
- * So the card says what it is — a game score, with a date — and the wording
+ * So the card says what it is - a game score, with a date - and the wording
  * below is deliberately plain for that reason. If real credentials are ever
  * wanted, the honest route is accounts plus server-validated results, and the
  * claim becomes true rather than decorative.
@@ -22,8 +22,8 @@
  * ── On emoji ──────────────────────────────────────────────────────────────
  *
  * None are drawn. Canvas emoji rendering varies by platform and font
- * availability — on some Android builds a missing glyph draws as a hollow box
- * — and a shared image is exactly where a broken character does the most
+ * availability - on some Android builds a missing glyph draws as a hollow box
+ * - and a shared image is exactly where a broken character does the most
  * damage, because it travels without you.
  */
 
@@ -43,7 +43,7 @@ export interface ScoreCard {
 
 const MAX_STATS = 3;
 
-/** Two-digit day, full month, four-digit year — unambiguous in every locale. */
+/** Two-digit day, full month, four-digit year - unambiguous in every locale. */
 export function formatCardDate(date: Date): string {
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 }
@@ -172,7 +172,7 @@ export type ShareOutcome = "shared" | "downloaded" | "cancelled" | "failed";
 /**
  * Share the card, or save it if sharing is unavailable.
  *
- * Native sharing on a phone is the whole point — it puts the image one tap
+ * Native sharing on a phone is the whole point - it puts the image one tap
  * from WhatsApp. Desktop browsers mostly cannot share files, so those get a
  * download instead of an error, and the caller is told which happened so it
  * can say the right thing.

@@ -1,7 +1,7 @@
 /**
  * Optional sound.
  *
- * Off by default and off until the player turns it on — see playStore's
+ * Off by default and off until the player turns it on - see playStore's
  * SOUND_KEY. Nothing here autoplays, and nothing loads an audio file: these
  * are short synthesised tones through the Web Audio API, so the feature adds
  * no bytes to the bundle and can't fail on a slow connection.
@@ -35,7 +35,7 @@ function getContext(): AudioContext | null {
  * Runs `fn` against a context that is definitely running.
  *
  * This is the fix for silent games. The old code called `context.resume()` and
- * then scheduled the tone immediately — but resume() is ASYNCHRONOUS, and a
+ * then scheduled the tone immediately - but resume() is ASYNCHRONOUS, and a
  * suspended context has a frozen `currentTime` of 0. So the oscillator was
  * scheduled to start and stop at times that were already in the past by the
  * moment the context actually woke up, and the first sound of every session
@@ -53,7 +53,7 @@ function withRunningContext(fn: (ctx: AudioContext) => void): void {
       .resume()
       .then(() => fn(ctx))
       .catch(() => {
-        /* autoplay still blocked — the game continues silently */
+        /* autoplay still blocked - the game continues silently */
       });
     return;
   }
@@ -69,7 +69,7 @@ export function playTone(frequency: number, seconds = 0.08): void {
       const gain = ctx.createGain();
       osc.type = "sine";
       osc.frequency.value = frequency;
-      // A quick attack and exponential release — a raw square edge at full
+      // A quick attack and exponential release - a raw square edge at full
       // gain is what makes browser-synth audio sound like an error beep.
       gain.gain.setValueAtTime(0.0001, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.01);
@@ -81,7 +81,7 @@ export function playTone(frequency: number, seconds = 0.08): void {
       osc.start();
       osc.stop(ctx.currentTime + duration + 0.02);
     } catch {
-      /* audio unavailable — the game continues silently */
+      /* audio unavailable - the game continues silently */
     }
   });
 }

@@ -7,13 +7,13 @@ import "./arcade.css";
 import { PLAY_URL } from "@/features/play/share";
 
 /**
- * Crack the Code — deduce a symbol's value from a system of equations.
+ * Crack the Code - deduce a symbol's value from a system of equations.
  *
  * The version of this puzzle that circulates online is usually broken: three
  * lines that are permutations of the same three symbols, given three
  * different totals. Addition is commutative, so that has no solution. Every
  * system generated here uses a different combination of symbols per line, so
- * it resolves to exactly one answer — see puzzles.ts.
+ * it resolves to exactly one answer - see puzzles.ts.
  */
 
 type Phase = "intro" | "playing" | "over";

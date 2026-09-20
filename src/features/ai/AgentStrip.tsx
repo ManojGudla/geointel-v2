@@ -10,9 +10,9 @@ import "./AgentStrip.css";
  *
  * This is the only place they render. Two earlier arrangements are gone and
  * the comment here described both of them: a full grid in an Intelligence
- * panel "AI Agents" tab (removed — see IntelligencePanel.tsx), and a strip
+ * panel "AI Agents" tab (removed - see IntelligencePanel.tsx), and a strip
  * below the map (removed because it sat under the page fold, where in
- * practice nobody found it — see AgentStrip.css). A comment pointing at
+ * practice nobody found it - see AgentStrip.css). A comment pointing at
  * features that no longer exist is worse than no comment: the Help & Guide
  * was still telling people to "scroll below the map" to find these.
  */

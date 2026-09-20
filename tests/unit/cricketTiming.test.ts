@@ -206,7 +206,7 @@ describe("bowler types", () => {
   /**
    * Facing the same ball every time is a reaction test, not a game: you learn
    * one rhythm and there is nothing left to read. These hold the property that
-   * makes bowler type matter — a spinner really is slower and more forgiving
+   * makes bowler type matter - a spinner really is slower and more forgiving
    * than express pace, so knowing which you face changes how you play.
    */
   const rng = createRng("bowlers");
@@ -300,7 +300,7 @@ describe("a tie is its own result", () => {
     expect(superOver.maxWickets).toBe(1);
     expect(superOver.superOver).toBe(true);
     expect(superOver.runs).toBe(0);
-    // Between 7 and 14 — what a decent side actually makes off six balls.
+    // Between 7 and 14 - what a decent side actually makes off six balls.
     expect(superOver.target).toBeGreaterThanOrEqual(7);
     expect(superOver.target).toBeLessThanOrEqual(14);
   });
@@ -332,7 +332,7 @@ describe("the bowler adapts to the batter", () => {
     /**
      * The point of the whole mechanic. Without it every ball is a fresh coin
      * flip and skill tops out at reaction speed; with it, repeating one shot
-     * stops working and the counter is to change it — which is the actual
+     * stops working and the counter is to change it - which is the actual
      * cricket in this game.
      */
     const { rng } = createMatch("plan", "normal");

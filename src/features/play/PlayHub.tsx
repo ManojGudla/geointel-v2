@@ -10,12 +10,12 @@ import "./PlayHub.css";
 type View = { kind: "hub" } | { kind: "game"; id: string } | { kind: "profile" };
 
 /**
- * maNOWj PLAY — the games section.
+ * maNOWj PLAY - the games section.
  *
  * It lives behind the header's More menu, deliberately not on the workspace
  * rail. The rail is the analyst's tool set; a game sitting between "Analyze"
  * and "Intelligence" would say the wrong thing about what this product is.
- * Opening it doesn't touch the map, the layers or any analysis — closing it
+ * Opening it doesn't touch the map, the layers or any analysis - closing it
  * puts you back exactly where you were.
  */
 export function PlayHub() {
@@ -26,7 +26,7 @@ export function PlayHub() {
 
   /*
     This declares aria-modal="true", and the focus half of that promise was
-    not being kept — Tab walked straight out of the hub into the map behind
+    not being kept - Tab walked straight out of the hub into the map behind
     it. The Escape half already works and is untouched: the layered handler
     below listens on `window` in the CAPTURE phase and stops propagation, so
     it runs before this hook's listener ever sees the key, and "step back one
@@ -53,8 +53,8 @@ export function PlayHub() {
     setView({ kind: "hub" });
   };
 
-  // Escape steps back one level — out of a game to the hub, out of the hub to
-  // the map — rather than dumping you all the way out in one press.
+  // Escape steps back one level - out of a game to the hub, out of the hub to
+  // the map - rather than dumping you all the way out in one press.
   useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -277,7 +277,7 @@ function Profile() {
         })}
       </ul>
 
-      {/* Destructive, so it asks — and it says exactly what goes. */}
+      {/* Destructive, so it asks - and it says exactly what goes. */}
       <div className="play-profile__reset">
         {confirming ? (
           <>

@@ -75,7 +75,7 @@ export function CopilotPanel() {
       </div>
 
       {/* States what it is looking at, always. An assistant whose
-          context is invisible is one the user has to guess at — and guessing
+          context is invisible is one the user has to guess at - and guessing
           wrong is how you get an answer about the wrong place. */}
       <p className="copilot-panel__context">{contextSummary(copilotContext)}</p>
 
@@ -130,7 +130,7 @@ export function CopilotPanel() {
         </button>
       </form>
 
-      {/* Only shown once a conversation is under way — before that the same
+      {/* Only shown once a conversation is under way - before that the same
           suggestions already appear in the empty thread above, and two
           identical lists on one small panel is clutter. */}
       {messages.length > 0 && (

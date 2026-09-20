@@ -20,7 +20,7 @@ export interface PopulationData {
  * no such thing. Population comes from censuses and official estimates, and
  * every figure here is shown with the year it applies to and a link to the
  * record it came from. A number ticking upward would look impressive and be
- * fiction — on a map whose entire value is that its numbers are checkable.
+ * fiction - on a map whose entire value is that its numbers are checkable.
  *
  * The second choice worth naming: the figure is for a PLACE, usually the whole
  * city, not for the selected radius. Saying which place, in the panel, stops
@@ -35,7 +35,7 @@ export function PopulationPanel() {
     queryFn: ({ signal }) =>
       apiGet<{ population: PopulationData | null }>("/api/population", { lat: location!.lat, lon: location!.lon }, signal),
     enabled: !!location,
-    // Population changes yearly at most — there is nothing to gain from
+    // Population changes yearly at most - there is nothing to gain from
     // refetching it during a session.
     staleTime: 60 * 60 * 1000,
   });

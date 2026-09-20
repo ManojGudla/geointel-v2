@@ -3,7 +3,7 @@ import { fakeReqRes } from "./testUtils";
 import handler from "../../api/_routes/poi-evidence";
 
 // A real Overpass response always carries a genuine osm3s replica
-// timestamp (see api/_lib/overpass.ts's hasPlausibleReplicaTimestamp) —
+// timestamp (see api/_lib/overpass.ts's hasPlausibleReplicaTimestamp) -
 // mirroring that here so these fixtures still look like a real mirror's
 // response, not the corrupted/near-empty replica that check exists to
 // reject.
@@ -81,7 +81,7 @@ describe("api/poi-evidence handler", () => {
   // Regression coverage for a real usability problem: a click landing on a
   // road centroid or a gap between building footprints can legitimately
   // return zero elements at the tight 60m click radius even though real
-  // evidence sits just a bit further out — that used to report a flat
+  // evidence sits just a bit further out - that used to report a flat
   // "Vacant / Unknown" off one unlucky tight query. Now it auto-widens to
   // the max radius once before giving up, and is honest in the response
   // about which radius the result actually came from.
@@ -126,7 +126,7 @@ describe("api/poi-evidence handler", () => {
         throw new Error("network down");
       })
     );
-    // Different coordinates than the earlier tests — this handler caches
+    // Different coordinates than the earlier tests - this handler caches
     // successful responses by rounded lat/lon, and reusing a point would
     // hit that cache instead of exercising the failure path here.
     const result = fakeReqRes({ lat: "33.33", lon: "44.44" });

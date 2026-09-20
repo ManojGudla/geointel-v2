@@ -50,7 +50,7 @@ export function LocationIdentityPanel() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      // Clipboard API can be unavailable (permissions, insecure context) — non-fatal.
+      // Clipboard API can be unavailable (permissions, insecure context) - non-fatal.
     }
   };
 
@@ -64,7 +64,7 @@ export function LocationIdentityPanel() {
         // inflate the one number this product's growth actually depends on.
         track("result_shared", { surface: "location-identity", method: "native" });
       } catch {
-        // User cancelled the native share sheet — not an error.
+        // User cancelled the native share sheet - not an error.
       }
     } else {
       await handleCopy();
@@ -134,7 +134,7 @@ export function LocationIdentityPanel() {
 /**
  * The link this button produces.
  *
- * It used to be `?lat=..&lon=..` — a pin, and nothing else. So sharing a result
+ * It used to be `?lat=..&lon=..` - a pin, and nothing else. So sharing a result
  * sent the coordinates the result came from rather than the result: the person
  * opening it got the default map at the default zoom with no radius and no
  * panel, and had to rebuild the interesting part themselves. Mostly they would

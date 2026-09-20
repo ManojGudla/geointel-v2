@@ -4,7 +4,7 @@
   Everything here serves one goal: nothing may move while the player is
   reading. In a timed game, a number that reflows or a button that resizes
   pulls the eye off the question, and the player loses a second to the
-  interface rather than to the question — which feels like the game cheating.
+  interface rather than to the question - which feels like the game cheating.
 
   So the clock, score and multiplier are all tabular-nums with reserved width,
   the answer buttons keep the same size in every state, and the explanation

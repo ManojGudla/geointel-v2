@@ -25,7 +25,7 @@ const ANIMATION_OPTIONS: Array<{ id: AnimationIntensity; label: string }> = [
  * but had no UI: units, default analysis radius, panel motion, and whether
  * new sessions start the map in 3D. Radius/3D-default apply from the next
  * page load (they seed locationStore/mapStore's initial values, same as
- * before this panel existed) — units and motion apply immediately since
+ * before this panel existed) - units and motion apply immediately since
  * every consumer reads them live from the store.
  */
 export function SettingsPanel() {
@@ -34,7 +34,7 @@ export function SettingsPanel() {
   /*
     Makes this behave like the role="dialog" it declares: Escape closes it,
     focus moves in on open and cycles inside, and goes back to whatever opened
-    it on close. See hooks/useDialog.ts — none of that was happening before,
+    it on close. See hooks/useDialog.ts - none of that was happening before,
     and Tab walked straight out into the map behind this panel.
   */
   const dialogRef = useDialog({ open: isOpen, onClose: close });
@@ -114,7 +114,7 @@ export function SettingsPanel() {
       </div>
 
       {/* Off by default and stays off until someone chooses it. This is a GIS
-          tool first — animated rain over a suitability analysis is not what
+          tool first - animated rain over a suitability analysis is not what
           anyone opened it for. */}
       <div className="settings-panel__group">
         <span className="settings-panel__label">Weather effects on the map</span>

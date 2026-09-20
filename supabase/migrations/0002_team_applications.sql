@@ -1,7 +1,7 @@
--- maNOWj GeoIntel — Pass 4 addition
+-- maNOWj GeoIntel: team applications
 -- Run this against your Supabase project after 0001_init.sql (SQL Editor,
 -- or `supabase db push`). Adds the "Join Our Team" application form's
--- storage — same anonymous/service-role-only pattern as kb_documents and
+-- storage, using the same anonymous/service-role-only pattern as kb_documents and
 -- feedback in 0001_init.sql.
 
 create table if not exists team_applications (

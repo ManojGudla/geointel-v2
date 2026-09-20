@@ -40,7 +40,7 @@ describe("surprise teaser window", () => {
   });
 
   it("is up through the whole run-in, including early September", () => {
-    // The lead time is set so the teaser is showing for the month before —
+    // The lead time is set so the teaser is showing for the month before -
     // a teaser nobody sees until the last week isn't a teaser.
     for (const day of [26, 30]) expect(isWithinTeaserWindow(on(2026, 8, day))).toBe(true);
     for (const day of [1, 4, 10, 20, 24]) expect(isWithinTeaserWindow(on(2026, 9, day))).toBe(true);

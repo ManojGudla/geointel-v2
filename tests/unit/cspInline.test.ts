@@ -15,7 +15,7 @@ import { join } from "node:path";
  *
  * The safety net built for the blank-page outage had therefore never run in
  * production even once. It was invisible locally because the dev server's CSP
- * allows 'unsafe-inline' (Vite's HMR needs it) — so the guard worked in
+ * allows 'unsafe-inline' (Vite's HMR needs it) - so the guard worked in
  * development and was dead where it mattered.
  *
  * These tests derive the rule from the CSP itself rather than hard-coding it:
@@ -43,7 +43,7 @@ const scriptSrc = (csp.split(";").find((d) => d.trim().startsWith("script-src"))
   .split(/\s+/)
   .filter(Boolean);
 
-/** Comments legitimately mention `onclick=` and inline scripts — strip them first. */
+/** Comments legitimately mention `onclick=` and inline scripts - strip them first. */
 const stripHtmlComments = (s: string) => s.replace(/<!--[\s\S]*?-->/g, "");
 const stripJsComments = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 
@@ -101,7 +101,7 @@ describe("CSP and index.html agree", () => {
     if (allowsInline || allowsHashOrNonce) return;
 
     // onclick="..." in markup is blocked by exactly the same directive, and
-    // fails silently — the button simply does nothing when pressed. The old
+    // fails silently - the button simply does nothing when pressed. The old
     // recovery guard's "Try again" button was one of these.
     const handlers = stripHtmlComments(html).match(/\son[a-z]+\s*=\s*["']/gi) ?? [];
     expect(handlers).toEqual([]);
@@ -137,7 +137,7 @@ describe("the built output, which is what actually ships", () => {
    * Skipped unless dist/ is present AND newer than the source it was built
    * from. A LEFTOVER dist is the trap here: `npm test` before `npm run build`
    * would otherwise report the previous build's shortcomings as failures of
-   * the code you just wrote — which is what happened on the first machine to
+   * the code you just wrote - which is what happened on the first machine to
    * run this, where an old dist predating recovery.js failed the second test
    * even though the source was correct. A stale build is not a test failure;
    * it is simply nothing to check yet.
@@ -191,7 +191,7 @@ describe("the recovery guard", () => {
 
   it("is not swallowed by the SPA rewrite", () => {
     // If /recovery.js were rewritten to index.html, the browser would refuse
-    // an HTML document as a script — the exact failure this guard recovers
+    // an HTML document as a script - the exact failure this guard recovers
     // from would also disable the guard.
     const swallowed = config.rewrites.some((r) => new RegExp(`^${r.source}$`).test("/recovery.js"));
     expect(swallowed).toBe(false);

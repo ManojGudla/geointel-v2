@@ -3,7 +3,7 @@ import { useLocationStore } from "@/stores/locationStore";
 import { watchLocationForPanel } from "@/stores/shellStore";
 
 /**
- * Keeps the workspace panel in step with location selection — see
+ * Keeps the workspace panel in step with location selection - see
  * watchLocationForPanel. Mounted once, at the app root, so every way of
  * selecting a place gets the behaviour without repeating it.
  */

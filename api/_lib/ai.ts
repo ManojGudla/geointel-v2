@@ -10,14 +10,14 @@ export type AiResult =
       ok: true;
       content: string;
       /**
-       * The model that ACTUALLY answered, as the provider reported it — not
+       * The model that ACTUALLY answered, as the provider reported it - not
        * the slug we asked for. Those are routinely different: the default
        * `openrouter/free` is a router, not a model, and OpenRouter picks a
        * free model at random from what is available at that moment. So two
        * runs of the same agent, a minute apart, can be answered by two
        * different models of very different quality, and reporting the
        * requested slug would have told the reader "openrouter/free" both
-       * times — a label that names no model at all.
+       * times - a label that names no model at all.
        */
       model: string;
       /** What we asked for. Kept apart from `model` so the two can differ. */
@@ -28,7 +28,7 @@ export type AiResult =
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 /**
- * Not a model — a router that picks a free model at random per request.
+ * Not a model - a router that picks a free model at random per request.
  * That randomness is why a retry against it is worth making: a bad roll
  * (a reasoning model that spends its whole budget thinking and returns
  * nothing) is not repeated, it is re-rolled.
@@ -37,7 +37,7 @@ const FREE_ROUTER = "openrouter/free";
 
 /**
  * Thin abstraction over the AI provider so swapping providers later is a
- * config change, not a rewrite (see .env.example — AI_MODEL_* all point
+ * config change, not a rewrite (see .env.example - AI_MODEL_* all point
  * here). OpenRouter's free tier by default. Never throws: a missing key or
  * a provider failure comes back as {ok:false, error}, the same
  * graceful-degradation discipline as every other external-data handler in
@@ -59,7 +59,7 @@ export async function getAiCompletion(
 
     A `reasoning: { exclude: true }` was added here once and had to come
     straight back out. OpenRouter does not ignore a parameter no endpoint
-    supports and it does not answer 400 — it answers *404, "No endpoints
+    supports and it does not answer 400 - it answers *404, "No endpoints
     found that support the provided ... value"*. With the free router picking
     a different model per request, an optional flag became a coin-flip on
     whether any answer came back at all.
@@ -93,8 +93,8 @@ export async function getAiCompletion(
     Two attempts, and the second is the point.
 
     Reported live: Travel Intelligence and Make My Trip both showed "The AI
-    provider returned an empty response", while the Navigation agent — same
-    location, same moment — returned a genuinely good paragraph written by
+    provider returned an empty response", while the Navigation agent - same
+    location, same moment - returned a genuinely good paragraph written by
     poolside/laguna-xs-2.1. Nothing was down. The free router had handed
     those two requests to a reasoning model, which spent its whole token
     budget thinking and returned an empty `content`.
@@ -103,8 +103,8 @@ export async function getAiCompletion(
     effective response to a bad roll is to roll again. That is what this
     loop is: one retry, with the free router, which lands on a different
     model. It covers the three failures that a different model genuinely
-    fixes — empty content, a 404 for a model slug that no longer exists, and
-    a 5xx from one provider — and deliberately does not cover the two it
+    fixes - empty content, a 404 for a model slug that no longer exists, and
+    a 5xx from one provider - and deliberately does not cover the two it
     cannot: a rejected API key and a rate limit, where a second request only
     wastes quota or makes the limit worse.
   */
@@ -113,7 +113,7 @@ export async function getAiCompletion(
     The client aborts at 35s (AI_REQUEST_TIMEOUT_MS in src/services/ai.ts).
     Two attempts have to finish inside that, so each gets half the old 25s
     budget plus a little. A retry that arrives after the client has already
-    given up is worse than no retry — it burns free-tier quota for nobody.
+    given up is worse than no retry - it burns free-tier quota for nobody.
   */
   const perAttemptMs = 15_000;
   let lastError = "The AI provider is temporarily unavailable.";

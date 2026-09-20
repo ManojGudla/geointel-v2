@@ -25,7 +25,7 @@ async function selectSuggestion(
     const location = await reverseGeocode(suggestion.lat, suggestion.lon);
     setSelectedLocation(location);
   } catch {
-    // Reverse geocode enrichment failed — still show what the search result gave us.
+    // Reverse geocode enrichment failed - still show what the search result gave us.
     setSelectedLocation({
       lat: suggestion.lat,
       lon: suggestion.lon,
@@ -41,7 +41,7 @@ export function SearchBar() {
   const [open, setOpen] = useState(false);
   const [asking, setAsking] = useState(false);
   // Which suggestion the arrow keys have moved to. -1 means "none highlighted",
-  // in which case Enter falls back to the first result — the behaviour people
+  // in which case Enter falls back to the first result - the behaviour people
   // expect from every other search box.
   const [highlighted, setHighlighted] = useState(-1);
   const query = useSearchStore((s) => s.query);
@@ -78,7 +78,7 @@ export function SearchBar() {
    */
   const spatialCommand = useMemo(() => parseMapCommand(debouncedQuery), [debouncedQuery]);
 
-  // A well-formed coordinate pair IS the location — no need to round-trip it
+  // A well-formed coordinate pair IS the location - no need to round-trip it
   // through Nominatim's free-text search (which doesn't reliably resolve a
   // bare coordinate string anyway). See coordinateSearch.ts.
   const coordinateMatch = useMemo(() => parseCoordinatePair(debouncedQuery), [debouncedQuery]);
@@ -147,7 +147,7 @@ export function SearchBar() {
             ? { operation: "buffer", origin, radiusMeters: command.radiusMeters }
             : { operation: "within", origin, category: command.category, radiusMeters: command.radiusMeters };
 
-    // The answer renders in Analyze, so that is where the user is taken —
+    // The answer renders in Analyze, so that is where the user is taken -
     // an analysis that runs with its result off-screen reads as nothing
     // having happened.
     openSection("tools");
@@ -166,7 +166,7 @@ export function SearchBar() {
    * Pasting a coordinate goes straight there.
    *
    * Reported friction: after pasting coordinates you still had to notice a
-   * dropdown had appeared and click the one row in it — an extra step with
+   * dropdown had appeared and click the one row in it - an extra step with
    * no decision in it, since a well-formed pair is unambiguous. A paste is a
    * complete, deliberate input in a way that typing is not, so it can be
    * acted on immediately; typing the same characters still shows the
@@ -174,7 +174,7 @@ export function SearchBar() {
    * finished saying what they mean yet.
    *
    * The flag is set here and consumed by the change handler because paste
-   * fires BEFORE the input's value updates — reading the value here would
+   * fires BEFORE the input's value updates - reading the value here would
    * read the text as it was a keystroke ago.
    */
   const pasteJustHappened = useRef(false);
@@ -211,7 +211,7 @@ export function SearchBar() {
     if (event.key !== "Enter") return;
     event.preventDefault();
 
-    // Enter on a coordinate doesn't wait for the 300ms debounce — the raw
+    // Enter on a coordinate doesn't wait for the 300ms debounce - the raw
     // value is parsed directly, so pressing Enter the instant you finish
     // typing works rather than silently doing nothing.
     const pair = parseCoordinatePair(query);
@@ -274,7 +274,7 @@ export function SearchBar() {
       <div className="search-bar__row">
         <div className="search-bar__input-wrap">
           {/* The placeholder is short enough to fit a phone. The long version
-              — "Search a place, or type what you want to find…" — was clipped
+              - "Search a place, or type what you want to find…" - was clipped
               mid-word at 390px, which made the one input that explains this
               product look broken. The getting-started card underneath carries
               the full sentence. */}
@@ -317,7 +317,7 @@ export function SearchBar() {
 
       {geolocation.error && <p className="search-bar__error">{geolocation.error}</p>}
 
-      {/* Shown above place results, visually distinct, and labelled — so the
+      {/* Shown above place results, visually distinct, and labelled - so the
           two readings of one box are never ambiguous. */}
       {open && spatialCommand && !coordinateMatch && (
         <button type="button" className="search-bar__ask" onMouseDown={(e) => e.preventDefault()} onClick={() => void askTheMap()} disabled={asking}>
@@ -342,7 +342,7 @@ export function SearchBar() {
         Recent places, shown when the box is focused and still empty.
 
         These were already being written to the browser on every single
-        search — the store has persisted them since the day it was written —
+        search - the store has persisted them since the day it was written -
         and nothing anywhere in this application ever read them back. That is
         the worst of both outcomes: a returning visitor got no benefit
         whatsoever from it, and their search history quietly accumulated in
@@ -410,7 +410,7 @@ export function SearchBar() {
       )}
 
       {/*
-        Nothing found. This used to render NOTHING AT ALL — no dropdown, no
+        Nothing found. This used to render NOTHING AT ALL - no dropdown, no
         message, no spinner, just a box that had stopped doing anything. To a
         user that is indistinguishable from broken software, which is exactly
         how it kept being reported: "it is not showing".

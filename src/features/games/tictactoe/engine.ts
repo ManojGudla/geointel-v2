@@ -2,7 +2,7 @@
  * Tic-tac-toe rules, with no notion that a user interface exists.
  *
  * The UI must never be responsible for deciding whether a move is legal or
- * whether a game is over — that is how you end up with two moves landing at
+ * whether a game is over - that is how you end up with two moves landing at
  * once on a fast double-tap, or a click registering on a board that has
  * already been won. Everything here is a pure function over an immutable
  * board, so the same sequence of moves always produces the same result and
@@ -41,7 +41,7 @@ export function isLegalMove(board: Board, index: number): boolean {
 /**
  * Whose turn it is, derived from the board rather than tracked separately.
  * X always starts, so a board with equal counts is X's turn. Deriving it
- * means the turn indicator can never drift out of step with the position —
+ * means the turn indicator can never drift out of step with the position -
  * a whole class of bug that simply cannot occur.
  */
 export function turnOf(board: Board): Player {

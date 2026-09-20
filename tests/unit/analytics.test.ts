@@ -6,7 +6,7 @@ import { scrubProps, track } from "../../src/services/analytics";
  * privacy page.
  *
  * NOTHING WITHOUT CONSENT. A visitor who declined, or who has not been asked
- * yet, must generate no events. Not queued for later — a queued event replayed
+ * yet, must generate no events. Not queued for later - a queued event replayed
  * after consent would make the question retroactive, which is not consent.
  *
  * NO COORDINATES, EVER. This is a mapping application, so the hazard is
@@ -87,7 +87,7 @@ describe("consent gating", () => {
 
 describe("scrubbing", () => {
   it("drops anything that could be a coordinate", () => {
-    // The whole reason this function exists. Not rounded, not truncated —
+    // The whole reason this function exists. Not rounded, not truncated -
     // dropped, so the rule stays checkable.
     const out = scrubProps({ lat: 17.385, lon: 78.4867, latitude: 17.4, lng: 78.5, count: 3 });
     expect(out).toEqual({ count: 3 });

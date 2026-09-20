@@ -7,13 +7,16 @@ import "@/styles/reset.css";
 import "@/styles/tokens.css";
 import "./App.css";
 
+// Sentry will be initialized AFTER consent is granted (see ConsentBanner.tsx)
+// This keeps it privacy-first: nothing loads until user opts in.
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Real-world reported issue: free public Overpass mirrors (GIS
       // evidence, Nearby, POI click-to-inspect, GIS layers all share
       // api/_lib/overpass.ts's 6-mirror race) go through rough patches
-      // where several mirrors 502/504 or time out at once — the query
+      // where several mirrors 502/504 or time out at once - the query
       // fails, and with only 1 retry the user had to keep clicking Retry
       // by hand until a healthy mirror combination came up, sometimes for
       // minutes. Each attempt re-races all 6 mirrors fresh, and which ones
@@ -42,7 +45,7 @@ createRoot(rootEl).render(
 );
 
 // Registers the installability service worker (public/sw.js) so the app can
-// be "Added to Home Screen." Only in production builds — in dev it would
+// be "Added to Home Screen." Only in production builds - in dev it would
 // just cache stale Vite-served assets and confuse hot reload.
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {

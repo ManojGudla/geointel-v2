@@ -14,7 +14,7 @@ import { LazyPanel } from "../../src/components/LazyPanel";
  * page. Nobody opening a map asked for any of it.
  *
  * Every one of those was ALREADY `React.lazy`, which is exactly why the bug
- * survived so long — the chunks were split, so the code looked right. Lazy
+ * survived so long - the chunks were split, so the code looked right. Lazy
  * splits a chunk; it does not decide when the chunk is fetched. The import
  * fires when React renders the component, and all nine were mounted
  * unconditionally, each reading its own store, seeing `isOpen: false`, and
@@ -55,7 +55,7 @@ describe("a panel that has never been opened", () => {
 
       Several of these panels animate out with AnimatePresence, and a
       component unmounted by its parent never gets to run its exit animation
-      — it vanishes. Staying mounted also keeps whatever the person had
+      - it vanishes. Staying mounted also keeps whatever the person had
       half-typed in the feedback form. The download has already happened by
       this point, so there is nothing left to save by unmounting.
     */
@@ -107,7 +107,7 @@ describe("App does not mount panels it has not been asked for", () => {
 
   it("keeps the consent banner out of the games boundary", () => {
     /*
-      It was nested inside PlayHub's Suspense — not lazy, nothing to do with
+      It was nested inside PlayHub's Suspense - not lazy, nothing to do with
       games, and sharing that boundary meant the one surface a first-time
       visitor must see could be held up by 209 KB of games loading beside it.
     */

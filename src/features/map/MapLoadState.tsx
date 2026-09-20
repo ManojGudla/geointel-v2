@@ -10,14 +10,14 @@ interface Props {
 /**
  * What you see while the map is coming up, and what you see when it doesn't.
  *
- * "sometimes map not loading fine" — before this, a failed or stalled style
+ * "sometimes map not loading fine" - before this, a failed or stalled style
  * fetch left a flat grey rectangle with no explanation and no way out. You
  * couldn't tell a slow connection from a broken app, so the only move was to
  * reload the whole page and hope. Three honest states instead:
  *
- *   loading — normal, brief, quiet.
- *   slow    — over SLOW_AFTER_MS. Says it's still trying, offers a retry.
- *   failed  — the style or its tiles actually errored. Says so, offers a
+ *   loading - normal, brief, quiet.
+ *   slow    - over SLOW_AFTER_MS. Says it's still trying, offers a retry.
+ *   failed  - the style or its tiles actually errored. Says so, offers a
  *             retry, and does not pretend a reload is guaranteed to help.
  *
  * Nothing here fabricates progress: there is no fake percentage bar, because

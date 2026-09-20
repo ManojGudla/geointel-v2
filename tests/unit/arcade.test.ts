@@ -29,7 +29,7 @@ import {
  * round without repeating itself.
  *
  * The puzzle games generate their own content, so nothing can be factually
- * wrong — but a puzzle can be UNSOLVABLE, which is worse. The version of Crack
+ * wrong - but a puzzle can be UNSOLVABLE, which is worse. The version of Crack
  * the Code that circulates online is genuinely broken: three lines that are
  * permutations of the same symbols with three different totals, which addition
  * makes impossible. These tests brute-force every generated system to prove it

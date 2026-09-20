@@ -16,9 +16,9 @@ describe("a finished analysis is never hidden behind the empty state", () => {
     there is only the measurement and area tool."
 
     Exactly right, and the cause was an ordering bug. askTheMap() in SearchBar
-    deliberately runs from the centre of the map when nothing is selected —
+    deliberately runs from the centre of the map when nothing is selected -
     that is what makes an example chip like "Schools · 1 km" work on the very
-    first screen — and then sends the user to Analyse, because its own comment
+    first screen - and then sends the user to Analyse, because its own comment
     says that is where the answer renders. But the panel checked "is a
     location selected?" BEFORE "is there an answer?", and returned "Select a
     location". The analysis had run, the result was in the store, and the
@@ -129,7 +129,7 @@ describe("the getting-started card clears the floating search", () => {
     on top of it.
 
     The card is centred in the stage, so every pixel of height the window
-    loses raises it by half a pixel — and `--above-consent` shoves a centred
+    loses raises it by half a pixel - and `--above-consent` shoves a centred
     child up by half its padding again, on the one visit this card appears.
   */
   const css = readFileSync(join(process.cwd(), "src", "features", "onboarding", "MapOnboarding.css"), "utf8").replace(

@@ -82,7 +82,7 @@ function CityCategory({
 /**
  * Answers "what about tickets" honestly: real search hand-offs to two named
  * real providers per category, prefilled where each provider's own URL
- * scheme supports it. No fake prices, seats, or showtimes — no free
+ * scheme supports it. No fake prices, seats, or showtimes - no free
  * service hands those over without a paid partnership, and this project
  * has never fabricated data. See providers.ts for the URL logic.
  */

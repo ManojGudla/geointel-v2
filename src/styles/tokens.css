@@ -1,5 +1,5 @@
 /*
-  Design tokens — the single source of truth for color, spacing, and type.
+  Design tokens - the single source of truth for color, spacing, and type.
   Light values live on :root. Dark is a real second theme (not an invert
   filter): every color below is redefined for [data-theme="dark"], and the
   app also respects prefers-color-scheme when the user hasn't chosen.
@@ -39,7 +39,7 @@
   --color-text: #101828;
   --color-text-muted: #55607a;
   /* Every one of these was set by eye and every one of them failed WCAG AA
-     against the surfaces it actually sits on — faint text was 2.97:1 on the
+     against the surfaces it actually sits on - faint text was 2.97:1 on the
      app background, which is why so much secondary copy read as "not that
      much visible". They're now computed values: scripts/check-contrast.mjs
      recalculates every text/surface pair in both themes and fails if any
@@ -61,7 +61,7 @@
      board tile in both themes. */
   --color-player-o: #b8481c;
 
-  /* Evidence trust labels — kept in step with the status ramp above, since
+  /* Evidence trust labels - kept in step with the status ramp above, since
      they carry the same meanings and sit on the same surfaces. */
   --color-verified: #0f6f4a;
   --color-inferred: #8a5800;
@@ -105,7 +105,7 @@
   --duration-slow: 360ms;
 
   /* Accent palette: used sparingly for visual variety on AI / travel /
-     3D-adjacent surfaces so the product doesn't read as one flat blue —
+     3D-adjacent surfaces so the product doesn't read as one flat blue -
      same discipline as the brand ramp above (each has a light-mode value
      here, redefined in both dark blocks below). */
   --color-accent-violet: #7c4dff;
@@ -114,7 +114,7 @@
   --color-accent-teal-bg: #e6f7f5;
   --color-accent-amber: #e0a825;
 
-  /* Gradients: the header wordmark already used an ad hoc brand gradient —
+  /* Gradients: the header wordmark already used an ad hoc brand gradient -
      promoted to a token here so other "hero" surfaces (launcher, active
      states) can reuse the exact same identity instead of inventing new
      ones. */
@@ -136,7 +136,7 @@
     --color-text-muted: #a7b1cc;
     --color-text-faint: #8e99b8;
     /* Saturated mid-tones that pass on white are far too dark on a navy
-       surface — these are the dark-theme equivalents, not the same hexes. */
+       surface - these are the dark-theme equivalents, not the same hexes. */
     --color-success: #3fcf95;
     --color-warning: #e6b23a;
     --color-danger: #f4738a;
@@ -185,7 +185,7 @@
   --color-text: #eef1fb;
   --color-text-muted: #a7b1cc;
   --color-text-faint: #8e99b8;
-  /* Must stay byte-identical to the media-query block above — the contrast
+  /* Must stay byte-identical to the media-query block above - the contrast
      script checks for drift between the two, because a mismatch means the
      manual toggle and the OS preference render different colours. */
   --color-success: #3fcf95;
@@ -242,7 +242,7 @@
             room for a 380px panel column. Below it: the rail becomes a
             bottom tab bar and the panel becomes a bottom sheet (see
             sheet.ts). shellStore.ts and useSheet.ts both hold this same
-            number in TypeScript, where a media query cannot reach — change
+            number in TypeScript, where a media query cannot reach - change
             one and you must change all three, or there is a band of widths
             where the rail has moved and the panel has not.
 

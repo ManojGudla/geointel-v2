@@ -239,7 +239,7 @@
 }
 
 /* A second `.directions-panel__modes` rule stood here, byte for byte
-   identical to the one near the top of this file — it set nothing the
+   identical to the one near the top of this file - it set nothing the
    original had not already set. Removed rather than merged: there was
    nothing in it to merge. */
 
@@ -395,7 +395,7 @@
   color: var(--color-text-muted);
 }
 
-/* Turn list — always visible, never hidden behind a <details> summary.
+/* Turn list - always visible, never hidden behind a <details> summary.
    Directions you have to expand before you can read are not directions. */
 .directions-panel__steps {
   display: flex;

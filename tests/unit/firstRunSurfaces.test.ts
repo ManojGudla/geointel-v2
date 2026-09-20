@@ -13,7 +13,7 @@ import {
  *
  * They collided in production. The onboarding card is centred over the map at
  * z-index 12; the teaser is pinned top-right at z-index 5. On a laptop-width
- * window the card's right edge ran under the teaser and drew over it — the
+ * window the card's right edge ran under the teaser and drew over it - the
  * date line was cut in half and "Don't miss it." was hidden entirely.
  *
  * Restacking would only swap which one gets covered. The fix is that they are
@@ -91,7 +91,7 @@ describe("the two first-run surfaces are never on screen together", () => {
       }
     }
 
-    // Guards against the rule passing because one of them never shows at all —
+    // Guards against the rule passing because one of them never shows at all -
     // `expect(false).toBe(false)` would be satisfied by a teaser that is simply
     // broken, which is exactly the bug this must not hide.
     expect(onboardingSeen).toBeGreaterThan(0);

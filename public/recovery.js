@@ -1,5 +1,5 @@
 /**
- * Recovery guard — the last line of defence against a blank page.
+ * Recovery guard - the last line of defence against a blank page.
  *
  * If the main bundle has not mounted anything a few seconds after load, this
  * tears down every service worker and cache and reloads ONCE. It exists
@@ -12,7 +12,7 @@
  * WHY THIS IS A SEPARATE FILE, and not an inline <script> in index.html:
  *
  * It was inline, and it never ran in production. The production
- * Content-Security-Policy is `script-src 'self'` — no 'unsafe-inline' — so
+ * Content-Security-Policy is `script-src 'self'` - no 'unsafe-inline' - so
  * the browser blocked it on every single page load:
  *
  *   Executing inline script violates the following Content Security Policy
@@ -20,11 +20,11 @@
  *
  * It was invisible in development because the dev server's CSP allows
  * 'unsafe-inline' (Vite needs it for HMR), so the guard worked locally and
- * was dead on the live site — the worst kind of bug in a safety net. The fix
+ * was dead on the live site - the worst kind of bug in a safety net. The fix
  * is to serve it from this origin like any other script, which 'self' allows.
  *
  * Two rules keep it working:
- *   1. Nothing in here may be an inline event handler (onclick="...") either —
+ *   1. Nothing in here may be an inline event handler (onclick="...") either -
  *      those are blocked by exactly the same directive. Use addEventListener.
  *   2. The filename must stay unfingerprinted and must stay excluded from the
  *      SPA rewrite in vercel.json, so this file can never itself become the
@@ -37,7 +37,7 @@
   var WAIT_MS = 6000;
 
   /**
-   * "Blank" means the app never mounted — which is NOT the same as an empty
+   * "Blank" means the app never mounted - which is NOT the same as an empty
    * #root any more.
    *
    * index.html now ships a static fallback inside #root so the page has real
@@ -56,7 +56,7 @@
 
   /**
    * Second failure: stop retrying and say so in plain words. A silent retry
-   * loop is worse than an honest dead end — the visitor at least knows to
+   * loop is worse than an honest dead end - the visitor at least knows to
    * come back, and the message says it is probably not their device.
    */
   function explain() {
@@ -70,7 +70,7 @@
       '<button type="button" id="manowj-retry" style="min-height:42px;padding:0 20px;border:0;border-radius:10px;background:#1d3f8f;color:#fff;font-weight:700;cursor:pointer">Try again</button>' +
       "</div>";
 
-    // addEventListener, NOT an onclick attribute — see the note above.
+    // addEventListener, NOT an onclick attribute - see the note above.
     var retry = document.getElementById("manowj-retry");
     if (retry) {
       retry.addEventListener("click", function () {
@@ -106,7 +106,7 @@
   window.addEventListener("load", function () {
     window.setTimeout(function () {
       if (!stillBlank()) {
-        // Started fine — clear the flag so a genuine failure much later still
+        // Started fine - clear the flag so a genuine failure much later still
         // gets its own single recovery attempt.
         try {
           sessionStorage.removeItem(ATTEMPT_KEY);

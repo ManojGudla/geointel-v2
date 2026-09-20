@@ -38,13 +38,13 @@ import { nextStreak, previousDateKey } from "../../src/features/play/games/daily
  *
  * This game replaced ten that nobody wanted to play twice. Three properties
  * are what make it different, and all three are load-bearing rather than
- * decorative — so each has tests that fail loudly if it is ever broken:
+ * decorative - so each has tests that fail loudly if it is ever broken:
  *
  *   1. Everyone gets the same five places on a given day. Without this a
  *      shared score is meaningless and the whole premise collapses.
  *   2. The shared card never names a place. A card that spoiled the answers
  *      would be posted once and then resented, and the game would not spread.
- *   3. The streak is honest — it continues only from yesterday, and replaying
+ *   3. The streak is honest - it continues only from yesterday, and replaying
  *      a day already recorded cannot inflate it.
  */
 
@@ -88,7 +88,7 @@ describe("scoring", () => {
     expect(spotOn.distanceKm).toBeLessThan(0.5);
     expect(spotOn.score).toBe(MAX_ROUND_SCORE);
 
-    // Delhi is roughly 180 km from Agra — close enough to score well, far
+    // Delhi is roughly 180 km from Agra - close enough to score well, far
     // enough not to be free.
     const delhi = scoreGuess(location, { lat: 28.6139, lon: 77.209 });
     expect(delhi.distanceKm).toBeGreaterThan(150);
@@ -101,7 +101,7 @@ describe("scoring", () => {
 describe("the day's draw", () => {
   it("gives the same five places to everyone on the same date", () => {
     // The single most important property in the game. Two players, two
-    // devices, no server — the day must be identical or a shared score is a
+    // devices, no server - the day must be identical or a shared score is a
     // lie.
     const a = roundsForDate("2026-09-12").map((l) => l.id);
     const b = roundsForDate("2026-09-12").map((l) => l.id);
@@ -322,7 +322,7 @@ describe("formatting", () => {
  *   a hint into a giveaway and the round into a formality.
  *
  *   A clue must not be wrong. A player pays points for these and then trusts
- *   them, so a mislabelled continent is worse than no clue at all — it sends
+ *   them, so a mislabelled continent is worse than no clue at all - it sends
  *   someone confidently to the other side of the planet.
  */
 
@@ -336,7 +336,7 @@ function forbidden(location: (typeof DAILY_LOCATIONS)[number]): string[] {
 }
 
 /**
- * Loose continent boxes. Deliberately generous — this is checking for a region
+ * Loose continent boxes. Deliberately generous - this is checking for a region
  * typed on the wrong entry, not policing exact borders.
  */
 const REGION_BOX: Record<DailyRegion, { lat: [number, number]; lon: [number, number] }> = {
@@ -383,7 +383,7 @@ describe("what a clue costs", () => {
   });
 
   it("charges the guess, not the distance", () => {
-    // The distance measured must not change because help was taken — only what
+    // The distance measured must not change because help was taken - only what
     // the guess is worth. Otherwise the answer card would tell the player they
     // were further away than they actually were.
     const location = DAILY_LOCATIONS.find((l) => l.id === "taj-mahal")!;

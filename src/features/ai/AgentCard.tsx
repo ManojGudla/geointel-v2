@@ -32,7 +32,7 @@ export function AgentCard({
   const waiting = location ? readinessNotice(definition.kind, pending) : null;
 
   const handleRun = async () => {
-    // Queued until the AI request gate actually lets this one out — see
+    // Queued until the AI request gate actually lets this one out - see
     // src/services/aiRequestQueue.ts. onStart is what flips it to "running",
     // so the card never claims to be running while it's really still waiting.
     setAgentRun(definition.kind, { status: "queued", subject });
@@ -40,7 +40,7 @@ export function AgentCard({
       const result = await runAgent(definition.kind, context, undefined, () =>
         setAgentRun(definition.kind, { status: "running", subject })
       );
-      // `subject` is the one captured above, at click time — the place this
+      // `subject` is the one captured above, at click time - the place this
       // request was actually about. See aiStore.ts.
       setAgentRun(definition.kind, { status: "done", result, subject });
     } catch (error) {
@@ -79,8 +79,8 @@ export function AgentCard({
             Every agent reads the same "current location data" block, and with
             nothing selected that block is the single line "No location is
             currently selected in the app." So the button used to spend a
-            provider request — out of a budget of 15 a minute shared by all
-            six cards and Ask maNOWj — to be told what the card can say for
+            provider request - out of a budget of 15 a minute shared by all
+            six cards and Ask maNOWj - to be told what the card can say for
             free. Say it here instead.
           */
           <span className="agent-card__status">Pick a place on the map first.</span>
@@ -106,7 +106,7 @@ export function AgentCard({
       {run.status === "done" && run.result && (
         <>
           {/*
-            The answer is kept, not discarded — you may still want to read it.
+            The answer is kept, not discarded - you may still want to read it.
             It is just no longer allowed to present itself as a description of
             what is on screen.
           */}
@@ -115,7 +115,7 @@ export function AgentCard({
           {run.result.sources.length > 0 && <span className="agent-card__sources">Sources: {run.result.sources.join(", ")}</span>}
           {/*
             Who wrote this, and when. The server used to report the model slug
-            it REQUESTED, and no component rendered even that — so an AI answer
+            it REQUESTED, and no component rendered even that - so an AI answer
             was the only thing in this product that arrived with no source and
             no date, in the one place a reader can least check it themselves.
           */}
@@ -125,7 +125,7 @@ export function AgentCard({
             the button names the fix. "Run for <name>" was the first version
             and it read well until a place was called "Chhatrapati Shivaji
             Maharaj International Airport", which truncated to "Run for
-            Chhatra…" in a 160px card — a label that says less than nothing.
+            Chhatra…" in a 160px card - a label that says less than nothing.
             The notice directly above already names the place, so the button
             only has to supply the verb. Disabled with nothing selected, for
             the same reason the idle card has no Run button at all.

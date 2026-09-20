@@ -20,7 +20,7 @@ import { useIsSheetLayout, useSheet } from "../../src/features/shell/useSheet";
 /**
  * The mobile workspace panel.
  *
- * What this replaces was one line of CSS — `position: absolute; inset: 0` —
+ * What this replaces was one line of CSS - `position: absolute; inset: 0` -
  * and it made the panel a full-screen overlay on every phone. Tapping
  * "Layers" on a map application hid the map completely, which is the most
  * plausible explanation anyone has offered for the report that people open
@@ -29,7 +29,7 @@ import { useIsSheetLayout, useSheet } from "../../src/features/shell/useSheet";
  * So the property worth defending here is not "the sheet animates nicely".
  * It is: THE MAP IS NEVER FULLY COVERED. Every test below either checks that
  * directly or checks a piece of maths that, if wrong, would let it happen
- * again — a sign flip in the drag, a detent that snaps to the wrong place, a
+ * again - a sign flip in the drag, a detent that snaps to the wrong place, a
  * dismissal threshold that swallows a deliberate drag.
  */
 
@@ -38,7 +38,7 @@ afterEach(cleanup);
 /*
   jsdom does not implement PointerEvent. Without this, fireEvent falls back to
   a plain Event, `clientY` never reaches the handler, and every drag test
-  below would pass or fail for reasons having nothing to do with the sheet —
+  below would pass or fail for reasons having nothing to do with the sheet -
   the worst kind of test, one that is green because it measured nothing.
   MouseEvent carries the coordinates the handlers actually read.
 */
@@ -64,7 +64,7 @@ describe("where the sheet is allowed to rest", () => {
   });
 
   it("leaves a visible strip of map even at full height", () => {
-    // Not merely "less than 1" — enough that a person can SEE the map is
+    // Not merely "less than 1" - enough that a person can SEE the map is
     // still behind it, which is what tells them the panel is a layer over
     // the map rather than a different screen.
     expect(1 - DETENT_FRACTION.full).toBeGreaterThanOrEqual(0.05);
@@ -120,7 +120,7 @@ describe("turning a finger movement into a height", () => {
     /*
       The sign flip. Screen Y grows downward, sheet height grows upward, and
       getting this backwards produces a sheet that grows when you push it
-      away — which is wrong in a good half of the hand-rolled sheets on the
+      away - which is wrong in a good half of the hand-rolled sheets on the
       web. Worth a test of its own precisely because it looks obvious.
     */
     const after = fractionAfterDrag(0.62, 200, 800);
@@ -330,7 +330,7 @@ describe("the stylesheet", () => {
   /*
     Comments are stripped before any of this is asserted. These files explain
     themselves at length, and several of those explanations quote the very
-    declarations being guarded against — so a guard reading the raw text finds
+    declarations being guarded against - so a guard reading the raw text finds
     the thing it is banning inside the note explaining why it is banned.
   */
   const read = (...parts: string[]) =>

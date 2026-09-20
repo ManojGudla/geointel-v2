@@ -61,7 +61,7 @@ describe("api/_lib/maintenance", () => {
 
   // The actual bug behind "every feature hangs for 5+ minutes, then works":
   // this Supabase read used to have no timeout, so withMaintenanceGuard
-  // (which wraps nearly every handler — nearby, gis, weather, officials,
+  // (which wraps nearly every handler - nearby, gis, weather, officials,
   // both AI endpoints) would wait on it indefinitely whenever Supabase was
   // slow to answer or unreachable (a paused free-tier project, e.g.).
   it("getMaintenanceState falls back to 'not in maintenance' instead of hanging when Supabase never responds", async () => {

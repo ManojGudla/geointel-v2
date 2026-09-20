@@ -195,7 +195,7 @@
 }
 
 /* Printing: only the report reaches the page. Everything else in the
-   application — the shell, the map, the overlay backdrop — is removed
+   application - the shell, the map, the overlay backdrop - is removed
    rather than hidden behind a scroll, and the sheet loses its own framing
    so the paper's margins are the only margins. */
 @media print {

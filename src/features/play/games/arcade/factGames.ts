@@ -5,13 +5,13 @@ import { PLAY_URL } from "@/features/play/share";
 /**
  * The two games built on the sourced claim bank.
  *
- *   Impossible or Real — one claim at a time, survival. Keep going until you
+ *   Impossible or Real - one claim at a time, survival. Keep going until you
  *   get one wrong. Survival rather than a timer because the shareable result
  *   is then a single number anyone understands instantly ("I got 14"), and
  *   because it makes every single answer matter, which a 60-second format
  *   deliberately does not.
  *
- *   The Impostor — five statements, exactly one false. A different kind of
+ *   The Impostor - five statements, exactly one false. A different kind of
  *   thinking: not "do I know this" but "which of these five is the weak one",
  *   which rewards reasoning even when you know none of them outright.
  *
@@ -69,7 +69,7 @@ export function buildImpostorGame(seed: number | string): ImpostorRound[] {
  *
  * True and false are interleaved at a fixed alternating cadence rather than
  * shuffled, then the pairs themselves are shuffled. Pure randomness produces
- * runs — five true claims in a row teaches the player to just press REAL, and
+ * runs - five true claims in a row teaches the player to just press REAL, and
  * the game stops being about the claims at all.
  */
 export function buildRealOrFakeQueue(seed: number | string, length = 40): Fact[] {
