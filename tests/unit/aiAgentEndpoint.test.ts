@@ -82,7 +82,8 @@ describe("api/ai/agent handler", () => {
     await handler(result.req, result.res);
 
     expect(result.statusCode).toBe(200);
-    expect(capture.systemPrompt).toMatch(/active route: walk, 500m, 400s/i);
+    // Human units, so the model does not do its own (error-prone) conversion.
+    expect(capture.systemPrompt).toMatch(/active route: walk, 500 m, about 7 min/i);
   });
 
   it("rejects an unknown agent kind", async () => {

@@ -1,0 +1,44 @@
+/*
+  A line in the page flow directly under the header, not a toast over the
+  map. It is a flex item of .app-shell, so the workspace shrinks by one line
+  while it shows and nothing is ever covered: not the search box, not a map
+  control. It stays for as long as the condition lasts.
+*/
+.network-status {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  text-align: center;
+}
+
+.network-status--offline,
+.network-status--slow {
+  background: var(--color-warning-bg);
+}
+
+.network-status__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.network-status--offline .network-status__dot {
+  background: var(--color-danger);
+}
+
+.network-status--slow .network-status__dot {
+  background: var(--color-warning);
+}
+
+.network-status--back .network-status__dot {
+  background: var(--color-success);
+}

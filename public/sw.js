@@ -21,11 +21,68 @@
 // seeing the previous build with no way to tell; only a hard refresh or a
 // cleared cache broke the loop. Changing the name here forces the old,
 // poisoned cache to be deleted on activate.
-const CACHE_NAME = "geointel-shell-v3";
-const SHELL_ASSETS = ["/", "/manifest.json"];
+// v4: also clears the v3 cache, which kept every hashed file from every
+// deploy forever because the name never changed.
+const CACHE_NAME = "geointel-shell-v4";
+
+/**
+ * Cache the files a page needs to start: the scripts, styles and preloads
+ * index.html points at.
+ *
+ * Before this, the app's own JavaScript was only cached the SECOND time it
+ * was requested, because the first visit fetches it before this worker is
+ * installed. So the first time someone went offline after one visit, the
+ * cached page loaded with no script behind it and stayed blank. Reading the
+ * references out of the HTML means one online visit is enough.
+ *
+ * Only files not already cached are fetched, so doing this on every online
+ * page load costs nothing once they are there.
+ */
+/*
+  Match on the URL alone. Scripts are requested with crossorigin, so the
+  browser sends an Origin header, and servers answer with "Vary: Origin". A
+  cached response then only matches a request carrying the same headers, so
+  files fetched here (without them) were cached but never found, and the app
+  still failed to start offline. Hashed files are content-addressed, and the
+  fixed ones are the same for every origin, so Vary carries no meaning here.
+*/
+const MATCH = { ignoreVary: true };
+
+async function cacheStartupFiles(cache, html) {
+  const urls = new Set();
+  // Every same-origin file the page points at: hashed bundles, plus the
+  // handful of fixed ones (recovery.js, the manifest, icons). Pages it links
+  // to come back as HTML and are skipped below.
+  for (const m of html.matchAll(/(?:src|href)="(\/(?!\/)[^"#?]+)"/g)) urls.add(m[1]);
+  await Promise.all(
+    [...urls].map(async (u) => {
+      if (await cache.match(u, MATCH)) return;
+      try {
+        const res = await fetch(u);
+        if (res.ok && !isHtmlResponse(res)) await cache.put(u, res);
+      } catch {
+        // Offline or a bad deploy mid-flight: the next online visit retries.
+      }
+    })
+  );
+}
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)));
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const res = await fetch("/", { cache: "no-cache" });
+        if (res.ok && isHtmlResponse(res)) {
+          await cache.put("/", res.clone());
+          await cacheStartupFiles(cache, await res.text());
+        }
+        await cache.add("/manifest.json");
+      } catch {
+        // Installing offline still installs; the shell is cached next time.
+      }
+    })()
+  );
   self.skipWaiting();
 });
 
@@ -98,13 +155,21 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put("/", clone));
+          if (response.ok && isHtmlResponse(response)) {
+            const forCache = response.clone();
+            const forParse = response.clone();
+            event.waitUntil(
+              caches.open(CACHE_NAME).then(async (cache) => {
+                await cache.put("/", forCache);
+                // A new deploy means new hashed files: pick them up now, while
+                // online, rather than discovering they are missing offline.
+                await cacheStartupFiles(cache, await forParse.text());
+              })
+            );
           }
           return response;
         })
-        .catch(() => caches.match("/").then((cached) => cached || Response.error()))
+        .catch(() => caches.match("/", MATCH).then((cached) => cached || Response.error()))
     );
     return;
   }
@@ -113,7 +178,7 @@ self.addEventListener("fetch", (event) => {
   // URLs cannot change.
   if (isHashedAsset(url)) {
     event.respondWith(
-      caches.match(event.request).then(
+      caches.match(event.request, MATCH).then(
         (cached) =>
           cached ||
           fetch(event.request).then((response) => {
@@ -139,7 +204,7 @@ self.addEventListener("fetch", (event) => {
   // Everything else same-origin (manifest, icons): serve from cache for
   // speed, but refresh it in the background so it can't go stale forever.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.match(event.request, MATCH).then((cached) => {
       const network = fetch(event.request)
         .then((response) => {
           if (response.ok && !isHtmlResponse(response)) {

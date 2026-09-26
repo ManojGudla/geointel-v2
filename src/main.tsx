@@ -6,6 +6,7 @@ import App from "./App";
 import "@/styles/reset.css";
 import "@/styles/tokens.css";
 import "./App.css";
+import { shouldRetryQuery } from "@/services/apiClient";
 
 // Sentry will be initialized AFTER consent is granted (see ConsentBanner.tsx)
 // This keeps it privacy-first: nothing loads until user opts in.
@@ -25,7 +26,9 @@ const queryClient = new QueryClient({
       // with the shorter per-mirror timeout in overpass.ts, going from 1
       // to 2 retries roughly triples the independent attempts without
       // materially raising the worst-case wall-clock wait.
-      retry: 2,
+      // Two retries for transient failures; none for answers that are final
+      // (rate limited, not configured). See shouldRetryQuery.
+      retry: shouldRetryQuery,
       staleTime: 60_000,
       refetchOnWindowFocus: false,
     },

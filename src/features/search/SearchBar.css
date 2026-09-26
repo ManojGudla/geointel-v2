@@ -16,6 +16,8 @@
 .search-bar__input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
+  /* Room for the clear button / spinner, so long queries don't run under it. */
+  padding-right: 40px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -26,6 +28,32 @@
 
 .search-bar__input:focus-visible {
   border-color: var(--color-brand-500);
+}
+
+/* Sits where the spinner does; the two never show together. 32px square
+   rather than the glyph's own size, so it is a real touch target. */
+.search-bar__clear {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.search-bar__clear:hover,
+.search-bar__clear:focus-visible {
+  background: var(--color-surface-2);
+  color: var(--color-text);
 }
 
 .search-bar__spinner {
@@ -393,4 +421,38 @@
   .search-bar__recent-clear {
     min-height: 44px;
   }
+}
+
+/* A saved place and its remove button share one row. Matched with two
+   classes so it wins over `.search-bar__suggestions li button` above, which
+   would otherwise stretch the remove button to full width. */
+.search-bar__saved-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.search-bar__saved-row .search-bar__pick {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-bar__suggestions li button.search-bar__saved-remove {
+  flex: 0 0 40px;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 18px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.search-bar__suggestions li button.search-bar__saved-remove:hover,
+.search-bar__suggestions li button.search-bar__saved-remove:focus-visible {
+  color: var(--color-danger);
+}
+
+/* Two sections in one dropdown: separate them without a second border. */
+.search-bar__recent .search-bar__suggestions + .search-bar__recent-head {
+  border-top: 1px solid var(--color-border);
 }

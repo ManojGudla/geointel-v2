@@ -87,7 +87,7 @@ export function AboutPanel() {
     if (!isOpen) return null;
     return (
       <div className="about-overlay" onClick={close}>
-        <div ref={dialogRef} className="about-panel" role="dialog" aria-label="About maNOWj GeoIntel" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="about-panel" role="dialog" aria-modal="true" aria-label="About maNOWj GeoIntel" onClick={(e) => e.stopPropagation()}>
           {body}
         </div>
       </div>
@@ -98,7 +98,7 @@ export function AboutPanel() {
     <AnimatePresence>
       {isOpen && (
         <motion.div className="about-overlay" onClick={close} {...overlayFade}>
-          <motion.div ref={dialogRef} className="about-panel" role="dialog" aria-label="About maNOWj GeoIntel" onClick={(e) => e.stopPropagation()} {...panelRise}>
+          <motion.div ref={dialogRef} className="about-panel" role="dialog" aria-modal="true" aria-label="About maNOWj GeoIntel" onClick={(e) => e.stopPropagation()} {...panelRise}>
             {body}
           </motion.div>
         </motion.div>

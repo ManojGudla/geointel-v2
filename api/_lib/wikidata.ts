@@ -87,7 +87,18 @@ function realLabelOrNull(value: string | undefined): string | null {
 
 /** Escapes a string for safe interpolation inside a SPARQL string literal. */
 export function sparqlEscape(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  // Backslash first, so the escapes added after it are not themselves doubled.
+  // Newlines, returns and tabs are escaped rather than passed through: a raw
+  // line break inside a SPARQL "..." literal is a syntax error, and any other
+  // control character has no business in a place name at all.
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r")
+    .replace(/\t/g, "\\t")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001f\u007f]/g, "");
 }
 
 /**

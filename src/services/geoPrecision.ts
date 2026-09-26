@@ -51,7 +51,6 @@ export const COORD_PRECISION: Record<string, number> = {
   // Radius searches. The radius is 500 m to 5 km, so a 55 m shift in the
   // centre changes the result set by a rounding error.
   "/api/nearby": 3,
-  "/api/poi-evidence": 3,
   "/api/gis": 3,
   // Satellite capture dates come from imagery footprints that cover many
   // square kilometres; 110 m is far finer than the data.

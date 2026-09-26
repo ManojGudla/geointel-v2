@@ -103,7 +103,8 @@ describe("the search box actually shows them", () => {
   });
 
   it("shows them only when the box is empty, so they never hide live results", () => {
-    expect(body).toMatch(/query\.trim\(\)\.length === 0 && recentSearches\.length > 0/);
+    // Saved places share the same dropdown and the same rule.
+    expect(body).toMatch(/query\.trim\(\)\.length === 0 && \(savedPlaces\.length > 0 \|\| recentSearches\.length > 0\)/);
   });
 
   it("does not claim to be a second listbox for the combobox above", () => {

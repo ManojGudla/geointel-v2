@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAiStore } from "@/stores/aiStore";
 import { useLocationStore } from "@/stores/locationStore";
 import { askCopilot } from "@/services/ai";
-import { ApiUnavailableError } from "@/services/apiClient";
 import { useCopilotContext } from "./useCopilotContext";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
 import { panelRiseFromBottom } from "@/lib/motionVariants";
@@ -15,6 +14,7 @@ import { useMapStore } from "@/stores/mapStore";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import type { GISLayerId } from "@/types/gis";
 import "./CopilotPanel.css";
+import { describeAiFailure } from "./aiErrors";
 
 export function CopilotPanel() {
   const isOpen = useAiStore((s) => s.isCopilotOpen);
@@ -32,24 +32,46 @@ export function CopilotPanel() {
   const context = useCopilotContext();
   const [draft, setDraft] = useState("");
   const motionEnabled = useMotionPreference();
+  /** Which place the conversation so far was about. */
+  const historyPlace = useRef<string | null>(null);
 
   const ask = async (question: string) => {
     const trimmed = question.trim();
     if (!trimmed || isAsking) return;
+
+    // Offline, say so without sending a request that cannot arrive, and keep
+    // what they typed.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      addMessage({ role: "assistant", content: describeAiFailure(null, false), isError: true });
+      return;
+    }
+
+    /*
+      Earlier turns go with the question so a follow-up ("and schools?") is
+      understood, but only while the same place is selected. After moving to
+      another place, the old turns describe somewhere else, and sending them
+      would invite the model to answer with the previous place's numbers.
+      Failed attempts are left out; they carry no information.
+    */
+    const placeKey = location ? `${location.lat},${location.lon}` : "none";
+    const history =
+      historyPlace.current === placeKey
+        ? messages.filter((m) => !m.isError).map((m) => ({ role: m.role, content: m.content }))
+        : [];
+    historyPlace.current = placeKey;
 
     addMessage({ role: "user", content: trimmed });
     setDraft("");
     setAsking(true);
 
     try {
-      const { answer, sources, model, generatedAt } = await askCopilot(trimmed, context);
+      const { answer, sources, model, generatedAt } = await askCopilot(trimmed, context, undefined, history);
       addMessage({ role: "assistant", content: answer, sources, model, generatedAt });
     } catch (error) {
-      const message =
-        error instanceof ApiUnavailableError
-          ? error.message
-          : "Ask maNOWj ran into an unexpected problem. Please try again.";
-      addMessage({ role: "assistant", content: message, isError: true });
+      addMessage({ role: "assistant", content: describeAiFailure(error), isError: true });
+      // Put the question back, so trying again is one press rather than
+      // retyping it.
+      setDraft((current) => current || trimmed);
     } finally {
       setAsking(false);
     }
@@ -95,7 +117,7 @@ export function CopilotPanel() {
         {messages.map((m, i) => (
           <div key={i} className={`copilot-panel__message copilot-panel__message--${m.role}${m.isError ? " copilot-panel__message--error" : ""}`}>
             <p>{m.role === "assistant" && !m.isError ? formatAiText(m.content) : m.content}</p>
-            {m.sources && m.sources.length > 0 && <span className="copilot-panel__sources">Sources: {m.sources.join(", ")}</span>}
+            {m.sources && m.sources.length > 0 && <span className="copilot-panel__sources">Based on: {m.sources.join(", ")}</span>}
             {/* Attribution on the answer, not on the question and not on an
                 error this app wrote itself. */}
             {m.role === "assistant" && !m.isError && m.model && (

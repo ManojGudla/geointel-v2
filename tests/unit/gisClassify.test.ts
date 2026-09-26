@@ -79,7 +79,7 @@ describe("classifyFeatures", () => {
   // Regression test for a real bug: a landmark like the Eiffel Tower is
   // tagged tourism=attraction with no building/shop/office/amenity tag of
   // its own. Before this fix, that meant its own OSM entry contributed ZERO
-  // evidence and the location came back "Vacant / Unknown" despite Overpass
+  // evidence and the location came back "Unknown" despite Overpass
   // returning real data for exactly the thing being looked up.
   it("counts a tourism=attraction node (e.g. a landmark with no building tag) toward the landmark score", () => {
     const { counts, scores } = classifyFeatures([el({ tourism: "attraction", name: "Eiffel Tower" })]);

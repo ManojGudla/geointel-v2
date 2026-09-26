@@ -1,4 +1,5 @@
-import { Suspense, lazy, useRef } from "react";
+import { Suspense, useRef } from "react";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SearchBar } from "@/features/search/SearchBar";
 
@@ -17,7 +18,7 @@ import { SearchBar } from "@/features/search/SearchBar";
  * unchanged; what changes is that the visitor sees the product instead of a
  * blank screen while they download.
  */
-const MapView = lazy(() => import("@/features/map/MapView").then((m) => ({ default: m.MapView })));
+const MapView = lazyWithRetry(() => import("@/features/map/MapView").then((m) => ({ default: m.MapView })));
 import { WeatherEffectsLayer } from "@/features/weather/effects/WeatherEffectsLayer";
 import { NavigationHud } from "@/features/routing/navigation/NavigationHud";
 import { MeasureHud } from "@/features/measure/MeasureHud";

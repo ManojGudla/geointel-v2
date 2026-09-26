@@ -9,6 +9,7 @@ import { useShellStore } from "@/stores/shellStore";
 import { useIntelTabStore } from "@/stores/intelTabStore";
 import { useUiStore } from "@/stores/uiStore";
 import { buildShareUrl as shareUrl } from "@/features/share/viewState";
+import { samePoint, useSavedPlacesStore } from "@/stores/savedPlacesStore";
 
 function formatCoord(value: number): string {
   return value.toFixed(6);
@@ -17,6 +18,11 @@ function formatCoord(value: number): string {
 export function LocationIdentityPanel() {
   const location = useLocationStore((s) => s.selectedLocation);
   const [copied, setCopied] = useState(false);
+  const [linkState, setLinkState] = useState<"idle" | "copied" | "failed">("idle");
+  const [saveFull, setSaveFull] = useState(false);
+  const saved = useSavedPlacesStore((s) => (location ? s.saved.some((p) => samePoint(p, location)) : false));
+  const savePlace = useSavedPlacesStore((s) => s.save);
+  const removePlace = useSavedPlacesStore((s) => s.remove);
 
   /*
     The timezone of the PLACE, which only Open-Meteo knows.
@@ -67,7 +73,22 @@ export function LocationIdentityPanel() {
         // User cancelled the native share sheet - not an error.
       }
     } else {
-      await handleCopy();
+      /*
+        No share sheet (Firefox, most Linux browsers, older desktops): copy
+        the LINK. This used to fall through to handleCopy, which copies the
+        coordinates, so the button said "Copied" while the clipboard held
+        "17.44, 78.35" and the recipient got nothing they could open.
+      */
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+        track("result_shared", { surface: "location-identity", method: "clipboard" });
+        setLinkState("copied");
+      } catch {
+        // Clipboard blocked (permissions, insecure context). Say so rather
+        // than pretend, and leave the link visible in the address bar path.
+        setLinkState("failed");
+      }
+      setTimeout(() => setLinkState("idle"), 2000);
     }
   };
 
@@ -112,11 +133,26 @@ export function LocationIdentityPanel() {
       </dl>
 
       <div className="location-panel__actions">
+        <button
+          type="button"
+          aria-pressed={saved}
+          onClick={() => {
+            if (saved) {
+              removePlace(location);
+              setSaveFull(false);
+            } else {
+              setSaveFull(!savePlace(location));
+            }
+          }}
+          title="Saved in this browser only. There are no accounts, so it does not follow you to other devices."
+        >
+          {saved ? "★ Saved" : saveFull ? "List full: remove one first" : "☆ Save place"}
+        </button>
         <button type="button" onClick={handleCopy}>
           {copied ? "✓ Copied" : "📋 Copy coordinates"}
         </button>
-        <button type="button" onClick={handleShare}>
-          🔗 Share
+        <button type="button" onClick={handleShare} aria-live="polite">
+          {linkState === "copied" ? "✓ Link copied" : linkState === "failed" ? "Couldn't copy the link" : "🔗 Share"}
         </button>
         <a href={`https://www.google.com/maps?q=${location.lat},${location.lon}`} target="_blank" rel="noreferrer">
           🗺️ Google Maps

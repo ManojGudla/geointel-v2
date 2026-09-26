@@ -1,10 +1,10 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
 import { ok, err, getClientIp } from "../_lib/http.js";
-import { RateLimiter, withTimeout } from "../_lib/cache.js";
+import { withTimeout } from "../_lib/cache.js";
+import { checkDurableLimit } from "../_lib/rateLimit.js";
 import { getSupabaseClient } from "../_lib/supabase.js";
 
-const limiter = new RateLimiter(60_000, 10);
 // See withTimeout in ./_lib/cache.ts: this insert used to have nothing
 // bounding it, so a slow/unreachable Supabase project could hang the
 // request indefinitely instead of failing visibly.
@@ -18,18 +18,41 @@ interface FeedbackRequestBody {
   pageContext?: Record<string, unknown>;
 }
 
+/**
+ * pageContext is free-form JSON from the browser, stored straight into a
+ * jsonb column. Only a plain object under a few kilobytes is kept; anything
+ * else is dropped rather than letting one request store megabytes.
+ */
+const MAX_PAGE_CONTEXT_CHARS = 4_000;
+function boundedContext(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  try {
+    return JSON.stringify(value).length <= MAX_PAGE_CONTEXT_CHARS ? (value as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
 const VALID_CATEGORIES = ["general", "bug", "data-accuracy", "feature-request", "praise"];
 
 const handler: ApiHandler = async (req, res) => {
   if (req.method !== "POST") return err(res, 405, "Use POST.");
 
   const ip = getClientIp(req);
-  const rate = limiter.check(ip);
+  /*
+    Counted in the database, not in this function's memory. Every serverless
+    instance kept its own in-memory count, so ten a minute per instance became
+    ten a minute times however many instances a burst of traffic warmed up,
+    on the one route that writes to storage. Falls back to in-memory by
+    itself if the database is unreachable. See api/_lib/rateLimit.ts.
+  */
+  const rate = await checkDurableLimit("feedback", ip, 60_000, 10);
   if (!rate.allowed) return err(res, 429, "Too many feedback submissions. Please slow down.", "RATE_LIMITED");
 
   const body = (req.body ?? {}) as FeedbackRequestBody;
   const rating = Number(body.rating);
-  const deviceId = (body.deviceId || "").trim();
+  // Capped: this is stored as-is, and nothing else about it is checked.
+  const deviceId = String(body.deviceId || "").trim().slice(0, 100);
   const category = body.category && VALID_CATEGORIES.includes(body.category) ? body.category : "general";
   const message = (body.message || "").trim().slice(0, 2000);
 
@@ -55,9 +78,9 @@ const handler: ApiHandler = async (req, res) => {
         rating,
         category,
         message: message || null,
-        page_context: body.pageContext ?? null,
+        page_context: boundedContext(body.pageContext),
         ip_address: ip,
-        user_agent: (req.headers["user-agent"] as string | undefined) || null,
+        user_agent: String(req.headers["user-agent"] ?? "").slice(0, 400) || null,
       }),
       SUPABASE_CALL_TIMEOUT_MS,
       "feedback insert"

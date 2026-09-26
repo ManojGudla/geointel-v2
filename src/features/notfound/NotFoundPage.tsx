@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useNoIndex } from "@/hooks/useNoIndex";
 import "./NotFoundPage.css";
 
 /**
@@ -32,14 +33,12 @@ import "./NotFoundPage.css";
  * pages, and there is no reason to waste the signal.
  */
 export function NotFoundPage({ pathname }: { pathname: string }) {
+  // Edits the existing robots tag rather than adding a second, contradicting one.
+  useNoIndex();
+
   useEffect(() => {
     const previousTitle = document.title;
     document.title = "Page not found | maNOWj GeoIntel";
-
-    const robots = document.createElement("meta");
-    robots.name = "robots";
-    robots.content = "noindex, follow";
-    document.head.appendChild(robots);
 
     // The canonical in index.html points at the home page. Leaving it in place
     // would tell a crawler this URL is a duplicate of the home page, which is
@@ -52,7 +51,6 @@ export function NotFoundPage({ pathname }: { pathname: string }) {
 
     return () => {
       document.title = previousTitle;
-      robots.remove();
       if (canonical && canonicalParent) canonicalParent.appendChild(canonical);
     };
   }, []);

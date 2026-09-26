@@ -9,6 +9,37 @@
 
 import { snapCoordinateParams } from "./geoPrecision";
 
+/**
+ * Error codes whose answer will not change if the same request is sent again
+ * a second later. Retrying them only adds load: three requests instead of one
+ * against a provider that has just said "too many requests", and a longer
+ * spinner before the person sees a message they could act on.
+ */
+const FINAL_CODES = new Set([
+  "RATE_LIMITED",
+  "NOT_CONFIGURED",
+  "UNAUTHORIZED",
+  "NO_RESULT",
+  "NOT_FOUND",
+  "UNKNOWN_LAYER",
+  "BBOX_TOO_LARGE",
+  "MAINTENANCE",
+]);
+
+/** How many automatic retries a failed query gets. See main.tsx. */
+export const MAX_QUERY_RETRIES = 2;
+
+/**
+ * TanStack's retry decision. Transient failures (a provider timing out, an
+ * Overpass mirror down) keep the two retries that earn their keep; answers
+ * that are final come back immediately.
+ */
+export function shouldRetryQuery(failureCount: number, error: unknown): boolean {
+  if (failureCount >= MAX_QUERY_RETRIES) return false;
+  if (error instanceof ApiUnavailableError && error.code && FINAL_CODES.has(error.code)) return false;
+  return true;
+}
+
 export class ApiUnavailableError extends Error {
   code?: string;
   constructor(message: string, code?: string) {
@@ -67,25 +98,40 @@ async function request<T>(path: string, init: RequestInit, signal?: AbortSignal,
     controller.abort();
   }, timeoutMs);
 
+  /*
+    The deadline covers reading the body too, not just the headers. It used to
+    be cleared as soon as the headers arrived, so a response that started and
+    then stalled mid-body could hang for as long as the connection stayed
+    open, with the spinner going and no timeout ever firing.
+  */
+  const release = () => {
+    clearTimeout(timer);
+    if (signal) signal.removeEventListener("abort", onCallerAbort);
+  };
+
   let response: Response;
   try {
     response = await fetch(path, { ...init, signal: controller.signal });
   } catch (error) {
+    release();
     if (timedOut) {
       throw new Error(`${endpointName(path)} timed out after ${timeoutMs / 1000}s. Check your connection and try again.`);
     }
     if ((error as Error).name === "AbortError") throw error;
     throw new Error(`Could not reach ${endpointName(path)}. Check your connection and try again.`);
-  } finally {
-    clearTimeout(timer);
-    if (signal) signal.removeEventListener("abort", onCallerAbort);
   }
 
   let payload: ApiEnvelope<T>;
   try {
     payload = (await response.json()) as ApiEnvelope<T>;
-  } catch {
+  } catch (error) {
+    if (timedOut) {
+      throw new Error(`${endpointName(path)} timed out after ${timeoutMs / 1000}s. Check your connection and try again.`);
+    }
+    if ((error as Error).name === "AbortError") throw error;
     throw new Error(`${endpointName(path)} returned an unexpected response (HTTP ${response.status}).`);
+  } finally {
+    release();
   }
 
   if (!payload.ok) {

@@ -4,36 +4,69 @@ import { searchLocations, reverseGeocode } from "@/services/geocode";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useSearchStore } from "@/stores/searchStore";
+import { useSavedPlacesStore } from "@/stores/savedPlacesStore";
 import { useLocationStore } from "@/stores/locationStore";
 import { parseCoordinatePair, formatCoordinateLabel, type CoordinatePair } from "./coordinateSearch";
 import { useMapStore } from "@/stores/mapStore";
 import { useShellStore } from "@/stores/shellStore";
-import { parseMapCommand } from "@/features/ai/mapCommands";
+import { commandToRequest, parseMapCommand } from "@/features/ai/mapCommands";
 import { useRunAnalysis } from "@/features/analysis/useRunAnalysis";
-import type { AnalysisRequest } from "@/features/analysis/runAnalysis";
-import type { SearchSuggestion } from "@/types/location";
+import type { Location, SearchSuggestion } from "@/types/location";
 import "./SearchBar.css";
 import { track } from "@/services/analytics";
 
-async function selectSuggestion(
+/**
+ * Select what the person picked, then fill in the street address.
+ *
+ * This used to wait for a reverse geocode of the result's coordinates and
+ * then REPLACE the result with it. Reverse geocoding asks "what is at this
+ * exact point", which for a city's centroid is whichever road happens to run
+ * through it: pick "Hyderabad" and the panel could be titled with a street
+ * name. It also showed nothing at all for as long as that second lookup took,
+ * up to the 20 second request timeout.
+ *
+ * Now the place is selected instantly with the name and description the
+ * person chose. The reverse geocode only adds the structured address
+ * (city, state, country code) that other panels need, and only if the
+ * person has not moved on to another place in the meantime.
+ */
+const AREA_TYPES = new Set([
+  "city", "town", "village", "hamlet", "suburb", "neighbourhood", "quarter",
+  "state", "country", "county", "region", "province", "district",
+  "administrative", "municipality", "postcode",
+]);
+
+export async function selectSuggestion(
   suggestion: SearchSuggestion,
   setSelectedLocation: ReturnType<typeof useLocationStore.getState>["setSelectedLocation"],
   addRecentSearch: ReturnType<typeof useSearchStore.getState>["addRecentSearch"]
 ) {
   addRecentSearch(suggestion);
+  const chosen: Location = {
+    lat: suggestion.lat,
+    lon: suggestion.lon,
+    displayName: suggestion.displayName,
+    name: suggestion.name,
+    address: {},
+    source: "OpenStreetMap / Nominatim",
+  };
+  setSelectedLocation(chosen);
+
   try {
-    const location = await reverseGeocode(suggestion.lat, suggestion.lon);
-    setSelectedLocation(location);
+    const enriched = await reverseGeocode(suggestion.lat, suggestion.lon);
+    // A slower lookup must never overwrite a newer choice.
+    if (useLocationStore.getState().selectedLocation !== chosen) return;
+    const address = { ...enriched.address };
+    // For an area (a city, a district, a country) the street at its centre
+    // point is not its address, so do not list one.
+    if (suggestion.type && AREA_TYPES.has(suggestion.type)) {
+      delete address.road;
+      delete address.houseNumber;
+    }
+    setSelectedLocation({ ...chosen, address });
   } catch {
-    // Reverse geocode enrichment failed - still show what the search result gave us.
-    setSelectedLocation({
-      lat: suggestion.lat,
-      lon: suggestion.lon,
-      displayName: suggestion.displayName,
-      name: suggestion.name,
-      address: {},
-      source: "OpenStreetMap / Nominatim",
-    });
+    // The address stays empty; the name, point and everything keyed on the
+    // point still work.
   }
 }
 
@@ -49,6 +82,8 @@ export function SearchBar() {
   const addRecentSearch = useSearchStore((s) => s.addRecentSearch);
   const recentSearches = useSearchStore((s) => s.recentSearches);
   const clearRecentSearches = useSearchStore((s) => s.clearRecentSearches);
+  const savedPlaces = useSavedPlacesStore((s) => s.saved);
+  const removeSavedPlace = useSavedPlacesStore((s) => s.remove);
   const setSelectedLocation = useLocationStore((s) => s.setSelectedLocation);
 
   /**
@@ -138,14 +173,7 @@ export function SearchBar() {
     setHighlighted(-1);
     setAsking(true);
 
-    const request: AnalysisRequest =
-      command.operation === "suitability"
-        ? { operation: "suitability", origin, presetId: command.presetId, radiusMeters: command.radiusMeters }
-        : command.operation === "nearest"
-          ? { operation: "nearest", origin, category: command.category, radiusMeters: 10_000 }
-          : command.operation === "buffer"
-            ? { operation: "buffer", origin, radiusMeters: command.radiusMeters }
-            : { operation: "within", origin, category: command.category, radiusMeters: command.radiusMeters };
+    const request = commandToRequest(command, origin);
 
     // The answer renders in Analyze, so that is where the user is taken -
     // an analysis that runs with its result off-screen reads as nothing
@@ -196,6 +224,13 @@ export function SearchBar() {
     }
 
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      // Empty box with recent searches showing: Down steps into them.
+      if (event.key === "ArrowDown" && query.trim().length === 0 && (savedPlaces.length > 0 || recentSearches.length > 0)) {
+        event.preventDefault();
+        setOpen(true);
+        requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".search-bar__recent .search-bar__pick")?.focus());
+        return;
+      }
       if (!suggestions.length) return;
       event.preventDefault();
       setOpen(true);
@@ -269,8 +304,40 @@ export function SearchBar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [geolocation.status]);
 
+  /*
+    Close when focus leaves the whole search area, not when it leaves the
+    input. The input used to close the dropdown on its own blur, so Tab from
+    the box to a recent search closed the list and removed the button before
+    focus could land on it: recent searches were mouse-only.
+  */
+  const closeIfFocusLeft = (event: React.FocusEvent<HTMLDivElement>) => {
+    const next = event.relatedTarget as Node | null;
+    if (next && event.currentTarget.contains(next)) return;
+    setTimeout(() => setOpen(false), 150);
+  };
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  /** Arrow keys walk the saved and recent places; Escape returns to the box. */
+  const onRecentKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>("button.search-bar__pick")];
+    const at = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (event.key === "ArrowUp" && at <= 0) {
+        inputRef.current?.focus();
+        return;
+      }
+      buttons[Math.min(buttons.length - 1, event.key === "ArrowDown" ? at + 1 : at - 1)]?.focus();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      setOpen(false);
+      inputRef.current?.focus();
+    }
+  };
+
   return (
-    <div className="search-bar">
+    <div className="search-bar" onBlur={closeIfFocusLeft}>
       <div className="search-bar__row">
         <div className="search-bar__input-wrap">
           {/* The placeholder is short enough to fit a phone. The long version
@@ -279,6 +346,7 @@ export function SearchBar() {
               product look broken. The getting-started card underneath carries
               the full sentence. */}
           <input
+            ref={inputRef}
             type="text"
             className="search-bar__input"
             placeholder="Search a place or a question…"
@@ -289,7 +357,6 @@ export function SearchBar() {
             }}
             onKeyDown={handleKeyDown}
             onFocus={() => setOpen(true)}
-            onBlur={() => setTimeout(() => setOpen(false), 150)}
             aria-label="Search a location"
             aria-expanded={open && suggestions.length > 0}
             aria-activedescendant={highlighted >= 0 ? `search-suggestion-${highlighted}` : undefined}
@@ -297,7 +364,22 @@ export function SearchBar() {
             aria-autocomplete="list"
             aria-controls="search-suggestion-list"
           />
-          {suggestionsQuery.isFetching && <span className="search-bar__spinner" aria-hidden="true" />}
+          {suggestionsQuery.isFetching ? (
+            <span className="search-bar__spinner" aria-hidden="true" />
+          ) : (
+            query && (
+              <button
+                type="button"
+                className="search-bar__clear"
+                aria-label="Clear search"
+                // Keep focus in the box so the next keystroke starts a new search.
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleChange("")}
+              >
+                ×
+              </button>
+            )
+          )}
         </div>
 
         <button
@@ -359,31 +441,67 @@ export function SearchBar() {
         gives a screen reader two answers to one question. These are plain
         buttons, which is what they are.
       */}
-      {open && query.trim().length === 0 && recentSearches.length > 0 && (
-        <div className="search-bar__recent">
-          <div className="search-bar__recent-head">
-            <span className="search-bar__recent-title">Recent</span>
-            <button
-              type="button"
-              className="search-bar__recent-clear"
-              /* preventDefault on mousedown, or the input's blur closes this
-                 before the click ever lands. */
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={clearRecentSearches}
-            >
-              Clear
-            </button>
-          </div>
-          <ul className="search-bar__suggestions" aria-label="Recent searches">
-            {recentSearches.map((s) => (
-              <li key={`recent-${s.displayName}-${s.lat}-${s.lon}`}>
-                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => choose(s)}>
-                  <strong>{s.name}</strong>
-                  <span>{s.displayName}</span>
+      {open && query.trim().length === 0 && (savedPlaces.length > 0 || recentSearches.length > 0) && (
+        <div className="search-bar__recent" onKeyDown={onRecentKeyDown}>
+          {savedPlaces.length > 0 && (
+            <>
+              <div className="search-bar__recent-head">
+                <span className="search-bar__recent-title">Saved in this browser</span>
+              </div>
+              <ul className="search-bar__suggestions" aria-label="Saved places">
+                {savedPlaces.map((s) => (
+                  <li key={`saved-${s.lat}-${s.lon}`} className="search-bar__saved-row">
+                    <button
+                      type="button"
+                      className="search-bar__pick"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => choose(s)}
+                    >
+                      <strong>★ {s.name}</strong>
+                      <span>{s.displayName}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="search-bar__saved-remove"
+                      aria-label={`Remove ${s.name} from saved places`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => removeSavedPlace(s)}
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {recentSearches.length > 0 && (
+            <>
+              <div className="search-bar__recent-head">
+                <span className="search-bar__recent-title">Recent</span>
+                <button
+                  type="button"
+                  className="search-bar__recent-clear"
+                  /* preventDefault on mousedown, or the input's blur closes this
+                     before the click ever lands. */
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={clearRecentSearches}
+                >
+                  Clear
                 </button>
-              </li>
-            ))}
-          </ul>
+              </div>
+              <ul className="search-bar__suggestions search-bar__recent-list" aria-label="Recent searches">
+                {recentSearches.map((s) => (
+                  <li key={`recent-${s.displayName}-${s.lat}-${s.lon}`}>
+                    <button type="button" className="search-bar__pick" onMouseDown={(e) => e.preventDefault()} onClick={() => choose(s)}>
+                      <strong>{s.name}</strong>
+                      <span>{s.displayName}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       )}
 
@@ -421,7 +539,15 @@ export function SearchBar() {
         results", this says what to try instead, and offers the one thing that
         always works: put the pin on the map yourself.
       */}
-      {open && !suggestionsQuery.isFetching && !suggestionsQuery.isError && debouncedQuery.trim().length >= 2 && suggestions.length === 0 && (
+      {/*
+        Only after a search actually ran and came back empty. This used to key
+        on two characters while the search itself only runs from three, so
+        typing "UK" announced "Nothing found for UK" about a search that never
+        happened. Offline, the query pauses rather than failing, and the same
+        condition claimed OpenStreetMap had nothing: the offline notice below
+        handles that case instead.
+      */}
+      {open && suggestionsQuery.isSuccess && !suggestionsQuery.isFetching && debouncedQuery.trim().length >= 3 && suggestions.length === 0 && (
         <div className="search-bar__empty" role="status">
           <p className="search-bar__empty-head">
             Nothing found for <strong>{debouncedQuery.trim()}</strong>
@@ -439,9 +565,30 @@ export function SearchBar() {
         </div>
       )}
 
-      {open && debouncedQuery.trim().length >= 2 && suggestionsQuery.isError && (
-        <div className="search-bar__suggestions search-bar__suggestions--error">Search is temporarily unavailable. Please try again.</div>
+      {open && suggestionsQuery.fetchStatus === "paused" && (
+        <div className="search-bar__suggestions search-bar__suggestions--error" role="status">
+          You're offline. Connect to the internet to search for new places. Recent searches and typed coordinates still work.
+        </div>
       )}
+
+      {open && debouncedQuery.trim().length >= 3 && suggestionsQuery.isError && suggestionsQuery.fetchStatus !== "paused" && (
+        <div className="search-bar__suggestions search-bar__suggestions--error" role="alert">
+          Search could not reach the place directory just now.{" "}
+          <button
+            type="button"
+            className="search-bar__empty-link"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => void suggestionsQuery.refetch()}
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {/* Spoken progress; the spinner beside the box is decorative. */}
+      <span className="visually-hidden" role="status" aria-live="polite">
+        {suggestionsQuery.isFetching ? "Searching…" : ""}
+      </span>
     </div>
   );
 }

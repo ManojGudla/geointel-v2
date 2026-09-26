@@ -5,7 +5,7 @@ import { useRouteStore } from "@/stores/routeStore";
 import { useGisEvidence } from "@/features/gis/useGisEvidence";
 import { useRoute } from "@/features/routing/useRoute";
 import { analyzeProperty } from "@/features/property/propertyAnalyzer";
-import { fetchWeather, fetchNearby } from "@/services/intel";
+import { fetchWeather, fetchNearbyResult } from "@/services/intel";
 import { useOfficials } from "@/features/officials/useOfficials";
 import type { CopilotContext } from "@/types/ai";
 
@@ -28,6 +28,12 @@ import type { CopilotContext } from "@/types/ai";
  * The guardrails did their job - it said "I don't have this" instead of
  * inventing counts. The bug is that it was asked at all.
  */
+
+/** The nearby search behind the AI's "what's around here". */
+const NEARBY_CONTEXT_RADIUS_M = 1500;
+/** api/_routes/nearby.ts returns at most this many places, closest first. */
+const NEARBY_RESULT_CAP = 60;
+
 export interface ContextPending {
   gis: boolean;
   weather: boolean;
@@ -65,7 +71,7 @@ export function useCopilotContextState(): { context: CopilotContext; pending: Co
   });
   const nearbyQuery = useQuery({
     queryKey: ["nearby", location?.lat, location?.lon, "all"],
-    queryFn: ({ signal }) => fetchNearby(location!.lat, location!.lon, 1500, undefined, signal),
+    queryFn: ({ signal }) => fetchNearbyResult(location!.lat, location!.lon, NEARBY_CONTEXT_RADIUS_M, undefined, signal),
     enabled: !!location,
     staleTime: 5 * 60 * 1000,
   });
@@ -114,7 +120,7 @@ export function useCopilotContext(): CopilotContext {
 
   const nearbyQuery = useQuery({
     queryKey: ["nearby", location?.lat, location?.lon, "all"],
-    queryFn: ({ signal }) => fetchNearby(location!.lat, location!.lon, 1500, undefined, signal),
+    queryFn: ({ signal }) => fetchNearbyResult(location!.lat, location!.lon, NEARBY_CONTEXT_RADIUS_M, undefined, signal),
     enabled: !!location,
     staleTime: 5 * 60 * 1000,
   });
@@ -122,9 +128,10 @@ export function useCopilotContext(): CopilotContext {
   return useMemo<CopilotContext>(() => {
     const property = gisQuery.data ? analyzeProperty(gisQuery.data) : undefined;
 
-    const nearbyTopCategories = nearbyQuery.data
+    const nearbyItems = nearbyQuery.data?.items;
+    const nearbyTopCategories = nearbyItems
       ? Object.entries(
-          nearbyQuery.data.reduce<Record<string, number>>((acc, item) => {
+          nearbyItems.reduce<Record<string, number>>((acc, item) => {
             acc[item.category] = (acc[item.category] ?? 0) + 1;
             return acc;
           }, {})
@@ -143,6 +150,10 @@ export function useCopilotContext(): CopilotContext {
       gis: gisQuery.data ? { radiusMeters, counts: gisQuery.data.counts, scores: gisQuery.data.scores } : undefined,
       weather: weatherQuery.data ? { temperatureC: weatherQuery.data.temperatureC, condition: weatherQuery.data.condition } : undefined,
       nearbyTopCategories,
+      // The radius actually searched (it widens where mapping is sparse) and
+      // whether the list was cut off, so a sample is never read as a count.
+      nearbyRadiusMeters: nearbyQuery.data?.radiusMeters,
+      nearbyCapped: (nearbyItems?.length ?? 0) >= NEARBY_RESULT_CAP,
       route: route?.from && route?.to && routeQuery.data
         ? { mode: routeQuery.data.mode, distanceMeters: routeQuery.data.distanceMeters, durationSeconds: routeQuery.data.durationSeconds }
         : undefined,

@@ -7,10 +7,39 @@ import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
 import { searchKnowledgeBase } from "../../_lib/kb.js";
 import { fenceRules, makeFence, sanitizeField, sanitizeNumber } from "../../_lib/untrusted.js";
 import type { CopilotContext } from "../../../src/types/ai.js";
+import { GROUNDING_RULES, dataSourcesFor, nearbyLine, routeLine } from "../../_lib/aiGrounding.js";
 
 interface CopilotRequestBody {
   question?: string;
   context?: CopilotContext;
+  /** Earlier turns of this conversation, oldest first. See recentTurns. */
+  history?: Array<{ role?: unknown; content?: unknown }>;
+}
+
+/** How much of the conversation a follow-up can see. */
+const MAX_HISTORY_TURNS = 6;
+const MAX_TURN_CHARS = 600;
+
+/**
+ * The last few turns, cleaned, so "and schools?" means something.
+ *
+ * The Copilot used to send only the new question, so every follow-up arrived
+ * with no memory of what it followed. History comes from the browser, so it
+ * is treated like any other caller input: only user and assistant roles
+ * (never "system"), plain strings, each capped, the whole thing capped. It
+ * goes in as ordinary chat turns, after the system message and its fenced
+ * data, so it cannot rewrite the rules; and GROUNDING_RULES tells the model
+ * that nothing the user writes can.
+ */
+function recentTurns(history: CopilotRequestBody["history"]): AiMessage[] {
+  if (!Array.isArray(history)) return [];
+  return history
+    .filter(
+      (t): t is { role: "user" | "assistant"; content: string } =>
+        (t?.role === "user" || t?.role === "assistant") && typeof t.content === "string" && t.content.trim().length > 0
+    )
+    .slice(-MAX_HISTORY_TURNS)
+    .map((t) => ({ role: t.role, content: sanitizeField(t.content, MAX_TURN_CHARS) }));
 }
 
 /*
@@ -36,7 +65,7 @@ function buildDataBlock(context?: CopilotContext): string {
   if (context.property) {
     lines.push(
       `Property classification: ${sanitizeField(context.property.classification, 60) || "unknown"} ` +
-        `(confidence ${sanitizeNumber(context.property.confidence ?? 0)}%, trust: ${sanitizeField(context.property.trust, 30) || "unavailable"})`
+        `(${context.property.trust === "unavailable" ? "no confidence: not enough mapped evidence to classify" : `confidence ${sanitizeNumber(context.property.confidence ?? 0)}%`}, trust: ${sanitizeField(context.property.trust, 30) || "unavailable"})`
     );
     const reasoning = sanitizeField(context.property.reasoning, 600);
     if (reasoning) lines.push(`Property reasoning: ${reasoning}`);
@@ -50,19 +79,10 @@ function buildDataBlock(context?: CopilotContext): string {
   }
   if (context.weather)
     lines.push(`Weather: ${sanitizeNumber(context.weather.temperatureC)}\u00b0C, ${sanitizeField(context.weather.condition, 60) || "unknown"}`);
-  if (context.nearbyTopCategories?.length) {
-    lines.push(
-      `Nearby: ${context.nearbyTopCategories
-        .slice(0, 12)
-        .map((c) => `${sanitizeNumber(c.count)} ${sanitizeField(c.category, 40)}`)
-        .join(", ")}`
-    );
-  }
-  if (context.route) {
-    lines.push(
-      `Active route: ${sanitizeField(context.route.mode, 20) || "?"}, ${sanitizeNumber(context.route.distanceMeters)}m, ${sanitizeNumber(context.route.durationSeconds)}s`
-    );
-  }
+  const nearby = nearbyLine(context);
+  if (nearby) lines.push(nearby);
+  const route = routeLine(context);
+  if (route) lines.push(route);
   if (context.officials?.length) {
     /*
       The highest-stakes field in the whole block.
@@ -119,6 +139,11 @@ const handler: ApiHandler = async (req, res) => {
   if (JSON.stringify(body.context ?? {}).length > 20_000) {
     return err(res, 413, "Too much context sent with this question.");
   }
+  // Same reasoning for the conversation: recentTurns trims what reaches the
+  // prompt, and this refuses a body that was never a real conversation.
+  if (JSON.stringify(body.history ?? []).length > 10_000) {
+    return err(res, 413, "Too much conversation history sent with this question.");
+  }
   const dataBlock = buildDataBlock(body.context).slice(0, 4_000);
   /*
     A fresh, unguessable fence per request.
@@ -140,11 +165,12 @@ const handler: ApiHandler = async (req, res) => {
         "If you want to list a few things, say them in a sentence ('the area has 7 petrol stations, 5 parks, and 4 hotels nearby') instead of a bulleted list. " +
         "Never show your reasoning, planning, or thinking process, and never narrate what you're about to do ('Let me analyze this', 'Step 1:', 'Based on the data provided I will...'), go straight to the answer, as if you already worked it out.\n\n" +
         "Match the person's language and style. If they write in Telugu, Hindi, Tamil, Kannada, or a mixed/transliterated form (Tenglish, Hinglish, and so on), reply the same way, same language, same casual mixing if that's how they wrote it. Otherwise reply in plain English. " +
-        "If the message is just casual conversation, a greeting, 'hi', 'namaste', 'good morning', thanks, goodbye, small talk, reply warmly and briefly like any normal assistant would, in a sentence or two. Only pull in the location data below when the question actually calls for it.\n\n" +
+        "If the message is just casual conversation, a greeting, 'hi', 'namaste', 'good morning', thanks, goodbye, small talk, reply warmly and briefly like any normal assistant would, in a sentence or two, without stating facts about any place. Only pull in the location data below when the question actually calls for it.\n\n" +
         "For real questions about this location: answer ONLY using the CURRENT LOCATION DATA and KNOWLEDGE BASE sections below. " +
         "Never invent addresses, coordinates, prices, ratings, business names, or any fact not present in this data. " +
         "If the data doesn't cover the question, say so plainly and suggest what the user could check in the app instead. " +
         "Keep answers concise (3-6 sentences) and reference specific numbers from the data where relevant, written into the sentence naturally rather than as a list.\n\n" +
+        `${GROUNDING_RULES}\n\n` +
         "If asked who built, developed, or created maNOWj GeoIntel (or who your developer is), answer that it was built by Manoj Kumar Gudla. " +
         "If asked personal questions about Manoj Kumar Gudla unrelated to this app (his relationships, friends, or private life), " +
         "politely decline, say that's private and not something you have information to share, rather than guessing or inventing an answer.\n\n" +
@@ -154,6 +180,7 @@ const handler: ApiHandler = async (req, res) => {
         "If the officials data doesn't include the role asked about, or shows 'Unable to verify', say plainly that it can't be verified right now and point the user to the Official / Authority Intelligence panel in the app.\n\n" +
         `${fenceRules(fence)}\n\nCURRENT LOCATION DATA:\n${fence.wrap(dataBlock)}\n\nKNOWLEDGE BASE:\n${kbBlock}`,
     },
+    ...recentTurns(body.history),
     { role: "user", content: question },
   ];
 
@@ -165,7 +192,7 @@ const handler: ApiHandler = async (req, res) => {
   // run, so it is the only honest thing to put under an answer.
   ok(res, {
     answer: result.content,
-    sources: kbHits.map((h) => h.title),
+    sources: [...dataSourcesFor(body.context), ...kbHits.map((h) => `Help article: ${h.title}`)],
     model: result.model,
     generatedAt: new Date().toISOString(),
   });

@@ -13,8 +13,25 @@ export function useMaintenancePolling() {
   const refresh = useMaintenanceStore((s) => s.refresh);
 
   useEffect(() => {
-    refresh();
-    const id = setInterval(refresh, POLL_INTERVAL_MS);
-    return () => clearInterval(id);
+    // Offline the answer cannot arrive, and a hidden tab has no one to show
+    // it to. Polling anyway sent three requests a minute into the void, and
+    // on a free tier every one of them counts.
+    const poll = () => {
+      if (navigator.onLine === false || document.hidden) return;
+      refresh();
+    };
+    poll();
+    const id = setInterval(poll, POLL_INTERVAL_MS);
+    // Catch up at once when either condition clears.
+    const onVisible = () => {
+      if (!document.hidden) poll();
+    };
+    window.addEventListener("online", poll);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("online", poll);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [refresh]);
 }

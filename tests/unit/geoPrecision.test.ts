@@ -93,7 +93,6 @@ describe("which routes get snapped", () => {
   it("snaps the slow radius searches", () => {
     // /api/nearby is the one measured at 4.8 seconds on a miss.
     expect(COORD_PRECISION["/api/nearby"]).toBe(3);
-    expect(COORD_PRECISION["/api/poi-evidence"]).toBe(3);
     expect(COORD_PRECISION["/api/gis"]).toBe(3);
   });
 

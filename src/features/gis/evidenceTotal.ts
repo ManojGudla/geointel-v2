@@ -12,7 +12,7 @@ import type { GISEvidence } from "@/types/gis";
  * This is the fix for a real bug: a landmark like the Eiffel Tower is
  * tagged tourism=attraction with no building/shop/office/amenity tag of its
  * own, so a sum that only covered those 4 buckets read it as zero evidence
- * - "Vacant / Unknown" and "No mapped features found" - despite Overpass
+ * - "Unknown" and "No mapped features found" - despite Overpass
  * returning real data for exactly the thing being looked up.
  */
 export function totalEvidenceCount(counts: GISEvidence["counts"]): number {

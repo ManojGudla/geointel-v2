@@ -1,3 +1,4 @@
+import type { AnalysisRequest } from "@/features/analysis/runAnalysis";
 import type { NearbyCategory } from "@/types/intel";
 
 /**
@@ -170,4 +171,21 @@ export function describeCommand(command: MapCommand, categoryLabel: (id: NearbyC
     case "suitability":
       return `Scoring this site for a ${presetLabel(command.presetId).toLowerCase()} within ${km(command.radiusMeters)}`;
   }
+}
+
+/**
+ * The analysis a parsed command asks for, run from a given origin.
+ *
+ * Shared by the search box and by shared links, which used to decode a
+ * question and then never run it: a city page's "hospitals within 3 km" link
+ * opened the map with the question silently dropped.
+ */
+export function commandToRequest(command: MapCommand, origin: { lat: number; lon: number }): AnalysisRequest {
+  return command.operation === "suitability"
+    ? { operation: "suitability", origin, presetId: command.presetId, radiusMeters: command.radiusMeters }
+    : command.operation === "nearest"
+      ? { operation: "nearest", origin, category: command.category, radiusMeters: 10_000 }
+      : command.operation === "buffer"
+        ? { operation: "buffer", origin, radiusMeters: command.radiusMeters }
+        : { operation: "within", origin, category: command.category, radiusMeters: command.radiusMeters };
 }

@@ -6,6 +6,9 @@ import { useIntelTabStore } from "@/stores/intelTabStore";
 import { reverseGeocode } from "@/services/geocode";
 import { decodeViewState, VIEW_PARAMS } from "@/features/share/viewState";
 import { track } from "@/services/analytics";
+import { commandToRequest, parseMapCommand } from "@/features/ai/mapCommands";
+import { useRunAnalysis } from "@/features/analysis/useRunAnalysis";
+import { useSearchStore } from "@/stores/searchStore";
 
 /**
  * Opening a shared link, and putting back everything it carried.
@@ -39,6 +42,7 @@ import { track } from "@/services/analytics";
  */
 export function useSharedLocationFromUrl() {
   const setSelectedLocation = useLocationStore((s) => s.setSelectedLocation);
+  const runAnalysis = useRunAnalysis();
 
   useEffect(() => {
     const view = decodeViewState(window.location.search);
@@ -48,6 +52,13 @@ export function useSharedLocationFromUrl() {
     // the page opens.
     if (view.basemap) useMapStore.getState().setBasemap(view.basemap);
     useMapStore.getState().requestCamera({ center: [view.lon, view.lat], zoom: view.zoom ?? 15 });
+    /*
+      Keep the sender's zoom. Selecting a point normally zooms to street
+      level (15), which silently replaced any shared zoom below that: every
+      city link, built at zoom 11 or 12, opened at 15. This tells the map the
+      camera for this exact point is already placed.
+    */
+    if (view.zoom !== undefined) useMapStore.getState().markCameraPlaced({ lat: view.lat, lon: view.lon });
     if (view.radiusMeters !== undefined) useLocationStore.getState().setRadiusMeters(view.radiusMeters);
 
     /*
@@ -69,20 +80,44 @@ export function useSharedLocationFromUrl() {
       restoredView: Boolean(view.zoom || view.basemap || view.radiusMeters || view.section || view.question),
     });
 
+    /*
+      A shared question is run, not just decoded. The link from a city page
+      for "hospitals within 3 km" used to open the map with the question
+      thrown away. These are map commands the app answers itself from
+      OpenStreetMap, not AI requests, so running one on arrival costs no AI
+      quota. Anything that is not a recognised command goes into the search
+      box, where the person can see it and decide, rather than vanishing.
+    */
+    const applyQuestion = () => {
+      if (!view.question) return;
+      const command = parseMapCommand(view.question);
+      if (!command) {
+        useSearchStore.getState().setQuery(view.question);
+        return;
+      }
+      useShellStore.getState().openSection("tools");
+      void runAnalysis(commandToRequest(command, { lat: view.lat, lon: view.lon })).catch(() => undefined);
+    };
+
     const applyPanel = () => {
       if (view.section) useShellStore.getState().openSection(view.section);
       if (view.tab) useIntelTabStore.getState().setTab(view.tab);
+      applyQuestion();
     };
 
-    let cancelled = false;
+    /*
+      No cancellation on cleanup. This effect reads the URL once and strips it,
+      and the app shell never unmounts, so a cancel flag guarded nothing real,
+      except in development, where StrictMode runs effects twice: the first
+      run's cleanup cancelled this lookup and the second run found the URL
+      already stripped, so shared links never restored locally at all.
+    */
     reverseGeocode(view.lat, view.lon)
       .then((location) => {
-        if (cancelled) return;
         setSelectedLocation(location);
         applyPanel();
       })
       .catch(() => {
-        if (cancelled) return;
         // A real, usable point with no invented address, rather than silently
         // dropping the shared location because a free geocoder happened to be
         // rate-limited at that moment.
@@ -97,9 +132,6 @@ export function useSharedLocationFromUrl() {
         applyPanel();
       });
 
-    return () => {
-      cancelled = true;
-    };
     // Intentionally empty deps - this reads window.location.search exactly once
     // on first mount, the same "read once, this SPA never navigates between
     // paths" pattern App.tsx uses for its pathname check.

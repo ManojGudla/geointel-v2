@@ -18,10 +18,17 @@ const AI_REQUEST_TIMEOUT_MS = 35_000;
 // limit; the gap stops even those two from leaving at the same instant.
 const aiGate = createRequestGate({ maxConcurrent: 2, minGapMs: 600 });
 
+/** An earlier turn, as the server accepts it. */
+export interface CopilotTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export async function askCopilot(
   question: string,
   context: CopilotContext,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  history: CopilotTurn[] = []
 ): Promise<{ answer: string; sources: string[]; model: string; generatedAt?: string }> {
   // priority: a person is watching this one send box, so it goes ahead of
   // any agent cards already queued up behind it.
@@ -29,7 +36,8 @@ export async function askCopilot(
     () =>
       apiPost<{ answer: string; sources: string[]; model: string; generatedAt?: string }>(
         "/api/ai/copilot",
-        { question, context },
+        // The last six turns; the server trims and caps them again.
+        { question, context, history: history.slice(-6) },
         signal,
         AI_REQUEST_TIMEOUT_MS
       ),

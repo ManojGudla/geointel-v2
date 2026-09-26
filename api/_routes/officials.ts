@@ -134,16 +134,28 @@ function buildEntries(
   return entries;
 }
 
-const handler: ApiHandler = async (req, res) => {
-  const country = getQueryParam(req, "country");
-  const countryCode = getQueryParam(req, "countryCode")?.toUpperCase();
-  const state = getQueryParam(req, "state");
-  const stateCode = getQueryParam(req, "stateCode");
-  const district = getQueryParam(req, "district");
-  const city = getQueryParam(req, "city");
+const COUNTRY_CODE_RE = /^[A-Z]{2}$/;
+/** ISO 3166-2, e.g. IN-TG, US-CA, GB-ENG. */
+const STATE_CODE_RE = /^[A-Z]{2}-[A-Z0-9]{1,3}$/;
+const MAX_NAME_CHARS = 100;
 
-  if (!countryCode) {
-    return err(res, 400, "'countryCode' (ISO 3166-1 alpha-2) is required to look up officials.");
+const handler: ApiHandler = async (req, res) => {
+  /*
+    These go into Wikidata SPARQL queries. Codes are checked against their
+    ISO shapes and names are length-capped, so nothing arbitrary reaches the
+    query even though sparqlEscape would already keep it inside its string.
+  */
+  const name = (key: string) => getQueryParam(req, key)?.trim().slice(0, MAX_NAME_CHARS) || undefined;
+  const country = name("country");
+  const countryCode = getQueryParam(req, "countryCode")?.trim().toUpperCase();
+  const state = name("state");
+  const rawStateCode = getQueryParam(req, "stateCode")?.trim().toUpperCase();
+  const stateCode = rawStateCode && STATE_CODE_RE.test(rawStateCode) ? rawStateCode : undefined;
+  const district = name("district");
+  const city = name("city");
+
+  if (!countryCode || !COUNTRY_CODE_RE.test(countryCode)) {
+    return err(res, 400, "'countryCode' (ISO 3166-1 alpha-2, e.g. IN) is required to look up officials.");
   }
 
   const ip = getClientIp(req);

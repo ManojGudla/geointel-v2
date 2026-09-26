@@ -173,7 +173,7 @@ export function SettingsPanel() {
     if (!isOpen) return null;
     return (
       <div className="settings-overlay" onClick={close}>
-        <div ref={dialogRef} className="settings-panel" role="dialog" aria-label="Settings" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="settings-panel" role="dialog" aria-modal="true" aria-label="Settings" onClick={(e) => e.stopPropagation()}>
           {content}
         </div>
       </div>
@@ -184,7 +184,7 @@ export function SettingsPanel() {
     <AnimatePresence>
       {isOpen && (
         <motion.div className="settings-overlay" onClick={close} {...overlayFade}>
-          <motion.div ref={dialogRef} className="settings-panel" role="dialog" aria-label="Settings" onClick={(e) => e.stopPropagation()} {...panelRise}>
+          <motion.div ref={dialogRef} className="settings-panel" role="dialog" aria-modal="true" aria-label="Settings" onClick={(e) => e.stopPropagation()} {...panelRise}>
             {content}
           </motion.div>
         </motion.div>

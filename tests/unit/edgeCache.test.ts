@@ -64,7 +64,6 @@ const MUST_CACHE = [
   "nearby.ts",
   "news.ts",
   "officials.ts",
-  "poi-evidence.ts",
   "population.ts",
   // Roads and construction status for a point. Public geographic data keyed
   // only by the snapped coordinates, and the heaviest Overpass query in the

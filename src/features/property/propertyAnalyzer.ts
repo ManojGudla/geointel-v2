@@ -3,6 +3,15 @@ import { totalEvidenceCount } from "@/features/gis/evidenceTotal";
 
 const MIN_EVIDENCE_FOR_CONFIDENCE = 6;
 
+/*
+  Said with every result, because the most expensive misreading of this panel
+  is taking a tag for a legal fact. OpenStreetMap records how volunteers
+  labelled a place. It is not a zoning map, a land register or a census.
+*/
+const OSM_IS_NOT_LEGAL_USE =
+  "Based on OpenStreetMap tags, which describe how a place is mapped, not its legal zoning, ownership, value or whether it is occupied.";
+const COVERAGE_VARIES = "OpenStreetMap coverage varies by area; sparse mapping can under-count what is really there.";
+
 /**
  * Deterministic, evidence-based classification - no AI involved. Runs
  * instantly client-side against the counts/scores api/gis.ts already
@@ -19,13 +28,15 @@ export function analyzeProperty(evidence: GISEvidence): PropertyAnalysis {
 
   if (totalEvidence === 0) {
     return {
-      classification: "Vacant / Unknown",
+      classification: "Unknown",
       confidence: 0,
       trust: "unavailable",
       evidence: ["No mapped buildings, shops, offices, amenities, tourism features, or transit infrastructure were found within this radius."],
       reasoning: "OpenStreetMap has no recorded features here yet. This does not mean the area is empty, only that it isn't mapped in detail.",
       scores,
       sources: ["OpenStreetMap / Overpass"],
+      retrievedAt: evidence.fetchedAt,
+      limitations: [OSM_IS_NOT_LEGAL_USE, COVERAGE_VARIES],
     };
   }
 
@@ -45,7 +56,7 @@ export function analyzeProperty(evidence: GISEvidence): PropertyAnalysis {
   const margin = topScore - secondScore;
   const isMixed = topScore > 0 && margin < topScore * 0.25;
   const areaClassification: PropertyClassification =
-    topScore === 0 ? "Vacant / Unknown" : isMixed ? "Mixed Use" : classificationMap[topKey];
+    topScore === 0 ? "Unknown" : isMixed ? "Mixed Use" : classificationMap[topKey];
 
   /*
     The feature at the point wins.
@@ -94,7 +105,7 @@ export function analyzeProperty(evidence: GISEvidence): PropertyAnalysis {
   // `building=yes` ways with no shop/office/amenity/tourism/transport tag
   // nearby, so every score bucket lands at 0. That's real, if unclassified,
   // evidence, not literal vacancy, so the reasoning text has to say that
-  // rather than reusing the "concentrated in vacant / unknown features"
+  // rather than reusing the "concentrated in unknown features"
   // phrasing this used to fall into (which reads as nonsense - you can't be
   // "concentrated in" a classification that means "no classification").
   /*
@@ -122,11 +133,21 @@ export function analyzeProperty(evidence: GISEvidence): PropertyAnalysis {
     answer into a confidently wrong one. It is now earned only when there is
     a named mapped feature at the point to point at.
   */
-  const trust = subject ? "verified" : totalEvidence === 0 ? "unavailable" : "inferred";
+  /*
+    "Unknown" is not a classification, so it is not something to be 40%
+    confident in. The area path used to give an unclassifiable spot up to 40%
+    from evidence volume alone, printed next to the word Unknown.
+  */
+  const unclassified = classification === "Unknown";
+  const trust = subject ? "verified" : totalEvidence === 0 || unclassified ? "unavailable" : "inferred";
+
+  const limitations = [OSM_IS_NOT_LEGAL_USE];
+  if (!subject) limitations.push("Nothing is mapped at the exact point, so this describes the surrounding area, not a specific building.");
+  limitations.push(COVERAGE_VARIES);
 
   return {
     classification,
-    confidence,
+    confidence: unclassified ? 0 : confidence,
     trust,
     evidence: subject
       ? [
@@ -137,5 +158,7 @@ export function analyzeProperty(evidence: GISEvidence): PropertyAnalysis {
     reasoning,
     scores,
     sources: ["OpenStreetMap / Overpass"],
+    retrievedAt: evidence.fetchedAt,
+    limitations,
   };
 }

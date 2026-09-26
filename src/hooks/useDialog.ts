@@ -73,6 +73,19 @@ export function useDialog({ open, onClose }: { open: boolean; onClose: () => voi
   /** Whatever had focus before the dialog opened, so it can be handed back. */
   const returnTo = useRef<HTMLElement | null>(null);
 
+  /*
+    The latest close handler, read at the moment Escape is pressed.
+
+    Callers pass handlers that are new on every render, which is the normal
+    way to write one. When the effect below depended on onClose, every
+    keystroke in a form re-ran it: the cleanup handed focus back to the
+    trigger and the new run moved it to the first control, the Close button.
+    Typing one character in Feedback sent the next key to Close. Keeping the
+    handler in a ref means the effect runs once per opening, as it should.
+  */
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
     if (!open) return;
     const node = ref.current;
@@ -96,7 +109,7 @@ export function useDialog({ open, onClose }: { open: boolean; onClose: () => voi
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab") return;
@@ -138,7 +151,7 @@ export function useDialog({ open, onClose }: { open: boolean; onClose: () => voi
         returnTo.current.focus();
       }
     };
-  }, [open, onClose]);
+  }, [open]);
 
   return ref;
 }

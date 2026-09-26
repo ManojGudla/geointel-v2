@@ -23,25 +23,42 @@ const docs = JSON.parse(readFileSync(path.join(__dirname, "..", "supabase", "see
 
 const client = createClient(url, key, { auth: { persistSession: false } });
 
-const { data: existing, error: fetchError } = await client.from("kb_documents").select("title");
+const { data: existing, error: fetchError } = await client.from("kb_documents").select("title, content");
 if (fetchError) {
   console.error("Could not read kb_documents - has the migration in supabase/migrations/0001_init.sql been run yet?");
   console.error(fetchError.message);
   process.exit(1);
 }
 
-const existingTitles = new Set((existing ?? []).map((d) => d.title));
-const toInsert = docs.filter((d) => !existingTitles.has(d.title));
+/*
+  Insert new articles AND update changed ones. This used to insert missing
+  titles only, so correcting an article in the seed file never reached the
+  live knowledge base, and the AI kept explaining a confidence method the
+  app no longer used.
+*/
+const current = new Map((existing ?? []).map((d) => [d.title, d.content]));
+const toInsert = docs.filter((d) => !current.has(d.title));
+const toUpdate = docs.filter((d) => current.has(d.title) && current.get(d.title) !== d.content);
 
-if (toInsert.length === 0) {
-  console.log(`All ${docs.length} knowledge-base documents are already seeded. Nothing to do.`);
+if (toInsert.length === 0 && toUpdate.length === 0) {
+  console.log(`All ${docs.length} knowledge-base documents are already up to date. Nothing to do.`);
   process.exit(0);
 }
 
-const { error: insertError } = await client.from("kb_documents").insert(toInsert);
-if (insertError) {
-  console.error("Insert failed:", insertError.message);
-  process.exit(1);
+if (toInsert.length) {
+  const { error: insertError } = await client.from("kb_documents").insert(toInsert);
+  if (insertError) {
+    console.error("Insert failed:", insertError.message);
+    process.exit(1);
+  }
 }
 
-console.log(`Seeded ${toInsert.length} knowledge-base document(s) (${existingTitles.size} already present).`);
+for (const doc of toUpdate) {
+  const { error: updateError } = await client.from("kb_documents").update({ content: doc.content }).eq("title", doc.title);
+  if (updateError) {
+    console.error(`Update failed for "${doc.title}":`, updateError.message);
+    process.exit(1);
+  }
+}
+
+console.log(`Knowledge base: ${toInsert.length} added, ${toUpdate.length} updated, ${docs.length - toInsert.length - toUpdate.length} unchanged.`);

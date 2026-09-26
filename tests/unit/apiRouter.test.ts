@@ -48,7 +48,6 @@ describe("API router", () => {
       "nearby",
       "news",
       "officials",
-      "poi-evidence",
       "population",
       "reverse-geocode",
       "route",

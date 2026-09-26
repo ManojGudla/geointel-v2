@@ -7,6 +7,7 @@ import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
 import { searchKnowledgeBase } from "../../_lib/kb.js";
 import { fenceRules, makeFence, sanitizeField, sanitizeNumber } from "../../_lib/untrusted.js";
 import type { AgentKind, CopilotContext } from "../../../src/types/ai.js";
+import { GROUNDING_RULES, dataSourcesFor, nearbyLine, routeLine } from "../../_lib/aiGrounding.js";
 
 const VALID_KINDS: AgentKind[] = ["search", "gis", "property", "navigation", "travel", "makeMyTrip"];
 
@@ -40,7 +41,7 @@ function buildDataBlock(context: AgentRequestBody["context"] | undefined, kind: 
   }
   if (context.property) {
     lines.push(
-      `Property classification: ${sanitizeField(context.property.classification, 60) || "unknown"} (confidence ${sanitizeNumber(context.property.confidence ?? 0)}%, trust: ${sanitizeField(context.property.trust, 30) || "unavailable"})`
+      `Property classification: ${sanitizeField(context.property.classification, 60) || "unknown"} (${context.property.trust === "unavailable" ? "no confidence: not enough mapped evidence to classify" : `confidence ${sanitizeNumber(context.property.confidence ?? 0)}%`}, trust: ${sanitizeField(context.property.trust, 30) || "unavailable"})`
     );
     const reasoning = sanitizeField(context.property.reasoning, 600);
     if (reasoning) lines.push(`Property reasoning: ${reasoning}`);
@@ -52,11 +53,8 @@ function buildDataBlock(context: AgentRequestBody["context"] | undefined, kind: 
   }
   if (context.weather)
     lines.push(`Weather: ${sanitizeNumber(context.weather.temperatureC)}°C, ${sanitizeField(context.weather.condition, 60) || "unknown"}`);
-  if (context.nearbyTopCategories?.length) {
-    lines.push(
-      `Nearby: ${context.nearbyTopCategories.slice(0, 12).map((c) => `${sanitizeNumber(c.count)} ${sanitizeField(c.category, 40)}`).join(", ")}`
-    );
-  }
+  const nearby = nearbyLine(context);
+  if (nearby) lines.push(nearby);
   // Only mention the route at all when it's actually relevant: the
   // navigation agent's whole focus is the active route, so it always needs
   // to know (including "none set", which is a valid answer it's supposed to
@@ -68,7 +66,7 @@ function buildDataBlock(context: AgentRequestBody["context"] | undefined, kind: 
   // a route line when one is genuinely set (real, relevant context), and
   // stay silent about it otherwise.
   if (context.route) {
-    lines.push(`Active route: ${context.route.mode ?? "?"}, ${context.route.distanceMeters ?? "?"}m, ${context.route.durationSeconds ?? "?"}s`);
+    lines.push(routeLine(context)!);
   } else if (kind === "navigation") {
     lines.push("Active route: none set.");
   }
@@ -139,6 +137,7 @@ const handler: ApiHandler = async (req, res) => {
         "Match the person's language if the location data or question gives you a signal to (Telugu, Hindi, Tamil, Kannada, or a mixed/transliterated form like Tenglish or Hinglish are all fine); otherwise write in plain English. " +
         "Use ONLY the CURRENT LOCATION DATA below (and the knowledge base, if relevant), never invent facts, businesses, prices, or numbers that aren't there. " +
         "If the data is insufficient for this agent's focus, say so directly, in one plain sentence. " +
+        `${GROUNDING_RULES} ` +
         "If asked who built or developed this app, say Manoj Kumar Gudla built it. If asked personal questions about him unrelated to this app, " +
         "politely decline rather than guessing. If the data includes an 'Officials/authorities' section, treat those as the ONLY source of truth for " +
         "government officials' names, never state such a name from your own memory, and say 'Unable to verify' if a role isn't listed there.\n\n" +
@@ -155,7 +154,7 @@ const handler: ApiHandler = async (req, res) => {
     result: {
       kind,
       summary: result.content,
-      sources: kbHits.map((h) => h.title),
+      sources: [...dataSourcesFor(body.context), ...kbHits.map((h) => `Help article: ${h.title}`)],
       generatedAt: new Date().toISOString(),
       model: result.model,
     },

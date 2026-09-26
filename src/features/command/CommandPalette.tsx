@@ -19,6 +19,7 @@ import { useShellStore } from "@/stores/shellStore";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useReportStore } from "@/stores/reportStore";
 import { FEATURED_PAIR_PATHS } from "@/features/compare/comparePairs";
+import { useDialog } from "@/hooks/useDialog";
 import "./CommandPalette.css";
 
 interface Command {
@@ -184,6 +185,11 @@ export function CommandPalette() {
     [location, openDirections, setIntelTab, openSection, openCopilot, toggle3D, setMeasureMode, openFeedback, openHelp, openSettings, openFeatureStatus, openAbout, openPrivacy, openGames, openReport]
   );
 
+  // Tab stays inside the palette and focus goes back where it came from on
+  // close, like every other dialog here. It declared role="dialog" without
+  // either, so Tab walked straight out into the map behind it.
+  const dialogRef = useDialog({ open: isOpen, onClose: close });
+
   const filtered = commands.filter((c) => c.label.toLowerCase().includes(query.toLowerCase()));
   const motionEnabled = useMotionPreference();
 
@@ -249,7 +255,7 @@ export function CommandPalette() {
     if (!isOpen) return null;
     return (
       <div className="command-palette__overlay" onClick={close}>
-        <div className="command-palette" role="dialog" aria-label="Command palette" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="command-palette" role="dialog" aria-modal="true" aria-label="Command palette" onClick={(e) => e.stopPropagation()}>
           {body}
         </div>
       </div>
@@ -260,7 +266,7 @@ export function CommandPalette() {
     <AnimatePresence>
       {isOpen && (
         <motion.div className="command-palette__overlay" onClick={close} {...overlayFade}>
-          <motion.div className="command-palette" role="dialog" aria-label="Command palette" onClick={(e) => e.stopPropagation()} {...panelRise}>
+          <motion.div ref={dialogRef} className="command-palette" role="dialog" aria-modal="true" aria-label="Command palette" onClick={(e) => e.stopPropagation()} {...panelRise}>
             {body}
           </motion.div>
         </motion.div>

@@ -62,7 +62,9 @@ export function copilotSuggestions(context: CopilotContext): string[] {
 
 /** One line telling the user exactly what the Copilot is looking at, so its context is never a mystery. */
 export function contextSummary(context: CopilotContext): string {
-  if (!context.placeName) return "No location selected yet. Select one, or ask me about any place.";
+  // It only has data for the selected place, so it must not invite questions
+  // about "any place": those were answered from the model's memory.
+  if (!context.placeName) return "No place selected yet. Search for one or click the map, then ask about it.";
   const radius = context.radiusMeters >= 1000 ? `${context.radiusMeters / 1000} km` : `${context.radiusMeters} m`;
   const layers = context.activeLayers.length;
   return `Looking at ${context.placeName}, ${radius} around it, with ${layers} data layer${layers === 1 ? "" : "s"} on.`;

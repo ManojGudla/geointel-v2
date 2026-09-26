@@ -95,7 +95,7 @@ export function FeatureStatusPage() {
     if (!isOpen) return null;
     return (
       <div className="feature-status-overlay" onClick={close}>
-        <div ref={dialogRef} className="feature-status" role="dialog" aria-label="Feature status" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="feature-status" role="dialog" aria-modal="true" aria-label="Feature status" onClick={(e) => e.stopPropagation()}>
           {content}
         </div>
       </div>
@@ -106,7 +106,7 @@ export function FeatureStatusPage() {
     <AnimatePresence>
       {isOpen && (
         <motion.div className="feature-status-overlay" onClick={close} {...overlayFade}>
-          <motion.div ref={dialogRef} className="feature-status" role="dialog" aria-label="Feature status" onClick={(e) => e.stopPropagation()} {...panelRise}>
+          <motion.div ref={dialogRef} className="feature-status" role="dialog" aria-modal="true" aria-label="Feature status" onClick={(e) => e.stopPropagation()} {...panelRise}>
             {content}
           </motion.div>
         </motion.div>

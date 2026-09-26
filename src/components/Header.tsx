@@ -26,18 +26,38 @@ function useBackendStatus() {
   useEffect(() => {
     let cancelled = false;
     const check = async () => {
+      // Offline is known without asking, and asking would just hang.
+      if (navigator.onLine === false) {
+        if (!cancelled) setOnline(false);
+        return;
+      }
+      // A health check that never answers must not leave the pill stuck on
+      // its last reading, so it gets the same kind of deadline every other
+      // request has.
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8_000);
       try {
-        const res = await fetch("/api/health");
+        const res = await fetch("/api/health", { signal: controller.signal });
         if (!cancelled) setOnline(res.ok);
       } catch {
         if (!cancelled) setOnline(false);
+      } finally {
+        clearTimeout(timer);
       }
     };
     check();
-    const interval = setInterval(check, 60_000);
+    // Polling a hidden tab only spends the visitor's data and the free tier.
+    const interval = setInterval(() => {
+      if (!document.hidden) void check();
+    }, 60_000);
+    const onChange = () => void check();
+    window.addEventListener("online", onChange);
+    window.addEventListener("offline", onChange);
     return () => {
       cancelled = true;
       clearInterval(interval);
+      window.removeEventListener("online", onChange);
+      window.removeEventListener("offline", onChange);
     };
   }, []);
 
@@ -285,9 +305,15 @@ export function Header() {
         {/* A live status readout, not an action - role="status" plus its
             own pill styling (tinted by the current state) keeps it from
             reading as just another clickable button in the row. */}
+        {/* aria-label as well as the visible text: below 900px the text is
+            hidden with display:none, which also removes it from screen
+            readers, leaving a coloured dot that said nothing to anyone who
+            could not see its colour. */}
         <span
           className={`app-header__status app-header__status--${online === null ? "checking" : online ? "online" : "offline"}`}
           role="status"
+          aria-label={online === null ? "Checking the connection to the data service" : online ? "Data service online" : "Data service offline"}
+          title={online === null ? "Checking…" : online ? "Data service online" : "Data service offline"}
         >
           <span className="app-header__status-dot" aria-hidden="true" />
           <span className="app-header__btn-label">{online === null ? "Checking…" : online ? "GIS Online" : "GIS Offline"}</span>

@@ -38,7 +38,7 @@ Copy `.env.example` to `.env.local`, then:
 
 There is no separate API server to run.
 
-In production all 19 endpoints deploy as a **single** serverless function: they live under `api/_routes/` and are dispatched by the catch-all `api/[...path].ts`. That indirection is not stylistic. Vercel counts each file under `api/` as its own function and the Hobby plan caps a deployment at 12, so shipping them as separate files fails outright and leaves a frontend with no API behind it. The catch-all and the dev-server plugin resolve routes through the same `api/_routes/index.ts` table, so an unregistered handler 404s identically in both.
+In production all 22 endpoints deploy as a **single** serverless function: they live under `api/_routes/` and are dispatched by the catch-all `api/[...path].ts`. That indirection is not stylistic. Vercel counts each file under `api/` as its own function and the Hobby plan caps a deployment at 12, so shipping them as separate files fails outright and leaves a frontend with no API behind it. The catch-all and the dev-server plugin resolve routes through the same `api/_routes/index.ts` table, so an unregistered handler 404s identically in both.
 
 Two production-only details, both configured in `vercel.json`:
 
@@ -57,7 +57,7 @@ npm run typecheck   # tsc -b --noEmit, strict, no `any`
 npm run build       # production build
 ```
 
-1,221 unit tests across 104 files. They cover the property analyzer (never fabricates a classification with no evidence, separates a verified subject from an inferred neighbourhood), the cache and rate limiter, every API handler's graceful-degradation path (a provider failure returns `{ok:false}` and never throws), the AI layer (missing key, provider error, empty response, leaked reasoning), the measurement math against known distances and areas, the travel provider URL builders, colour contrast against WCAG AA on every published air-quality band, and a set of guards that fail the build if a surface starts overclaiming.
+1,300 unit tests across 122 files. They cover the property analyzer (never fabricates a classification with no evidence, separates a verified subject from an inferred neighbourhood), the cache and rate limiter, every API handler's graceful-degradation path (a provider failure returns `{ok:false}` and never throws), the AI layer (missing key, provider error, empty response, leaked reasoning), the measurement math against known distances and areas, the travel provider URL builders, colour contrast against WCAG AA on every published air-quality band, and a set of guards that fail the build if a surface starts overclaiming.
 
 Network calls are mocked, so run the checklist below on a real connection before trusting a change that touches a provider.
 

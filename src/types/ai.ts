@@ -17,6 +17,10 @@ export interface CopilotContext {
     condition?: string;
   };
   nearbyTopCategories?: Array<{ category: string; count: number }>;
+  /** How far the nearby search actually looked (it widens where mapping is sparse). */
+  nearbyRadiusMeters?: number;
+  /** True when the nearby list hit the server's cap, so the counts are a sample. */
+  nearbyCapped?: boolean;
   route?: {
     mode?: string;
     distanceMeters?: number;

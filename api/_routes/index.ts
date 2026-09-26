@@ -10,7 +10,6 @@ import live from "./live.js";
 import nearby from "./nearby.js";
 import news from "./news.js";
 import officials from "./officials.js";
-import poiEvidence from "./poi-evidence.js";
 import population from "./population.js";
 import reverseGeocode from "./reverse-geocode.js";
 import routeHandler from "./route.js";
@@ -55,7 +54,6 @@ export const ROUTES: Record<string, ApiHandler> = {
   nearby,
   news,
   officials,
-  "poi-evidence": poiEvidence,
   population,
   "reverse-geocode": reverseGeocode,
   route: routeHandler,

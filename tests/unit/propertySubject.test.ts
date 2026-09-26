@@ -140,7 +140,7 @@ describe("what the VERIFIED badge is allowed to mean", () => {
 
   it("says nothing is here rather than guessing, when nothing is mapped", () => {
     const analysis = analyzeProperty(asEvidence(classifyFeatures([], PIN, 250)));
-    expect(analysis.classification).toBe("Vacant / Unknown");
+    expect(analysis.classification).toBe("Unknown");
     expect(analysis.trust).toBe("unavailable");
   });
 });

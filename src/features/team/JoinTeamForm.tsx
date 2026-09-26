@@ -137,7 +137,7 @@ export function JoinTeamForm() {
     if (!isOpen) return null;
     return (
       <div className="join-team-overlay" onClick={handleClose}>
-        <div ref={dialogRef} className="join-team-form" role="dialog" aria-label="Join our team" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="join-team-form" role="dialog" aria-modal="true" aria-label="Join our team" onClick={(e) => e.stopPropagation()}>
           {body}
         </div>
       </div>
@@ -148,7 +148,7 @@ export function JoinTeamForm() {
     <AnimatePresence>
       {isOpen && (
         <motion.div className="join-team-overlay" onClick={handleClose} {...overlayFade}>
-          <motion.div ref={dialogRef} className="join-team-form" role="dialog" aria-label="Join our team" onClick={(e) => e.stopPropagation()} {...panelRise}>
+          <motion.div ref={dialogRef} className="join-team-form" role="dialog" aria-modal="true" aria-label="Join our team" onClick={(e) => e.stopPropagation()} {...panelRise}>
             {body}
           </motion.div>
         </motion.div>

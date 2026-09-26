@@ -144,14 +144,25 @@ export function nextStep(input: NextStepInput): NextStep | null {
    * If measurement is active and they've drawn points, suggest completion.
    */
   if (measureMode !== "off" && measurePoints && measurePoints.length > 0) {
+    /*
+      There is no "finish" step: the total updates with every click. The
+      label used to say "Finish measuring" and the text "Click to finalize",
+      promising an action the tool does not have. This says what is actually
+      happening and where the number is.
+    */
     const pointCount = measurePoints.length;
-    const suffix = measureMode === "distance"
-      ? pointCount === 1 ? "Click again to complete the distance." : `${pointCount} points. Click to finalize.`
-      : pointCount < 3 ? "Click to add more points for the area." : "Click to complete the area.";
+    const suffix =
+      measureMode === "distance"
+        ? pointCount === 1
+          ? "Click a second point to get a distance."
+          : `${pointCount} points so far. Keep clicking to extend it.`
+        : pointCount < 3
+          ? `${pointCount} of at least 3 corners placed.`
+          : `${pointCount} corners so far. Keep clicking to add more.`;
 
     return {
       text: `Measuring ${measureMode}. ${suffix}`,
-      label: "Finish measuring",
+      label: "See the total",
       action: "measure",
     };
   }
@@ -162,8 +173,8 @@ export function nextStep(input: NextStepInput): NextStep | null {
    */
   if (navState === "navigating" || navState === "rerouting") {
     return {
-      text: "You're navigating. Enable turn-by-turn guidance to follow the route hands-free.",
-      label: "Follow route",
+      text: "You're following a route. Directions shows the next turn and the time left.",
+      label: "Show directions",
       action: "navigate",
     };
   }

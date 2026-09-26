@@ -67,3 +67,44 @@
   font-size: var(--text-xs);
   color: var(--color-text-faint);
 }
+
+.property-panel__confidence-none {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* The method, one click away: present for anyone who wants to check the
+   number, out of the way for anyone who does not. */
+.property-panel__why {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.property-panel__why summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-text);
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.property-panel__why p {
+  margin: var(--space-2) 0 0;
+}
+
+.property-panel__limits {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-5);
+  border-left: 3px solid var(--color-border-strong);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.property-panel__limits li + li {
+  margin-top: 2px;
+}

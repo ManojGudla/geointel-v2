@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useUiStore } from "@/stores/uiStore";
+import { useNoIndex } from "@/hooks/useNoIndex";
 import {
   fetchMaintenanceState,
   updateMaintenance,
@@ -58,6 +59,9 @@ function formFromState(state: MaintenanceState | null): SettingsForm {
  * one browser tab, and is never written anywhere else.
  */
 export function AdminDashboard() {
+  // A backstop. robots.txt already disallows /admin for well-behaved
+  // crawlers; this covers the ones that fetch it anyway.
+  useNoIndex("noindex, nofollow");
   const displayName = useUiStore((s) => s.displayName);
 
   const [keyInput, setKeyInput] = useState("");

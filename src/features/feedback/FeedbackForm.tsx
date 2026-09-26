@@ -134,7 +134,7 @@ export function FeedbackForm() {
     if (!isOpen) return null;
     return (
       <div className="feedback-overlay" onClick={handleClose}>
-        <div ref={dialogRef} className="feedback-form" role="dialog" aria-label="Send feedback" onClick={(e) => e.stopPropagation()}>
+        <div ref={dialogRef} className="feedback-form" role="dialog" aria-modal="true" aria-label="Send feedback" onClick={(e) => e.stopPropagation()}>
           {body}
         </div>
       </div>
@@ -145,7 +145,7 @@ export function FeedbackForm() {
     <AnimatePresence>
       {isOpen && (
         <motion.div className="feedback-overlay" onClick={handleClose} {...overlayFade}>
-          <motion.div ref={dialogRef} className="feedback-form" role="dialog" aria-label="Send feedback" onClick={(e) => e.stopPropagation()} {...panelRise}>
+          <motion.div ref={dialogRef} className="feedback-form" role="dialog" aria-modal="true" aria-label="Send feedback" onClick={(e) => e.stopPropagation()} {...panelRise}>
             {body}
           </motion.div>
         </motion.div>

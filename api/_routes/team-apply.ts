@@ -1,10 +1,10 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
 import { ok, err, getClientIp } from "../_lib/http.js";
-import { RateLimiter, withTimeout } from "../_lib/cache.js";
+import { withTimeout } from "../_lib/cache.js";
+import { checkDurableLimit } from "../_lib/rateLimit.js";
 import { getSupabaseClient } from "../_lib/supabase.js";
 
-const limiter = new RateLimiter(60_000, 5);
 // See withTimeout in ./_lib/cache.ts: this insert used to have nothing
 // bounding it, so a slow/unreachable Supabase project could hang the
 // request indefinitely instead of failing visibly.
@@ -31,7 +31,8 @@ const handler: ApiHandler = async (req, res) => {
   if (req.method !== "POST") return err(res, 405, "Use POST.");
 
   const ip = getClientIp(req);
-  const rate = limiter.check(ip);
+  // Durable, for the same reason as api/feedback.ts.
+  const rate = await checkDurableLimit("team-apply", ip, 60_000, 5);
   if (!rate.allowed) return err(res, 429, "Too many applications submitted. Please slow down.", "RATE_LIMITED");
 
   const body = (req.body ?? {}) as TeamApplicationBody;
@@ -59,7 +60,7 @@ const handler: ApiHandler = async (req, res) => {
         interest,
         message: message || null,
         ip_address: ip,
-        user_agent: (req.headers["user-agent"] as string | undefined) || null,
+        user_agent: String(req.headers["user-agent"] ?? "").slice(0, 400) || null,
       }),
       SUPABASE_CALL_TIMEOUT_MS,
       "team_applications insert"

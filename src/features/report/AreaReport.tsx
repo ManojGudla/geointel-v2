@@ -167,7 +167,8 @@ export function AreaReport() {
             <section className="report__section">
               <h2>Property classification</h2>
               <p className="report__headline">
-                {property.classification} · confidence {property.confidence}%
+                {property.classification}
+                {property.trust === "unavailable" ? " · confidence unavailable" : ` · confidence ${property.confidence}%`}
               </p>
               <p>{property.reasoning}</p>
               <ul>
@@ -175,9 +176,11 @@ export function AreaReport() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
+              <p className="report__source">Limitations: {property.limitations.join(" ")}</p>
               <p className="report__source">
                 Derived from the mapped evidence above by this application&apos;s own scoring, not by a third party. Sources:{" "}
-                {property.sources.join(", ")}.
+                {property.sources.join(", ")}, retrieved{" "}
+                {new Date(property.retrievedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}.
               </p>
             </section>
           )}

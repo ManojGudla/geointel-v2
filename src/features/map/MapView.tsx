@@ -481,6 +481,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
+  const lastCameraKey = useRef<string | null>(null);
   // DOM markers for measurement vertices - see createMeasurePointElement's
   // comment for why these are DOM markers instead of a GL circle layer.
   // Reconciled to measurePoints (grow/shrink + reposition) in the effect
@@ -1190,6 +1191,8 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     if (!selectedLocation) {
       markerRef.current?.remove();
       markerRef.current = null;
+      // Picking the same place again after clearing it should still fly there.
+      lastCameraKey.current = null;
       syncOverlay(map, null, radiusMeters);
       return;
     }
@@ -1199,7 +1202,25 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     }
     markerRef.current.setLngLat([selectedLocation.lon, selectedLocation.lat]).addTo(map);
 
-    map.easeTo({ center: [selectedLocation.lon, selectedLocation.lat], zoom: Math.max(map.getZoom(), 15), duration: 600 });
+    /*
+      Move the camera only when the point or the radius actually changed.
+
+      A selection is set in two steps now: immediately from the search
+      result, then again once the reverse geocode adds the street address.
+      Both describe the same point, and easing again on the second one made
+      the map twitch a second or two after it had settled.
+    */
+    const cameraKey = `${selectedLocation.lat},${selectedLocation.lon},${radiusMeters}`;
+    // A shared link has already put the camera where the sender had it,
+    // including a zoom below street level that the line below would override.
+    const placed = useMapStore.getState().cameraPlacedFor;
+    if (placed === `${selectedLocation.lat},${selectedLocation.lon}`) {
+      useMapStore.getState().markCameraPlaced(null);
+      lastCameraKey.current = cameraKey;
+    } else if (lastCameraKey.current !== cameraKey) {
+      lastCameraKey.current = cameraKey;
+      map.easeTo({ center: [selectedLocation.lon, selectedLocation.lat], zoom: Math.max(map.getZoom(), 15), duration: 600 });
+    }
 
     whenSourceReady(map, MARKER_SOURCE, () => syncOverlay(map, selectedLocation, radiusMeters));
   }, [selectedLocation, radiusMeters]);

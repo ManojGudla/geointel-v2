@@ -18,7 +18,7 @@ function evidence(overrides: Partial<GISEvidence> = {}): GISEvidence {
 describe("analyzeProperty", () => {
   it("never fabricates a classification when there is zero evidence", () => {
     const result = analyzeProperty(evidence());
-    expect(result.classification).toBe("Vacant / Unknown");
+    expect(result.classification).toBe("Unknown");
     expect(result.confidence).toBe(0);
     expect(result.trust).toBe("unavailable");
   });
@@ -100,7 +100,7 @@ describe("analyzeProperty", () => {
   // contribute zero evidence to totalEvidence, so it read as "Vacant /
   // Unknown" even though Overpass returned real data for exactly the thing
   // being looked up - e.g. searching the Eiffel Tower itself.
-  it("classifies a tourism-dominant spot (a landmark) as Landmark, not Vacant / Unknown", () => {
+  it("classifies a tourism-dominant spot (a landmark) as Landmark, not Unknown", () => {
     const result = analyzeProperty(
       evidence({
         counts: { buildings: 0, shops: 0, offices: 0, residential: 0, industrial: 0, institutional: 0, amenities: 0, tourism: 3, transport: 0 },
@@ -128,7 +128,7 @@ describe("analyzeProperty", () => {
         scores: { commercial: 0, residential: 0, institutional: 0, industrial: 0, landmark: 0, transport: 0 },
       })
     );
-    expect(result.classification).toBe("Vacant / Unknown");
+    expect(result.classification).toBe("Unknown");
     expect(result.reasoning.toLowerCase()).not.toContain("concentrated in vacant");
     expect(result.reasoning).toMatch(/2 features are mapped/i);
   });

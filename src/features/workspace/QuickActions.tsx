@@ -93,12 +93,13 @@ export function QuickActions() {
         openSection("ai");
         break;
       case "measure":
-        // Keep measurement active and open the tools panel to see results
+        // The running total lives in the Measure group of the tools panel.
         openSection("tools");
         break;
       case "navigate":
-        // Open the travel panel for turn-by-turn guidance
-        openSection("travel");
+        // Directions, where turn-by-turn lives. This used to open the Travel
+        // section, which is the flights-and-hotels planner.
+        openDirections();
         break;
     }
   };

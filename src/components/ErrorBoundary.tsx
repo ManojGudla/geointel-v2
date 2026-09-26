@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { retryFailedChunks } from "@/lib/lazyWithRetry";
 
 interface Props {
   children: ReactNode;
@@ -19,6 +20,15 @@ interface State {
   error: Error | null;
   /** The error was "this build no longer exists", not a bug in the panel. */
   stale: boolean;
+  /**
+   * The file could not be downloaded because there is no connection. Nothing
+   * is stale: the file is there, this device just cannot reach it yet.
+   */
+  offline: boolean;
+}
+
+function isOffline(): boolean {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
 }
 
 /**
@@ -78,18 +88,39 @@ export function shouldReloadForStaleBuild(now: number, lastAttempt: string | nul
  * actual React render exceptions.
  */
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { error: null, stale: false };
+  state: State = { error: null, stale: false, offline: false };
 
   static getDerivedStateFromError(error: Error): State {
-    return { error, stale: isStaleBuildError(error) };
+    const stale = isStaleBuildError(error);
+    return { error, stale, offline: stale && isOffline() };
+  }
+
+  /*
+    Offline, a missing chunk is not a stale deploy, and reloading is the worst
+    thing to do: the reload itself cannot load, and it throws away the
+    selected place, the map position and the Copilot conversation. Wait for
+    the connection instead, then try the same panel again in place.
+  */
+  private onOnline = () => {
+    window.removeEventListener("online", this.onOnline);
+    this.reset();
+  };
+
+  componentWillUnmount() {
+    window.removeEventListener("online", this.onOnline);
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error(`[ErrorBoundary:${this.props.label}]`, error, info.componentStack);
 
+    if (!isStaleBuildError(error)) return;
+    if (isOffline()) {
+      window.addEventListener("online", this.onOnline);
+      return;
+    }
+
     // A chunk that no longer exists is not a bug in this panel, and no amount
     // of re-rendering will bring the file back. Reload once, quietly.
-    if (!isStaleBuildError(error)) return;
     let lastAttempt: string | null = null;
     try {
       lastAttempt = sessionStorage.getItem(RELOAD_KEY);
@@ -108,7 +139,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private reset = () => {
-    this.setState({ error: null, stale: false });
+    // Any panel whose download failed gets a fresh loader, so re-rendering
+    // actually fetches the file again instead of rethrowing the old failure.
+    retryFailedChunks();
+    this.setState({ error: null, stale: false, offline: false });
     this.props.onReset?.();
   };
 
@@ -123,7 +157,7 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   render() {
-    const { error, stale } = this.state;
+    const { error, stale, offline } = this.state;
     if (!error) return this.props.children;
 
     // Checked before the stale branch: a decorative component is not worth a
@@ -134,6 +168,23 @@ export class ErrorBoundary extends Component<Props, State> {
     // Shown only when the automatic reload above has already been tried and
     // the new build failed the same way. Saying "hit a problem" here would
     // send someone hunting for a fault in their own browser.
+    if (offline) {
+      return (
+        <div
+          className={`error-boundary error-boundary--${this.props.variant === "page" ? "page" : "panel"}`}
+          role="status"
+        >
+          <p>
+            <strong>{this.props.label}</strong> has not been downloaded to this device yet, and you're offline. It
+            will open by itself when the connection is back.
+          </p>
+          <button type="button" onClick={this.reset}>
+            Try again
+          </button>
+        </div>
+      );
+    }
+
     if (stale) {
       return (
         <div
@@ -152,7 +203,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="error-boundary error-boundary--page" role="alert">
           <h1>maNOWj GeoIntel hit a problem</h1>
-          <p>Something went wrong rendering the workspace. Your data (saved locations, history) is safe.</p>
+          <p>Something went wrong rendering the workspace. Your selected place and recent searches are kept.</p>
           <button type="button" onClick={this.reset}>
             Reload workspace
           </button>

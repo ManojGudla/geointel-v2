@@ -1,7 +1,6 @@
 import { useAiStore } from "@/stores/aiStore";
 import { useLocationStore } from "@/stores/locationStore";
 import { runAgent } from "@/services/ai";
-import { ApiUnavailableError } from "@/services/apiClient";
 import { formatAiText } from "@/lib/formatAiText";
 import { aiAttribution } from "@/lib/formatAiMeta";
 import { agentSubject, stalenessNotice } from "./agentSubject";
@@ -9,6 +8,7 @@ import { readinessNotice } from "./agentReadiness";
 import type { ContextPending } from "./useCopilotContext";
 import type { AgentDefinition, CopilotContext } from "@/types/ai";
 import "./AgentCard.css";
+import { describeAiFailure } from "./aiErrors";
 
 const NOTHING_PENDING: ContextPending = { gis: false, weather: false, nearby: false, route: false, officials: false };
 
@@ -44,8 +44,7 @@ export function AgentCard({
       // request was actually about. See aiStore.ts.
       setAgentRun(definition.kind, { status: "done", result, subject });
     } catch (error) {
-      const message = error instanceof ApiUnavailableError ? error.message : "This agent hit an unexpected problem. Please try again.";
-      setAgentRun(definition.kind, { status: "error", error: message, subject });
+      setAgentRun(definition.kind, { status: "error", error: describeAiFailure(error), subject });
     }
   };
 
@@ -112,7 +111,7 @@ export function AgentCard({
           */}
           {stale && <p className="agent-card__stale">{stale}</p>}
           <p className="agent-card__result">{formatAiText(run.result.summary)}</p>
-          {run.result.sources.length > 0 && <span className="agent-card__sources">Sources: {run.result.sources.join(", ")}</span>}
+          {run.result.sources.length > 0 && <span className="agent-card__sources">Based on: {run.result.sources.join(", ")}</span>}
           {/*
             Who wrote this, and when. The server used to report the model slug
             it REQUESTED, and no component rendered even that - so an AI answer

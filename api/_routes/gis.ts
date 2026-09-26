@@ -23,7 +23,13 @@ export interface GISFeatureDto {
 // data. This is a per-instance in-memory cache on serverless (see cache.ts), so
 // it evaporates on a cold start - it reduces load and speeds up repeat views,
 // it is not a durability guarantee.
-const cache = new TtlCache<OverpassElement[]>(6 * 60 * 60 * 1000);
+/*
+  The retrieval time is cached WITH the data. It used to be stamped fresh on
+  every response, so an answer up to six hours old went out labelled as
+  fetched this second, and the panel's "retrieved at" was a claim about the
+  request, not about the data.
+*/
+const cache = new TtlCache<{ elements: OverpassElement[]; fetchedAt: string }>(6 * 60 * 60 * 1000);
 const limiter = new RateLimiter(60_000, 20);
 
 /** Score buckets, shared by the weighted totals and the subject feature. */
@@ -90,6 +96,25 @@ function distanceWeight(distanceMetres: number, halfMetres: number): number {
   return 1 / (1 + ratio * ratio);
 }
 
+/**
+ * Amenities that are a business occupying a building. Everything else tagged
+ * amenity=* (benches, bins, parking, toilets, fountains, post boxes, charging
+ * points, an ATM on a wall) is street furniture or infrastructure: real, and
+ * counted for the area, but never the use of the building you clicked.
+ */
+const COMMERCIAL_AMENITIES = new Set([
+  "restaurant", "cafe", "fast_food", "food_court", "bar", "pub", "biergarten", "ice_cream",
+  "bank", "bureau_de_change", "money_transfer", "pharmacy", "marketplace", "fuel",
+  "car_wash", "car_rental", "cinema", "theatre", "nightclub", "casino", "internet_cafe",
+  "coworking_space", "dentist", "doctors", "clinic", "veterinary", "driving_school",
+]);
+
+/** Places to stay: a business, whatever the tourism tag calls it. */
+const LODGING = new Set(["hotel", "hostel", "guest_house", "motel", "apartment", "chalet"]);
+
+/** Visitor sites that are a place in their own right, not a sign or a view. */
+const VISITOR_SITES = new Set(["museum", "gallery", "attraction", "theme_park", "zoo", "aquarium"]);
+
 /** Which score bucket a feature belongs to, most specific tag first, or null. */
 function categoryOf(tags: Record<string, string>): { category: ScoreCategory; kind: string } | null {
   if (tags.shop) return { category: "commercial", kind: `${tags.shop.replace(/_/g, " ")} shop` };
@@ -105,10 +130,31 @@ function categoryOf(tags: Record<string, string>): { category: ScoreCategory; ki
     return { category: "residential", kind: `${tags.building} building` };
   if (["school", "college", "university", "hospital", "place_of_worship", "police", "townhall"].includes(tags.amenity ?? ""))
     return { category: "institutional", kind: (tags.amenity ?? "").replace(/_/g, " ") };
-  if (tags.tourism) return { category: "landmark", kind: tags.tourism.replace(/_/g, " ") };
-  if (tags.railway || tags.public_transport || tags.highway === "bus_stop")
-    return { category: "transport", kind: "transit feature" };
-  if (tags.amenity) return { category: "commercial", kind: tags.amenity.replace(/_/g, " ") };
+  /*
+    Only things that ARE a use of a building can be "the thing you clicked".
+
+    This used to take any amenity as commercial, any tourism tag as a
+    landmark and any transit tag as transport. So a bench, a parking space,
+    a waste bin or a drinking fountain within 35m made the building you were
+    pointing at "Commercial", at VERIFIED confidence, overruling everything
+    around it. A bus-stop pole outside an apartment block made the block
+    "Transport"; a tourist information board made it a "Landmark". Those are
+    still counted as evidence about the AREA below. They just cannot claim to
+    be the building.
+  */
+  if (tags.amenity && COMMERCIAL_AMENITIES.has(tags.amenity))
+    return { category: "commercial", kind: tags.amenity.replace(/_/g, " ") };
+  if (tags.tourism && LODGING.has(tags.tourism)) return { category: "commercial", kind: tags.tourism.replace(/_/g, " ") };
+  if (tags.tourism && VISITOR_SITES.has(tags.tourism)) return { category: "landmark", kind: tags.tourism.replace(/_/g, " ") };
+  if (
+    tags.railway === "station" ||
+    tags.railway === "halt" ||
+    tags.public_transport === "station" ||
+    tags.amenity === "bus_station" ||
+    tags.building === "train_station" ||
+    tags.building === "transportation"
+  )
+    return { category: "transport", kind: "station" };
   /*
     Landuse is deliberately last and never a subject. A landuse=residential
     polygon can cover a whole suburb, so its centroid says nothing about
@@ -261,7 +307,7 @@ export function classifyFeatures(
     // them. A landmark like the Eiffel Tower is tagged tourism=attraction
     // with no building/shop/office/amenity tag on its own node at all - so
     // its own OSM entry contributed ZERO evidence, and the location came
-    // back "Vacant / Unknown" despite Overpass returning real data for
+    // back "Unknown" despite Overpass returning real data for
     // exactly the thing being looked up. Same blind spot for a location
     // dominated by a transit hub. See analyzeProperty() in
     // propertyAnalyzer.ts, which is the other half of this fix.
@@ -303,7 +349,7 @@ export function classifyFeatures(
 
 /**
  * How much real evidence Overpass actually returned, across every bucket
- * classifyFeatures tracks - used to decide "Vacant / Unknown" (api/gis.ts's
+ * classifyFeatures tracks - used to decide "Unknown" (api/gis.ts's
  * GIS Evidence panel and analyzeProperty() both need this same number, so it
  * lives here once rather than drifting between two hand-copied sums, which
  * is exactly how the Eiffel Tower bug above happened: totalEvidence used to
@@ -331,12 +377,18 @@ const handler: ApiHandler = async (req, res) => {
   if (!rate.allowed) return err(res, 429, "Too many GIS requests. Please slow down.", "RATE_LIMITED");
 
   const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)},${radius}`;
-  let elements = cache.get(cacheKey);
+  let cached = cache.get(cacheKey);
 
-  if (!elements) {
+  if (!cached) {
     try {
-      elements = await runOverpassQuery(buildEvidenceQuery(lat, lon, radius));
-      cache.set(cacheKey, elements);
+      cached = { elements: await runOverpassQuery(buildEvidenceQuery(lat, lon, radius)), fetchedAt: new Date().toISOString() };
+      /*
+        An empty answer is not kept for six hours. Overpass mirrors do
+        occasionally return nothing for a well-mapped place, and caching that
+        here and at the CDN made the spot read "Unknown" for hours after the
+        mirror had recovered. Empty results are rare and cheap to ask again.
+      */
+      if (cached.elements.length > 0) cache.set(cacheKey, cached);
     } catch (error) {
       console.error("[api/gis]", error);
       const reason = error instanceof Error ? error.message : "unknown reason";
@@ -344,6 +396,8 @@ const handler: ApiHandler = async (req, res) => {
     }
   }
 
+  const { elements, fetchedAt } = cached;
+  if (elements.length === 0) res.setHeader("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=60");
   const features: GISFeatureDto[] = elements
     .map((el) => {
       const coords = normalizeElement(el);
@@ -365,7 +419,7 @@ const handler: ApiHandler = async (req, res) => {
       subject,
       features,
       source: "OpenStreetMap / Overpass",
-      fetchedAt: new Date().toISOString(),
+      fetchedAt,
     },
     allowedRadii: ALLOWED_RADII,
   });

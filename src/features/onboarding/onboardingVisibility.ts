@@ -19,18 +19,48 @@ import { useConsentUiStore } from "@/features/analytics/consentUiStore";
  * idea of it. tests/unit/firstRunSurfaces.test.ts proves they can never both
  * be on screen.
  *
- * Deliberately not persisted: dismissing the intro is a per-visit action, and
- * the card already stops appearing permanently once a location is chosen.
+ * Remembered in this browser. It used to be deliberately per-visit, on the
+ * belief that the card "stops appearing permanently once a location is
+ * chosen". It did not: the selected place is not kept between visits, so
+ * every returning visitor met the same introduction, centred over the map,
+ * every time. Once someone has dismissed it or picked a place, they have
+ * seen what it is for.
  */
+const DONE_KEY = "geointel.onboardingDone.v1";
+
+function alreadyDone(): boolean {
+  try {
+    return localStorage.getItem(DONE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function rememberDone() {
+  try {
+    localStorage.setItem(DONE_KEY, "1");
+  } catch {
+    // Blocked storage: the card simply shows again next visit.
+  }
+}
+
 interface OnboardingState {
   dismissed: boolean;
   dismiss: () => void;
 }
 
 export const useOnboardingStore = create<OnboardingState>((set) => ({
-  dismissed: false,
-  dismiss: () => set({ dismissed: true }),
+  dismissed: alreadyDone(),
+  dismiss: () => {
+    rememberDone();
+    set({ dismissed: true });
+  },
 }));
+
+// Picking a place counts as having used the introduction.
+useLocationStore.subscribe((state, previous) => {
+  if (state.selectedLocation && !previous.selectedLocation) rememberDone();
+});
 
 /**
  * The intro shows until the visitor either dismisses it or selects a place -

@@ -1,4 +1,5 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { Header } from "@/components/Header";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useTheme } from "@/hooks/useTheme";
@@ -28,31 +29,31 @@ import { Workspace } from "@/features/workspace/Workspace";
   below: a closed modal already renders nothing, so there is nothing to show
   while it loads.
 */
-const FeedbackForm = lazy(() => import("@/features/feedback/FeedbackForm").then((m) => ({ default: m.FeedbackForm })));
-const HelpGuide = lazy(() => import("@/features/help/HelpGuide").then((m) => ({ default: m.HelpGuide })));
-const SettingsPanel = lazy(() => import("@/features/settings/SettingsPanel").then((m) => ({ default: m.SettingsPanel })));
-const FeatureStatusPage = lazy(() =>
+const FeedbackForm = lazyWithRetry(() => import("@/features/feedback/FeedbackForm").then((m) => ({ default: m.FeedbackForm })));
+const HelpGuide = lazyWithRetry(() => import("@/features/help/HelpGuide").then((m) => ({ default: m.HelpGuide })));
+const SettingsPanel = lazyWithRetry(() => import("@/features/settings/SettingsPanel").then((m) => ({ default: m.SettingsPanel })));
+const FeatureStatusPage = lazyWithRetry(() =>
   import("@/features/status/FeatureStatusPage").then((m) => ({ default: m.FeatureStatusPage }))
 );
-const JoinTeamForm = lazy(() => import("@/features/team/JoinTeamForm").then((m) => ({ default: m.JoinTeamForm })));
-const AboutPanel = lazy(() => import("@/features/about/AboutPanel").then((m) => ({ default: m.AboutPanel })));
+const JoinTeamForm = lazyWithRetry(() => import("@/features/team/JoinTeamForm").then((m) => ({ default: m.JoinTeamForm })));
+const AboutPanel = lazyWithRetry(() => import("@/features/about/AboutPanel").then((m) => ({ default: m.AboutPanel })));
 
-const AreaReport = lazy(() => import("@/features/report/AreaReport").then((m) => ({ default: m.AreaReport })));
-const PlayHub = lazy(() => import("@/features/play/PlayHub").then((m) => ({ default: m.PlayHub })));
-const PrivacyPanel = lazy(() => import("@/features/privacy/PrivacyPanel").then((m) => ({ default: m.PrivacyPanel })));
-const AdminDashboard = lazy(() => import("@/features/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
-const SystemStatusPage = lazy(() => import("@/features/status/SystemStatusPage").then((m) => ({ default: m.SystemStatusPage })));
+const AreaReport = lazyWithRetry(() => import("@/features/report/AreaReport").then((m) => ({ default: m.AreaReport })));
+const PlayHub = lazyWithRetry(() => import("@/features/play/PlayHub").then((m) => ({ default: m.PlayHub })));
+const PrivacyPanel = lazyWithRetry(() => import("@/features/privacy/PrivacyPanel").then((m) => ({ default: m.PrivacyPanel })));
+const AdminDashboard = lazyWithRetry(() => import("@/features/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
+const SystemStatusPage = lazyWithRetry(() => import("@/features/status/SystemStatusPage").then((m) => ({ default: m.SystemStatusPage })));
 /* The marketing page at /ai-map-search. Split out for the same reason as the
    rest of this list, and more so: nobody who opens the app itself should pay
    for a landing page they will never see, and nobody landing on the marketing
    page should download the whole workspace to read it. */
-const LandingPage = lazy(() => import("@/features/landing/LandingPage").then((m) => ({ default: m.LandingPage })));
+const LandingPage = lazyWithRetry(() => import("@/features/landing/LandingPage").then((m) => ({ default: m.LandingPage })));
 /* The city pages. Split out for the same reason as the landing page: somebody
    who opens the app itself should never pay to download a page they will not
    see, and somebody arriving on a city page from a search result should not
    download the whole workspace to read it. */
-const CityPage = lazy(() => import("@/features/city/CityPage").then((m) => ({ default: m.CityPage })));
-const ComparePage = lazy(() => import("@/features/compare/ComparePage").then((m) => ({ default: m.ComparePage })));
+const CityPage = lazyWithRetry(() => import("@/features/city/CityPage").then((m) => ({ default: m.CityPage })));
+const ComparePage = lazyWithRetry(() => import("@/features/compare/ComparePage").then((m) => ({ default: m.ComparePage })));
 import { MaintenancePage } from "@/features/maintenance/MaintenancePage";
 import { useMaintenanceStore } from "@/stores/maintenanceStore";
 import { usePrivacyStore } from "@/stores/privacyStore";
@@ -61,6 +62,7 @@ import { useSharedLocationFromUrl } from "@/hooks/useSharedLocationFromUrl";
 import { useLocationPanelSync } from "@/hooks/useLocationPanelSync";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ConsentBanner } from "@/features/analytics/ConsentBanner";
+import { NetworkStatus } from "@/components/NetworkStatus";
 import { LazyPanel } from "@/components/LazyPanel";
 import { useFeedbackStore } from "@/stores/feedbackStore";
 import { useHelpStore } from "@/stores/helpStore";
@@ -251,6 +253,10 @@ export default function App() {
 
       <ErrorBoundary label="Header" variant="panel">
         <Header />
+      </ErrorBoundary>
+
+      <ErrorBoundary label="Network status" variant="silent">
+        <NetworkStatus />
       </ErrorBoundary>
 
       <main id="geointel-workspace" className="app-shell__main">

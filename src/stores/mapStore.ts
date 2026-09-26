@@ -37,6 +37,13 @@ interface MapState {
   setCenter: (center: [number, number], zoom?: number) => void;
   setViewportBbox: (bbox: ViewportBbox) => void;
   requestCamera: (request: { center?: [number, number]; zoom?: number; pitch?: number }) => void;
+  /**
+   * "lat,lon" of a point whose camera was placed deliberately, e.g. by a shared
+   * link carrying its own zoom. The next selection of exactly that point keeps
+   * the camera instead of zooming to street level. Consumed once.
+   */
+  cameraPlacedFor: string | null;
+  markCameraPlaced: (point: { lat: number; lon: number } | null) => void;
   setBasemap: (basemap: Basemap) => void;
   toggle3D: () => void;
   /**
@@ -59,6 +66,8 @@ export const useMapStore = create<MapState>((set, get) => ({
   is3D: useUiStore.getState().is3DMapEnabled,
   viewportBbox: null,
   cameraRequest: null,
+  cameraPlacedFor: null,
+  markCameraPlaced: (point) => set({ cameraPlacedFor: point ? `${point.lat},${point.lon}` : null }),
   setCenter: (center, zoom) => set({ center, zoom: zoom ?? get().zoom }),
   setViewportBbox: (viewportBbox) => set({ viewportBbox }),
   requestCamera: (request) => set({ cameraRequest: { ...request, nonce: Date.now() + Math.random() } }),

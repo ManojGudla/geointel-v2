@@ -41,10 +41,14 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       },
       {
         name: "Recent search history",
-        status: "planned",
-        note: "Selections are already saved to this browser's storage, but there's no history list surfaced in the UI yet to see or reuse them.",
+        status: "live",
+        note: "Your last five picks, kept in this browser only. They appear when you click into the empty search box, with a Clear button.",
       },
-      { name: "Saved locations / favorites", status: "planned" },
+      {
+        name: "Saved places",
+        status: "live",
+        note: "Save any selected place from its panel; saved places appear when you click into the empty search box. Kept in this browser only, since there are no accounts to sync them to.",
+      },
       { name: "Voice search", status: "planned" },
     ],
   },
@@ -79,7 +83,11 @@ export const FEATURE_STATUS: FeatureCategory[] = [
   {
     category: "Location & Property Intelligence",
     items: [
-      { name: "Click-to-inspect any point on the map", status: "live" },
+      {
+        name: "Click any point on the map to select it",
+        status: "live",
+        note: "A click selects that exact spot the same way a search does, and the Explore panel answers for it. There is no separate popup.",
+      },
       { name: "Property classification (Commercial / Residential / Institutional / Industrial / Mixed)", status: "live" },
       { name: "Confidence scoring", status: "live" },
       { name: "Evidence trust badges (Verified / Inferred / Unavailable)", status: "live" },
@@ -233,7 +241,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       {
         name: "Share a location link",
         status: "live",
-        note: "Native share sheet (clipboard fallback); opening a shared link re-selects that exact location.",
+        note: "Uses the device's share sheet where the browser has one, otherwise copies the link. Opening a link re-selects the point and restores the base map, radius and open panel. The place name is looked up again, so it can differ slightly from the sender's.",
       },
       { name: "Share analysis / report", status: "planned" },
       // Was "planned" while the button already existed. The area report has a

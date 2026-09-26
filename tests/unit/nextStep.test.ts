@@ -129,7 +129,10 @@ describe("measurement-based suggestions", () => {
     const step = nextStep({ ...base, evidenceCount: 40, radiusMeters: 2000, measureMode: "distance", measurePoints: [[0, 0]] });
     expect(step?.action).toBe("measure");
     expect(step?.text).toContain("distance");
-    expect(step?.text).toContain("Click again to complete");
+    expect(step?.text).toContain("second point");
+    // The tool has no finish step, so the suggestion must not promise one.
+    expect(step?.label).not.toMatch(/finish/i);
+    expect(step?.text).not.toMatch(/finali[sz]e|complete/i);
   });
 
   it("suggests completing area when multiple points are drawn", () => {
@@ -146,11 +149,11 @@ describe("measurement-based suggestions", () => {
 });
 
 describe("navigation-based suggestions", () => {
-  it("suggests turn-by-turn when actively navigating", () => {
+  it("points to Directions when actively navigating", () => {
     // Use evidenceCount: 40 and radiusMeters: 2000 to skip all place-discovery suggestions
     const step = nextStep({ ...base, evidenceCount: 40, radiusMeters: 2000, navState: "navigating" });
     expect(step?.action).toBe("navigate");
-    expect(step?.text).toContain("turn-by-turn");
+    expect(step?.label).toBe("Show directions");
   });
 
   it("suggests turn-by-turn when rerouting", () => {

@@ -103,6 +103,31 @@
     location.reload();
   }
 
+  /*
+    Offline is not a broken cache. Clearing caches and unregistering the
+    service worker while offline destroyed the one copy of the app that could
+    have worked, and the reload that followed could not load anything. Say
+    what is happening instead, and start again the moment the connection is
+    back.
+  */
+  function waitForConnection() {
+    var root = document.getElementById("root");
+    if (root) {
+      root.innerHTML =
+        '<div style="font:14px/1.6 system-ui,sans-serif;max-width:420px;margin:16vh auto;padding:24px;text-align:center;color:#101828">' +
+        '<p style="font-size:17px;font-weight:700;margin:0 0 8px">You\'re offline</p>' +
+        '<p style="margin:0;color:#55607a">maNOWj GeoIntel needs a connection the first time it opens on this device. It will start by itself when you\'re back online.</p>' +
+        "</div>";
+    }
+    window.addEventListener(
+      "online",
+      function () {
+        location.reload();
+      },
+      { once: true }
+    );
+  }
+
   window.addEventListener("load", function () {
     window.setTimeout(function () {
       if (!stillBlank()) {
@@ -111,6 +136,11 @@
         try {
           sessionStorage.removeItem(ATTEMPT_KEY);
         } catch (e) {}
+        return;
+      }
+
+      if (navigator.onLine === false) {
+        waitForConnection();
         return;
       }
 
