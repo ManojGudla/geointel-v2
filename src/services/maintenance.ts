@@ -1,4 +1,5 @@
 import { apiGet, apiPost } from "@/services/apiClient";
+import { adminKeyHeaders } from "@/services/adminKeyHeader";
 
 export type MaintenanceType = "scheduled" | "emergency";
 
@@ -35,8 +36,6 @@ export interface MaintenanceUpdateInput {
   adminLabel?: string;
 }
 
-const ADMIN_HEADER = "x-geointel-admin-key";
-
 /**
  * Public read - every visitor's browser calls this (no key) to know whether
  * to show the maintenance page. Passing an admin key additionally asks the
@@ -50,10 +49,10 @@ export function fetchMaintenanceState(adminKey?: string, signal?: AbortSignal) {
     undefined,
     signal,
     undefined,
-    adminKey ? { [ADMIN_HEADER]: adminKey } : undefined
+    adminKey ? adminKeyHeaders(adminKey) : undefined
   );
 }
 
 export function updateMaintenance(adminKey: string, input: MaintenanceUpdateInput, signal?: AbortSignal) {
-  return apiPost<{ maintenance: MaintenanceState }>("/api/admin/maintenance", input, signal, undefined, { [ADMIN_HEADER]: adminKey });
+  return apiPost<{ maintenance: MaintenanceState }>("/api/admin/maintenance", input, signal, undefined, adminKeyHeaders(adminKey));
 }

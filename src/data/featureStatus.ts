@@ -102,9 +102,9 @@ export const FEATURE_STATUS: FeatureCategory[] = [
         note: "Sourced live from Wikidata, never a hardcoded or guessed name. Country-level is reliably covered; state-level needs a precise subdivision code from the address; city/district-level is best-effort and often correctly shows \"Unable to verify\" where Wikidata's coverage is thin.",
       },
       {
-        name: "Timezone lookup",
-        status: "partial",
-        note: "Currently shows your device's timezone, not the selected location's. This is a known gap, not yet fixed.",
+        name: "Timezone and live local time",
+        status: "live",
+        note: "The selected place's own timezone from Open-Meteo, with a clock that ticks on your device and how far ahead or behind you it is. Relies on your device clock being right.",
       },
       { name: "Zoning & land use data", status: "planned", note: "No free, reliable zoning data source found yet." },
       { name: "Parcel boundaries & ownership records", status: "planned" },

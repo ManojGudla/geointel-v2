@@ -1,4 +1,5 @@
 import { apiGet } from "@/services/apiClient";
+import { adminKeyHeaders } from "@/services/adminKeyHeader";
 
 export interface FeedbackSubmission {
   id: string;
@@ -22,7 +23,6 @@ export interface TeamApplicationSubmission {
   created_at: string;
 }
 
-const ADMIN_HEADER = "x-geointel-admin-key";
 
 export function fetchAdminSubmissions(adminKey: string, signal?: AbortSignal) {
   return apiGet<{ feedback: FeedbackSubmission[]; teamApplications: TeamApplicationSubmission[] }>(
@@ -30,6 +30,6 @@ export function fetchAdminSubmissions(adminKey: string, signal?: AbortSignal) {
     undefined,
     signal,
     undefined,
-    { [ADMIN_HEADER]: adminKey }
+    adminKeyHeaders(adminKey)
   );
 }

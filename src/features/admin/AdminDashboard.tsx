@@ -1,3 +1,4 @@
+import { gateFailureMessage } from "@/features/secret/SecretGate";
 import { useEffect, useState } from "react";
 import { useUiStore } from "@/stores/uiStore";
 import { useNoIndex } from "@/hooks/useNoIndex";
@@ -113,7 +114,7 @@ export function AdminDashboard() {
         setVerifyError("Incorrect admin key.");
       }
     } catch (error) {
-      setVerifyError(error instanceof ApiUnavailableError ? error.message : "Couldn't reach the server. Please try again.");
+      setVerifyError(gateFailureMessage(error));
     } finally {
       setVerifying(false);
     }
@@ -188,6 +189,10 @@ export function AdminDashboard() {
             value={keyInput}
             onChange={(e) => setKeyInput(e.target.value)}
             placeholder="Admin key"
+            autoComplete="off"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             autoFocus
             aria-label="Admin key"
           />

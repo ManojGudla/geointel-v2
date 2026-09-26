@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchWeather } from "@/services/intel";
 import { useLocationStore } from "@/stores/locationStore";
 import "./LocationIdentityPanel.css";
+import { LocalTime } from "./LocalTime";
 import { track } from "@/services/analytics";
 import { useMapStore } from "@/stores/mapStore";
 import { useShellStore } from "@/stores/shellStore";
@@ -105,12 +106,9 @@ export function LocationIdentityPanel() {
       show again is the reader's own timezone, which is what stood here and
       read exactly like a fact about the place.
     */
-    [
-      "Timezone",
-      weather.data?.timezone ??
-        (weather.isLoading ? "Loading…" : weather.isError ? "Unavailable" : undefined),
-    ],
   ];
+  const timeZone = weather.data?.timezone;
+  const timeFallback = weather.isLoading ? "Loading…" : weather.isError || weather.isSuccess ? "Unavailable" : null;
 
   return (
     <div className="location-panel">
@@ -122,6 +120,14 @@ export function LocationIdentityPanel() {
           <dt>Coordinates</dt>
           <dd>{coordsText}</dd>
         </div>
+        {/* Local time at the place, not the reader's. Ticks on this device
+            from the zone Open-Meteo returned; see placeClock.ts. */}
+        {(timeZone || timeFallback) && (
+          <div className="location-panel__row location-panel__row--wide">
+            <dt>Local time</dt>
+            <dd aria-live="off">{timeZone ? <LocalTime timeZone={timeZone} abbreviation={weather.data?.timezoneAbbreviation} /> : timeFallback}</dd>
+          </div>
+        )}
         {rows
           .filter(([, value]) => value)
           .map(([label, value]) => (

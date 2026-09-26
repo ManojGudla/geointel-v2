@@ -26,6 +26,22 @@ import "./SecretGate.css";
  * broken server helps nobody.
  */
 
+/**
+ * What went wrong, in words the owner can act on.
+ *
+ * Every failure that was not an answer from the server used to read
+ * "Couldn't reach the server to check that", including a code the browser
+ * refused to send and a server that answered slowly. The two cases that
+ * remain are now told apart: offline, or the request itself failed, with the
+ * reason the request layer gave (timed out, unexpected response and so on).
+ */
+export function gateFailureMessage(caught: unknown, online = typeof navigator === "undefined" || navigator.onLine !== false): string {
+  if (caught instanceof ApiUnavailableError) return caught.message;
+  if (!online) return "You're offline. Connect to the internet and try again.";
+  const reason = caught instanceof Error && caught.message ? caught.message : "no reason given";
+  return `Couldn't check the code: ${reason}`;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -58,11 +74,7 @@ export function SecretGate({ open, onClose }: Props) {
       setError("That code is not right.");
       setCode("");
     } catch (caught) {
-      setError(
-        caught instanceof ApiUnavailableError
-          ? caught.message
-          : "Couldn't reach the server to check that."
-      );
+      setError(gateFailureMessage(caught));
     } finally {
       setChecking(false);
     }
@@ -97,6 +109,11 @@ export function SecretGate({ open, onClose }: Props) {
             placeholder="Access code"
             aria-label="Access code"
             autoComplete="off"
+            /* Phone keyboards otherwise capitalise the first letter and swap
+               ' for a curly apostrophe, and the code then reads as wrong. */
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             autoFocus
             disabled={checking}
           />

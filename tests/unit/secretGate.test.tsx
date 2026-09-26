@@ -154,7 +154,7 @@ describe("the code prompt", () => {
     fireEvent.change(screen.getByLabelText("Access code"), { target: { value: "whatever" } });
     fireEvent.click(screen.getByRole("button", { name: /unlock/i }));
 
-    await waitFor(() => expect(screen.getByRole("alert").textContent).toMatch(/couldn't reach/i));
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("Couldn't check the code: network"));
     expect(assign).not.toHaveBeenCalled();
   });
 
