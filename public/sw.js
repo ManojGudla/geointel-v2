@@ -86,6 +86,32 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
+/*
+  The page's list of app files it already has (see main.tsx). Only paths that
+  look like our own hashed bundles are accepted, at most 100, and only files
+  not already cached are fetched.
+*/
+self.addEventListener("message", (event) => {
+  const data = event.data;
+  if (!data || data.type !== "cache-loaded-files" || !Array.isArray(data.urls)) return;
+  const paths = data.urls.filter((u) => typeof u === "string" && /^\/assets\/[A-Za-z0-9._-]+$/.test(u)).slice(0, 100);
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(
+        paths.map(async (path) => {
+          if (await cache.match(path, MATCH)) return;
+          try {
+            const res = await fetch(path);
+            if (res.ok && !isHtmlResponse(res)) await cache.put(path, res);
+          } catch {
+            // Offline or mid-deploy: the fetch handler caches it next time.
+          }
+        })
+      )
+    )
+  );
+});
+
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))

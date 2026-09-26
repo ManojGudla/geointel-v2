@@ -92,7 +92,7 @@ export function Workspace() {
             }${panelOpen ? " workspace__stage--sheeted" : ""}`}
             ref={stageRef}
           >
-            <ErrorBoundary label="Map" variant="panel">
+            <ErrorBoundary label="Map" variant="panel" fallbackClassName="workspace__mapfallback">
               {/* The fallback fills the stage exactly, so the surrounding
                   controls land in their final positions on the first paint
                   and nothing shifts when the map arrives. An empty fallback

@@ -55,5 +55,28 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register("/sw.js").catch((error) => {
       console.error("[pwa] service worker registration failed", error);
     });
+
+    /*
+      Hand the worker the app files this page already loaded.
+
+      Files requested before the worker takes control never pass through it,
+      so on a first visit, or the first visit after an update, the map's own
+      code (MapView, MapLibre) was never cached, and offline the app started
+      without a map. Sent once when the worker is ready and again a little
+      later for anything loaded since. The worker fetches only what it lacks,
+      normally straight from the browser's cache.
+    */
+    const sendLoadedFiles = (registration: ServiceWorkerRegistration) => {
+      const urls = performance
+        .getEntriesByType("resource")
+        .map((entry) => new URL(entry.name))
+        .filter((url) => url.origin === location.origin && url.pathname.startsWith("/assets/"))
+        .map((url) => url.pathname);
+      registration.active?.postMessage({ type: "cache-loaded-files", urls });
+    };
+    void navigator.serviceWorker.ready.then((registration) => {
+      sendLoadedFiles(registration);
+      setTimeout(() => sendLoadedFiles(registration), 10_000);
+    });
   });
 }

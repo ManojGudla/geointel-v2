@@ -13,6 +13,8 @@ interface Props {
    * worse experience than the bug itself. The failure is still logged.
    */
   variant?: "page" | "panel" | "silent";
+  /** Extra class for the fallback box, for boundaries that sit in a special place (the map stage). */
+  fallbackClassName?: string;
   onReset?: () => void;
 }
 
@@ -171,7 +173,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (offline) {
       return (
         <div
-          className={`error-boundary error-boundary--${this.props.variant === "page" ? "page" : "panel"}`}
+          className={`error-boundary error-boundary--${this.props.variant === "page" ? "page" : "panel"} ${this.props.fallbackClassName ?? ""}`}
           role="status"
         >
           <p>
@@ -188,7 +190,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (stale) {
       return (
         <div
-          className={`error-boundary error-boundary--${this.props.variant === "page" ? "page" : "panel"}`}
+          className={`error-boundary error-boundary--${this.props.variant === "page" ? "page" : "panel"} ${this.props.fallbackClassName ?? ""}`}
           role="alert"
         >
           <p>A new version of maNOWj GeoIntel went live while this tab was open, so this part could not load.</p>
@@ -212,7 +214,7 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     return (
-      <div className="error-boundary error-boundary--panel" role="alert">
+      <div className={`error-boundary error-boundary--panel ${this.props.fallbackClassName ?? ""}`} role="alert">
         <p>
           <strong>{this.props.label}</strong> hit a problem and couldn't render.
         </p>
