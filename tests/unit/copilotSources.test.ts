@@ -10,7 +10,7 @@ import { isAboutThePlace } from "../../api/_lib/aiGrounding";
  */
 
 describe("isAboutThePlace", () => {
-  it.each(["who is his future wife", "Who built this app?", "When is Manoj's birthday?", "hi", "Thanks!", "good morning", "who is the co-founder"])(
+  it.each(["who is his future wife", "Who built this app?", "When is Manoj's birthday?", "hi", "Thanks!", "good morning", "who is the co-founder", "मनोज कौन है?", "మనోజ్ ఎవరు?"])(
     "treats %j as not about the place",
     (q) => expect(isAboutThePlace(q)).toBe(false)
   );

@@ -104,9 +104,16 @@ const SMALL_TALK =
 const ABOUT_A_PLACE =
   /\b(here|near|nearby|around|area|place|location|city|town|street|weather|rain|temperature|route|distance|directions?|shops?|schools?|hospitals?|restaurants?|cafes?|property|building|safe|safety|population|officials?|mayor|minister|governor|president)\b/i;
 
+/*
+  The developer's name in Hindi, Telugu, Tamil and Kannada script, since the
+  Copilot answers in whatever language it is asked in. No \b here: in
+  JavaScript it only knows Latin letters, so it never matches around these.
+*/
+const NAME_IN_OTHER_SCRIPTS = /(मनोज|మనోజ్|மனோஜ்|ಮನೋಜ್)/;
+
 export function isAboutThePlace(question: string): boolean {
   const q = question.trim();
   if (SMALL_TALK.test(q)) return false;
-  if (ABOUT_THE_DEVELOPER.test(q) && !ABOUT_A_PLACE.test(q)) return false;
+  if ((ABOUT_THE_DEVELOPER.test(q) || NAME_IN_OTHER_SCRIPTS.test(q)) && !ABOUT_A_PLACE.test(q)) return false;
   return true;
 }
