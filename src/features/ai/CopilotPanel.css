@@ -2,8 +2,8 @@
   position: absolute;
   bottom: var(--space-3);
   right: var(--space-3);
-  width: 340px;
-  max-height: min(560px, calc(100% - var(--space-6)));
+  width: 380px;
+  max-height: min(640px, calc(100% - var(--space-6)));
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -20,7 +20,19 @@
     left: var(--space-2);
     right: var(--space-2);
     width: auto;
-    max-height: min(70vh, calc(100% - var(--space-6)));
+    max-height: min(78vh, calc(100% - var(--space-6)));
+  }
+}
+
+/* In a conversation the panel takes its full height, so the thread (the one
+   part that grows) gets the room rather than the controls around it. */
+.copilot-panel--chatting {
+  height: min(640px, calc(100% - var(--space-6)));
+}
+
+@media (max-width: 640px) {
+  .copilot-panel--chatting {
+    height: min(78vh, calc(100% - var(--space-6)));
   }
 }
 
@@ -57,8 +69,7 @@
 
 .copilot-panel__thread {
   flex: 1;
-  min-height: 60px;
-  max-height: 260px;
+  min-height: 120px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -75,6 +86,7 @@
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
+  line-height: 1.5;
 }
 
 .copilot-panel__message p {
@@ -105,10 +117,19 @@
 }
 
 .copilot-panel__sources {
-  display: block;
   margin-top: var(--space-1);
   font-size: 11px;
   color: var(--color-text-faint);
+}
+
+.copilot-panel__sources summary {
+  cursor: pointer;
+  width: fit-content;
+}
+
+.copilot-panel__sources ul {
+  margin: 4px 0 0;
+  padding-left: 1.1em;
 }
 
 /* Who wrote the answer, and when. `anywhere` because a provider slug is one
@@ -150,50 +171,52 @@
   opacity: 0.5;
 }
 
-.copilot-panel__suggested {
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-2);
-}
-
-.copilot-panel__suggested > span {
-  display: block;
-  font-size: var(--text-xs);
-  font-weight: 700;
-  color: var(--color-text-faint);
-  margin-bottom: var(--space-2);
-}
-
-.copilot-panel__suggested ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.copilot-panel__headactions {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-.copilot-panel__suggested button {
-  width: 100%;
-  text-align: left;
-  padding: var(--space-2);
-  border-radius: var(--radius-sm);
-  border: 1px dashed var(--color-border-strong);
-  background: transparent;
-  font-size: var(--text-xs);
-  color: var(--color-text);
-}
-
-.copilot-panel__suggested button:hover {
-  background: var(--color-brand-100);
-}
-
-.copilot-panel__clear {
-  align-self: center;
-  border: none;
+.copilot-panel__head .copilot-panel__clear {
   background: none;
-  font-size: 11px;
-  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
   text-decoration: underline;
+}
+
+/* One row of suggestions that scrolls sideways, instead of a list that
+   pushed the conversation into a few lines. */
+.copilot-panel__chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+
+.copilot-panel__chips button {
+  flex-shrink: 0;
+  padding: 6px var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.copilot-panel__chips button:hover:not(:disabled) {
+  border-color: var(--color-brand-500);
+  color: var(--color-brand-700);
+}
+
+.copilot-panel__chips button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* What the Copilot is looking at, stated plainly and always visible. */

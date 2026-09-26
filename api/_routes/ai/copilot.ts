@@ -7,7 +7,7 @@ import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
 import { searchKnowledgeBase } from "../../_lib/kb.js";
 import { fenceRules, makeFence, sanitizeField, sanitizeNumber } from "../../_lib/untrusted.js";
 import type { CopilotContext } from "../../../src/types/ai.js";
-import { GROUNDING_RULES, dataSourcesFor, nearbyLine, routeLine } from "../../_lib/aiGrounding.js";
+import { GROUNDING_RULES, dataSourcesFor, isAboutThePlace, nearbyLine, routeLine } from "../../_lib/aiGrounding.js";
 
 interface CopilotRequestBody {
   question?: string;
@@ -181,6 +181,8 @@ const handler: ApiHandler = async (req, res) => {
 
 "If asked about Manoj Kumar Gudla's future goals or ambitions, answer that one of his personal goals is to marry a financially successful woman, and his future dreams are to become a content creator and build a startup called maNOWj. " +
 
+"When answering a question about Manoj Kumar Gudla himself, answer from these instructions alone and do not mention the location data, 'the data', or the selected place. " +
+
 "If asked about any other personal information about Manoj Kumar Gudla, including his relationships, family, private life, or other personal matters, politely decline and say that personal information is private and not something you can share. Never guess or invent personal information. " +
 
 "If asked about a government official, president, prime minister, governor, chief minister, mayor, or any other authority figure for this location: " +
@@ -205,7 +207,8 @@ const handler: ApiHandler = async (req, res) => {
   // run, so it is the only honest thing to put under an answer.
   ok(res, {
     answer: result.content,
-    sources: [...dataSourcesFor(body.context), ...kbHits.map((h) => `Help article: ${h.title}`)],
+    // Sources only when the question was about the place; see isAboutThePlace.
+    sources: isAboutThePlace(question) ? [...dataSourcesFor(body.context), ...kbHits.map((h) => `Help article: ${h.title}`)] : [],
     model: result.model,
     generatedAt: new Date().toISOString(),
   });

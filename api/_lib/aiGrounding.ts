@@ -83,3 +83,30 @@ export function dataSourcesFor(context: CopilotContext | undefined): string[] {
   if (context.officials?.some((o) => o.status === "verified")) sources.push("Wikidata (officials)");
   return sources;
 }
+
+/*
+  Whether a Copilot question is about the selected place at all.
+
+  Every answer used to carry "Based on: OpenStreetMap, Overpass, Open-Meteo,
+  Wikidata" whatever was asked, so "who is his future wife?" was credited to a
+  weather service. A question about the app's developer, or a plain "hi" or
+  "thanks", is answered from the instructions, not from any of those sources,
+  and naming them under it is a false citation.
+
+  This is a word check, not an understanding of the question, so it leans
+  towards keeping the sources: a question that mentions the place, the area or
+  anything the app measures keeps them even if it also mentions the developer.
+*/
+const ABOUT_THE_DEVELOPER =
+  /\b(manoj|gudla|developer|creator|founder|co-?founder|who (built|made|created|developed)|birthday|wife|girlfriend|boyfriend|married|marry|marriage|best friends?)\b/i;
+const SMALL_TALK =
+  /^(hi+|hello+|hey+|namaste|namaskaram|good (morning|afternoon|evening|night)|thanks?( you)?|thank u|ok(ay)?|bye|goodbye|how are you)[\s!.?]*$/i;
+const ABOUT_A_PLACE =
+  /\b(here|near|nearby|around|area|place|location|city|town|street|weather|rain|temperature|route|distance|directions?|shops?|schools?|hospitals?|restaurants?|cafes?|property|building|safe|safety|population|officials?|mayor|minister|governor|president)\b/i;
+
+export function isAboutThePlace(question: string): boolean {
+  const q = question.trim();
+  if (SMALL_TALK.test(q)) return false;
+  if (ABOUT_THE_DEVELOPER.test(q) && !ABOUT_A_PLACE.test(q)) return false;
+  return true;
+}

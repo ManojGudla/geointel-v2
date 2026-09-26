@@ -91,9 +91,16 @@ export function CopilotPanel() {
     <>
       <div className="copilot-panel__head">
         <h2>✨ Ask maNOWj</h2>
-        <button type="button" onClick={close} aria-label="Close Ask maNOWj">
-          ✕
-        </button>
+        <div className="copilot-panel__headactions">
+          {messages.length > 0 && (
+            <button type="button" className="copilot-panel__clear" onClick={clearConversation}>
+              Clear
+            </button>
+          )}
+          <button type="button" onClick={close} aria-label="Close Ask maNOWj">
+            ✕
+          </button>
+        </div>
       </div>
 
       {/* States what it is looking at, always. An assistant whose
@@ -117,7 +124,20 @@ export function CopilotPanel() {
         {messages.map((m, i) => (
           <div key={i} className={`copilot-panel__message copilot-panel__message--${m.role}${m.isError ? " copilot-panel__message--error" : ""}`}>
             <p>{m.role === "assistant" && !m.isError ? formatAiText(m.content) : m.content}</p>
-            {m.sources && m.sources.length > 0 && <span className="copilot-panel__sources">Based on: {m.sources.join(", ")}</span>}
+            {/* Folded away: the list is long and was taking the room the
+                answer needed. One tap opens it. */}
+            {m.sources && m.sources.length > 0 && (
+              <details className="copilot-panel__sources">
+                <summary>
+                  Based on {m.sources.length} source{m.sources.length === 1 ? "" : "s"}
+                </summary>
+                <ul>
+                  {m.sources.map((source) => (
+                    <li key={source}>{source}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
             {/* Attribution on the answer, not on the question and not on an
                 error this app wrote itself. */}
             {m.role === "assistant" && !m.isError && m.model && (
@@ -131,6 +151,19 @@ export function CopilotPanel() {
           </div>
         )}
       </div>
+
+      {/* Once a conversation is under way the suggestions shrink to one
+          scrollable row above the box. As a full list they used to fill most
+          of the panel and squeeze the answers into a few lines. */}
+      {messages.length > 0 && (
+        <div className="copilot-panel__chips" role="group" aria-label="Suggested questions">
+          {suggestions.map((q) => (
+            <button key={q} type="button" onClick={() => ask(q)} disabled={isAsking}>
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
 
       <form
         className="copilot-panel__form"
@@ -152,36 +185,13 @@ export function CopilotPanel() {
         </button>
       </form>
 
-      {/* Only shown once a conversation is under way - before that the same
-          suggestions already appear in the empty thread above, and two
-          identical lists on one small panel is clutter. */}
-      {messages.length > 0 && (
-        <div className="copilot-panel__suggested">
-          <span>Suggested questions</span>
-          <ul>
-            {suggestions.map((q) => (
-              <li key={q}>
-                <button type="button" onClick={() => ask(q)} disabled={isAsking}>
-                  {q}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {messages.length > 0 && (
-        <button type="button" className="copilot-panel__clear" onClick={clearConversation}>
-          Clear conversation
-        </button>
-      )}
     </>
   );
 
   if (!motionEnabled) {
     if (!isOpen) return null;
     return (
-      <div className="copilot-panel" role="dialog" aria-label="Ask maNOWj">
+      <div className={`copilot-panel${messages.length > 0 ? " copilot-panel--chatting" : ""}`} role="dialog" aria-label="Ask maNOWj">
         {content}
       </div>
     );
@@ -190,7 +200,7 @@ export function CopilotPanel() {
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div className="copilot-panel" role="dialog" aria-label="Ask maNOWj" {...panelRiseFromBottom}>
+        <motion.div className={`copilot-panel${messages.length > 0 ? " copilot-panel--chatting" : ""}`} role="dialog" aria-label="Ask maNOWj" {...panelRiseFromBottom}>
           {content}
         </motion.div>
       )}
