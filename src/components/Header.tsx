@@ -10,7 +10,9 @@ import { useAboutStore } from "@/stores/aboutStore";
 import { usePrivacyStore } from "@/stores/privacyStore";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useFreeNoticeStore } from "@/features/notice/freeNoticeStore";
+import { useTourStore } from "@/features/tour/tourStore";
 import { LogoMark } from "./LogoMark";
+import { SecretGate } from "@/features/secret/SecretGate";
 
 const THEME_ICON: Record<ThemeMode, string> = { system: "🖥️", light: "☀️", dark: "🌙" };
 
@@ -112,6 +114,7 @@ export function Header() {
   const openPrivacy = usePrivacyStore((s) => s.open);
   const openGames = useGamesStore((s) => s.open);
   const openFreeNotice = useFreeNoticeStore((s) => s.open);
+  const startTour = useTourStore((s) => s.start);
 
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement | null>(null);
@@ -137,6 +140,8 @@ export function Header() {
     setMoreOpen(false);
   };
 
+  const [gateOpen, setGateOpen] = useState(false);
+
   const cycleTheme = () => {
     const next = THEME_CYCLE[(THEME_CYCLE.indexOf(theme) + 1) % THEME_CYCLE.length]!;
     setTheme(next);
@@ -147,20 +152,24 @@ export function Header() {
     <header className="app-header">
       <div className="app-header__brand">
         {/*
-          The logo is just the logo. It used to be a button that opened the
-          hidden owner sign-in after three quick taps - and visitors kept
-          opening it by accident, since tapping a logo is the most natural
-          thing to do on a phone. The admin dashboard has its own address
-          (/admin, still behind the admin code), so nothing is lost.
+          The logo icon opens the owner sign-in with a single click (it used
+          to need three quick taps, which was unreliable). The sign-in still
+          needs the admin code, so opening it gives nobody access. Default
+          cursor and no tooltip: it does not advertise itself.
         */}
-        <span className="app-header__mark" aria-hidden="true">
+        <button type="button" className="app-header__mark" onClick={() => setGateOpen(true)} aria-label="maNOWj GeoIntel">
           <LogoMark size={36} />
-        </span>
+        </button>
         {/* Two spellings of the name, one shown at a time by CSS. On a phone
             the header has to fit in a single row beside the controls, and
             the full lockup plus tagline was taking four stacked rows -
             roughly a quarter of the screen height, taken from the map. */}
-        <div className="app-header__wordmark">
+        {/*
+          The name is the way home: a full reload of the start page, the way
+          clicking a site's name works everywhere else. A real link, so it
+          also works with a middle-click or "open in new tab".
+        */}
+        <a className="app-header__wordmark" href="/" aria-label="maNOWj GeoIntel home">
           <span className="app-header__logo app-header__logo--full">
             ma<span className="app-header__now">NOW</span>j GeoIntel
           </span>
@@ -171,7 +180,7 @@ export function Header() {
             ma<span className="app-header__now">NOW</span>j
           </span>
           <span className="app-header__tagline">Maps, data and sources for any place</span>
-        </div>
+        </a>
       </div>
 
       <div className="app-header__actions">
@@ -281,6 +290,9 @@ export function Header() {
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openPrivacy)}>
                   <span aria-hidden="true">🔒</span> Privacy &amp; security
                 </button>
+                <button type="button" role="menuitem" onClick={() => runFromMenu(startTour)}>
+                  <span aria-hidden="true">🧭</span> Take the tour
+                </button>
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openFreeNotice)}>
                   <span aria-hidden="true">🆓</span> Free to use
                 </button>
@@ -330,6 +342,11 @@ export function Header() {
         </span>
       </div>
     </header>
+
+    {/* A sibling of the header, not a child: the scrim is position:fixed, and
+        a fixed element inside an ancestor that ever gains a transform or a
+        filter is positioned against that ancestor instead of the viewport. */}
+    <SecretGate open={gateOpen} onClose={() => setGateOpen(false)} />
 
     </>
   );

@@ -181,3 +181,36 @@
     animation: none;
   }
 }
+
+/* ---- Measurement points: draggable handles -------------------------------
+   The visible dot is 14px; the element around it is a 32px touch target, so
+   a point can be picked up with a finger and moved to reshape the line or
+   area. */
+.measure-point-marker {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.measure-point-marker:active {
+  cursor: grabbing;
+}
+
+.measure-point-marker__dot {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: #e0a825;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 120ms ease;
+}
+
+.measure-point-marker:hover .measure-point-marker__dot,
+.maplibregl-marker-dragging .measure-point-marker__dot,
+.measure-point-marker.maplibregl-marker-dragging .measure-point-marker__dot {
+  transform: scale(1.35);
+}

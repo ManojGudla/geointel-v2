@@ -216,3 +216,11 @@
   max-width: 420px;
   margin: 0;
 }
+
+/* While measuring, the bottom-right corner belongs to the measurement
+   readout: the locate button and the Ask maNOWj launcher sat on top of its
+   Undo / Clear / Done buttons on desktop. Both come back on Done. */
+.workspace__stage--measuring .locate,
+.workspace__stage--measuring .copilot-launcher {
+  display: none;
+}

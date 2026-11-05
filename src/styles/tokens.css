@@ -145,7 +145,7 @@
   --color-primary-text: #4f3fe0;
   --color-primary-soft: #efedff;
   --color-primary-edge: #5b4cf0;
-  --gradient-primary: linear-gradient(135deg, #8f82ff, #6d5bff 45%, #4f3fe0);
+  --gradient-primary: linear-gradient(135deg, #6d5bff, #5b4cf0 50%, #4b3dd6); /* white text passes AA at every point of it */
 }
 
 @media (prefers-color-scheme: dark) {

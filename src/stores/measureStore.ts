@@ -8,6 +8,8 @@ interface MeasureState {
   setMode: (mode: MeasureMode) => void;
   addPoint: (point: [number, number]) => void;
   undoPoint: () => void;
+  /** Moves one existing vertex - what dragging a point on the map does. */
+  movePoint: (index: number, point: [number, number]) => void;
   clear: () => void;
 }
 
@@ -24,5 +26,7 @@ export const useMeasureStore = create<MeasureState>((set) => ({
   setMode: (mode) => set({ mode, points: [] }),
   addPoint: (point) => set((s) => ({ points: [...s.points, point] })),
   undoPoint: () => set((s) => ({ points: s.points.slice(0, -1) })),
+  movePoint: (index, point) =>
+    set((s) => (index < 0 || index >= s.points.length ? s : { points: s.points.map((p, i) => (i === index ? point : p)) })),
   clear: () => set({ points: [] }),
 }));

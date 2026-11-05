@@ -56,13 +56,14 @@
   height: 100%;
 }
 
-/* "NOW" highlighted, the way the brand is written: maNOWj. */
+/* "NOW" highlighted, the way the brand is written: maNOWj - in the teal of
+   the satellite in the logo, so it stands apart from the violet name. */
 :root .app-header__now {
   background: none;
   -webkit-background-clip: border-box;
   background-clip: border-box;
-  color: var(--color-primary-text);
-  -webkit-text-fill-color: var(--color-primary-text);
+  color: var(--color-accent-teal);
+  -webkit-text-fill-color: var(--color-accent-teal);
 }
 
 :root .app-header__logo {
@@ -172,4 +173,21 @@
   :root:not([data-theme="light"]) .maplibregl-ctrl-attrib-button {
     filter: invert(1);
   }
+}
+
+/* The name in the header is a link home; it keeps the look of a wordmark. */
+:root a.app-header__wordmark {
+  color: inherit;
+  text-decoration: none;
+}
+
+:root a.app-header__wordmark:hover .app-header__logo--full,
+:root a.app-header__wordmark:hover .app-header__logo--short {
+  opacity: 0.85;
+}
+
+:root a.app-header__wordmark:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }

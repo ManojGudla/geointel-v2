@@ -3,6 +3,7 @@ import { withMaintenanceGuard } from "../_lib/maintenance.js";
 import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
 import { nominatimSearch, type NominatimResult } from "../_lib/nominatim.js";
+import { photonSearch, relaxedQueries } from "../_lib/photon.js";
 import { decodePlusCode, findPlusCode, recoverPlusCode } from "../../src/features/search/plusCode.js";
 
 /**
@@ -207,6 +208,7 @@ const handler: ApiHandler = async (req, res) => {
 
   const cacheKey = `${query.toLowerCase()}|${region}`;
   let raw = cache.get(cacheKey);
+  let nominatimFailed = false;
 
   if (!raw) {
     try {
@@ -214,18 +216,51 @@ const handler: ApiHandler = async (req, res) => {
       cache.set(cacheKey, raw);
     } catch (error) {
       console.error("[api/geocode]", error);
-      return err(res, 502, "Location search is temporarily unavailable.", "PROVIDER_UNAVAILABLE");
+      nominatimFailed = true;
+      raw = [];
     }
   }
 
-  const results = raw
-    .map(toDto)
-    .filter((r) => Number.isFinite(r.lat) && Number.isFinite(r.lon))
-    .map((r) => (origin ? { ...r, distanceKm: Math.round(distanceKm(origin.lat, origin.lon, r.lat, r.lon)) } : r))
-    .sort((a, b) => rankScore(b, origin) - rankScore(a, origin))
-    .slice(0, RETURN_LIMIT);
+  const rank = (list: SearchResultDto[]) =>
+    list
+      .filter((r) => Number.isFinite(r.lat) && Number.isFinite(r.lon))
+      .map((r) => (origin ? { ...r, distanceKm: Math.round(distanceKm(origin.lat, origin.lon, r.lat, r.lon)) } : r))
+      .sort((a, b) => rankScore(b, origin) - rankScore(a, origin))
+      .slice(0, RETURN_LIMIT);
 
-  ok(res, { results, source: "OpenStreetMap / Nominatim" });
+  const results = rank(raw.map(toDto));
+  if (results.length > 0) return ok(res, { results, source: "OpenStreetMap / Nominatim" });
+
+  /*
+    Nothing found (or Nominatim is down): don't give up on the person.
+
+    1. Photon, on the full text - forgiving of typos and extra words.
+    2. Shorter versions of the address (see relaxedQueries), Photon first,
+       each labelled "Closest match" so nobody mistakes the neighbourhood for
+       their exact door.
+    At most four extra requests, and only on a search that found nothing.
+  */
+  try {
+    const fuzzy = rank(await photonSearch(query, origin));
+    if (fuzzy.length > 0) return ok(res, { results: fuzzy, source: "OpenStreetMap / Photon" });
+
+    for (const shorter of relaxedQueries(query).slice(0, 2)) {
+      const near = rank(await photonSearch(shorter, origin, 5));
+      if (near.length > 0) {
+        return ok(res, {
+          results: near.map((r) => ({ ...r, displayName: `Closest match: ${r.displayName}` })),
+          source: "OpenStreetMap / Photon",
+          approximate: true,
+          matchedQuery: shorter,
+        });
+      }
+    }
+  } catch (error) {
+    console.error("[api/geocode] photon fallback", error);
+  }
+
+  if (nominatimFailed) return err(res, 502, "Location search is temporarily unavailable.", "PROVIDER_UNAVAILABLE");
+  ok(res, { results: [] as SearchResultDto[], source: "OpenStreetMap / Nominatim" });
 };
 
 export default withMaintenanceGuard(withEdgeCache(300)(handler));

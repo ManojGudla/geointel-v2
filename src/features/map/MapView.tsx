@@ -471,14 +471,12 @@ function addOverlaySources(map: MapLibreMap) {
 function createMeasurePointElement(): HTMLDivElement {
   const el = document.createElement("div");
   el.className = "measure-point-marker";
-  el.style.width = "10px";
-  el.style.height = "10px";
-  el.style.borderRadius = "50%";
-  el.style.background = "#e0a825";
-  el.style.border = "2px solid #ffffff";
-  el.style.boxSizing = "content-box";
-  el.style.boxShadow = "0 0 0 1px rgba(0, 0, 0, 0.35)";
-  el.style.pointerEvents = "none";
+  // A 14px handle inside a 32px invisible hit area: easy to grab with a
+  // finger, without a big dot covering the map. Styled in MapView.css.
+  el.setAttribute("title", "Drag to move this point");
+  const dot = document.createElement("span");
+  dot.className = "measure-point-marker__dot";
+  el.appendChild(dot);
   return el;
 }
 
@@ -1039,16 +1037,46 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     const map = mapRef.current;
     if (!map) return;
 
+    /*
+      Same number of points as markers: just move them. This is what makes
+      dragging possible - every drag step writes the new position to the
+      store, and rebuilding the markers on each step would destroy the one
+      under the user's finger mid-drag. Any change in COUNT (a new point,
+      Undo, Clear) still rebuilds from scratch, which keeps the guarantee
+      above: a marker exists if and only if its point does.
+    */
+    if (measureMarkersRef.current.length === measurePoints.length && measurePoints.length > 0) {
+      measureMarkersRef.current.forEach((marker, i) => marker.setLngLat(measurePoints[i]!));
+      return;
+    }
+
     measureMarkersRef.current.forEach((marker) => marker.remove());
 
     // setLngLat() MUST be called before addTo(): Marker.addTo() immediately
     // calls _update(), which projects the marker's current _lngLat - if
-    // that's still unset (the constructor doesn't require or default it),
-    // _update() throws reading .lng off undefined and takes the whole map
-    // down with it. Position first, attach second.
-    measureMarkersRef.current = measurePoints.map((point) => {
-      const marker = new maplibregl.Marker({ element: createMeasurePointElement(), anchor: "center" });
+    // that's still unset, _update() throws and takes the map down with it.
+    // Position first, attach second.
+    measureMarkersRef.current = measurePoints.map((point, index) => {
+      // Draggable: after drawing a line or an area, any point can be picked
+      // up and moved to reshape it, and the distance/area readout follows
+      // live. Reported: "after drawing I need to move the vertices."
+      const marker = new maplibregl.Marker({ element: createMeasurePointElement(), anchor: "center", draggable: true });
       marker.setLngLat(point);
+      let frame = 0;
+      marker.on("drag", () => {
+        if (frame) return;
+        frame = window.requestAnimationFrame(() => {
+          frame = 0;
+          const { lng, lat } = marker.getLngLat();
+          useMeasureStore.getState().movePoint(index, [lng, lat]);
+        });
+      });
+      marker.on("dragend", () => {
+        if (frame) window.cancelAnimationFrame(frame);
+        frame = 0;
+        const { lng, lat } = marker.getLngLat();
+        useMeasureStore.getState().movePoint(index, [lng, lat]);
+      });
       marker.addTo(map);
       return marker;
     });

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLocationStore } from "@/stores/locationStore";
 import { useRouteStore } from "@/stores/routeStore";
 import { useIntelTabStore } from "@/stores/intelTabStore";
@@ -38,33 +37,7 @@ import "./QuickActions.css";
  * spatial-analysis tools. Naming this one for what it shows removes the
  * collision without moving either feature.
  */
-const HINT_DISMISSED_KEY = "geointel.quickActionsHintDismissed.v1";
-
-function readHintDismissed(): boolean {
-  try {
-    return localStorage.getItem(HINT_DISMISSED_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
 export function QuickActions() {
-  /*
-    The hint below the buttons is for a first visit. It sat over the top of
-    the map on every page load, for everyone, forever - a strip of map the
-    regular visitor had already read and could not get back. Once closed it
-    stays closed in this browser (and if storage is unavailable, it simply
-    returns next visit, which is the safe failure).
-  */
-  const [hintDismissed, setHintDismissed] = useState(readHintDismissed);
-  const dismissHint = () => {
-    setHintDismissed(true);
-    try {
-      localStorage.setItem(HINT_DISMISSED_KEY, "1");
-    } catch {
-      // Private browsing / storage blocked: hidden for this visit only.
-    }
-  };
 
   const location = useLocationStore((s) => s.selectedLocation);
   const openDirections = useRouteStore((s) => s.openPanel);
@@ -272,17 +245,9 @@ export function QuickActions() {
           what you could. Only Directions needs a destination now, and the
           line says the thing worth knowing - that the other buttons will
           answer for whatever you have centred. */}
-      {needsPlace && !hintDismissed && (
-        <p className="quick-actions__hint">
-          <span>
-            What's here and Nearby answer for the centre of the map. Search a place or click the map to choose a
-            different point, and to get directions.
-          </span>
-          <button type="button" className="quick-actions__hint-close" onClick={dismissHint} aria-label="Hide this tip">
-            ✕
-          </button>
-        </p>
-      )}
+      {/* The "answers for the centre of the map" tip was removed: it sat over
+          the map on every visit, and the Analyse panel already says which
+          point each answer is measured from. */}
 
       {/* One suggestion, tied to this place, with the button that does it.
           See nextStep.ts for why it is one sentence and not a list. */}

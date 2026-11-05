@@ -109,3 +109,34 @@
   font-size: var(--text-sm);
   min-height: 40px;
 }
+
+/* The tour shortcut at the top of the guide: the quickest way to learn the app. */
+.help-guide__tour {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-primary-edge);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.help-guide__tour > span:first-child {
+  font-size: 24px;
+}
+
+.help-guide__tour strong {
+  display: block;
+  color: var(--color-primary-text);
+}
+
+.help-guide__tour span span {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

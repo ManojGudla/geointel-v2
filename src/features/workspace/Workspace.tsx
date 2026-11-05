@@ -24,7 +24,6 @@ import { NavigationHud } from "@/features/routing/navigation/NavigationHud";
 import { MeasureHud } from "@/features/measure/MeasureHud";
 import { CoordinateReadout } from "@/features/map/CoordinateReadout";
 import { BasemapSwitcher } from "@/features/map/BasemapSwitcher";
-import { MapOnboarding } from "@/features/onboarding/MapOnboarding";
 import { NavRail } from "@/features/shell/NavRail";
 import { SidePanel } from "@/features/shell/SidePanel";
 import { QuickActions } from "./QuickActions";
@@ -34,7 +33,6 @@ import { CopilotLauncher } from "@/features/ai/CopilotLauncher";
 import { CommandPalette } from "@/features/command/CommandPalette";
 import { useMeasureStore } from "@/stores/measureStore";
 import { useShellStore } from "@/stores/shellStore";
-import { useOnboardingVisible } from "@/features/onboarding/onboardingVisibility";
 import { LocateButton } from "@/features/location/LocateButton";
 import { NearMeChips } from "@/features/location/NearMeChips";
 import { useSheetInsetStore } from "@/features/shell/sheetInsetStore";
@@ -69,7 +67,9 @@ export function Workspace() {
   // the corner. Reported as: new visitors could not find how to close it.
   // Same treatment as measuring below: the card owns the bottom edge while
   // it is up. See Workspace.css.
-  const onboarding = useOnboardingVisible();
+  // The getting-started card is no longer shown (see below), so nothing
+  // reserves space for it.
+  const onboarding = false;
   // Below 900px the panel is a bottom sheet rising off the same edge the
   // coordinate chip and map-style pill sit on, so those two yield while it is
   // up - the same bargain measuring and onboarding already strike below.
@@ -139,9 +139,15 @@ export function Workspace() {
 
             <CoordinateReadout />
 
-            <ErrorBoundary label="Getting started" variant="panel">
-              <MapOnboarding />
-            </ErrorBoundary>
+            {/*
+              The "Understand any place" getting-started card is no longer
+              rendered. With the free-to-use notice on every visit it was a
+              second pop-up stacked on the first, and it was reported as
+              exactly that. Its job - showing new visitors what to press -
+              is now the on-demand tour (How it works → Take the tour), which
+              appears only when asked for. The component is kept, with its
+              tests, under features/onboarding/.
+            */}
 
             <DirectionsPanel />
 

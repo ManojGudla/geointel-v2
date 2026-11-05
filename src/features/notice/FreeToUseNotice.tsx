@@ -4,6 +4,7 @@ import { useDialog } from "@/hooks/useDialog";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
 import { overlayFade, panelRise } from "@/lib/motionVariants";
 import { useFreeNoticeStore } from "./freeNoticeStore";
+import { useTourStore } from "@/features/tour/tourStore";
 import "./FreeToUseNotice.css";
 
 /** How long the notice stays up on its own before closing. */
@@ -29,6 +30,7 @@ const POINTS: Array<{ icon: string; title: string; text: string }> = [
 export function FreeToUseNotice() {
   const isOpen = useFreeNoticeStore((s) => s.isOpen);
   const close = useFreeNoticeStore((s) => s.close);
+  const startTour = useTourStore((s) => s.start);
   const dialogRef = useDialog({ open: isOpen, onClose: close });
   const motionEnabled = useMotionPreference();
 
@@ -104,6 +106,18 @@ export function FreeToUseNotice() {
           </li>
         ))}
       </ul>
+
+      <button
+        type="button"
+        className="free-notice__tour"
+        onClick={() => {
+          close();
+          // After the notice has gone, so the tour's spotlight isn't under it.
+          window.setTimeout(startTour, 250);
+        }}
+      >
+        🧭 New here? Take the 30-second tour →
+      </button>
 
       <div className="free-notice__actions">
         <button type="button" className="free-notice__primary" onClick={close}>

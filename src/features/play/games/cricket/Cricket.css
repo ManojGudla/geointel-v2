@@ -318,3 +318,17 @@
 .game--cricket .stadium {
   max-height: min(52vh, 430px);
 }
+
+/*
+  Text on the scoreboard. The board is a solid brand fill with white type;
+  the required rate used the page's muted grey and the last-over warning the
+  page's danger red, both of which were close to invisible on it (about 2:1).
+  Both are given colours chosen for the board itself.
+*/
+.cricket__scoreboard .cricket__rate {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cricket__scoreboard .cricket__need--death strong {
+  color: #ffb4bf;
+}

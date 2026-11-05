@@ -36,6 +36,34 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const FREE_ROUTER = "openrouter/free";
 
 /**
+ * The free models to ask, in order, before falling back to the random router.
+ *
+ * Reported (November 2026): Ask maNOWj "sometimes gives random answers".
+ * It did, structurally: `openrouter/free` hands every question to a
+ * different free model chosen at random, so the same question got a sharp
+ * answer from one model and a rambling or wrong one from the next. Pinning a
+ * strong instruction-following model makes answers consistent; the router
+ * stays as the last resort so a model being withdrawn never means no answer.
+ *
+ * Chosen from OpenRouter's live free list on 2026-11-06:
+ *  - Gemma 4 31B: strong at following instructions, and at Telugu, Hindi and
+ *    mixed-language replies, which the system prompt asks for.
+ *  - Nemotron 3 Ultra: a large, capable fallback from a different provider,
+ *    so one provider's outage doesn't take out both.
+ * A model slug that disappears answers 404, which the loop below treats as
+ * "try the next one". OPENROUTER_MODEL, when set to a real model, goes first.
+ */
+const PREFERRED_FREE_MODELS = ["google/gemma-4-31b-it:free", "nvidia/nemotron-3-ultra-550b-a55b:free"];
+
+/**
+ * Some models leak their private reasoning into the answer as <think>…</think>.
+ * The person asked a question, not for a transcript of the model's thoughts.
+ */
+export function stripReasoning(text: string): string {
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/^[\s\S]*?<\/think>/i, "").trim();
+}
+
+/**
  * Thin abstraction over the AI provider so swapping providers later is a
  * config change, not a rewrite (see .env.example - AI_MODEL_* all point
  * here). OpenRouter's free tier by default. Never throws: a missing key or
@@ -48,7 +76,10 @@ export async function getAiCompletion(
   opts: { model?: string; maxTokens?: number; temperature?: number } = {}
 ): Promise<AiResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const requestedModel = opts.model || process.env.OPENROUTER_MODEL || FREE_ROUTER;
+  // A configured OPENROUTER_MODEL of "openrouter/free" (the old default in
+  // .env.example) means "no preference", not "random every time".
+  const configured = opts.model || process.env.OPENROUTER_MODEL;
+  const requestedModel = configured && configured !== FREE_ROUTER ? configured : PREFERRED_FREE_MODELS[0]!;
 
   if (!apiKey) {
     return { ok: false, error: "AI features aren't configured yet. An OPENROUTER_API_KEY is needed on the server." };
@@ -108,14 +139,16 @@ export async function getAiCompletion(
     cannot: a rejected API key and a rate limit, where a second request only
     wastes quota or makes the limit worse.
   */
-  const attempts = [requestedModel, FREE_ROUTER];
+  // Pinned model(s) first, the random router last. Never more than three
+  // attempts: they all have to fit inside the client's 35-second budget.
+  const attempts = [...new Set([requestedModel, ...PREFERRED_FREE_MODELS, FREE_ROUTER])].slice(0, 3);
   /*
     The client aborts at 35s (AI_REQUEST_TIMEOUT_MS in src/services/ai.ts).
     Two attempts have to finish inside that, so each gets half the old 25s
     budget plus a little. A retry that arrives after the client has already
     given up is worse than no retry - it burns free-tier quota for nobody.
   */
-  const perAttemptMs = 15_000;
+  const perAttemptMs = 11_000;
   let lastError = "The AI provider is temporarily unavailable.";
 
   for (let i = 0; i < attempts.length; i += 1) {
@@ -167,7 +200,7 @@ export async function getAiCompletion(
         */
         model?: string;
       };
-      const content = data.choices?.[0]?.message?.content?.trim();
+      const content = stripReasoning(data.choices?.[0]?.message?.content ?? "");
 
       if (!content) {
         console.warn("[ai] empty content from", model, "(rolling for a different model)");

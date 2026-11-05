@@ -53,6 +53,7 @@ export function MeasureToolbar() {
                 : points.length < 3
                   ? `${points.length} point${points.length === 1 ? "" : "s"}, need 3+ to close`
                   : `${points.length} point${points.length === 1 ? "" : "s"}`}
+            {points.length >= 2 && " · drag any point to move it"}
           </span>
           <div className="measure-toolbar__actions">
             <button type="button" onClick={undoPoint} disabled={points.length === 0} title="Remove last point">
