@@ -30,7 +30,9 @@
   font-weight: 700;
   /* No uppercase: it would turn the brand's own spelling, maNOWj, into MANOWJ. */
   letter-spacing: 0.02em;
-  color: var(--color-brand-600);
+  /* --color-info, not a brand shade: it has a light value in dark mode, where
+     brand-600/700 are dark navy on a dark navy card and disappear. */
+  color: var(--color-info);
 }
 
 .free-notice__title {
@@ -190,4 +192,29 @@
   .free-notice__timer-bar {
     animation: none;
   }
+}
+
+/* The highlighted line for Apple and Google employees: brand-tinted, bold,
+   and directly under the headline so it is read inside the four seconds. */
+.free-notice__welcome {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--color-info);
+  border-radius: var(--radius-md);
+  background: var(--color-info-bg);
+}
+
+.free-notice__welcome-title {
+  margin: 0 0 var(--space-1);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--color-info);
+}
+
+.free-notice__welcome-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text);
 }

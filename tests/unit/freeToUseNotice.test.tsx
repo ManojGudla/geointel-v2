@@ -36,7 +36,8 @@ describe("Free to use notice", () => {
     render(<FreeToUseNotice />);
     expect(screen.getByRole("dialog", { name: /free for everyone/i })).toBeTruthy();
     expect(screen.getByText(/not affiliated with Apple, Google/i)).toBeTruthy();
-    expect(screen.getByText(/never enter confidential/i)).toBeTruthy();
+    expect(screen.getByText(/Apple and Google employees are welcome too/i)).toBeTruthy();
+    expect(screen.getByText(/follow your employer.s rules and never\s+enter confidential/i)).toBeTruthy();
   });
 
   it("closes itself after 4 seconds", async () => {
@@ -69,5 +70,23 @@ describe("Free to use notice", () => {
     act(() => useFreeNoticeStore.getState().open());
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+});
+
+describe("one first-run pop-up at a time", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.resetModules();
+  });
+
+  it("holds the getting-started card back until the notice closes", async () => {
+    const { useFreeNoticeStore } = await import("../../src/features/notice/freeNoticeStore");
+    const { useOnboardingVisible } = await import("../../src/features/onboarding/onboardingVisibility");
+    const { renderHook } = await import("@testing-library/react");
+    const { result } = renderHook(() => useOnboardingVisible());
+    expect(useFreeNoticeStore.getState().isOpen).toBe(true);
+    expect(result.current).toBe(false);
+    act(() => useFreeNoticeStore.getState().close());
+    expect(result.current).toBe(true);
   });
 });

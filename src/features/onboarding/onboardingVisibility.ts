@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { useLocationStore } from "@/stores/locationStore";
 import { useConsentUiStore } from "@/features/analytics/consentUiStore";
+import { useFreeNoticeStore } from "@/features/notice/freeNoticeStore";
 
 /**
  * Whether the first-run onboarding card is on screen - shared state, because
@@ -86,10 +87,17 @@ export function onboardingVisible(hasLocation: boolean, dismissed: boolean): boo
   return !hasLocation && !dismissed;
 }
 
+/*
+  One first-run card at a time. The "Free for everyone" notice opens on the
+  same first visit, and with this card still drawn behind it the screen
+  showed two stacked pop-ups, which looked broken. The intro waits until the
+  notice has closed (at most four seconds), then appears on its own.
+*/
 export function useOnboardingVisible(): boolean {
   const location = useLocationStore((s) => s.selectedLocation);
   const dismissed = useOnboardingStore((s) => s.dismissed);
-  return onboardingVisible(Boolean(location), dismissed);
+  const noticeOpen = useFreeNoticeStore((s) => s.isOpen);
+  return !noticeOpen && onboardingVisible(Boolean(location), dismissed);
 }
 
 /**

@@ -74,6 +74,23 @@ export function FreeToUseNotice() {
       </h2>
       <p className="free-notice__lead">A free public website. Anyone can open it and use it, anywhere.</p>
 
+      {/*
+        Highlighted on purpose, and worded carefully. The people this site is
+        shared with first are colleagues on Apple and Google map projects, and
+        some were told it was not allowed. The site can truthfully welcome
+        them - it is public and free - but it cannot speak for their
+        employer, so the same box says the one thing that is true for every
+        employee everywhere: your employer's rules on outside tools and
+        confidential data still apply.
+      */}
+      <div className="free-notice__welcome">
+        <p className="free-notice__welcome-title">Apple and Google employees are welcome too</p>
+        <p className="free-notice__welcome-text">
+          It&apos;s a public website, open to everyone, like any other. As with any outside site, follow your employer&apos;s rules and never
+          enter confidential or client data.
+        </p>
+      </div>
+
       <ul className="free-notice__points">
         {POINTS.map((point) => (
           <li key={point.title}>
@@ -87,11 +104,6 @@ export function FreeToUseNotice() {
           </li>
         ))}
       </ul>
-
-      <div className="free-notice__work">
-        <strong>Using it at work?</strong> Follow your organisation&apos;s rules, and never enter confidential or client data into any
-        outside website, this one included.
-      </div>
 
       <div className="free-notice__actions">
         <button type="button" className="free-notice__primary" onClick={close}>
