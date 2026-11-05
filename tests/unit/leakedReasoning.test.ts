@@ -218,19 +218,26 @@ describe("a bad roll from the free model router", () => {
     if (!result.ok) expect(result.error).toMatch(/Run again/i);
   });
 
-  it("never re-rolls a rejected key or a rate limit", async () => {
-    /*
-      A second request cannot fix either, and for a rate limit it actively
-      makes things worse by spending more of a quota that is already gone.
-    */
-    for (const status of [401, 403, 429]) {
-      const spy = vi.fn(async () => ({ ok: false, status, text: async () => "no" }));
+  it("never re-rolls a rejected key or a used-up daily allowance", async () => {
+    for (const [status, body] of [[401, "no"], [403, "no"], [429, "Rate limit exceeded: free-models-per-day"]] as const) {
+      const spy = vi.fn(async () => ({ ok: false, status, text: async () => body }));
       vi.stubGlobal("fetch", spy);
       const result = await getAiCompletion([{ role: "user", content: "hi" }]);
       expect(result.ok, `status ${status}`).toBe(false);
       expect(spy, `status ${status}`).toHaveBeenCalledTimes(1);
       vi.unstubAllGlobals();
     }
+  });
+
+  it("moves on to the backup model when one free model is busy upstream", async () => {
+    const spy = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 429, text: async () => "google/gemma-4-31b-it:free is temporarily rate-limited upstream" })
+      .mockResolvedValueOnce(good);
+    vi.stubGlobal("fetch", spy);
+    const result = await getAiCompletion([{ role: "user", content: "hi" }]);
+    expect(result.ok).toBe(true);
+    expect(spy).toHaveBeenCalledTimes(2);
   });
 
   it("re-rolls a 5xx, which is one provider having a bad moment", async () => {
