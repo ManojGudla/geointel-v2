@@ -157,6 +157,34 @@ export function parseMapCommand(input: string): MapCommand | null {
   return null;
 }
 
+const FILLER_WORDS =
+  /\b(a|an|the|of|is|are|there|any|me|all|places?|here|this|that|for|to|in|at|on|me|my|what(?:'?s)?|is|it|good|place|spot|location|site|best|score|should|can|i|build|open|put|do|you|please|and|by|from|km|kms|m|meters?|metres?|mi|miles?)\b/g;
+
+/**
+ * True when a spatial question also names somewhere ("hospitals near
+ * Charminar", "schools in Ameerpet"), so a place lookup is still worth
+ * doing; false when it is nothing but the question ("hospitals within 2 km").
+ *
+ * Without this the search box sent every spatial question to the place
+ * geocoder as well - including the text an onboarding chip puts in the box -
+ * which spent a Nominatim request on "hospitals within 2 km" and could offer
+ * a nonsense "place" for it. Nominatim's usage policy asks clients not to
+ * send searches they do not need.
+ */
+export function mentionsAPlace(input: string): boolean {
+  let text = input.toLowerCase();
+  for (const [pattern] of CATEGORY_WORDS) text = text.replace(new RegExp(pattern.source, "g"), " ");
+  for (const [pattern] of FACILITY_WORDS) text = text.replace(new RegExp(pattern.source, "g"), " ");
+  text = text
+    .replace(new RegExp(INTENT_WORDS.source, "g"), " ")
+    .replace(/\d+(?:\.\d+)?/g, " ")
+    .replace(/\bbuffer\b|\bring\b|\bradius\b|\bnearest\b|\bclosest\b|\bsuitab\w*/g, " ")
+    .replace(FILLER_WORDS, " ")
+    .replace(/[^a-z\u0080-\uffff]+/g, " ")
+    .trim();
+  return text.length >= 3;
+}
+
 /** Human-readable echo of what a command was understood to mean, shown before results. */
 export function describeCommand(command: MapCommand, categoryLabel: (id: NearbyCategory) => string, presetLabel: (id: string) => string): string {
   const km = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(m % 1000 === 0 ? 0 : 1)} km` : `${m} m`);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocationStore } from "@/stores/locationStore";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { useRunAnalysis } from "./useRunAnalysis";
@@ -9,6 +9,7 @@ import { formatDistance } from "@/features/map/geo";
 import type { NearbyCategory } from "@/types/intel";
 import "./SpatialAnalysisPanel.css";
 import { useUiStore } from "@/stores/uiStore";
+import { useMapStore } from "@/stores/mapStore";
 
 type Operation = "buffer" | "within" | "nearest" | "suitability";
 
@@ -35,8 +36,10 @@ const DISTANCES = [500, 1000, 2000, 5000, 10000];
 export function SpatialAnalysisPanel() {
   const units = useUiStore((s) => s.units);
   const location = useLocationStore((s) => s.selectedLocation);
-  const { result, status, error, clear } = useAnalysisStore();
+  const mapCenter = useMapStore((s) => s.center);
+  const { result, status, error, clear, lastRequest } = useAnalysisStore();
   const run = useRunAnalysis();
+  const answerRef = useRef<HTMLDivElement | null>(null);
 
   const [operation, setOperation] = useState<Operation>("within");
   const [category, setCategory] = useState<NearbyCategory>("hospitals");
@@ -50,13 +53,61 @@ export function SpatialAnalysisPanel() {
     setWeights(next.weights);
   };
 
+  /*
+    The controls follow the question that was actually asked.
+
+    A question from the search box or an onboarding chip ("schools within
+    1 km") arrives here already answered, but the dropdowns still showed
+    their own defaults - so the panel could show "Hospitals, 2 km" above an
+    answer about schools within 1 km. Syncing from the last request keeps
+    the form and the answer telling the same story.
+  */
+  useEffect(() => {
+    if (!lastRequest) return;
+    setOperation(lastRequest.operation);
+    if (lastRequest.category) setCategory(lastRequest.category);
+    if (lastRequest.operation !== "nearest" && DISTANCES.includes(lastRequest.radiusMeters)) setDistance(lastRequest.radiusMeters);
+    if (lastRequest.presetId) choosePreset(lastRequest.presetId);
+    // choosePreset is a plain closure over setters; re-running on its identity would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastRequest]);
+
+  /*
+    Bring the answer into view.
+
+    The answer (and any error) used to render below the form, which on a
+    phone is below the fold of this panel. Reported: an onboarding chip ran,
+    "Running…" turned back into a greyed-out button, and the error that
+    explained why sat off-screen - so it looked like nothing had happened.
+    The answer now renders above the controls, and is scrolled to as well,
+    because the panel may already be scrolled down from an earlier visit.
+  */
+  useEffect(() => {
+    if (status === "running" || status === "error" || result) {
+      answerRef.current?.scrollIntoView?.({ block: "start", behavior: "smooth" });
+    }
+  }, [status, result]);
+
+  /*
+    Where a new analysis is measured from: the selected place, or else the
+    centre of the map - the same fallback the search box and onboarding
+    chips already use, and the one the note above the controls promises.
+    The Run button used to be disabled without a selected place, which
+    contradicted that note and left the panel looking broken after a chip.
+  */
+  const origin = location ? { lat: location.lat, lon: location.lon } : { lat: mapCenter[1], lon: mapCenter[0] };
+
+  const retry = async () => {
+    if (!lastRequest) return;
+    await run(lastRequest).catch(() => undefined);
+  };
+
   const submit = async () => {
-    if (!location) return;
     // Errors are already recorded in the store by the shared runner, which
-    // is what renders them below - nothing to do here but not crash.
+    // is what renders them - nothing to do here but not crash.
     await run({
       operation,
-      origin: { lat: location.lat, lon: location.lon },
+      origin,
       radiusMeters: operation === "nearest" ? 10_000 : distance,
       category,
       presetId,
@@ -120,6 +171,26 @@ export function SpatialAnalysisPanel() {
           click anywhere on the map, to analyse a specific point.
         </p>
       )}
+
+      {/* The answer comes first; the controls to ask another question follow. */}
+      <div ref={answerRef} className="analysis__answer" aria-live="polite">
+        {status === "running" && (
+          <p className="analysis__running">
+            <span className="async-panel__spinner" aria-hidden="true" /> Working it out…
+          </p>
+        )}
+        {status === "error" && (
+          <div className="analysis__error" role="alert">
+            <p>{error}</p>
+            {lastRequest && (
+              <button type="button" className="analysis__retry" onClick={() => void retry()}>
+                Try again
+              </button>
+            )}
+          </div>
+        )}
+        {status !== "running" && result && <AnalysisResultView />}
+      </div>
 
       <div className="analysis__ops" role="group" aria-label="Analysis type">
         {OPERATIONS.map((op) => (
@@ -192,15 +263,12 @@ export function SpatialAnalysisPanel() {
       )}
 
       <div className="analysis__actions">
-        {/* Disabled without a location rather than hidden: submit() already
-            returns early in that case, and a button that silently does
-            nothing is worse than one that explains why it can't. */}
         <button
           type="button"
           className="analysis__run"
           onClick={() => void submit()}
-          disabled={status === "running" || !location}
-          title={location ? undefined : "Pick a place on the map first"}
+          disabled={status === "running"}
+          title={location ? undefined : "Runs from the centre of the map"}
         >
           {status === "running" ? "Running…" : "Run analysis"}
         </button>
@@ -211,9 +279,6 @@ export function SpatialAnalysisPanel() {
         )}
       </div>
 
-      {status === "error" && <p className="analysis__error">{error}</p>}
-
-      {result && <AnalysisResultView />}
     </div>
   );
 }

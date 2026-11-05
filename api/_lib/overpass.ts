@@ -14,11 +14,22 @@ import { fetchWithTimeout } from "./cache.js";
 // instances added here for exactly that redundancy.
 export const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
+  // Added 2026-11-06. During a live outage, overpass-api.de, kumi.systems
+  // and private.coffee were all answering "at capacity, request queue full"
+  // or timing out, while this instance (run by OpenStreetMap France) answered
+  // the same hospitals query in under a second. It was not in the list, so
+  // Nearby failed for everyone while a healthy mirror sat unused. Second in
+  // line so it is in the very first wave.
+  "https://overpass.openstreetmap.fr/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
   "https://overpass.private.coffee/api/interpreter",
-  "https://overpass.osm.ch/api/interpreter",
-  "https://overpass.nchc.org.tw/api/interpreter",
   "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+  // Removed 2026-11-06:
+  //  - overpass.osm.ch: its replica has been broken since at least
+  //    2026-09-01 (timestamp "118257", empty results) and is always
+  //    rejected by hasPlausibleReplicaTimestamp, so it only ever burned a
+  //    slot in a hedge wave.
+  //  - overpass.nchc.org.tw: no longer accepts connections.
 ];
 
 export interface OverpassElement {
@@ -32,7 +43,10 @@ export interface OverpassElement {
   tags?: Record<string, string>;
 }
 
-const OVERPASS_ENDPOINT_TIMEOUT_MS = 14_000;
+// 9s, down from 14s. A mirror that has not answered a small radius query in
+// 9s is almost always queued behind an overload, not about to answer; waiting
+// longer only kept the visitor watching "Running…" for 17s before the error.
+const OVERPASS_ENDPOINT_TIMEOUT_MS = 9_000;
 
 // Mirrors are contacted in waves rather than all at once - a "hedged
 // request". Reported bug: on the live site, GIS evidence for a location
@@ -53,7 +67,7 @@ const OVERPASS_ENDPOINT_TIMEOUT_MS = 14_000;
 // this app depends on for Evidence, Nearby, click-to-inspect, Property
 // Intelligence and every AI agent reasoning over them.
 const HEDGE_WAVE_SIZE = 2;
-const HEDGE_DELAY_MS = 2_500;
+const HEDGE_DELAY_MS = 1_500;
 
 /**
  * Overpass's usage policy asks every client to identify itself, and this was
@@ -71,7 +85,7 @@ const HEDGE_DELAY_MS = 2_500;
  * click-to-inspect, Property Intelligence and every AI agent downstream of
  * them.
  */
-const USER_AGENT = "maNOWj-GeoIntel/2.0 (location-intelligence app; contact: geointel app)";
+const USER_AGENT = "maNOWj-GeoIntel/2.0 (location-intelligence app; +https://www.manowj.com)";
 
 /**
  * A public mirror's own OSM3S replica timestamp - a real one always looks
@@ -94,10 +108,109 @@ function hasPlausibleReplicaTimestamp(data: { osm3s?: { timestamp_osm_base?: str
   return typeof ts === "string" && /^\d{4}-\d{2}-\d{2}T/.test(ts);
 }
 
+/**
+ * What this instance has learned about each mirror from real queries.
+ *
+ * Every query used to start from the same fixed order, so during an outage
+ * every single request spent its first wave on overpass-api.de and
+ * kumi.systems - both dead - before reaching anything alive. Remembering
+ * recent failures lets later queries lead with the mirrors that are actually
+ * answering. Nothing is probed for this: it is a by-product of queries that
+ * were happening anyway, so it adds no load to volunteer infrastructure.
+ *
+ * Per-instance and in-memory, like every cache here. The API is a single
+ * catch-all function (api/[...path].ts), so /api/health in a warm instance
+ * sees what /api/nearby learned in that same instance.
+ */
+interface MirrorHealth {
+  consecutiveFailures: number;
+  /** Until when this mirror goes to the back of the queue. */
+  coolDownUntil: number;
+  lastSuccessAt: number;
+}
+
+const mirrorHealth = new Map<string, MirrorHealth>();
+/** Grows with each consecutive failure, capped, so a mirror that recovers is tried again soon. */
+const COOL_DOWN_STEP_MS = 30_000;
+const COOL_DOWN_MAX_MS = 5 * 60_000;
+
+let lastQueryOutcome: { ok: boolean; at: number } | null = null;
+
+function recordMirror(endpoint: string, ok: boolean) {
+  const now = Date.now();
+  const h = mirrorHealth.get(endpoint) ?? { consecutiveFailures: 0, coolDownUntil: 0, lastSuccessAt: 0 };
+  if (ok) {
+    h.consecutiveFailures = 0;
+    h.coolDownUntil = 0;
+    h.lastSuccessAt = now;
+  } else {
+    h.consecutiveFailures += 1;
+    h.coolDownUntil = now + Math.min(COOL_DOWN_STEP_MS * h.consecutiveFailures, COOL_DOWN_MAX_MS);
+  }
+  mirrorHealth.set(endpoint, h);
+}
+
+/**
+ * Healthy mirrors first (most recently successful leading), cooling-down
+ * mirrors last. Every mirror stays in the list: in a full outage the ones at
+ * the back still get their turn, so ordering never removes coverage.
+ */
+export function orderedEndpoints(now = Date.now()): string[] {
+  const rank = (endpoint: string) => {
+    const h = mirrorHealth.get(endpoint);
+    if (!h) return { cooling: false, lastSuccessAt: 0 };
+    return { cooling: h.coolDownUntil > now, lastSuccessAt: h.lastSuccessAt };
+  };
+  return OVERPASS_ENDPOINTS.map((endpoint, index) => ({ endpoint, index, ...rank(endpoint) }))
+    .sort((a, b) => {
+      if (a.cooling !== b.cooling) return a.cooling ? 1 : -1;
+      if (a.lastSuccessAt !== b.lastSuccessAt) return b.lastSuccessAt - a.lastSuccessAt;
+      return a.index - b.index;
+    })
+    .map((x) => x.endpoint);
+}
+
+/**
+ * The map-data status /api/health reports, from the last real query this
+ * instance ran. "unknown" when it has run none, which is not the same as
+ * healthy and is not reported as such.
+ */
+export function getOverpassHealth(now = Date.now()): { status: "ok" | "degraded" | "unknown"; checkedAt: string | null } {
+  // Ten minutes: long enough to cover the gap between a visitor's queries,
+  // short enough that a recovered service stops being reported as broken.
+  if (!lastQueryOutcome || now - lastQueryOutcome.at > 10 * 60_000) return { status: "unknown", checkedAt: null };
+  return { status: lastQueryOutcome.ok ? "ok" : "degraded", checkedAt: new Date(lastQueryOutcome.at).toISOString() };
+}
+
+/** Test hook: forget everything learned so far. */
+export function resetOverpassHealth() {
+  mirrorHealth.clear();
+  lastQueryOutcome = null;
+}
+
+export interface OverpassResult {
+  elements: OverpassElement[];
+  /** The mirror's own replica timestamp - how current the OpenStreetMap data behind this answer is. */
+  dataAsOf: string | null;
+}
+
+/**
+ * Every mirror failed. A named type so routes can recognise it and answer
+ * with a plain-language message (and a cached fallback) instead of passing
+ * an internal error string through to the visitor.
+ */
+export class OverpassUnavailableError extends Error {
+  constructor(public readonly mirrorsTried: number) {
+    super(`All ${mirrorsTried} OpenStreetMap data mirrors failed to respond.`);
+    this.name = "OverpassUnavailableError";
+  }
+}
+
 interface MirrorOutcome {
   endpoint: string;
   ok: boolean;
   elements?: OverpassElement[];
+  dataAsOf?: string | null;
   error?: string;
 }
 
@@ -126,9 +239,21 @@ interface MirrorOutcome {
  * anything real.
  */
 export async function runOverpassQuery(query: string): Promise<OverpassElement[]> {
-  const outcomes: MirrorOutcome[] = [];
+  const { elements } = await runOverpassQueryDetailed(query);
+  return elements;
+}
 
-  return new Promise<OverpassElement[]>((resolve, reject) => {
+/** runOverpassQuery, plus how current the data that answered it is. */
+export async function runOverpassQueryDetailed(query: string): Promise<OverpassResult> {
+  const outcomes: MirrorOutcome[] = [];
+  const endpoints = orderedEndpoints();
+
+  const settle = <T,>(ok: boolean, value: T): T => {
+    lastQueryOutcome = { ok, at: Date.now() };
+    return value;
+  };
+
+  return new Promise<OverpassResult>((resolve, reject) => {
     let settledCount = 0;
     let decided = false;
     let launched = 0;
@@ -150,12 +275,12 @@ export async function runOverpassQuery(query: string): Promise<OverpassElement[]
       const nonEmpty = outcomes.find((o) => o.ok && o.elements && o.elements.length > 0);
       if (nonEmpty) {
         decided = true;
-        return resolve(nonEmpty.elements!);
+        return resolve(settle(true, { elements: nonEmpty.elements!, dataAsOf: nonEmpty.dataAsOf ?? null }));
       }
       const anyEmpty = outcomes.find((o) => o.ok);
       if (anyEmpty) {
         decided = true;
-        return resolve(anyEmpty.elements!);
+        return resolve(settle(true, { elements: anyEmpty.elements!, dataAsOf: anyEmpty.dataAsOf ?? null }));
       }
       decided = true;
       const errors = outcomes.map((o) => o.error).filter((e): e is string => !!e);
@@ -173,13 +298,8 @@ export async function runOverpassQuery(query: string): Promise<OverpassElement[]
         for debugging. What crosses the wire is the count.
       */
       console.error("[overpass] all mirrors failed:", errors.join(" | "));
-      reject(
-        new Error(
-          errors.length
-            ? `All ${errors.length} OpenStreetMap data mirrors failed to respond.`
-            : "All OpenStreetMap data mirrors failed to respond."
-        )
-      );
+      settle(false, null);
+      reject(new OverpassUnavailableError(errors.length || endpoints.length));
     };
 
     const attempt = (endpoint: string) => {
@@ -219,14 +339,16 @@ export async function runOverpassQuery(query: string): Promise<OverpassElement[]
             throw new Error(`${endpoint} returned a response with no valid replica timestamp, likely a corrupted/empty mirror`);
           }
 
-          outcomes.push({ endpoint, ok: true, elements: data.elements });
+          const dataAsOf = data.osm3s?.timestamp_osm_base ?? null;
+          recordMirror(endpoint, true);
+          outcomes.push({ endpoint, ok: true, elements: data.elements, dataAsOf });
           if (data.elements.length > 0 && !decided) {
             decided = true;
             // Real data in hand - don't send the later waves at all. This is
             // the whole point of hedging: on a healthy request the mirrors
             // further down the list are never contacted.
             stopEscalating();
-            resolve(data.elements);
+            resolve(settle(true, { elements: data.elements, dataAsOf }));
           }
         } catch (error) {
           // Every error thrown INSIDE this try already mentions its own
@@ -243,10 +365,11 @@ export async function runOverpassQuery(query: string): Promise<OverpassElement[]
           // endpoint, so the already-descriptive messages aren't doubled up.
           const raw = error instanceof Error ? error.message : "request failed";
           const message = raw.includes(endpoint) ? raw : `${endpoint}: ${raw}`;
+          recordMirror(endpoint, false);
           outcomes.push({ endpoint, ok: false, error: message });
         } finally {
           settledCount += 1;
-          if (settledCount === OVERPASS_ENDPOINTS.length) {
+          if (settledCount === endpoints.length) {
             finish();
           } else if (settledCount === launched && !decided) {
             // Everything launched so far has failed, and there are mirrors
@@ -259,12 +382,12 @@ export async function runOverpassQuery(query: string): Promise<OverpassElement[]
     };
 
     function launchWave() {
-      if (decided || launched >= OVERPASS_ENDPOINTS.length) return;
+      if (decided || launched >= endpoints.length) return;
       stopEscalating();
-      const wave = OVERPASS_ENDPOINTS.slice(launched, launched + HEDGE_WAVE_SIZE);
+      const wave = endpoints.slice(launched, launched + HEDGE_WAVE_SIZE);
       launched += wave.length;
       wave.forEach(attempt);
-      if (launched < OVERPASS_ENDPOINTS.length) {
+      if (launched < endpoints.length) {
         waveTimer = setTimeout(launchWave, HEDGE_DELAY_MS);
       }
     }

@@ -404,6 +404,17 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent);
 }
 
+.app-header__status--degraded {
+  background: var(--color-warning-bg);
+  border-color: transparent;
+  color: var(--color-warning);
+}
+
+.app-header__status--degraded .app-header__status-dot {
+  background: var(--color-warning);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-warning) 25%, transparent);
+}
+
 .app-header__status--checking .app-header__status-dot {
   background: var(--color-warning);
 }

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { SuitabilityFactor } from "@/features/analysis/spatialMath";
+import type { AnalysisRequest } from "@/features/analysis/runAnalysis";
 
 /**
  * The result of the most recent spatial analysis, held here so the map can
@@ -39,7 +40,13 @@ interface AnalysisState {
   result: AnalysisResult | null;
   status: "idle" | "running" | "error";
   error: string | null;
-  setRunning: () => void;
+  /**
+   * What was last asked, from any entry point (panel, search box, onboarding
+   * chip, shared link). Lets the panel show the controls that match the
+   * answer on screen, and lets "Try again" re-ask exactly the same question.
+   */
+  lastRequest: AnalysisRequest | null;
+  setRunning: (request?: AnalysisRequest) => void;
   setResult: (result: AnalysisResult) => void;
   setError: (message: string) => void;
   clear: () => void;
@@ -49,7 +56,8 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
   result: null,
   status: "idle",
   error: null,
-  setRunning: () => set({ status: "running", error: null }),
+  lastRequest: null,
+  setRunning: (request) => set(request ? { status: "running", error: null, lastRequest: request } : { status: "running", error: null }),
   setResult: (result) => set({ result, status: "idle", error: null }),
   setError: (error) => set({ status: "error", error }),
   clear: () => set({ result: null, status: "idle", error: null }),

@@ -25,6 +25,12 @@ export interface NearbyResult {
   radiusMeters: number;
   requestedRadiusMeters: number;
   widened: boolean;
+  /** How current the OpenStreetMap data is, when the server knows. */
+  dataAsOf: string | null;
+  /** True when every live source failed and a saved answer was returned instead. */
+  stale: boolean;
+  /** When the server fetched this answer from OpenStreetMap. */
+  fetchedAt: string | null;
 }
 
 export async function fetchNearbyResult(
@@ -46,7 +52,28 @@ export async function fetchNearbyResult(
     radiusMeters: data.radiusMeters ?? radiusMeters,
     requestedRadiusMeters: data.requestedRadiusMeters ?? radiusMeters,
     widened: data.widened ?? false,
+    dataAsOf: data.dataAsOf ?? null,
+    stale: data.stale ?? false,
+    fetchedAt: data.fetchedAt ?? null,
   };
+}
+
+/**
+ * One sentence on how fresh a Nearby answer is, or null when there is nothing
+ * worth saying. The site promises "every answer shows its source and its
+ * date", so a saved answer served during an outage says so plainly.
+ */
+export function nearbyFreshnessNote(result: Pick<NearbyResult, "stale" | "fetchedAt" | "dataAsOf">): string | null {
+  const day = (iso: string | null) => {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}T/.test(iso)) return null;
+    return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  };
+  if (result.stale) {
+    const fetched = day(result.fetchedAt);
+    return `OpenStreetMap's servers are busy, so this is the last saved answer${fetched ? ` (fetched ${fetched})` : ""}.`;
+  }
+  const asOf = day(result.dataAsOf);
+  return asOf ? `OpenStreetMap data as of ${asOf}.` : null;
 }
 
 /**

@@ -1,6 +1,6 @@
 import type { AnalysisPoint, AnalysisResult } from "@/stores/analysisStore";
 import type { NearbyCategory } from "@/types/intel";
-import { fetchNearby } from "@/services/intel";
+import { fetchNearby, fetchNearbyResult, nearbyFreshnessNote, type NearbyResult } from "@/services/intel";
 import { fetchGISEvidence } from "@/services/gis";
 import { formatDistance } from "@/features/map/geo";
 import { bearingDegrees, compassPoint, nearest, scoreBand, weightedScore, within } from "./spatialMath";
@@ -25,6 +25,12 @@ export interface AnalysisRequest {
   presetId?: string;
   /** Suitability only. Falls back to the preset's defaults. */
   weights?: Record<string, number>;
+}
+
+/** Appends the data's date (or the saved-answer warning) to a result's source note. */
+function withFreshness(note: string, result: NearbyResult): string {
+  const freshness = nearbyFreshnessNote(result);
+  return freshness ? `${note} ${freshness}` : note;
 }
 
 /** Distance the "nearest" search is willing to look before reporting nothing found. */
@@ -55,7 +61,8 @@ export async function runAnalysis(
   const { origin, radiusMeters } = request;
 
   if (request.operation === "buffer") {
-    const items = await fetchNearby(origin.lat, origin.lon, radiusMeters);
+    const nearbyResult = await fetchNearbyResult(origin.lat, origin.lon, radiusMeters);
+    const items = nearbyResult.items;
     const inside = within(toPoints(items), radiusMeters);
 
     const byCategory = new Map<string, number>();
@@ -76,14 +83,14 @@ export async function runAnalysis(
           .slice(0, 3)
           .map(([cat, count]) => ({ label: categoryLabel(cat as NearbyCategory), value: String(count) })),
       ],
-      note: "Counts are mapped OpenStreetMap features inside the ring, not a census. Coverage varies by area.",
+      note: withFreshness("Counts are mapped OpenStreetMap features inside the ring, not a census. Coverage varies by area.", nearbyResult),
     };
   }
 
   if (request.operation === "within") {
     const category = request.category ?? "hospitals";
-    const items = await fetchNearby(origin.lat, origin.lon, radiusMeters, category);
-    const inside = within(toPoints(items), radiusMeters);
+    const nearbyResult = await fetchNearbyResult(origin.lat, origin.lon, radiusMeters, category);
+    const inside = within(toPoints(nearbyResult.items), radiusMeters);
 
     return {
       kind: "within",
@@ -96,14 +103,14 @@ export async function runAnalysis(
         { label: "Closest", value: inside[0] ? formatDistance(inside[0].distanceMeters, units) : "-" },
         { label: "Furthest", value: inside.length ? formatDistance(inside[inside.length - 1]!.distanceMeters, units) : "-" },
       ],
-      note: "Results are features tagged in OpenStreetMap. Somewhere unmapped will not appear here.",
+      note: withFreshness("Results are features tagged in OpenStreetMap. Somewhere unmapped will not appear here.", nearbyResult),
     };
   }
 
   if (request.operation === "nearest") {
     const category = request.category ?? "hospitals";
-    const items = await fetchNearby(origin.lat, origin.lon, NEAREST_SEARCH_RADIUS_METERS, category);
-    const closest = nearest(toPoints(items));
+    const nearbyResult = await fetchNearbyResult(origin.lat, origin.lon, NEAREST_SEARCH_RADIUS_METERS, category);
+    const closest = nearest(toPoints(nearbyResult.items));
     const label = categoryLabel(category).toLowerCase();
 
     if (!closest) {
@@ -113,7 +120,7 @@ export async function runAnalysis(
         origin,
         points: [],
         stats: [{ label: "Found", value: `None within ${formatDistance(NEAREST_SEARCH_RADIUS_METERS, units)}` }],
-        note: "Nothing of this kind is mapped within 10 km in OpenStreetMap. That may mean none exists, or that it isn't mapped yet.",
+        note: withFreshness("Nothing of this kind is mapped within 10 km in OpenStreetMap. That may mean none exists, or that it isn't mapped yet.", nearbyResult),
       };
     }
 
@@ -132,7 +139,7 @@ export async function runAnalysis(
         { label: "Straight-line distance", value: formatDistance(closest.distanceMeters, units) },
         { label: "Direction", value: `${compassPoint(bearing)} (${Math.round(bearing)}°)` },
       ],
-      note: "Straight-line distance, not travel distance. Use Directions for a road route.",
+      note: withFreshness("Straight-line distance, not travel distance. Use Directions for a road route.", nearbyResult),
     };
   }
 

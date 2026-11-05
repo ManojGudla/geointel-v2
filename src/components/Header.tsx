@@ -14,21 +14,27 @@ import { isTriggered, recordTap } from "@/features/secret/secretGesture";
 
 const THEME_ICON: Record<ThemeMode, string> = { system: "🖥️", light: "☀️", dark: "🌙" };
 
+type BackendStatus = "online" | "degraded" | "offline";
+
 /**
  * Pings a lightweight, always-mounted API route so "GIS Online" reflects
- * the actual backend, not a hardcoded green dot. api/health.ts just
- * confirms the dev/production API layer itself is reachable; richer
- * per-provider status could be layered on later.
+ * the actual backend, not a hardcoded green dot.
+ *
+ * Three states, not two. /api/health now also reports whether recent
+ * OpenStreetMap map-data queries are succeeding: on 2026-11-06 the pill said
+ * "GIS Online" in green while every Nearby and What's-here request was
+ * failing, because the server was up and the data behind it was not.
+ * "Limited" says exactly that - the app works, map-data answers may not.
  */
 function useBackendStatus() {
-  const [online, setOnline] = useState<boolean | null>(null);
+  const [online, setOnline] = useState<BackendStatus | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const check = async () => {
       // Offline is known without asking, and asking would just hang.
       if (navigator.onLine === false) {
-        if (!cancelled) setOnline(false);
+        if (!cancelled) setOnline("offline");
         return;
       }
       // A health check that never answers must not leave the pill stuck on
@@ -38,9 +44,14 @@ function useBackendStatus() {
       const timer = setTimeout(() => controller.abort(), 8_000);
       try {
         const res = await fetch("/api/health", { signal: controller.signal });
-        if (!cancelled) setOnline(res.ok);
+        let next: BackendStatus = res.ok ? "online" : "offline";
+        if (res.ok) {
+          const body = (await res.json().catch(() => null)) as { status?: string } | null;
+          if (body?.status === "degraded") next = "degraded";
+        }
+        if (!cancelled) setOnline(next);
       } catch {
-        if (!cancelled) setOnline(false);
+        if (!cancelled) setOnline("offline");
       } finally {
         clearTimeout(timer);
       }
@@ -63,6 +74,16 @@ function useBackendStatus() {
 
   return online;
 }
+
+const STATUS_TEXT: Record<BackendStatus | "checking", { label: string; aria: string }> = {
+  checking: { label: "Checking…", aria: "Checking the connection to the data service" },
+  online: { label: "GIS Online", aria: "Data service online" },
+  degraded: {
+    label: "GIS Limited",
+    aria: "Data service online, but OpenStreetMap map data is slow or unavailable right now. Nearby and What's here may fail.",
+  },
+  offline: { label: "GIS Offline", aria: "Data service offline" },
+};
 
 const THEME_CYCLE: ThemeMode[] = ["system", "light", "dark"];
 
@@ -162,7 +183,10 @@ export function Header() {
             roughly a quarter of the screen height, taken from the map. */}
         <div className="app-header__wordmark">
           <span className="app-header__logo app-header__logo--full">maNOWj GeoIntel</span>
-          <span className="app-header__logo app-header__logo--short">GeoIntel</span>
+          {/* The short form keeps the brand, not the product noun: on a phone
+              this is the only place the name appears, and "GeoIntel" alone
+              is a generic word nobody can search for. */}
+          <span className="app-header__logo app-header__logo--short">maNOWj</span>
           <span className="app-header__tagline">Maps, data and sources for any place</span>
         </div>
       </div>
@@ -310,13 +334,13 @@ export function Header() {
             readers, leaving a coloured dot that said nothing to anyone who
             could not see its colour. */}
         <span
-          className={`app-header__status app-header__status--${online === null ? "checking" : online ? "online" : "offline"}`}
+          className={`app-header__status app-header__status--${online === null ? "checking" : online}`}
           role="status"
-          aria-label={online === null ? "Checking the connection to the data service" : online ? "Data service online" : "Data service offline"}
-          title={online === null ? "Checking…" : online ? "Data service online" : "Data service offline"}
+          aria-label={STATUS_TEXT[online ?? "checking"].aria}
+          title={STATUS_TEXT[online ?? "checking"].aria}
         >
           <span className="app-header__status-dot" aria-hidden="true" />
-          <span className="app-header__btn-label">{online === null ? "Checking…" : online ? "GIS Online" : "GIS Offline"}</span>
+          <span className="app-header__btn-label">{STATUS_TEXT[online ?? "checking"].label}</span>
         </span>
       </div>
     </header>

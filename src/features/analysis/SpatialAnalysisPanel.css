@@ -173,13 +173,57 @@
   cursor: pointer;
 }
 
+.analysis__answer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  scroll-margin-top: var(--space-3);
+}
+
+.analysis__answer:empty {
+  display: none;
+}
+
+.analysis__running {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
 .analysis__error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   margin: 0;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   background: var(--color-danger-bg);
   color: var(--color-danger);
   font-size: var(--text-xs);
+}
+
+.analysis__error p {
+  margin: 0;
+}
+
+.analysis__retry {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.analysis__retry:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
 }
 
 .analysis__result {

@@ -9,7 +9,7 @@ import { useLocationStore } from "@/stores/locationStore";
 import { parseCoordinatePair, formatCoordinateLabel, type CoordinatePair } from "./coordinateSearch";
 import { useMapStore } from "@/stores/mapStore";
 import { useShellStore } from "@/stores/shellStore";
-import { commandToRequest, parseMapCommand } from "@/features/ai/mapCommands";
+import { commandToRequest, mentionsAPlace, parseMapCommand } from "@/features/ai/mapCommands";
 import { useRunAnalysis } from "@/features/analysis/useRunAnalysis";
 import type { Location, SearchSuggestion } from "@/types/location";
 import "./SearchBar.css";
@@ -124,7 +124,9 @@ export function SearchBar() {
     // by proximity so that a local neighbourhood beats a distant famous city.
     queryKey: ["geocode", debouncedQuery, mapCenter[0].toFixed(1), mapCenter[1].toFixed(1)],
     queryFn: ({ signal }) => searchLocations(debouncedQuery, signal, { lat: mapCenter[1], lon: mapCenter[0] }),
-    enabled: debouncedQuery.trim().length >= 3 && !coordinateMatch,
+    // A spatial question with no place in it ("hospitals within 2 km") is
+    // answered by "Find on map", not by a place lookup - see mentionsAPlace.
+    enabled: debouncedQuery.trim().length >= 3 && !coordinateMatch && (!spatialCommand || mentionsAPlace(debouncedQuery)),
     staleTime: 30_000,
   });
 

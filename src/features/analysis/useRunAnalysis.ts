@@ -36,7 +36,7 @@ export function useRunAnalysis() {
 
   return useCallback(
     async (request: AnalysisRequest) => {
-      setRunning();
+      setRunning(request);
       try {
         // "Nearest" searches a wide fixed area to find one thing; forcing the
         // map's radius out to 10 km for it would misrepresent the question
