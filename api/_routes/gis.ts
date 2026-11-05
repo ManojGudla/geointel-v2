@@ -2,7 +2,7 @@ import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
 import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
-import { runOverpassQuery, buildEvidenceQuery, normalizeElement, type OverpassElement } from "../_lib/overpass.js";
+import { runOverpassQuery, buildEvidenceQuery, normalizeElement, OverpassUnavailableError, type OverpassElement } from "../_lib/overpass.js";
 
 const ALLOWED_RADII = [100, 250, 500, 1000, 2000, 5000];
 const MAX_CUSTOM_RADIUS = 5000;
@@ -391,8 +391,13 @@ const handler: ApiHandler = async (req, res) => {
       if (cached.elements.length > 0) cache.set(cacheKey, cached);
     } catch (error) {
       console.error("[api/gis]", error);
-      const reason = error instanceof Error ? error.message : "unknown reason";
-      return err(res, 502, `GIS evidence is temporarily unavailable (${reason}).`, "PROVIDER_UNAVAILABLE");
+      // Plain language, same as /api/nearby: say what happened and what to do,
+      // not which internal mirrors failed.
+      const message =
+        error instanceof OverpassUnavailableError
+          ? "OpenStreetMap's free map-data servers are overloaded right now, so this place can't be analysed. Please try again in a minute."
+          : "Map data for this place could not be loaded just now. Please try again in a minute.";
+      return err(res, 502, message, "PROVIDER_UNAVAILABLE");
     }
   }
 

@@ -2,7 +2,7 @@ import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
 import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
-import { runOverpassQuery, normalizeElement, type OverpassElement } from "../_lib/overpass.js";
+import { runOverpassQueryDetailed, normalizeElement, OverpassUnavailableError, type OverpassElement } from "../_lib/overpass.js";
 
 interface TagFilter {
   key: string;
@@ -47,7 +47,22 @@ const CATEGORY_FILTERS: Record<string, TagFilter[]> = {
 // data. This is a per-instance in-memory cache on serverless (see cache.ts), so
 // it evaporates on a cold start - it reduces load and speeds up repeat views,
 // it is not a durability guarantee.
-const cache = new TtlCache<OverpassElement[]>(6 * 60 * 60 * 1000);
+interface CachedSearch {
+  elements: OverpassElement[];
+  dataAsOf: string | null;
+  fetchedAt: string;
+}
+
+const cache = new TtlCache<CachedSearch>(6 * 60 * 60 * 1000);
+/**
+ * The last good answer for each search, kept for a week.
+ *
+ * Only ever read when every mirror has failed. Hospitals and schools do not
+ * move in a week, so an answer from a few days ago, clearly labelled with its
+ * date, is far more use to someone than "temporarily unavailable" - which is
+ * what every visitor got during the November 2026 Overpass overload.
+ */
+const lastGood = new TtlCache<CachedSearch>(7 * 24 * 60 * 60 * 1000);
 const limiter = new RateLimiter(60_000, 20);
 
 function haversineMeters(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
@@ -135,35 +150,66 @@ const handler: ApiHandler = async (req, res) => {
   const WIDENED_RADIUS_METERS = 5000;
   const shouldWiden = radius < WIDENED_RADIUS_METERS;
 
-  const searchAt = async (metres: number): Promise<OverpassElement[]> => {
-    const key = `${lat.toFixed(4)},${lon.toFixed(4)},${metres},${categories.join(",")}`;
+  const keyFor = (metres: number) => `${lat.toFixed(4)},${lon.toFixed(4)},${metres},${categories.join(",")}`;
+
+  const searchAt = async (metres: number): Promise<CachedSearch> => {
+    const key = keyFor(metres);
     const hit = cache.get(key);
     if (hit) return hit;
     const clauses = filters.map((f) => `nwr(around:${metres},${lat},${lon})${overpassClause(f)};`).join("\n");
-    const found = await runOverpassQuery(`[out:json][timeout:20];(${clauses});out center tags;`);
-    cache.set(key, found);
-    return found;
+    const found = await runOverpassQueryDetailed(`[out:json][timeout:20];(${clauses});out center tags;`);
+    const entry: CachedSearch = { ...found, fetchedAt: new Date().toISOString() };
+    // Empty answers are not kept, same rule as api/_routes/gis.ts: a mirror
+    // occasionally returns nothing for a well-mapped place, and pinning that
+    // for hours made a busy street read as empty long after it recovered.
+    if (entry.elements.length > 0) {
+      cache.set(key, entry);
+      lastGood.set(key, entry);
+    }
+    return entry;
   };
 
-  let elements: OverpassElement[];
+  let search: CachedSearch;
   let searchedRadius = radius;
   let widened = false;
+  let stale = false;
 
   try {
-    elements = await searchAt(radius);
-    if (elements.length === 0 && shouldWiden) {
+    search = await searchAt(radius);
+    if (search.elements.length === 0 && shouldWiden) {
       const wider = await searchAt(WIDENED_RADIUS_METERS);
-      if (wider.length > 0) {
-        elements = wider;
+      if (wider.elements.length > 0) {
+        search = wider;
         searchedRadius = WIDENED_RADIUS_METERS;
         widened = true;
       }
     }
   } catch (error) {
     console.error("[api/nearby]", error);
-    const reason = error instanceof Error ? error.message : "unknown reason";
-    return err(res, 502, `Nearby places are temporarily unavailable (${reason}).`, "PROVIDER_UNAVAILABLE");
+    const fallback = lastGood.get(keyFor(radius));
+    if (fallback) {
+      search = fallback;
+      stale = true;
+    } else {
+      /*
+        Plain language, no internals. The old message was "Nearby places are
+        temporarily unavailable (All 6 OpenStreetMap data mirrors failed to
+        respond.)" - accurate, but it told a visitor about mirrors, and not
+        what to do. This says what happened and the one useful action.
+      */
+      const message =
+        error instanceof OverpassUnavailableError
+          ? "OpenStreetMap's free map-data servers are overloaded right now, so places can't be counted. Please try again in a minute."
+          : "Nearby places could not be loaded just now. Please try again in a minute.";
+      return err(res, 502, message, "PROVIDER_UNAVAILABLE");
+    }
   }
+
+  // A fallback answer must not be pinned in the CDN for six hours: the next
+  // visitor should get a fresh one as soon as the mirrors recover.
+  if (stale) res.setHeader("Cache-Control", "public, max-age=0, s-maxage=120");
+
+  const elements = search.elements;
 
   const items = elements
     .map((el) => {
@@ -196,6 +242,12 @@ const handler: ApiHandler = async (req, res) => {
     radiusMeters: searchedRadius,
     requestedRadiusMeters: radius,
     widened,
+    // How current the OpenStreetMap data is (the mirror's replica timestamp),
+    // and - only when every mirror failed and a saved answer was used instead
+    // - that this is a saved answer and when it was fetched. The UI shows both.
+    dataAsOf: search.dataAsOf,
+    stale,
+    fetchedAt: search.fetchedAt,
   });
 };
 

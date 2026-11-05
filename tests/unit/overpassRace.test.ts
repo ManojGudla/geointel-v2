@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
-import { runOverpassQuery } from "../../api/_lib/overpass";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
+import { runOverpassQuery, resetOverpassHealth, OVERPASS_ENDPOINTS } from "../../api/_lib/overpass";
 
 /**
  * Regression coverage for the bug the user hit in production: "Property
@@ -19,6 +19,9 @@ import { runOverpassQuery } from "../../api/_lib/overpass";
 const FAKE_OSM3S = { timestamp_osm_base: "2026-08-31T00:00:00Z" };
 
 describe("runOverpassQuery mirror racing", () => {
+  // Mirror order now adapts to recent failures; each test starts from the
+  // fixed order so these timing assertions stay deterministic.
+  beforeEach(() => resetOverpassHealth());
   afterEach(() => vi.useRealTimers());
 
   it("resolves via a fast mirror without waiting out a slow/failing one", async () => {
@@ -240,7 +243,7 @@ describe("runOverpassQuery mirror racing", () => {
     await expect(runOverpassQuery("[out:json];out;")).rejects.toThrow(/mirrors failed to respond/);
 
     // Full coverage is preserved for the degraded case...
-    expect(calls).toHaveLength(6);
+    expect(calls).toHaveLength(OVERPASS_ENDPOINTS.length);
     // ...and a dead wave escalates at once rather than costing 2.5s per wave.
     expect(Date.now() - start).toBeLessThan(2_000);
 

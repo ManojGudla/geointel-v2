@@ -59,6 +59,35 @@
   font-size: 11px;
   line-height: 1.4;
   color: var(--color-text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* Doubled class so it outranks the generic ".quick-actions button" pill
+   style above - this is a small inline ✕, not another action button. */
+.quick-actions .quick-actions__hint-close {
+  flex-shrink: 0;
+  box-shadow: none;
+  min-height: 0;
+  min-width: 0;
+  font-weight: 400;
+  /* A comfortable touch target without making the chip any taller. */
+  margin: -4px -4px -4px 0;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.quick-actions .quick-actions__hint-close:hover,
+.quick-actions .quick-actions__hint-close:focus-visible {
+  background: var(--color-surface-2, rgba(127, 127, 127, 0.15));
+  color: var(--color-text);
 }
 
 /* Phones: one scrollable row rather than two wrapped rows. Two rows of

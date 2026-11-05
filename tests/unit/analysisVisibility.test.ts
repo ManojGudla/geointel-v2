@@ -50,8 +50,21 @@ describe("a finished analysis is never hidden behind the empty state", () => {
     expect(source).toMatch(/!location && \(/);
   });
 
-  it("disables Run rather than letting it silently do nothing", () => {
-    expect(source).toMatch(/disabled=\{status === "running" \|\| !location\}/);
+  // Was "disables Run without a location". That contradicted the note above
+  // the controls ("measured from the centre of the map") and left the panel
+  // looking broken after an onboarding chip ran. Run now uses the map centre,
+  // the same fallback as the search box and the chips.
+  it("runs from the map centre when no place is selected, rather than going dead", () => {
+    expect(source).toMatch(/disabled=\{status === "running"\}/);
+    expect(source).toMatch(/lat: mapCenter\[1\], lon: mapCenter\[0\]/);
+  });
+
+  it("shows the answer and any error above the controls, with a way to retry", () => {
+    const answerAt = source.indexOf("analysis__answer");
+    const controlsAt = source.indexOf("analysis__ops");
+    expect(answerAt).toBeGreaterThan(-1);
+    expect(answerAt).toBeLessThan(controlsAt);
+    expect(source).toMatch(/Try again/);
   });
 });
 
