@@ -33,8 +33,10 @@ export const DETENTS: readonly Detent[] = ["peek", "half", "full"] as const;
  * there, this is covering it" rather than "the map is gone".
  */
 export const DETENT_FRACTION: Record<Detent, number> = {
-  peek: 0.34,
-  half: 0.62,
+  peek: 0.32,
+  // 0.5, down from 0.62: at 62% a phone kept barely a third of the map above
+  // the panel - the "panels cover the map" complaint. Half is half.
+  half: 0.5,
   full: 0.94,
 };
 

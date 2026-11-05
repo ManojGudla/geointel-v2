@@ -25,7 +25,7 @@
   margin-top: 3px;
   width: 18px;
   height: 18px;
-  accent-color: var(--color-brand-600);
+  accent-color: var(--color-primary-strong);
   flex: none;
 }
 
@@ -74,7 +74,7 @@
 
 .live-layers__segmented button.active {
   background: var(--color-surface);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
   box-shadow: var(--shadow-sm);
 }
 

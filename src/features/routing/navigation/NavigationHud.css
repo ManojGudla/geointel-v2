@@ -130,7 +130,7 @@
   background: var(--color-brand-100);
   font-size: var(--text-xs);
   font-weight: 700;
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
   cursor: pointer;
 }
 

@@ -36,7 +36,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-brand-500);
+  color: var(--color-info);
 }
 
 .daily__title {
@@ -113,7 +113,7 @@
   margin: 0 0 0 auto;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .daily__view {
@@ -229,7 +229,7 @@
 .daily__clue-btn:hover {
   border-style: solid;
   border-color: var(--color-brand-600);
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .daily__clue-cost {

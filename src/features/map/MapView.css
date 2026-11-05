@@ -77,9 +77,18 @@
     display: none;
   }
 
+  /*
+    Compass and fullscreen move to the bottom-right on phones, stacked above
+    the locate button. They used to sit top-right "clear of the search row"
+    at 62px - but the search area now has two more rows under it (actions
+    and near-me chips), and the controls ended up hidden behind them, showing
+    only as a stray outline at the end of the action row. The bottom-right
+    is also where a thumb actually is.
+  */
   .maplibregl-ctrl-top-right {
-    /* Clear of the floating search row above it. */
-    margin-top: 62px;
+    top: auto;
+    bottom: calc(48px + var(--space-3) + 56px + 56px);
+    margin-top: 0;
   }
 
   /*
@@ -94,5 +103,81 @@
   .maplibregl-ctrl-group button {
     width: 44px;
     height: 44px;
+  }
+}
+
+/* ---- Live location: the blue dot ------------------------------------------
+   Blue in every theme on purpose: "you are here" is blue in Google Maps,
+   Apple Maps and every phone's own map, and people read it without thinking.
+   Sized at 18px with a white ring so it stays visible on satellite imagery. */
+.me-puck {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.me-puck__dot {
+  position: absolute;
+  inset: 0;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #1a73e8;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.me-puck__pulse {
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  background: rgba(26, 115, 232, 0.28);
+  animation: me-puck-pulse 2.2s ease-out infinite;
+}
+
+/* The direction you are facing (compass) or moving (GPS): a soft wedge, like
+   Google Maps' beam. Hidden until a heading exists. The marker itself is
+   rotated by MapLibre, so this only has to point "up". */
+.me-puck__cone {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 56px;
+  height: 46px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 100%, rgba(26, 115, 232, 0.5), rgba(26, 115, 232, 0) 70%);
+  clip-path: polygon(50% 100%, 8% 0, 92% 0);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.me-puck--heading .me-puck__cone {
+  opacity: 1;
+}
+
+/* Last known position while a fresh fix is awaited: greyed, like the
+   native apps, so an old dot is never mistaken for a live one. */
+.me-puck--stale .me-puck__dot {
+  background: #8a94a6;
+}
+
+.me-puck--stale .me-puck__pulse {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes me-puck-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .me-puck__pulse {
+    animation: none;
   }
 }

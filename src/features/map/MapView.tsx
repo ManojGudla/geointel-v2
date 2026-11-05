@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import maplibregl, { Map as MapLibreMap, Marker, NavigationControl, FullscreenControl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { buildBasemapStyle } from "./basemaps";
+import { buildBasemapStyle, OSM_CREDIT } from "./basemaps";
 import { circlePolygon } from "./geo";
 import { useMapStore } from "@/stores/mapStore";
 import { useLocationStore } from "@/stores/locationStore";
@@ -24,6 +24,8 @@ import { earthquakesToGeoJSON } from "@/features/live/liveGeo";
 import { useTimelineStore } from "@/stores/timelineStore";
 import { buildGibsTileUrl, GIBS_LAYERS } from "@/features/timeline/gibs";
 import { whenSourceReady } from "./whenSourceReady";
+import { useLiveLocationStore, type LiveFix } from "@/features/location/liveLocationStore";
+import { useSheetInsetStore } from "@/features/shell/sheetInsetStore";
 import { MapLoadState, type MapLoadPhase } from "./MapLoadState";
 import "./MapView.css";
 
@@ -37,7 +39,8 @@ const FAIL_AFTER_MS = 20_000;
 const MARKER_SOURCE = "geointel-radius";
 const MARKER_LAYER_FILL = "geointel-radius-fill";
 const MARKER_LAYER_LINE = "geointel-radius-line";
-const OSM_DATA_ATTRIBUTION = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+// The exact same string as the standard basemap's, so MapLibre shows it once. See OSM_CREDIT.
+const OSM_DATA_ATTRIBUTION = OSM_CREDIT;
 
 const GIS_SOURCE = "geointel-gis-features";
 const GIS_LAYER_POINTS = "geointel-gis-points";
@@ -61,6 +64,11 @@ const ANALYSIS_LAYER_CONNECTOR = "geointel-analysis-connector";
 const ANALYSIS_LAYER_POINTS = "geointel-analysis-points";
 const QUAKE_SOURCE = "geointel-earthquakes";
 const QUAKE_LAYER = "geointel-earthquakes-layer";
+const ME_SOURCE = "geointel-me";
+const ME_LAYER_FILL = "geointel-me-accuracy-fill";
+const ME_LAYER_LINE = "geointel-me-accuracy-line";
+/** The live-location blue. Fixed, not themed: "you are here" is blue in every map app people know. */
+const ME_BLUE = "#1a73e8";
 const RADAR_SOURCE = "geointel-radar";
 const RADAR_LAYER = "geointel-radar-layer";
 
@@ -83,6 +91,14 @@ const HISTORY_LAYER = "geointel-historical-imagery-layer";
 const LAYER_COLOR = new Map(LAYER_DEFS.map((l) => [l.id, l.color]));
 
 function addOverlaySources(map: MapLibreMap) {
+  // The live-location accuracy circle, in true metres (a polygon, not a
+  // pixel-sized circle), so a vague fix visibly covers the area it might be
+  // anywhere in - the same honesty Google and Apple Maps show.
+  if (!map.getSource(ME_SOURCE)) {
+    map.addSource(ME_SOURCE, { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({ id: ME_LAYER_FILL, type: "fill", source: ME_SOURCE, paint: { "fill-color": ME_BLUE, "fill-opacity": 0.12 } });
+    map.addLayer({ id: ME_LAYER_LINE, type: "line", source: ME_SOURCE, paint: { "line-color": ME_BLUE, "line-width": 1, "line-opacity": 0.45 } });
+  }
   if (!map.getSource(MARKER_SOURCE)) {
     map.addSource(MARKER_SOURCE, {
       type: "geojson",
@@ -96,14 +112,14 @@ function addOverlaySources(map: MapLibreMap) {
       id: MARKER_LAYER_FILL,
       type: "fill",
       source: MARKER_SOURCE,
-      paint: { "fill-color": "#2b5bd7", "fill-opacity": 0.08 },
+      paint: { "fill-color": "#6d5bff", "fill-opacity": 0.08 },
     });
 
     map.addLayer({
       id: MARKER_LAYER_LINE,
       type: "line",
       source: MARKER_SOURCE,
-      paint: { "line-color": "#2b5bd7", "line-width": 2, "line-dasharray": [2, 2] },
+      paint: { "line-color": "#6d5bff", "line-width": 2, "line-dasharray": [2, 2] },
     });
   }
 
@@ -214,10 +230,10 @@ function addOverlaySources(map: MapLibreMap) {
         // Radius scaled from the device's REPORTED accuracy, so a vague fix
         // visibly looks vague instead of pretending to metre precision.
         "circle-radius": ["interpolate", ["linear"], ["get", "accuracy"], 0, 8, 100, 60],
-        "circle-color": "#2b5bd7",
+        "circle-color": ME_BLUE,
         "circle-opacity": 0.12,
         "circle-stroke-width": 1,
-        "circle-stroke-color": "#2b5bd7",
+        "circle-stroke-color": ME_BLUE,
       },
     });
     map.addLayer({
@@ -226,7 +242,7 @@ function addOverlaySources(map: MapLibreMap) {
       source: NAV_SOURCE,
       paint: {
         "circle-radius": 8,
-        "circle-color": "#2b5bd7",
+        "circle-color": ME_BLUE,
         "circle-stroke-width": 3,
         "circle-stroke-color": "#ffffff",
       },
@@ -283,7 +299,7 @@ function addOverlaySources(map: MapLibreMap) {
             15, "#5b7fd1",
             40, "#3f5fbf",
             100, "#2b3f9e",
-            200, "#6b3fd4",
+            200, "#0d9488",
           ],
         ],
         "fill-extrusion-height": ["get", "heightMeters"],
@@ -339,7 +355,7 @@ function addOverlaySources(map: MapLibreMap) {
       type: "fill",
       source: ANALYSIS_SOURCE,
       filter: ["==", ["get", "role"], "buffer"],
-      paint: { "fill-color": "#6b3fd4", "fill-opacity": 0.1 },
+      paint: { "fill-color": "#0d9488", "fill-opacity": 0.1 },
     });
 
     map.addLayer({
@@ -347,7 +363,7 @@ function addOverlaySources(map: MapLibreMap) {
       type: "line",
       source: ANALYSIS_SOURCE,
       filter: ["==", ["get", "role"], "buffer"],
-      paint: { "line-color": "#6b3fd4", "line-width": 2 },
+      paint: { "line-color": "#0d9488", "line-width": 2 },
     });
 
     map.addLayer({
@@ -356,7 +372,7 @@ function addOverlaySources(map: MapLibreMap) {
       source: ANALYSIS_SOURCE,
       filter: ["==", ["get", "role"], "connector"],
       layout: { "line-join": "round", "line-cap": "round" },
-      paint: { "line-color": "#6b3fd4", "line-width": 3, "line-dasharray": [1.5, 1.5] },
+      paint: { "line-color": "#0d9488", "line-width": 3, "line-dasharray": [1.5, 1.5] },
     });
 
     map.addLayer({
@@ -366,7 +382,7 @@ function addOverlaySources(map: MapLibreMap) {
       filter: ["==", ["get", "role"], "result"],
       paint: {
         "circle-radius": 6,
-        "circle-color": "#6b3fd4",
+        "circle-color": "#0d9488",
         "circle-stroke-width": 2,
         "circle-stroke-color": "#ffffff",
       },
@@ -524,6 +540,18 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   const navHeading = useNavigationStore((s) => s.heading);
   const navFollowing = useNavigationStore((s) => s.following);
   const navActive = navState === "navigating" || navState === "locating" || navState === "rerouting";
+
+  // Live location (features/location/liveLocationStore.ts). Hidden while
+  // navigating, which draws its own route-snapped puck.
+  const meFix = useLiveLocationStore((s) => s.fix);
+  const meStatus = useLiveLocationStore((s) => s.status);
+  const meFollowing = useLiveLocationStore((s) => s.following);
+  const meCompass = useLiveLocationStore((s) => s.compassHeading);
+  const meVisible = !navActive && meStatus !== "off" && meStatus !== "denied";
+  const meMarkerRef = useRef<Marker | null>(null);
+  const meCenteredOnce = useRef(false);
+
+  const sheetFraction = useSheetInsetStore((s) => s.fraction);
   const activeRouteOption = routeQuery.data?.options?.[selectedRouteOption] ?? routeQuery.data?.options?.[0];
   const activeRouteGeometry = activeRouteOption?.geometry ?? routeQuery.data?.geometry ?? null;
   const activeStepLocation =
@@ -611,6 +639,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     historyMaxZoom: historyLayer.maxZoom,
     routeGeometry: null,
     activeStepLocation: null,
+    me: null,
   });
   overlayStateRef.current = {
     location: selectedLocation,
@@ -626,6 +655,7 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     historyMaxZoom: historyLayer.maxZoom,
     routeGeometry: activeRouteGeometry,
     activeStepLocation: activeStepLocation,
+    me: meVisible ? meFix : null,
   };
 
   // Create the map once - or again, if the user presses "Try again" after a
@@ -830,6 +860,13 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     map.on("mouseleave", GIS_LAYER_POINTS, () => {
       const mode = useMeasureStore.getState().mode;
       map.getCanvas().style.cursor = mode !== "off" ? "crosshair" : "";
+    });
+
+    // Panning the map yourself means you want to look somewhere else: stop
+    // pulling it back to the blue dot, exactly as Google and Apple Maps do.
+    // dragstart fires for gestures only, never for the follow easeTo itself.
+    map.on("dragstart", () => {
+      if (useLiveLocationStore.getState().following) useLiveLocationStore.getState().setFollowing(false);
     });
 
     mapRef.current = map;
@@ -1183,6 +1220,69 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     });
   }, [cameraRequest]);
 
+  // Pad the camera for the phone bottom sheet, so centring and fitting aim
+  // at the visible map above it. Eased, so the map glides up with the sheet
+  // rather than jumping. See sheetInsetStore.ts.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const height = map.getContainer().clientHeight;
+    // Never more than 70% of the map: at full height the sheet IS the
+    // screen, and padding the camera into a sliver would just fling the view.
+    const bottom = Math.round(Math.min(sheetFraction, 0.7) * height);
+    if (map.getPadding().bottom === bottom) return;
+    map.easeTo({ padding: { top: 0, right: 0, left: 0, bottom }, duration: 300 });
+  }, [sheetFraction]);
+
+  // The blue dot and its accuracy circle.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const fix = meVisible ? meFix : null;
+    whenSourceReady(map, ME_SOURCE, () => syncMe(map, fix));
+
+    if (!fix) {
+      meMarkerRef.current?.remove();
+      meMarkerRef.current = null;
+      meCenteredOnce.current = false;
+      return;
+    }
+    if (!meMarkerRef.current) {
+      // rotationAlignment "map": the cone points at real-world north-relative
+      // heading and stays right as the map itself is rotated.
+      meMarkerRef.current = new maplibregl.Marker({ element: createMeElement(), anchor: "center", rotationAlignment: "map", pitchAlignment: "map" });
+    }
+    const heading = fix.heading ?? meCompass;
+    const el = meMarkerRef.current.getElement();
+    el.classList.toggle("me-puck--heading", heading !== null);
+    el.classList.toggle("me-puck--stale", meStatus !== "tracking");
+    meMarkerRef.current.setRotation(heading ?? 0);
+    meMarkerRef.current.setLngLat([fix.lon, fix.lat]).addTo(map);
+  }, [meFix, meVisible, meCompass, meStatus]);
+
+  // Follow mode: keep the dot centred while it is on.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !meVisible || !meFix || !meFollowing) return;
+    if (!meCenteredOnce.current) {
+      // First fix after tapping locate: fly in to street level, framed so the
+      // whole accuracy circle is visible.
+      meCenteredOnce.current = true;
+      const zoom = meFix.accuracy > 1500 ? 12 : meFix.accuracy > 300 ? 14 : 16;
+      map.flyTo({ center: [meFix.lon, meFix.lat], zoom: Math.max(map.getZoom(), zoom), duration: 900 });
+      return;
+    }
+    map.easeTo({ center: [meFix.lon, meFix.lat], duration: 500 });
+  }, [meFix, meFollowing, meVisible]);
+
+  // Tapping locate again after panning away re-centres even if the fix has not moved.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !meFollowing || !meFix || !meCenteredOnce.current) return;
+    map.easeTo({ center: [meFix.lon, meFix.lat], zoom: Math.max(map.getZoom(), 15), duration: 600 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meFollowing]);
+
   // Marker + radius circle follow the selected location.
   useEffect(() => {
     const map = mapRef.current;
@@ -1197,10 +1297,18 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
       return;
     }
 
-    if (!markerRef.current) {
-      markerRef.current = new maplibregl.Marker({ color: "#2b5bd7" });
+    // "My Location" is already marked by the blue dot; a pin on top of it
+    // hid the dot and its direction cone.
+    const isMe = selectedLocation.name === "My Location";
+    if (isMe) {
+      markerRef.current?.remove();
+      markerRef.current = null;
+    } else {
+      if (!markerRef.current) {
+        markerRef.current = new maplibregl.Marker({ color: "#6d5bff" });
+      }
+      markerRef.current.setLngLat([selectedLocation.lon, selectedLocation.lat]).addTo(map);
     }
-    markerRef.current.setLngLat([selectedLocation.lon, selectedLocation.lat]).addTo(map);
 
     /*
       Move the camera only when the point or the radius actually changed.
@@ -1255,6 +1363,8 @@ interface OverlaySnapshot {
   routeGeometry: Array<[number, number]> | null;
   /** [lon, lat] of the highlighted turn, or null when the whole route shows. */
   activeStepLocation: [number, number] | null;
+  /** The live-location fix, or null when it is off or hidden by navigation. */
+  me: LiveFix | null;
 }
 
 /**
@@ -1278,6 +1388,27 @@ function restoreOverlays(map: MapLibreMap, snapshot: OverlaySnapshot) {
   syncEarthquakes(map, snapshot.earthquakes);
   syncRadar(map, snapshot.radarTileUrl);
   syncHistoricalImagery(map, snapshot.historyTileUrl, snapshot.historyOpacity, snapshot.historyMaxZoom);
+  syncMe(map, snapshot.me);
+}
+
+function syncMe(map: MapLibreMap, fix: LiveFix | null) {
+  const source = map.getSource(ME_SOURCE) as maplibregl.GeoJSONSource | undefined;
+  if (!source) return;
+  // Under ~8 m the circle would sit entirely under the dot; drawing it adds nothing.
+  if (!fix || fix.accuracy < 8) {
+    source.setData({ type: "FeatureCollection", features: [] });
+    return;
+  }
+  source.setData({ type: "FeatureCollection", features: [circlePolygon(fix.lat, fix.lon, Math.min(fix.accuracy, 5000))] });
+}
+
+/** The blue dot with a soft pulse and a direction cone, as a DOM marker so it can animate. */
+function createMeElement(): HTMLDivElement {
+  const el = document.createElement("div");
+  el.className = "me-puck";
+  el.setAttribute("aria-hidden", "true");
+  el.innerHTML = '<span class="me-puck__cone"></span><span class="me-puck__pulse"></span><span class="me-puck__dot"></span>';
+  return el;
 }
 
 function syncOverlay(map: MapLibreMap, location: { lat: number; lon: number } | null, radiusMeters: number) {

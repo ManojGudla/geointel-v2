@@ -19,7 +19,7 @@
   margin-top: 3px;
   width: 18px;
   height: 18px;
-  accent-color: var(--color-brand-600);
+  accent-color: var(--color-primary-strong);
   flex: none;
 }
 
@@ -41,7 +41,7 @@
 .timeline__slider input[type="range"],
 .timeline__opacity input[type="range"] {
   width: 100%;
-  accent-color: var(--color-brand-600);
+  accent-color: var(--color-primary-strong);
 }
 
 .timeline__scale {
@@ -57,7 +57,7 @@
 .timeline__scale strong {
   font-size: var(--text-sm);
   font-weight: 800;
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .timeline__layers {
@@ -82,7 +82,7 @@
 
 .timeline__layers button.active {
   background: var(--color-surface);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
   box-shadow: var(--shadow-sm);
 }
 
@@ -108,7 +108,7 @@
 }
 
 .timeline__opacity strong {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
   font-variant-numeric: tabular-nums;
 }
 

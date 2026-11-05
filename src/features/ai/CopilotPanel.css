@@ -211,7 +211,7 @@
 
 .copilot-panel__chips button:hover:not(:disabled) {
   border-color: var(--color-brand-500);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .copilot-panel__chips button:disabled {
@@ -228,7 +228,7 @@
   font-size: 11px;
   line-height: 1.5;
   font-weight: 600;
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .copilot-panel__suggestions {
@@ -252,7 +252,7 @@
 
 .copilot-panel__suggestions button:hover:not(:disabled) {
   border-color: var(--color-brand-500);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .copilot-panel__suggestions button:disabled {

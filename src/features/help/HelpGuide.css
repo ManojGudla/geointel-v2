@@ -71,7 +71,7 @@
 
 .help-guide__nav button.active {
   background: var(--color-brand-100);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
   font-weight: 700;
 }
 

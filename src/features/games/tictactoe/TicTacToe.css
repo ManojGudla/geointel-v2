@@ -38,7 +38,7 @@
 
 .ttt__segmented button.active {
   background: var(--color-surface);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
   box-shadow: var(--shadow-sm);
 }
 
@@ -57,7 +57,7 @@
 }
 
 .ttt__status--won {
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .ttt__status--draw {
@@ -133,7 +133,7 @@
 
 /* X and O are distinguished by shape first; colour only reinforces it. */
 .ttt__cell--x {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .ttt__cell--o {

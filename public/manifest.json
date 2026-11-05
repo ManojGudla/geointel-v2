@@ -4,8 +4,8 @@
   "description": "A map that answers questions about a place, and shows the source for every answer.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b1220",
-  "theme_color": "#12294f",
+  "background_color": "#0b0b14",
+  "theme_color": "#0b0b14",
   "orientation": "any",
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

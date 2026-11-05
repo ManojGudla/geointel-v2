@@ -49,7 +49,7 @@
   align-self: flex-start;
   font-size: var(--text-xs);
   font-weight: 700;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
   background: none;
   border: none;
   padding: 0;
@@ -230,7 +230,7 @@
 
 .directions-panel__swap:hover:not(:disabled) {
   border-color: var(--color-brand-400);
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .directions-panel__swap:disabled {
@@ -347,7 +347,7 @@
 .directions-panel__summary-main strong {
   font-size: var(--text-xl);
   font-weight: 800;
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .directions-panel__summary-main span {
@@ -423,7 +423,7 @@
   padding: 0;
   font-size: 11px;
   font-weight: 700;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
   cursor: pointer;
 }
 

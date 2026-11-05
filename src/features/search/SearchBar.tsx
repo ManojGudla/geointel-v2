@@ -285,7 +285,7 @@ export function SearchBar() {
 
   // Once we have live coordinates, resolve them into a full Location and select it.
   useEffect(() => {
-    if (geolocation.status !== "granted" || !geolocation.coords) return;
+    if (!geolocation.requestId || !geolocation.coords) return;
     let cancelled = false;
     const { lat, lon } = geolocation.coords;
 
@@ -303,8 +303,9 @@ export function SearchBar() {
     return () => {
       cancelled = true;
     };
+    // One run per answered tap - see useGeolocation's requestId.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [geolocation.status]);
+  }, [geolocation.requestId]);
 
   /*
     Close when focus leaves the whole search area, not when it leaves the

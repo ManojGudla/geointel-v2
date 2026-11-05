@@ -63,7 +63,7 @@
 
 .analysis__ops button.active {
   background: var(--color-surface);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
   box-shadow: var(--shadow-sm);
 }
 
@@ -130,13 +130,13 @@
 }
 
 .analysis__weight-head strong {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
   font-variant-numeric: tabular-nums;
 }
 
 .analysis__weight input[type="range"] {
   width: 100%;
-  accent-color: var(--color-brand-600);
+  accent-color: var(--color-primary-strong);
 }
 
 .analysis__actions {
@@ -319,7 +319,7 @@
 
 .analysis__factor-head strong {
   font-variant-numeric: tabular-nums;
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .analysis__bar {
@@ -366,7 +366,7 @@
 
 .analysis__list strong {
   font-variant-numeric: tabular-nums;
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
   flex: none;
 }
 
@@ -395,7 +395,7 @@
   background: var(--color-brand-100);
   font-size: 11px;
   line-height: 1.5;
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 /*

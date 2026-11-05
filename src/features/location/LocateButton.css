@@ -1,0 +1,89 @@
+/* Bottom-right, stacked above "Ask maNOWj": the spot people's thumbs already
+   go to for this in every map app. */
+.locate {
+  position: absolute;
+  right: var(--space-3);
+  bottom: calc(44px + 56px);
+  z-index: 19;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.locate__btn {
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.locate__btn:hover {
+  color: var(--color-text);
+}
+
+.locate__btn:active {
+  transform: scale(0.94);
+}
+
+/* The live states use the location blue, not the brand colour, so they match
+   the blue dot they control. */
+.locate__btn--live,
+.locate__btn--following {
+  color: #1a73e8;
+}
+
+.locate__btn--following {
+  border-color: #1a73e8;
+}
+
+.locate__btn--locating svg {
+  animation: locate-spin 1.1s linear infinite;
+  color: #1a73e8;
+}
+
+.locate__btn--problem {
+  color: var(--color-danger);
+}
+
+.locate__help {
+  pointer-events: auto;
+  max-width: min(320px, calc(100vw - 32px));
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+@keyframes locate-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .locate {
+    bottom: calc(48px + var(--space-3) + 56px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .locate__btn--locating svg {
+    animation: none;
+  }
+}

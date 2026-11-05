@@ -85,7 +85,7 @@
 
 .notfound__btn:hover {
   border-color: var(--color-brand-500);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .notfound__btn--primary {
@@ -115,5 +115,5 @@
 }
 
 .notfound__links a:hover {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }

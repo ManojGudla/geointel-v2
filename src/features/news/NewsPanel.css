@@ -26,7 +26,7 @@
 }
 
 .news-panel__list a:hover {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
   text-decoration: underline;
 }
 

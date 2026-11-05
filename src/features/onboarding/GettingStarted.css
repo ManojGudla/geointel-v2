@@ -130,7 +130,7 @@
 
 .getting-started__help:hover {
   border-color: var(--color-brand-500);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 @media (max-width: 900px) {

@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useSheetInsetStore } from "./sheetInsetStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useShellStore } from "@/stores/shellStore";
 import { SECTION_BY_ID } from "./sections";
@@ -46,6 +48,16 @@ export function SidePanel() {
   */
   const isSheet = useIsSheetLayout();
   const sheet = useSheet(isSheet, closePanel);
+
+  // Tell the map how much of it this sheet covers - only once a drag has
+  // settled, so the map doesn't chase every pixel of a finger. See
+  // sheetInsetStore.ts.
+  const setInset = useSheetInsetStore((s) => s.setFraction);
+  const settledFraction = isSheet && open && !sheet.dragging ? (sheet.fraction ?? 0) : 0;
+  useEffect(() => {
+    setInset(settledFraction);
+  }, [settledFraction, setInset]);
+  useEffect(() => () => setInset(0), [setInset]);
 
   if (!open) return null;
   const def = SECTION_BY_ID.get(section);

@@ -45,7 +45,7 @@
 .hunt__running {
   margin: 0 0 0 auto;
   font-weight: 700;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -56,7 +56,7 @@
   text-wrap: balance;
 }
 
-.hunt__prompt strong { color: var(--color-brand-600); }
+.hunt__prompt strong { color: var(--color-brand-text); }
 
 /* MapLibre sizes its canvas from the container, so this needs a real height
    rather than relying on a flex child to stretch. */
@@ -73,7 +73,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-brand-500);
+  color: var(--color-info);
 }
 
 /* ── Hints ───────────────────────────────────────────────────────────── */

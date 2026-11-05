@@ -31,7 +31,7 @@
 
 .quick-actions button:hover:not(:disabled) {
   background: var(--color-brand-100);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 /* "Needs a place" is NOT disabled. It's a live button that takes you to the
@@ -44,7 +44,7 @@
 
 .quick-actions__needs-place:hover {
   border-style: solid !important;
-  color: var(--color-brand-700) !important;
+  color: var(--color-brand-text) !important;
 }
 
 .quick-actions__hint {
@@ -101,6 +101,10 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding-bottom: 2px;
+    /* Same edge fade as the near-me chips: scrollable, not cut off. */
+    padding-right: 28px;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
   }
 
   .quick-actions__row::-webkit-scrollbar {

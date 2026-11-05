@@ -75,6 +75,10 @@
     left: var(--space-2);
     right: var(--space-2);
     width: auto;
+    /* Three rows (search, actions, near-me chips) on a phone: tighter
+       spacing keeps them to roughly the height Google Maps' own two rows
+       take, leaving the map the rest. */
+    gap: var(--space-2);
   }
 
   /* While measuring on a phone, the bottom edge belongs to the measurement
@@ -125,7 +129,28 @@
   */
   .workspace__stage--sheeted .coordinate-readout,
   .workspace__stage--sheeted .basemap-switcher,
-  .workspace__stage--sheeted .copilot-launcher {
+  .workspace__stage--sheeted .copilot-launcher,
+  .workspace__stage--sheeted .locate,
+  .workspace__stage--sheeted .maplibregl-ctrl-top-right {
+    display: none;
+  }
+
+  /*
+    The map credit rides on top of the sheet instead of under or over it.
+    OpenStreetMap's licence needs it visible while the map is, and it used to
+    sit at the very bottom of the map - which, with a sheet up, put it on top
+    of the sheet's own content (it covered "Closest" in analysis results).
+    --sheet-fraction is set inline by Workspace.tsx from the sheet's height.
+  */
+  .workspace__stage--sheeted .maplibregl-ctrl-bottom-right {
+    bottom: calc(var(--sheet-fraction, 0) * 100%);
+    transition: bottom 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* The "answers for the centre of the map" tip: on a phone the Analyse
+     panel already says which point a result is measured from, and the tip
+     was a third stacked row over the map. */
+  .quick-actions__hint {
     display: none;
   }
 

@@ -35,6 +35,9 @@ import { CommandPalette } from "@/features/command/CommandPalette";
 import { useMeasureStore } from "@/stores/measureStore";
 import { useShellStore } from "@/stores/shellStore";
 import { useOnboardingVisible } from "@/features/onboarding/onboardingVisibility";
+import { LocateButton } from "@/features/location/LocateButton";
+import { NearMeChips } from "@/features/location/NearMeChips";
+import { useSheetInsetStore } from "@/features/shell/sheetInsetStore";
 import "./Workspace.css";
 
 /**
@@ -71,6 +74,7 @@ export function Workspace() {
   // coordinate chip and map-style pill sit on, so those two yield while it is
   // up - the same bargain measuring and onboarding already strike below.
   const panelOpen = useShellStore((s) => s.open);
+  const sheetFraction = useSheetInsetStore((s) => s.fraction);
 
   return (
     <div className="workspace">
@@ -91,6 +95,7 @@ export function Workspace() {
               onboarding ? " workspace__stage--onboarding" : ""
             }${panelOpen ? " workspace__stage--sheeted" : ""}`}
             ref={stageRef}
+            style={{ "--sheet-fraction": sheetFraction } as React.CSSProperties}
           >
             <ErrorBoundary label="Map" variant="panel" fallbackClassName="workspace__mapfallback">
               {/* The fallback fills the stage exactly, so the surrounding
@@ -116,6 +121,9 @@ export function Workspace() {
               </ErrorBoundary>
               <ErrorBoundary label="Quick actions" variant="panel">
                 <QuickActions />
+              </ErrorBoundary>
+              <ErrorBoundary label="Near me" variant="silent">
+                <NearMeChips />
               </ErrorBoundary>
             </div>
 
@@ -159,6 +167,10 @@ export function Workspace() {
               tests still pass. To bring it back when there is something real
               to reveal: import SurpriseTeaser and restore this element.
             */}
+
+            <ErrorBoundary label="My location" variant="silent">
+              <LocateButton />
+            </ErrorBoundary>
 
             <ErrorBoundary label="Ask maNOWj" variant="panel">
               <CopilotLauncher />

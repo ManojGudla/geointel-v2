@@ -37,5 +37,5 @@
 .cricket__read-text {
   font-size: var(--text-sm);
   font-weight: 700;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }

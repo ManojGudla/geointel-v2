@@ -23,7 +23,7 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .population__figure span {
@@ -78,5 +78,5 @@
 }
 
 .population__source a {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }

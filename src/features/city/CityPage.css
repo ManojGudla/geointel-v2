@@ -81,7 +81,7 @@
 
 .city__btn:hover {
   border-color: var(--color-brand-500);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .city__btn--primary {
@@ -242,7 +242,7 @@
 .city__question:hover {
   border-color: var(--color-brand-500);
   background: var(--color-brand-100);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 /* ── Other cities ───────────────────────────────────────────────────────── */

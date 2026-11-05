@@ -30,7 +30,7 @@
 }
 
 .intel-panel__tabs button.active {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
   border-bottom-color: var(--color-brand-600);
 }
 

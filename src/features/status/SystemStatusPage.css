@@ -25,7 +25,7 @@
 
 .system-status__back {
   font-size: var(--text-sm);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
   text-decoration: none;
   white-space: nowrap;
 }

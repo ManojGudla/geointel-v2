@@ -10,17 +10,13 @@ import { create } from "zustand";
  * with the one caution that is genuinely true for anyone at work, which is to
  * keep confidential data out of every outside site, this one included.
  */
-const SEEN_KEY = "geointel.freeNoticeSeen.v1";
-
-function alreadySeen(): boolean {
-  try {
-    return localStorage.getItem(SEEN_KEY) === "1";
-  } catch {
-    // Blocked storage: show it. Seeing it twice is better than never.
-    return false;
-  }
-}
-
+/*
+  Shown on EVERY visit, by request: the site is being promoted, and the "free
+  for everyone" message is the first thing each visit should say - not only
+  a first-ever visit. It closes itself after four seconds (see
+  FreeToUseNotice.tsx), so a returning visitor loses almost nothing, and the
+  ✕ / Cancel close it at once.
+*/
 interface FreeNoticeState {
   isOpen: boolean;
   open: () => void;
@@ -28,14 +24,7 @@ interface FreeNoticeState {
 }
 
 export const useFreeNoticeStore = create<FreeNoticeState>((set) => ({
-  isOpen: !alreadySeen(),
+  isOpen: true,
   open: () => set({ isOpen: true }),
-  close: () => {
-    try {
-      localStorage.setItem(SEEN_KEY, "1");
-    } catch {
-      // Hidden for this visit only.
-    }
-    set({ isOpen: false });
-  },
+  close: () => set({ isOpen: false }),
 }));
