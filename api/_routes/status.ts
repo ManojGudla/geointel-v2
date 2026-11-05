@@ -1,7 +1,7 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { ok, err, getClientIp } from "../_lib/http.js";
 import { TtlCache, RateLimiter, fetchWithTimeout, withTimeout } from "../_lib/cache.js";
-import { OVERPASS_ENDPOINTS } from "../_lib/overpass.js";
+import { OVERPASS_ENDPOINTS, getOverpassHealth, runOverpassQueryDetailed } from "../_lib/overpass.js";
 import { getSupabaseClient } from "../_lib/supabase.js";
 
 /**
@@ -75,38 +75,46 @@ async function probe(
 }
 
 /**
- * Overpass mirrors are reported as ONE dependency with a count, because
- * that's how the app actually consumes them: queries race across mirrors, so
- * what matters is "how many are answering", not any single one. Their own
- * /api/status endpoint is used rather than a real query - it's what mirror
- * operators provide for exactly this purpose and costs them almost nothing.
+ * Overpass is checked the way the app actually uses it: one real query, run
+ * through the same mirror race Nearby and What's here use.
+ *
+ * This used to fetch each mirror's own /api/status page and count how many
+ * answered. On 2026-11-06 that reported "DOWN - 0 of 5 mirrors responding"
+ * while Nearby was returning 43 hospitals: overloaded mirrors rate-limit
+ * their status page, and the mirror that was carrying all the traffic does
+ * not answer that page in time. A status page that cries "down" during a
+ * working service is as misleading as one that says "online" during an
+ * outage, and the previous fix in this file was for the second.
+ *
+ * Cheap on purpose. If a real query in this instance succeeded in the last
+ * ten minutes, that IS the answer and nothing is sent. Otherwise the probe is
+ * the smallest valid query there is (one node by id, ids only), which a
+ * healthy mirror answers in milliseconds, and the race stops at the first
+ * mirror that answers - so a healthy probe touches one or two mirrors, not
+ * all of them.
  */
 async function probeOverpass(): Promise<{ status: DependencyStatus["status"]; detail: string }> {
-  const results = await Promise.all(
-    OVERPASS_ENDPOINTS.map(async (endpoint) => {
-      const statusUrl = endpoint.replace(/\/interpreter$/, "/status");
-      try {
-        const response = await fetchWithTimeout(statusUrl, { headers: { "User-Agent": USER_AGENT } }, PROBE_TIMEOUT_MS);
-        return response.ok;
-      } catch {
-        return false;
-      }
-    })
-  );
+  const describeDate = (iso: string | null) =>
+    iso && /^\d{4}-\d{2}-\d{2}T/.test(iso) ? ` (map data as of ${iso.slice(0, 10)})` : "";
 
-  const healthy = results.filter(Boolean).length;
-  const total = results.length;
-  const detail = `${healthy} of ${total} public mirrors responding`;
+  const recent = getOverpassHealth();
+  if (recent.status === "ok") {
+    return { status: "operational", detail: "Recent map-data queries succeeding" };
+  }
 
-  // Thresholds are deliberately strict. The first live run of this page
-  // reported "operational - 3 of 6 responding", which is a green light over
-  // a real loss of half the redundancy this app depends on, and precisely
-  // the kind of reassuring-but-wrong signal the rest of the project refuses
-  // to emit. Losing half the mirrors is degraded: queries still succeed, but
-  // they're slower and one more outage away from failing outright.
-  if (healthy === 0) return { status: "down", detail: `${detail}. GIS evidence, Nearby and click-to-inspect will fail` };
-  if (healthy * 2 <= total) return { status: "degraded", detail: `${detail}. Reduced redundancy, expect slower or intermittent GIS results` };
-  return { status: "operational", detail };
+  try {
+    const result = await withTimeout(
+      runOverpassQueryDetailed("[out:json][timeout:5];node(1);out ids;"),
+      PROBE_TIMEOUT_MS * 2,
+      "Overpass probe"
+    );
+    return { status: "operational", detail: `Map-data queries answering${describeDate(result.dataAsOf)}` };
+  } catch {
+    return {
+      status: "down",
+      detail: `None of the ${OVERPASS_ENDPOINTS.length} public mirrors answered. Nearby and What's here will show saved answers where they have them, and an error otherwise`,
+    };
+  }
 }
 
 async function probeNominatim(): Promise<{ status: DependencyStatus["status"]; detail: string }> {

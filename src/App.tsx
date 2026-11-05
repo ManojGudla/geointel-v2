@@ -62,6 +62,7 @@ import { useSharedLocationFromUrl } from "@/hooks/useSharedLocationFromUrl";
 import { useLocationPanelSync } from "@/hooks/useLocationPanelSync";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ConsentBanner } from "@/features/analytics/ConsentBanner";
+import { FreeToUseNotice } from "@/features/notice/FreeToUseNotice";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { LazyPanel } from "@/components/LazyPanel";
 import { useFeedbackStore } from "@/stores/feedbackStore";
@@ -317,6 +318,11 @@ export default function App() {
       */}
       <ErrorBoundary label="Cookie consent" variant="silent">
         <ConsentBanner />
+      </ErrorBoundary>
+
+      {/* Eager, not lazy: it is the first thing a new visitor sees. */}
+      <ErrorBoundary label="Free to use notice" variant="silent">
+        <FreeToUseNotice />
       </ErrorBoundary>
 
       <footer className="app-footer">

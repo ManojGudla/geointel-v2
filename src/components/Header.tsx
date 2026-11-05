@@ -9,6 +9,7 @@ import { useTeamStore } from "@/stores/teamStore";
 import { useAboutStore } from "@/stores/aboutStore";
 import { usePrivacyStore } from "@/stores/privacyStore";
 import { useGamesStore } from "@/stores/gamesStore";
+import { useFreeNoticeStore } from "@/features/notice/freeNoticeStore";
 import { SecretGate } from "@/features/secret/SecretGate";
 import { isTriggered, recordTap } from "@/features/secret/secretGesture";
 
@@ -111,6 +112,7 @@ export function Header() {
   const openAbout = useAboutStore((s) => s.open);
   const openPrivacy = usePrivacyStore((s) => s.open);
   const openGames = useGamesStore((s) => s.open);
+  const openFreeNotice = useFreeNoticeStore((s) => s.open);
 
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement | null>(null);
@@ -297,6 +299,9 @@ export function Header() {
                 </button>
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openPrivacy)}>
                   <span aria-hidden="true">🔒</span> Privacy &amp; security
+                </button>
+                <button type="button" role="menuitem" onClick={() => runFromMenu(openFreeNotice)}>
+                  <span aria-hidden="true">🆓</span> Free to use
                 </button>
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openAbout)}>
                   <span aria-hidden="true">ℹ️</span> About
