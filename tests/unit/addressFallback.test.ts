@@ -63,3 +63,28 @@ describe("api/geocode fallback", () => {
     expect(body.results[0]!.displayName).toMatch(/^Closest match: Sai Residency/);
   });
 });
+
+describe("closest match must be in the same area", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it("rejects a same-named building in a different area and falls back to the area", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const u = String(url);
+        if (u.includes("nominatim")) return { ok: true, status: 200, json: async () => [], text: async () => "[]" };
+        const q = new URL(u).searchParams.get("q") ?? "";
+        const features =
+          q === "Sai Residency, Yousufguda, Hyderabad"
+            ? [{ geometry: { coordinates: [78.5, 17.4] }, properties: { name: "Sri Sai Tirumala Residency", locality: "Chikkadpally", city: "Hyderabad" } }]
+            : q === "Yousufguda, Hyderabad"
+              ? [{ geometry: { coordinates: [78.43, 17.43] }, properties: { name: "Yousufguda", city: "Hyderabad", state: "Telangana" } }]
+              : [];
+        return { ok: true, status: 200, json: async () => ({ features }) };
+      })
+    );
+    const res = fakeReqRes({ q: "H.No 8-3-228, Flat 201, Sai Residency, Yousufguda, Hyderabad" });
+    await handler(res.req, res.res);
+    const body = res.body as { results: Array<{ displayName: string }> };
+    expect(body.results[0]!.displayName).toMatch(/^Closest match: Yousufguda/);
+  });
+});

@@ -235,17 +235,32 @@ const handler: ApiHandler = async (req, res) => {
     Nothing found (or Nominatim is down): don't give up on the person.
 
     1. Photon, on the full text - forgiving of typos and extra words.
-    2. Shorter versions of the address (see relaxedQueries), Photon first,
-       each labelled "Closest match" so nobody mistakes the neighbourhood for
-       their exact door.
+    2. Shorter versions of the address (see relaxedQueries), each labelled
+       "Closest match" so nobody mistakes the neighbourhood for their exact
+       door, and only accepted when the match is in the same area.
     At most four extra requests, and only on a search that found nothing.
   */
   try {
     const fuzzy = rank(await photonSearch(query, origin));
     if (fuzzy.length > 0) return ok(res, { results: fuzzy, source: "OpenStreetMap / Photon" });
 
-    for (const shorter of relaxedQueries(query).slice(0, 2)) {
-      const near = rank(await photonSearch(shorter, origin, 5));
+    for (const shorter of relaxedQueries(query).slice(0, 3)) {
+      /*
+        A shortened address only counts if the match is in the same AREA.
+        "Sai Residency, Yousufguda, Hyderabad" used to return a different
+        Sai Residency in Chikkadpally, kilometres away - a confident wrong
+        answer. Every part after the first (the area, the city) must appear
+        in the result; if none does, the next, shorter version is tried.
+      */
+      const mustContain = shorter
+        .split(",")
+        .slice(1)
+        .map((part) => part.trim().toLowerCase())
+        .filter((part) => part.length >= 3);
+      const near = rank(await photonSearch(shorter, origin, 5)).filter((r) => {
+        const text = r.displayName.toLowerCase();
+        return mustContain.every((part) => text.includes(part));
+      });
       if (near.length > 0) {
         return ok(res, {
           results: near.map((r) => ({ ...r, displayName: `Closest match: ${r.displayName}` })),

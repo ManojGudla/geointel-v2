@@ -169,7 +169,27 @@ export async function getAiCompletion(
           return { ok: false, error: "The AI provider rejected the configured API key (unauthorized). Check OPENROUTER_API_KEY." };
         }
         if (response.status === 429) {
-          return { ok: false, error: "The AI provider's rate limit or free-tier quota was hit. Try again later, or use a different model/key." };
+          /*
+            Two different things answer 429, and only one of them is final.
+
+            The account's daily free allowance being used up applies to every
+            model, so trying another only wastes time. But a single popular
+            free model being "temporarily rate-limited upstream" is common and
+            says nothing about the others - and this used to give up on the
+            first one, so Ask maNOWj reported "quota hit" while the backup
+            model was sitting idle. Seen live on 2026-11-06.
+          */
+          const accountLimit = /per[- ]day|daily|credits|quota/i.test(text);
+          if (accountLimit || isLast) {
+            return {
+              ok: false,
+              error: accountLimit
+                ? "Ask maNOWj has used today's free AI allowance. It resets daily; please try again later."
+                : "The free AI models are busy (rate limited) right now. Please try again in a minute.",
+            };
+          }
+          lastError = "The free AI models are busy (rate limited) right now. Please try again in a minute.";
+          continue;
         }
         if (response.status === 404) {
           /*
