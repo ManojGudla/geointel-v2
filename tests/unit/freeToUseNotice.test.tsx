@@ -20,15 +20,15 @@ describe("Free to use notice", () => {
     vi.unstubAllGlobals();
   });
 
-  it("opens on a first visit and stays closed once dismissed", async () => {
+  it("opens on every visit, even after being closed before", async () => {
     const { useFreeNoticeStore } = await import("../../src/features/notice/freeNoticeStore");
     expect(useFreeNoticeStore.getState().isOpen).toBe(true);
     useFreeNoticeStore.getState().close();
-    expect(localStorage.getItem("geointel.freeNoticeSeen.v1")).toBe("1");
+    expect(useFreeNoticeStore.getState().isOpen).toBe(false);
 
     vi.resetModules();
-    const again = await import("../../src/features/notice/freeNoticeStore");
-    expect(again.useFreeNoticeStore.getState().isOpen).toBe(false);
+    const nextVisit = await import("../../src/features/notice/freeNoticeStore");
+    expect(nextVisit.useFreeNoticeStore.getState().isOpen).toBe(true);
   });
 
   it("says it is free and independent, and keeps the work caution", async () => {

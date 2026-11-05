@@ -23,7 +23,7 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .arc__title {
@@ -264,7 +264,7 @@
   margin: 0;
   font-size: var(--text-sm);
   font-weight: 700;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .arc__stats {

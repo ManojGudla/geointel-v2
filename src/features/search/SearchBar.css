@@ -123,10 +123,20 @@
   cursor: not-allowed;
 }
 
+/* On its own surface: this sits over the map, where bare red text on
+   streets or satellite imagery was unreadable - and it now carries the
+   step-by-step fix for blocked location, which people must be able to read. */
 .search-bar__error {
   margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
   font-size: var(--text-sm);
-  color: var(--color-danger);
+  line-height: 1.45;
+  color: var(--color-text);
 }
 
 .search-bar__suggestions {
@@ -246,14 +256,14 @@
 
 .search-bar__ask-text span {
   font-size: var(--text-xs);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .search-bar__ask-enter {
   flex: none;
   font-size: 13px;
   font-weight: 800;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 /* When the ask row is present the place results sit below it. */
@@ -338,7 +348,7 @@
   border: none;
   background: none;
   font: inherit;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
   text-decoration: underline;
   cursor: pointer;
 }

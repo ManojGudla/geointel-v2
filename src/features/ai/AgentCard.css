@@ -82,7 +82,7 @@
 
 .agent-card--done > button.agent-card__rerun {
   background: var(--color-bg);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
   border: 1px solid var(--color-border);
 }
 

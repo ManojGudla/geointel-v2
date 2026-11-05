@@ -185,7 +185,7 @@
 }
 
 .site__feature-link:hover {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
   text-decoration: underline;
 }
 
@@ -232,7 +232,7 @@
 
 .site__more:hover {
   border-color: var(--color-brand-500);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 /* ── Portals ────────────────────────────────────────────────────────────── */
@@ -267,7 +267,7 @@
   gap: 6px;
   font-size: var(--text-sm);
   font-weight: 700;
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .site__portal-out {

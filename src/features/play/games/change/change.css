@@ -20,7 +20,7 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .change__title {
@@ -63,7 +63,7 @@
   margin: 0;
   font-size: var(--text-sm);
   font-weight: 700;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .change__bar {

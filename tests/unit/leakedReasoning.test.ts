@@ -199,17 +199,20 @@ describe("a bad roll from the free model router", () => {
 
     expect(result.ok).toBe(true);
     expect(spy).toHaveBeenCalledTimes(2);
-    // The retry goes to the router, which is what makes it a different model.
+    // The retry goes to a DIFFERENT model - the pinned one - not the same slug again.
     const [, second] = spy.mock.calls[1] as unknown as [string, { body: string }];
-    expect(JSON.parse(second.body).model).toBe("openrouter/free");
+    expect(JSON.parse(second.body).model).not.toBe("some/reasoner:free");
     if (result.ok) expect(result.model).toBe("poolside/laguna-xs-2.1:free");
   });
 
-  it("gives up after one re-roll rather than hammering the free tier", async () => {
+  it("tries at most three models (pinned, backup, router) rather than hammering the free tier", async () => {
     const spy = vi.fn(async () => empty);
     vi.stubGlobal("fetch", spy);
     const result = await getAiCompletion([{ role: "user", content: "hi" }]);
-    expect(spy).toHaveBeenCalledTimes(2);
+    expect(spy).toHaveBeenCalledTimes(3);
+    const asked = spy.mock.calls.map((c) => JSON.parse((c as unknown as [string, { body: string }])[1].body).model);
+    expect(asked[0]).toBe("google/gemma-4-31b-it:free");
+    expect(asked[2]).toBe("openrouter/free");
     expect(result.ok).toBe(false);
     // And says something the reader can act on.
     if (!result.ok) expect(result.error).toMatch(/Run again/i);
@@ -261,5 +264,14 @@ describe("em dashes never reach the screen", () => {
   it("leaves no em dash behind under any spacing", () => {
     const messy = "One \u2014two\u2014 three \u2014 four, and a fifth clause to carry the sentence past the length floor.";
     expect(formatAiText(messy)).not.toContain("\u2014");
+  });
+});
+
+describe("leaked <think> blocks", () => {
+  it("are stripped from the answer", async () => {
+    const { stripReasoning } = await import("../../api/_lib/ai");
+    expect(stripReasoning("<think>The user wants…</think>Yes, 4 hospitals.")).toBe("Yes, 4 hospitals.");
+    expect(stripReasoning("planning text</think> Yes.")).toBe("Yes.");
+    expect(stripReasoning("Plain answer.")).toBe("Plain answer.");
   });
 });

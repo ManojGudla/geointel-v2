@@ -176,7 +176,7 @@
 .onboarding__examples button:hover:not(:disabled) {
   border-color: var(--color-brand-500);
   background: var(--color-brand-100);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .onboarding__examples button:disabled {

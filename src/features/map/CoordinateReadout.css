@@ -34,7 +34,7 @@
 .coordinate-readout__zoom {
   font-size: 11px;
   font-weight: 700;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 /* On a phone the DMS form is the first thing to go - the decimal pair and

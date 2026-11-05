@@ -6,19 +6,37 @@
 */
 
 :root {
+  /*
+    The brand blue used AS TEXT. brand-600/700 are fills (white text on
+    them), and were also used directly as text colour in dozens of rules -
+    dark navy on dark navy in dark mode, about 2:1 and close to invisible.
+    Text now uses this token, which flips to a light periwinkle in dark mode.
+  */
+  --color-brand-text: #3a2bb8;
   color-scheme: light;
 
-  /* Brand: deep navy / blue / neutral, per the product's design direction */
-  --color-brand-900: #0b1b3a;
-  --color-brand-700: #12295c;
-  --color-brand-600: #1d3f8f;
-  --color-brand-500: #2b5bd7;
-  --color-brand-400: #4d78ea;
-  --color-brand-300: #8fa8f2;
-  --color-brand-100: #e6ecfb;
+  /*
+    "Aurora" (November 2026): electric violet with a teal accent, on
+    near-black in dark mode and a soft cool white in light mode.
+      - brand-*: the violet ramp. Fills carry white text (6.7:1 on
+        brand-600 in light mode, 5.6:1 in dark).
+      - primary-*: the call-to-action layer used by styles/theme-accents.css
+        (main buttons, the active tab, the logo). Kept as its own set of
+        tokens so the accent can change without touching the brand ramp.
+      - --color-brand-text / --color-primary-text: violet AS TEXT, which
+        flips to a light lavender in dark mode so it never disappears.
+    Every pairing is checked by scripts/check-contrast.mjs.
+  */
+  --color-brand-900: #120f2e;
+  --color-brand-700: #3a2bb8;
+  --color-brand-600: #4f3fe0;
+  --color-brand-500: #6d5bff;
+  --color-brand-400: #8f82ff;
+  --color-brand-300: #c3bcff;
+  --color-brand-100: #efedff;
 
   /* Neutrals */
-  --color-bg: #f7f8fb;
+  --color-bg: #f7f7fb;
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
   /*
@@ -33,18 +51,18 @@
     header (ComparePage.css) let rows scroll visibly through the two city
     names it exists to keep in view.
   */
-  --color-surface-2: #f2f4f8;
-  --color-border: #e1e5ee;
-  --color-border-strong: #c7ceDE;
-  --color-text: #101828;
-  --color-text-muted: #55607a;
+  --color-surface-2: #f1f0f8;
+  --color-border: #e4e2f0;
+  --color-border-strong: #cbc7e0;
+  --color-text: #0f1020;
+  --color-text-muted: #4a4d63;
   /* Every one of these was set by eye and every one of them failed WCAG AA
      against the surfaces it actually sits on - faint text was 2.97:1 on the
      app background, which is why so much secondary copy read as "not that
      much visible". They're now computed values: scripts/check-contrast.mjs
      recalculates every text/surface pair in both themes and fails if any
      drops below 4.5:1, so this can't silently regress again. */
-  --color-text-faint: #626c85;
+  --color-text-faint: #5a5d75;
 
   /* Status */
   --color-success: #0f6f4a;
@@ -53,8 +71,8 @@
   --color-warning-bg: #fdf1de;
   --color-danger: #c22b3f;
   --color-danger-bg: #fbe9ec;
-  --color-info: #2b5bd7;
-  --color-info-bg: #e6ecfb;
+  --color-info: #4338ca;
+  --color-info-bg: #efedff;
 
   /* The second player's mark in the board games. X uses the brand ramp; O
      needs its own hue that is distinguishable from it AND readable on the
@@ -65,12 +83,12 @@
      they carry the same meanings and sit on the same surfaces. */
   --color-verified: #0f6f4a;
   --color-inferred: #8a5800;
-  --color-unavailable: #626c85;
+  --color-unavailable: #5a5d75;
 
   /* Elevation */
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-  --shadow-md: 0 4px 14px rgba(16, 24, 40, 0.08);
-  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.14);
+  --shadow-sm: 0 1px 2px rgba(15, 16, 32, 0.06);
+  --shadow-md: 0 6px 18px rgba(15, 16, 32, 0.08);
+  --shadow-lg: 0 16px 40px rgba(15, 16, 32, 0.14);
 
   /* Spacing scale */
   --space-1: 4px;
@@ -84,8 +102,8 @@
 
   /* Radius: moderate, not "huge rounded cards" */
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
 
   /* Type */
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -110,7 +128,7 @@
      here, redefined in both dark blocks below). */
   --color-accent-violet: #7c4dff;
   --color-accent-violet-bg: #f1ecff;
-  --color-accent-teal: #0d9488;
+  --color-accent-teal: #0f766e;
   --color-accent-teal-bg: #e6f7f5;
   --color-accent-amber: #e0a825;
 
@@ -120,21 +138,29 @@
      ones. */
   --gradient-brand: linear-gradient(135deg, var(--color-brand-600), var(--color-brand-400));
   --gradient-accent: linear-gradient(135deg, var(--color-accent-violet), var(--color-brand-500));
-  --shadow-glow: 0 0 0 4px var(--color-brand-100), var(--shadow-md);
+  --shadow-glow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 35%, transparent), var(--shadow-md);
+  --color-primary: #6d5bff;
+  --color-primary-strong: #4f3fe0;
+  --color-on-primary: #ffffff;
+  --color-primary-text: #4f3fe0;
+  --color-primary-soft: #efedff;
+  --color-primary-edge: #5b4cf0;
+  --gradient-primary: linear-gradient(135deg, #6d5bff, #5b4cf0 50%, #4b3dd6); /* white text passes AA at every point of it */
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    --color-brand-text: #b8aeff;
     color-scheme: dark;
-    --color-bg: #0a0f1e;
-    --color-surface: #111a30;
-    --color-surface-raised: #16213c;
-    --color-surface-2: #0d1526;
-    --color-border: #223056;
-    --color-border-strong: #2e3f6e;
-    --color-text: #eef1fb;
-    --color-text-muted: #a7b1cc;
-    --color-text-faint: #8e99b8;
+    --color-bg: #0b0b14;
+    --color-surface: #13131f;
+    --color-surface-raised: #1a1a2a;
+    --color-surface-2: #0f0f19;
+    --color-border: #26263a;
+    --color-border-strong: #35354f;
+    --color-text: #f4f4f8;
+    --color-text-muted: #b4b4c8;
+    --color-text-faint: #9696ae;
     /* Saturated mid-tones that pass on white are far too dark on a navy
        surface - these are the dark-theme equivalents, not the same hexes. */
     --color-success: #3fcf95;
@@ -142,18 +168,18 @@
     --color-danger: #f4738a;
     /* --color-info-bg doubles as --color-surface-raised in dark mode, so the
        info text on it has to be a light blue, not the mid-blue brand-500. */
-    --color-info: #7ba3f5;
+    --color-info: #a59bff;
     --color-player-o: #f59356;
     --color-verified: #3fcf95;
     --color-inferred: #e6b23a;
-    --color-unavailable: #8e99b8;
+    --color-unavailable: #9696ae;
 
     --color-success-bg: #0f2a20;
     --color-warning-bg: #2b230f;
     --color-danger-bg: #2c1620;
-    --color-info-bg: #16213c;
+    --color-info-bg: #1a1a2a;
 
-    --color-brand-100: #172448;
+    --color-brand-100: #1e1a40;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
     --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
@@ -166,54 +192,75 @@
       made the Country Hunt review score unreadable in LIGHT mode.
     */
     --color-accent-violet: #b9a2ff;
-    --color-accent-teal: #4fd1c5;
+    --color-accent-teal: #2dd4bf;
     --color-accent-amber: #e6b23a;
     --color-accent-violet-bg: #241c42;
     --color-accent-teal-bg: #0f2a27;
     --shadow-glow: 0 0 0 4px var(--color-brand-100), var(--shadow-md);
+      --color-brand-600: #5b4cf0;
+      --color-brand-700: #4b3dd6;
+      --color-brand-500: #6d5bff;
+      --color-brand-400: #8f82ff;
+      --color-primary: #6d5bff;
+      --color-primary-strong: #8f82ff;
+      --color-on-primary: #ffffff;
+      --color-primary-text: #b8aeff;
+      --color-primary-soft: #1e1a40;
+      --color-primary-edge: #8f82ff;
   }
 }
 
 :root[data-theme="dark"] {
+  --color-brand-text: #b8aeff;
   color-scheme: dark;
-  --color-bg: #0a0f1e;
-  --color-surface: #111a30;
-  --color-surface-raised: #16213c;
-  --color-surface-2: #0d1526;
-  --color-border: #223056;
-  --color-border-strong: #2e3f6e;
-  --color-text: #eef1fb;
-  --color-text-muted: #a7b1cc;
-  --color-text-faint: #8e99b8;
+  --color-bg: #0b0b14;
+  --color-surface: #13131f;
+  --color-surface-raised: #1a1a2a;
+  --color-surface-2: #0f0f19;
+  --color-border: #26263a;
+  --color-border-strong: #35354f;
+  --color-text: #f4f4f8;
+  --color-text-muted: #b4b4c8;
+  --color-text-faint: #9696ae;
   /* Must stay byte-identical to the media-query block above - the contrast
      script checks for drift between the two, because a mismatch means the
      manual toggle and the OS preference render different colours. */
   --color-success: #3fcf95;
   --color-warning: #e6b23a;
   --color-danger: #f4738a;
-  --color-info: #7ba3f5;
+  --color-info: #a59bff;
   --color-player-o: #f59356;
   --color-verified: #3fcf95;
   --color-inferred: #e6b23a;
-  --color-unavailable: #8e99b8;
+  --color-unavailable: #9696ae;
 
   --color-success-bg: #0f2a20;
   --color-warning-bg: #2b230f;
   --color-danger-bg: #2c1620;
-  --color-info-bg: #16213c;
+  --color-info-bg: #1a1a2a;
 
-  --color-brand-100: #172448;
+  --color-brand-100: #1e1a40;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
   /* Byte-identical to the media-query block above, per the note at the top
      of this block. */
   --color-accent-violet: #b9a2ff;
-  --color-accent-teal: #4fd1c5;
+  --color-accent-teal: #2dd4bf;
   --color-accent-amber: #e6b23a;
   --color-accent-violet-bg: #241c42;
   --color-accent-teal-bg: #0f2a27;
   --shadow-glow: 0 0 0 4px var(--color-brand-100), var(--shadow-md);
+  --color-brand-600: #5b4cf0;
+  --color-brand-700: #4b3dd6;
+  --color-brand-500: #6d5bff;
+  --color-brand-400: #8f82ff;
+  --color-primary: #6d5bff;
+  --color-primary-strong: #8f82ff;
+  --color-on-primary: #ffffff;
+  --color-primary-text: #b8aeff;
+  --color-primary-soft: #1e1a40;
+  --color-primary-edge: #8f82ff;
 }
 
 /* Reduced motion: collapse durations rather than deleting transitions, so

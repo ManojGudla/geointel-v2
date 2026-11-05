@@ -1,3 +1,4 @@
+import { useTourStore } from "@/features/tour/tourStore";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useHelpStore } from "@/stores/helpStore";
@@ -71,6 +72,7 @@ export function HelpGuide() {
 
 function HelpGuideBody({ section, setSection, close }: { section: Section; setSection: (s: Section) => void; close: () => void }) {
   const openFeatureStatus = useFeatureStatusStore((s) => s.open);
+  const startTour = useTourStore((s) => s.start);
   return (
     <>
         <div className="help-guide__head">
@@ -79,6 +81,22 @@ function HelpGuideBody({ section, setSection, close }: { section: Section; setSe
             ✕
           </button>
         </div>
+
+        {/* The fastest answer to "where is everything?": point at it. */}
+        <button
+          type="button"
+          className="help-guide__tour"
+          onClick={() => {
+            close();
+            startTour();
+          }}
+        >
+          <span aria-hidden="true">🧭</span>
+          <span>
+            <strong>Take the 30-second tour</strong>
+            <span>See where every feature is, one at a time</span>
+          </span>
+        </button>
 
         <div className="help-guide__body">
           <nav className="help-guide__nav" aria-label="Help sections">

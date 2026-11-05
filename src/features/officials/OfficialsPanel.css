@@ -76,7 +76,7 @@
   margin: 0 0 4px;
   font-size: var(--text-md);
   font-weight: 800;
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 :root[data-theme="dark"] .officials-panel__name {
@@ -96,7 +96,7 @@
 }
 
 .officials-panel__meta a {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .officials-panel__unavailable {

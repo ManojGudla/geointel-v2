@@ -250,11 +250,11 @@ describe("the sheet on a narrow screen", () => {
     const grip = screen.getByTestId("grip");
 
     // jsdom reports no layout, so the hook falls back to window.innerHeight
-    // (768 by default). 300px down from "half" lands near "peek".
+    // (768 by default). 150px down from "half" (0.5) lands near "peek" (0.32).
     fireEvent.pointerDown(grip, { clientY: 100, pointerId: 1 });
     expect(sheet.dataset.dragging).toBe("true");
-    fireEvent.pointerMove(grip, { clientY: 400, pointerId: 1 });
-    fireEvent.pointerUp(grip, { clientY: 400, pointerId: 1 });
+    fireEvent.pointerMove(grip, { clientY: 250, pointerId: 1 });
+    fireEvent.pointerUp(grip, { clientY: 250, pointerId: 1 });
 
     expect(sheet.dataset.dragging).toBe("false");
     expect(sheet.dataset.detent).toBe("peek");

@@ -29,7 +29,7 @@
 
 .buildings-status__action:hover {
   border-color: var(--color-brand-500);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .buildings-status--wait {

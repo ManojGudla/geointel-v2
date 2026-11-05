@@ -10,8 +10,9 @@ import { useAboutStore } from "@/stores/aboutStore";
 import { usePrivacyStore } from "@/stores/privacyStore";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useFreeNoticeStore } from "@/features/notice/freeNoticeStore";
+import { useTourStore } from "@/features/tour/tourStore";
+import { LogoMark } from "./LogoMark";
 import { SecretGate } from "@/features/secret/SecretGate";
-import { isTriggered, recordTap } from "@/features/secret/secretGesture";
 
 const THEME_ICON: Record<ThemeMode, string> = { system: "🖥️", light: "☀️", dark: "🌙" };
 
@@ -113,6 +114,7 @@ export function Header() {
   const openPrivacy = usePrivacyStore((s) => s.open);
   const openGames = useGamesStore((s) => s.open);
   const openFreeNotice = useFreeNoticeStore((s) => s.open);
+  const startTour = useTourStore((s) => s.start);
 
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement | null>(null);
@@ -138,26 +140,11 @@ export function Header() {
     setMoreOpen(false);
   };
 
+  const [gateOpen, setGateOpen] = useState(false);
+
   const cycleTheme = () => {
     const next = THEME_CYCLE[(THEME_CYCLE.indexOf(theme) + 1) % THEME_CYCLE.length]!;
     setTheme(next);
-  };
-
-  /*
-    Taps live in a ref, not in state, for two reasons. Re-rendering the whole
-    header on every tap of a gesture that usually goes nowhere is waste; and
-    setting `gateOpen` from inside a state updater would be a side effect in a
-    function React is entitled to call more than once.
-  */
-  const [gateOpen, setGateOpen] = useState(false);
-  const markTaps = useRef<number[]>([]);
-
-  const onMarkTap = () => {
-    markTaps.current = recordTap(markTaps.current, Date.now());
-    if (isTriggered(markTaps.current)) {
-      markTaps.current = [];
-      setGateOpen(true);
-    }
   };
 
   return (
@@ -165,32 +152,35 @@ export function Header() {
     <header className="app-header">
       <div className="app-header__brand">
         {/*
-          The mark carries the hidden owner entrance - three taps inside about
-          a second. A single tap does nothing at all, so the page behaves
-          exactly as before for everyone who does not know the gesture. See
-          features/secret/secretGesture.ts for why it is not a single click,
-          and for the difference between hiding the door and locking it.
+          The logo icon opens the owner sign-in with a single click (it used
+          to need three quick taps, which was unreliable). The sign-in still
+          needs the admin code, so opening it gives nobody access. Default
+          cursor and no tooltip: it does not advertise itself.
         */}
-        <button
-          type="button"
-          className="app-header__mark"
-          onClick={onMarkTap}
-          aria-label="maNOWj GeoIntel"
-        >
-          <span aria-hidden="true">🌐</span>
+        <button type="button" className="app-header__mark" onClick={() => setGateOpen(true)} aria-label="maNOWj GeoIntel">
+          <LogoMark size={36} />
         </button>
         {/* Two spellings of the name, one shown at a time by CSS. On a phone
             the header has to fit in a single row beside the controls, and
             the full lockup plus tagline was taking four stacked rows -
             roughly a quarter of the screen height, taken from the map. */}
-        <div className="app-header__wordmark">
-          <span className="app-header__logo app-header__logo--full">maNOWj GeoIntel</span>
+        {/*
+          The name is the way home: a full reload of the start page, the way
+          clicking a site's name works everywhere else. A real link, so it
+          also works with a middle-click or "open in new tab".
+        */}
+        <a className="app-header__wordmark" href="/" aria-label="maNOWj GeoIntel home">
+          <span className="app-header__logo app-header__logo--full">
+            ma<span className="app-header__now">NOW</span>j GeoIntel
+          </span>
           {/* The short form keeps the brand, not the product noun: on a phone
               this is the only place the name appears, and "GeoIntel" alone
               is a generic word nobody can search for. */}
-          <span className="app-header__logo app-header__logo--short">maNOWj</span>
+          <span className="app-header__logo app-header__logo--short">
+            ma<span className="app-header__now">NOW</span>j
+          </span>
           <span className="app-header__tagline">Maps, data and sources for any place</span>
-        </div>
+        </a>
       </div>
 
       <div className="app-header__actions">
@@ -300,6 +290,9 @@ export function Header() {
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openPrivacy)}>
                   <span aria-hidden="true">🔒</span> Privacy &amp; security
                 </button>
+                <button type="button" role="menuitem" onClick={() => runFromMenu(startTour)}>
+                  <span aria-hidden="true">🧭</span> Take the tour
+                </button>
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openFreeNotice)}>
                   <span aria-hidden="true">🆓</span> Free to use
                 </button>
@@ -354,6 +347,7 @@ export function Header() {
         a fixed element inside an ancestor that ever gains a transform or a
         filter is positioned against that ancestor instead of the viewport. */}
     <SecretGate open={gateOpen} onClose={() => setGateOpen(false)} />
+
     </>
   );
 }

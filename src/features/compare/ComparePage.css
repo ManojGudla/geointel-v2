@@ -223,7 +223,7 @@
 
 .cmp__btn:hover {
   border-color: var(--color-brand-500);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 .cmp__btn--primary {

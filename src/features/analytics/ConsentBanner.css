@@ -50,7 +50,7 @@
   background: none;
   font: inherit;
   font-weight: 700;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
   text-decoration: underline;
   cursor: pointer;
 }

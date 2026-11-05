@@ -46,14 +46,14 @@ describe("the model reported for an AI answer", () => {
       choices: [{ message: { content: "Mostly commercial evidence within 500m." } }],
     });
 
-    const result = await getAiCompletion([{ role: "user", content: "hi" }], { model: "openrouter/free" });
+    const result = await getAiCompletion([{ role: "user", content: "hi" }], { model: "some/requested-model:free" });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.model).toBe("meta-llama/llama-3.3-70b-instruct:free");
     // And the request is still reported, separately, so the two can't be
     // confused for each other by a later reader.
-    expect(result.requestedModel).toBe("openrouter/free");
+    expect(result.requestedModel).toBe("some/requested-model:free");
   });
 
   it("still sends the requested slug to the provider", async () => {
@@ -65,10 +65,10 @@ describe("the model reported for an AI answer", () => {
     }));
     vi.stubGlobal("fetch", fetchSpy);
 
-    await getAiCompletion([{ role: "user", content: "hi" }], { model: "openrouter/free" });
+    await getAiCompletion([{ role: "user", content: "hi" }], { model: "some/requested-model:free" });
 
     const [, init] = fetchSpy.mock.calls[0] as unknown as [string, { body: string }];
-    expect(JSON.parse(init.body).model).toBe("openrouter/free");
+    expect(JSON.parse(init.body).model).toBe("some/requested-model:free");
   });
 
   it("falls back to the requested slug only when the provider names nothing", async () => {

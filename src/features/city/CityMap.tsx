@@ -81,7 +81,7 @@ export function CityMap({ city }: { city: City }) {
 
         instance.on("load", () => {
           if (cancelled) return;
-          new gl.Marker({ color: "#1d3f8f" }).setLngLat([city.lon, city.lat]).addTo(instance);
+          new gl.Marker({ color: "#6d5bff" }).setLngLat([city.lon, city.lat]).addTo(instance);
           setPhase("ready");
         });
 

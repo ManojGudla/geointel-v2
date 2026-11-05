@@ -1,49 +1,62 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLiveLocationStore } from "@/features/location/liveLocationStore";
 
 export type GeolocationStatus = "idle" | "locating" | "granted" | "denied" | "unsupported" | "error";
 
-interface GeolocationState {
-  status: GeolocationStatus;
-  coords: { lat: number; lon: number } | null;
-  error: string | null;
-}
-
 /**
- * Wraps the browser Geolocation API with the states the spec calls for:
- * permission denial must show a clear message and never crash the app.
+ * "Use my location" for the search box, now backed by the shared live
+ * tracker (features/location/liveLocationStore.ts) instead of a one-off
+ * getCurrentPosition with a 10-second deadline - the cause of most iPhone
+ * failures, explained in that file.
+ *
+ * `coords` is the fix that answered the MOST RECENT tap, and `requestId`
+ * changes once per answered tap. The search box selects "My Location" from
+ * that, so a second tap re-centres even while the tracker is still running
+ * (with a single status flag it would already read "granted" and nothing
+ * would happen).
  */
 export function useGeolocation() {
-  const [state, setState] = useState<GeolocationState>({ status: "idle", coords: null, error: null });
+  const status = useLiveLocationStore((s) => s.status);
+  const fix = useLiveLocationStore((s) => s.fix);
+  const error = useLiveLocationStore((s) => s.error);
+  const start = useLiveLocationStore((s) => s.start);
+
+  const pending = useRef(false);
+  const [answered, setAnswered] = useState<{ id: number; coords: { lat: number; lon: number } } | null>(null);
 
   const locate = useCallback(() => {
-    if (!("geolocation" in navigator)) {
-      setState({ status: "unsupported", coords: null, error: "This browser doesn't support location services." });
-      return;
-    }
+    pending.current = true;
+    start();
+  }, [start]);
 
-    setState((s) => ({ ...s, status: "locating", error: null }));
+  useEffect(() => {
+    if (!pending.current || !fix) return;
+    pending.current = false;
+    setAnswered((prev) => ({ id: (prev?.id ?? 0) + 1, coords: { lat: fix.lat, lon: fix.lon } }));
+  }, [fix]);
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setState({
-          status: "granted",
-          coords: { lat: position.coords.latitude, lon: position.coords.longitude },
-          error: null,
-        });
-      },
-      (geoError) => {
-        const denied = geoError.code === geoError.PERMISSION_DENIED;
-        setState({
-          status: denied ? "denied" : "error",
-          coords: null,
-          error: denied
-            ? "Location permission was denied. Search for a place instead."
-            : "Couldn't determine your current location. Search for a place instead.",
-        });
-      },
-      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 }
-    );
-  }, []);
+  useEffect(() => {
+    if (status === "denied" || status === "unsupported" || status === "unavailable") pending.current = false;
+  }, [status]);
 
-  return { ...state, locate };
+  const mapped: GeolocationStatus =
+    status === "off"
+      ? "idle"
+      : status === "locating"
+        ? "locating"
+        : status === "tracking"
+          ? "granted"
+          : status === "denied"
+            ? "denied"
+            : status === "unsupported"
+              ? "unsupported"
+              : "error";
+
+  return {
+    status: pending.current && mapped !== "denied" && mapped !== "unsupported" && mapped !== "error" ? ("locating" as const) : mapped,
+    coords: answered?.coords ?? null,
+    requestId: answered?.id ?? 0,
+    error: mapped === "denied" || mapped === "unsupported" || mapped === "error" ? error : null,
+    locate,
+  };
 }

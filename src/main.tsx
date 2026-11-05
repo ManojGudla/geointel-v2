@@ -6,6 +6,7 @@ import App from "./App";
 import "@/styles/reset.css";
 import "@/styles/tokens.css";
 import "./App.css";
+import "@/styles/theme-accents.css";
 import { shouldRetryQuery } from "@/services/apiClient";
 
 // Sentry will be initialized AFTER consent is granted (see ConsentBanner.tsx)

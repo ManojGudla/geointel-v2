@@ -9,11 +9,21 @@ import type { Basemap } from "@/stores/mapStore";
  * Mapbox) later is a one-file change - just replace the `tiles` URLs below
  * and drop in the key.
  */
+/**
+ * The OpenStreetMap credit, character-for-character the same string the
+ * data overlays in MapView.tsx carry. MapLibre drops an attribution that is
+ * identical to (or contained in) another one, but only if it matches exactly:
+ * this used to be plain text here and a link there, so phones showed
+ * "© OpenStreetMap contributors | © OpenStreetMap contributors", which on an
+ * iPhone SE wrapped onto two lines over the map-style button.
+ */
+export const OSM_CREDIT = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+
 const RASTER_ATTRIBUTION: Record<Basemap, string> = {
-  standard: "© OpenStreetMap contributors",
+  standard: OSM_CREDIT,
   satellite: "Imagery © Esri, Maxar, Earthstar Geographics",
-  dark: "© Esri, HERE, Garmin, © OpenStreetMap contributors",
-  terrain: "© OpenTopoMap (CC-BY-SA) © OpenStreetMap contributors",
+  dark: `© Esri, HERE, Garmin, ${OSM_CREDIT}`,
+  terrain: `© OpenTopoMap (CC-BY-SA) ${OSM_CREDIT}`,
 };
 
 // CARTO's legacy basemaps.cartocdn.com free raster endpoint now serves

@@ -65,7 +65,7 @@
 }
 
 .uttt__status--done {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 /* The big board: nine small boards with a wider gutter between them than
@@ -112,7 +112,7 @@
 }
 
 .uttt__board--X .uttt__claim {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .uttt__board--O .uttt__claim {
@@ -152,7 +152,7 @@
 }
 
 .uttt__cell--X {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .uttt__cell--O {

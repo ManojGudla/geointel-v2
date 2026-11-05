@@ -18,7 +18,7 @@
 .property-panel__classification {
   font-size: var(--text-lg);
   font-weight: 800;
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
   letter-spacing: 0.02em;
 }
 

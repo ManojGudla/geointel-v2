@@ -1,0 +1,60 @@
+/* One horizontally scrolling row, like the category chips under Google Maps'
+   search box. Never wraps: a second row would take more of the map. */
+.near-me {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 2px 4px;
+  margin: 0 -2px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+
+.near-me::-webkit-scrollbar {
+  display: none;
+}
+
+.near-me__chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.near-me__chip:hover:not(:disabled) {
+  border-color: var(--color-brand-500, var(--color-brand-600));
+  background: var(--color-brand-100);
+}
+
+.near-me__chip:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.near-me__chip[aria-busy="true"] {
+  opacity: 1;
+  border-color: var(--color-brand-600);
+}
+
+/* A soft fade at the right edge says "there's more, scroll" instead of a
+   chip being chopped off mid-word. */
+.near-me {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  padding-right: 28px;
+}

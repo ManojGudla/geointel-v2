@@ -84,6 +84,9 @@ const TEXT_TOKENS = [
   "--color-warning",
   "--color-danger",
   "--color-player-o",
+  // Theme accent used as text on a surface, and the brand colour as text.
+  "--color-primary-text",
+  "--color-brand-text",
 ];
 const SURFACE_TOKENS = ["--color-bg", "--color-surface", "--color-surface-raised"];
 
@@ -98,6 +101,9 @@ const TINTED_PAIRS = [
   ["--color-warning", "--color-warning-bg"],
   ["--color-danger", "--color-danger-bg"],
   ["--color-info", "--color-info-bg"],
+  // Text on a primary button, and primary text on a primary-tinted chip.
+  ["--color-on-primary", "--color-primary"],
+  ["--color-primary-text", "--color-primary-soft"],
 ];
 
 for (const [themeName, theme] of [["light", light], ["dark", { ...light, ...dark }]]) {

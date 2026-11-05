@@ -23,7 +23,7 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .sixty__title {
@@ -54,7 +54,7 @@
   margin: 0;
   font-size: var(--text-sm);
   font-weight: 700;
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .sixty__introactions {
@@ -157,7 +157,7 @@
 /* The multiplier is the only thing allowed to shout, and only once a run has
    actually started. */
 .sixty__mult--hot {
-  color: var(--color-brand-600);
+  color: var(--color-brand-text);
 }
 
 .sixty__streak {

@@ -35,7 +35,7 @@
 
 .nav-rail__item--active {
   background: var(--color-brand-100);
-  color: var(--color-brand-700);
+  color: var(--color-brand-text);
 }
 
 :root[data-theme="dark"] .nav-rail__item--active,

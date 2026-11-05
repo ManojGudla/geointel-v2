@@ -1,26 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="maNOWj GeoIntel">
   <!--
-    The maskable variant, for Android home screens.
-
-    Full-bleed square with no corner radius, because the launcher applies
-    its own mask and a pre-rounded tile inside one leaves corner gaps. The
-    letters are set smaller so they stay inside the safe zone - the central
-    circle of 80% diameter - whatever shape the phone crops to.
+    The maskable variant, for Android home screens: full-bleed square (the
+    launcher applies its own mask), artwork scaled into the central safe
+    zone so no phone's crop shape cuts into it. Same drawing as mark.svg.
   -->
   <defs>
     <linearGradient id="tileMask" x1="0.1" y1="0" x2="0.9" y2="1">
-      <stop offset="0" stop-color="#1d3f77"/>
-      <stop offset="0.52" stop-color="#12294f"/>
-      <stop offset="1" stop-color="#091426"/>
+      <stop offset="0" stop-color="#8f82ff"/>
+      <stop offset="0.5" stop-color="#6d5bff"/>
+      <stop offset="1" stop-color="#4f3fe0"/>
     </linearGradient>
   </defs>
-
   <rect width="512" height="512" fill="url(#tileMask)"/>
-
-  <g transform="translate(132.00 310.30) scale(0.15404 -0.15404)">
-    <path d="M857 702V0H686V421L529 0H391L233 422V0H62V702H264L461 216L656 702Z" fill="#eef3fc"/>
-    <g transform="translate(848 0)">
-      <path d="M528 480Q509 515 473.5 533.5Q438 552 390 552Q307 552 257.0 497.5Q207 443 207 352Q207 255 259.5 200.5Q312 146 404 146Q467 146 510.5 178.0Q554 210 574 270H357V396H729V237Q710 173 664.5 118.0Q619 63 549.0 29.0Q479 -5 391 -5Q287 -5 205.5 40.5Q124 86 78.5 167.0Q33 248 33 352Q33 456 78.5 537.5Q124 619 205.0 664.5Q286 710 390 710Q516 710 602.5 649.0Q689 588 717 480Z" fill="#ff9440"/>
-    </g>
+  <g transform="translate(256 256) scale(0.72) translate(-256 -256)">
+    <ellipse cx="256" cy="300" rx="190" ry="66" transform="rotate(-18 256 300)" fill="none" stroke="#ffffff" stroke-opacity="0.85" stroke-width="22"/>
+    <path d="M256 438 C214 372 134 312 134 220 A122 122 0 1 1 378 220 C378 312 298 372 256 438 Z" fill="#ffffff" stroke="#5b4cf0" stroke-width="20" stroke-linejoin="round"/>
+    <circle cx="256" cy="218" r="48" fill="#5b4cf0"/>
+    <circle cx="412" cy="248" r="30" fill="#2dd4bf" stroke="#ffffff" stroke-width="12"/>
   </g>
 </svg>
