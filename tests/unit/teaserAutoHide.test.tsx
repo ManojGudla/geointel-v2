@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import { SurpriseTeaser } from "@/features/surprise/SurpriseTeaser";
 import { DISMISS_KEY, TEASER_AUTO_HIDE_MS, TEASER_COPY } from "@/features/surprise/teaserRules";
+import { useFreeNoticeStore } from "@/features/notice/freeNoticeStore";
 
 /**
  * The card leaves on its own after a few seconds.
@@ -23,6 +24,9 @@ const DURING_WINDOW = new Date(2026, 8, 10, 12, 0, 0);
 
 beforeEach(() => {
   onboardingUp.value = false;
+  // These cases are about the teaser and the intro; the "Free for everyone"
+  // notice (which also holds the teaser back) is taken as already seen.
+  useFreeNoticeStore.setState({ isOpen: false });
   localStorage.clear();
   vi.useFakeTimers();
   vi.setSystemTime(DURING_WINDOW);

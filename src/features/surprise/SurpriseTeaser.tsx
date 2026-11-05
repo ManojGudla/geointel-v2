@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useOnboardingVisible } from "@/features/onboarding/onboardingVisibility";
+import { useFreeNoticeStore } from "@/features/notice/freeNoticeStore";
 import {
   TEASER_COPY,
   TEASER_AUTO_HIDE_MS,
@@ -34,6 +35,9 @@ export function SurpriseTeaser() {
   const [leaving, setLeaving] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
   const onboardingUp = useOnboardingVisible();
+  // Never alongside the "Free for everyone" notice either: one first-run
+  // surface at a time.
+  const noticeOpen = useFreeNoticeStore((s) => s.isOpen);
 
   useEffect(() => {
     // Evaluated once on mount rather than on a timer: a tab left open across
@@ -41,7 +45,7 @@ export function SurpriseTeaser() {
     setInWindow(shouldShowTeaser(new Date(), readDismissedYear()));
   }, []);
 
-  const showing = inWindow && !onboardingUp && !timedOut;
+  const showing = inWindow && !onboardingUp && !noticeOpen && !timedOut;
 
   /**
    * It leaves on its own after a few seconds.

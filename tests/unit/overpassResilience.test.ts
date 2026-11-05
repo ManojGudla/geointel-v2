@@ -146,3 +146,17 @@ describe("freshness note", () => {
     expect(nearbyFreshnessNote({ stale: false, fetchedAt: null, dataAsOf: "118257" })).toBeNull();
   });
 });
+
+describe("api/status map-data check", () => {
+  beforeEach(() => resetOverpassHealth());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("reports operational when a real query succeeds, even if status pages would not answer", async () => {
+    const { default: statusHandler } = await import("../../api/_routes/status");
+    stubMirrors((url) => (url.includes("openstreetmap.fr") && url.endsWith("/interpreter") ? "ok" : "fail"));
+    const res = fakeReqRes({});
+    await statusHandler(res.req, res.res);
+    const deps = (res.body as { dependencies: Array<{ id: string; status: string }> }).dependencies;
+    expect(deps.find((d) => d.id === "overpass")!.status).toBe("operational");
+  });
+});
