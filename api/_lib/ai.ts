@@ -48,14 +48,19 @@ const FREE_ROUTER = "openrouter/free";
  * Chosen from OpenRouter's live free list on 2026-11-06:
  *  - Gemma 4 31B: strong at following instructions, and at Telugu, Hindi and
  *    mixed-language replies, which the system prompt asks for.
- *  - Gemma 4 26B-A4B: the backup. A mixture-of-experts model that only runs
+ *  - Nemotron 3.5 Lightning: second, and from a DIFFERENT provider on
+ *    purpose. Both Gemma models are served by the same provider and get
+ *    busy together; on 2026-11-06 both were rate-limited at once and the
+ *    question fell through to a 2.6B model from the random router.
+ *    "Lightning" is NVIDIA's speed-tuned variant, so the fallback is fast.
+ *  - Gemma 4 26B-A4B: third. A mixture-of-experts model that only runs
  *    about 4B parameters per word, so it answers in a few seconds. (Nemotron
  *    3 Ultra was the backup first; on 2026-11-06 it took 36 seconds for one
  *    short answer, right at the chat's 35-second limit.)
  * A model slug that disappears answers 404, which the loop below treats as
  * "try the next one". OPENROUTER_MODEL, when set to a real model, goes first.
  */
-const PREFERRED_FREE_MODELS = ["google/gemma-4-31b-it:free", "google/gemma-4-26b-a4b-it:free"];
+const PREFERRED_FREE_MODELS = ["google/gemma-4-31b-it:free", "nvidia/nemotron-3.5-lightning:free", "google/gemma-4-26b-a4b-it:free"];
 
 /**
  * Some models leak their private reasoning into the answer as <think>…</think>.
@@ -141,9 +146,9 @@ export async function getAiCompletion(
     cannot: a rejected API key and a rate limit, where a second request only
     wastes quota or makes the limit worse.
   */
-  // Pinned model(s) first, the random router last. Never more than three
-  // attempts: they all have to fit inside the client's 35-second budget.
-  const attempts = [...new Set([requestedModel, ...PREFERRED_FREE_MODELS, FREE_ROUTER])].slice(0, 3);
+  // Pinned models first, the random router last. Up to four, but every
+  // attempt has to fit inside the client's 35-second budget - see `deadline`.
+  const attempts = [...new Set([requestedModel, ...PREFERRED_FREE_MODELS, FREE_ROUTER])].slice(0, 4);
   /*
     The client aborts at 35s (AI_REQUEST_TIMEOUT_MS in src/services/ai.ts).
     Two attempts have to finish inside that, so each gets half the old 25s
@@ -151,14 +156,21 @@ export async function getAiCompletion(
     given up is worse than no retry - it burns free-tier quota for nobody.
   */
   const perAttemptMs = 11_000;
+  // The whole answer must arrive before the client gives up at 35s. A busy
+  // model usually refuses in under a second, so four attempts normally fit;
+  // when time is short the remaining ones get what is left, and an attempt
+  // with under 4 seconds left is not started at all.
+  const deadline = Date.now() + 30_000;
   let lastError = "The AI provider is temporarily unavailable.";
 
   for (let i = 0; i < attempts.length; i += 1) {
     const model = attempts[i]!;
-    const isLast = i === attempts.length - 1;
+    const remaining = deadline - Date.now();
+    const isLast = i === attempts.length - 1 || remaining - Math.min(perAttemptMs, remaining) < 4_000;
+    if (i > 0 && remaining < 4_000) return { ok: false, error: lastError };
 
     try {
-      const response = await send(model, perAttemptMs);
+      const response = await send(model, Math.min(perAttemptMs, remaining));
 
       if (!response.ok) {
         const text = await response.text().catch(() => "");

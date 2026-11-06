@@ -205,14 +205,15 @@ describe("a bad roll from the free model router", () => {
     if (result.ok) expect(result.model).toBe("poolside/laguna-xs-2.1:free");
   });
 
-  it("tries at most three models (pinned, backup, router) rather than hammering the free tier", async () => {
+  it("tries at most four models (pinned, other-provider backup, backup, router) rather than hammering the free tier", async () => {
     const spy = vi.fn(async () => empty);
     vi.stubGlobal("fetch", spy);
     const result = await getAiCompletion([{ role: "user", content: "hi" }]);
-    expect(spy).toHaveBeenCalledTimes(3);
+    expect(spy).toHaveBeenCalledTimes(4);
     const asked = spy.mock.calls.map((c) => JSON.parse((c as unknown as [string, { body: string }])[1].body).model);
     expect(asked[0]).toBe("google/gemma-4-31b-it:free");
-    expect(asked[2]).toBe("openrouter/free");
+    expect(asked[1]).toBe("nvidia/nemotron-3.5-lightning:free");
+    expect(asked[3]).toBe("openrouter/free");
     expect(result.ok).toBe(false);
     // And says something the reader can act on.
     if (!result.ok) expect(result.error).toMatch(/Run again/i);
