@@ -207,7 +207,14 @@ const handler: ApiHandler = async (req, res) => {
   ];
 
   // Lower temperature: the same question should get the same answer.
-  const result = await getAiCompletion(messages, { maxTokens: 400, temperature: 0.2 });
+  //
+  // 1600 tokens, though the answer itself is one to three sentences: every
+  // free model on OpenRouter's current list "thinks" before it answers, and
+  // that hidden thinking is billed against this same budget. At 400 the
+  // thinking used it all up and the answer came back empty - seen live on
+  // 2026-11-06 as "Every model tried returned an empty answer". The prompt,
+  // not this number, is what keeps answers short.
+  const result = await getAiCompletion(messages, { maxTokens: 1600, temperature: 0.2 });
   if (!result.ok) return err(res, 502, result.error, "AI_UNAVAILABLE");
 
   // `model` is the model that ACTUALLY answered (see api/_lib/ai.ts), with

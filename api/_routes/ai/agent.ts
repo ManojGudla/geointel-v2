@@ -147,7 +147,9 @@ const handler: ApiHandler = async (req, res) => {
     { role: "user", content: `Run the ${kind} intelligence agent on the current data.` },
   ];
 
-  const result = await getAiCompletion(messages, { maxTokens: 400 });
+  // Room for the hidden "thinking" every current free model does first; see
+  // the note on the same budget in copilot.ts.
+  const result = await getAiCompletion(messages, { maxTokens: 1600 });
   if (!result.ok) return err(res, 502, result.error, "AI_UNAVAILABLE");
 
   ok(res, {
