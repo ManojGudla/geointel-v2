@@ -48,12 +48,14 @@ const FREE_ROUTER = "openrouter/free";
  * Chosen from OpenRouter's live free list on 2026-11-06:
  *  - Gemma 4 31B: strong at following instructions, and at Telugu, Hindi and
  *    mixed-language replies, which the system prompt asks for.
- *  - Nemotron 3 Ultra: a large, capable fallback from a different provider,
- *    so one provider's outage doesn't take out both.
+ *  - Gemma 4 26B-A4B: the backup. A mixture-of-experts model that only runs
+ *    about 4B parameters per word, so it answers in a few seconds. (Nemotron
+ *    3 Ultra was the backup first; on 2026-11-06 it took 36 seconds for one
+ *    short answer, right at the chat's 35-second limit.)
  * A model slug that disappears answers 404, which the loop below treats as
  * "try the next one". OPENROUTER_MODEL, when set to a real model, goes first.
  */
-const PREFERRED_FREE_MODELS = ["google/gemma-4-31b-it:free", "nvidia/nemotron-3-ultra-550b-a55b:free"];
+const PREFERRED_FREE_MODELS = ["google/gemma-4-31b-it:free", "google/gemma-4-26b-a4b-it:free"];
 
 /**
  * Some models leak their private reasoning into the answer as <think>…</think>.

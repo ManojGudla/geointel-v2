@@ -7,7 +7,7 @@ import { useCopilotContext } from "./useCopilotContext";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
 import { panelRiseFromBottom } from "@/lib/motionVariants";
 import { formatAiText } from "@/lib/formatAiText";
-import { aiAttribution } from "@/lib/formatAiMeta";
+import { ChatAnswer } from "./ChatAnswer";
 import { contextSummary, copilotSuggestions } from "./copilotSuggestions";
 import { useGisUiStore } from "@/stores/gisUiStore";
 import { useMapStore } from "@/stores/mapStore";
@@ -34,6 +34,8 @@ export function CopilotPanel() {
   const motionEnabled = useMotionPreference();
   /** Which place the conversation so far was about. */
   const historyPlace = useRef<string | null>(null);
+  // Set when an answer arrives in this session, so only that answer types out.
+  const justAnswered = useRef(false);
 
   const ask = async (question: string) => {
     const trimmed = question.trim();
@@ -66,6 +68,7 @@ export function CopilotPanel() {
 
     try {
       const { answer, sources, model, generatedAt } = await askCopilot(trimmed, context, undefined, history);
+      justAnswered.current = true;
       addMessage({ role: "assistant", content: answer, sources, model, generatedAt });
     } catch (error) {
       addMessage({ role: "assistant", content: describeAiFailure(error), isError: true });
@@ -121,33 +124,27 @@ export function CopilotPanel() {
             </div>
           </div>
         )}
-        {messages.map((m, i) => (
-          <div key={i} className={`copilot-panel__message copilot-panel__message--${m.role}${m.isError ? " copilot-panel__message--error" : ""}`}>
-            <p>{m.role === "assistant" && !m.isError ? formatAiText(m.content) : m.content}</p>
-            {/* Folded away: the list is long and was taking the room the
-                answer needed. One tap opens it. */}
-            {m.sources && m.sources.length > 0 && (
-              <details className="copilot-panel__sources">
-                <summary>
-                  Based on {m.sources.length} source{m.sources.length === 1 ? "" : "s"}
-                </summary>
-                <ul>
-                  {m.sources.map((source) => (
-                    <li key={source}>{source}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-            {/* Attribution on the answer, not on the question and not on an
-                error this app wrote itself. */}
-            {m.role === "assistant" && !m.isError && m.model && (
-              <span className="copilot-panel__attribution">{aiAttribution(m.model, m.generatedAt)}</span>
-            )}
-          </div>
-        ))}
+        {messages.map((m, i) =>
+          m.role === "assistant" && !m.isError ? (
+            // Only the newest answer types itself out; earlier ones (and the
+            // whole thread when the panel reopens) appear complete.
+            <ChatAnswer key={i} text={formatAiText(m.content)} sources={m.sources} animate={i === messages.length - 1 && !!justAnswered.current} />
+          ) : (
+            <div key={i} className={`copilot-panel__message copilot-panel__message--${m.role}${m.isError ? " copilot-panel__message--error" : ""}`}>
+              <p>{m.content}</p>
+            </div>
+          )
+        )}
         {isAsking && (
-          <div className="copilot-panel__message copilot-panel__message--assistant copilot-panel__message--pending">
-            <span className="async-panel__spinner" aria-hidden="true" /> Thinking…
+          <div className="chat-answer chat-answer--pending" aria-label="Thinking">
+            <span className="chat-answer__mark" aria-hidden="true">
+              ✨
+            </span>
+            <span className="chat-answer__dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
           </div>
         )}
       </div>
