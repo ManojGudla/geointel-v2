@@ -1,6 +1,12 @@
 export interface TourStep {
   /** CSS selectors tried in order; the first one visible on this screen is highlighted. */
   targets: string[];
+  /**
+   * "children": light up just the buttons inside the target, not the whole
+   * element. The nav rail runs the full height of the screen, so lighting
+   * the rail itself left no room for the card anywhere above or below it.
+   */
+  fit?: "children";
   title: string;
   text: string;
 }
@@ -33,6 +39,7 @@ export const TOUR_STEPS: TourStep[] = [
   },
   {
     targets: [".nav-rail"],
+    fit: "children",
     title: "Every tool lives here",
     text: "Explore a place, switch map layers and satellite view, analyse an area, ask questions, or plan a trip.",
   },
