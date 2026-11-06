@@ -120,7 +120,7 @@ export async function getAiCompletion(
         body: JSON.stringify({
           model,
           messages,
-          max_tokens: opts.maxTokens ?? 700,
+          max_tokens: opts.maxTokens ?? 1200,
           temperature: opts.temperature ?? 0.3,
         }),
       },
@@ -155,7 +155,11 @@ export async function getAiCompletion(
     budget plus a little. A retry that arrives after the client has already
     given up is worse than no retry - it burns free-tier quota for nobody.
   */
-  const perAttemptMs = 11_000;
+  // 20s each, capped by the overall deadline below. Current free models think
+  // before they answer, which takes longer than the old 11s allowed for; a
+  // model that is merely busy refuses in under a second, so a long allowance
+  // for each attempt costs nothing when the first one is unavailable.
+  const perAttemptMs = 20_000;
   // The whole answer must arrive before the client gives up at 35s. A busy
   // model usually refuses in under a second, so four attempts normally fit;
   // when time is short the remaining ones get what is left, and an attempt

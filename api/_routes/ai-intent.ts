@@ -140,7 +140,9 @@ const handler: ApiHandler = async (req, res) => {
     ],
     // Small budget and zero temperature: this is a classification, and a
     // creative one is a wrong one.
-    { maxTokens: 160, temperature: 0 }
+    // The reply is a few words of JSON, but current free models think first
+    // and that thinking counts against this budget (see copilot.ts).
+    { maxTokens: 900, temperature: 0 }
   );
 
   if (!completion.ok) {
