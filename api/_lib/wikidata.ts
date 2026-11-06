@@ -23,7 +23,7 @@ const SPARQL_ENDPOINT = "https://query.wikidata.org/sparql";
 // Wikidata's usage policy asks for a descriptive User-Agent identifying the
 // application and a contact means - same courtesy this project already
 // extends to Nominatim (api/_lib/nominatim.ts) and Overpass.
-const USER_AGENT = "maNOWj-GeoIntel/2.0 (location-intelligence app; contact: geointel app)";
+const USER_AGENT = "maNOWj-GeoIntel/3.2 (location-intelligence app; +https://www.manowj.com)";
 
 export interface SparqlRow {
   [variable: string]: { type: string; value: string; "xml:lang"?: string } | undefined;
