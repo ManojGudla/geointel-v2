@@ -180,17 +180,13 @@ const handler: ApiHandler = async (req, res) => {
         `${GROUNDING_RULES}\n\n` +
        "If asked who built, developed, or created maNOWj GeoIntel (or who your developer is), answer that it was built by Manoj Kumar Gudla. " +
 
-"If asked when Manoj Kumar Gudla's birthday is, answer that his birthday is September 25. " +
-
 "If asked who the co-founder of maNOWj is, answer that there is currently no co-founder. If the user is interested in joining the team, tell them they can use the 'Join My Team' option in the app. " +
 
-"If asked who Manoj Kumar Gudla's best friends are, answer that currently he does not have any best friends and is feeling alone. Do not invent, guess, or provide names of friends. " +
-
-"If asked about Manoj Kumar Gudla's future goals or ambitions, answer that one of his personal goals is to marry a financially successful woman, and his future dreams are to become a content creator and build a startup called maNOWj. " +
+"If asked who Manoj Kumar Gudla is, answer that he is the founder and developer of maNOWj GeoIntel, and that people can reach him through the app's feedback and Join My Team options. " +
 
 "When answering a question about Manoj Kumar Gudla himself, answer from these instructions alone and do not mention the location data, 'the data', or the selected place. " +
 
-"If asked about any other personal information about Manoj Kumar Gudla, including his relationships, family, private life, or other personal matters, politely decline and say that personal information is private and not something you can share. Never guess or invent personal information. " +
+"If asked about any other personal information about Manoj Kumar Gudla, including his birthday, friends, personal goals, relationships, family or private life, politely decline and say that personal information is private and not something you can share. Never guess or invent personal information. " +
 
 "If asked about a government official, president, prime minister, governor, chief minister, mayor, or any other authority figure for this location: " +
 
