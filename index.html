@@ -62,32 +62,34 @@
       og:image must be an ABSOLUTE url; relative paths are silently ignored by
       every scraper, which is the usual reason a card shows text but no image.
 
-      og-image-v2 (November 2026): the redesigned card - a light, product-led
-      layout (headline over the app itself, mid-search) in the Aurora colours.
+      og-image-v3 (November 2026): logo and name, large, in the centre.
+      WhatsApp usually shows the preview as a ~100px square cut from the
+      middle of the image; v2's detailed app mock-up became an unreadable
+      blur at that size. Everything that matters now sits in the centre
+      630x630 square and is big enough to read at thumbnail size.
       A NEW file name on purpose - WhatsApp, LinkedIn and X cache a link's
-      preview image by its URL, so replacing og-image.jpg in place would keep
-      showing the old card to anyone who had seen it. The text is kept inside
-      the centre square because WhatsApp's small preview is a square crop.
+      preview image by its URL, so replacing a file in place would keep
+      showing the old card to anyone who had seen it.
     -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="maNOWj GeoIntel" />
     <meta property="og:url" content="https://www.manowj.com/" />
     <meta property="og:title" content="maNOWj GeoIntel: Know any place, instantly" />
     <meta property="og:description" content="Find what's near you, analyse any area and ask questions about a place in plain language. Free, no sign-up, built on open map data." />
-    <meta property="og:image" content="https://www.manowj.com/og-image-v2.jpg" />
+    <meta property="og:image" content="https://www.manowj.com/og-image-v3.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="maNOWj GeoIntel: know any place, instantly. The app showing hospitals within 2 km of a live location on a map." />
+    <meta property="og:image:alt" content="maNOWj GeoIntel logo: know any place, instantly. Free, no sign-up." />
     <meta property="og:locale" content="en_IN" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="maNOWj GeoIntel: Know any place, instantly" />
     <meta name="twitter:description" content="Find what's near you, analyse any area and ask questions about a place in plain language. Free, no sign-up." />
-    <meta name="twitter:image" content="https://www.manowj.com/og-image-v2.jpg" />
+    <meta name="twitter:image" content="https://www.manowj.com/og-image-v3.jpg" />
     <!-- og:image:alt has had one since it was added; its Twitter counterpart
          had not, so the card was an unlabelled image to a screen reader. -->
-    <meta name="twitter:image:alt" content="maNOWj GeoIntel: know any place, instantly. The app showing hospitals within 2 km of a live location on a map." />
+    <meta name="twitter:image:alt" content="maNOWj GeoIntel logo: know any place, instantly. Free, no sign-up." />
     <!-- tokens.css already names "Inter" first in --font-sans; it was
          silently falling back to the OS default (Segoe UI/system-ui)
          because the font was never actually loaded. Preconnect + a
