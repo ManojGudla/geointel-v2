@@ -1,4 +1,4 @@
-import { CITY_BY_SLUG, type City } from "@/data/cities";
+import { CITY_BY_SLUG, type City } from "../../data/cities";
 
 /**
  * Which two cities a /compare/ URL is about, and which URL is the real one.

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/services/apiClient";
 import { fetchAirQuality } from "@/services/live";
 import { fetchNearby } from "@/services/intel";
+import { compareMeta } from "@/seo/routeMeta";
 import { usePageMeta, useJsonLd } from "@/hooks/usePageMeta";
 import { buildShareUrl } from "@/features/share/viewState";
 import { track } from "@/services/analytics";
@@ -89,19 +90,9 @@ export function ComparePage({ pair }: Props) {
   const { a, b } = pair;
   const canonical = `https://www.manowj.com/compare/${pair.canonicalSlug}`;
 
-  usePageMeta({
-    title: `${a.name} vs ${b.name}: population, air quality and geography | maNOWj GeoIntel`,
-    description: `Compare ${a.name} and ${b.name} on population, area, density, air quality and what is nearby. Every figure shows its source and date.`,
-    /*
-      Both orderings of a pair render, and both point here.
-
-      Without this, /compare/a-vs-b and /compare/b-vs-a are two URLs with
-      identical content competing with each other, splitting whatever authority
-      the page earns and leaving a crawler to pick one on its own - which it
-      usually resolves by ranking neither.
-    */
-    url: canonical,
-  });
+  // Shared with the build step that writes this page's HTML - see src/seo/routeMeta.ts.
+  // Both orderings of a pair render, and both point at the one alphabetical URL.
+  usePageMeta(compareMeta(pair));
 
   useJsonLd(
     {

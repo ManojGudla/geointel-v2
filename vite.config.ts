@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import apiPlugin from "./plugins/vite-plugin-api";
+import prerenderPlugin from "./plugins/vite-plugin-prerender";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -21,7 +22,7 @@ export default defineConfig(({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), ""));
 
   return {
-    plugins: [react(), apiPlugin()],
+    plugins: [react(), apiPlugin(), prerenderPlugin()],
     resolve: {
       alias: {
         "@": path.resolve(dirname, "src"),

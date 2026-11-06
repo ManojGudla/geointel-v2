@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/services/apiClient";
 import { fetchAirQuality } from "@/services/live";
 import { fetchNearby } from "@/services/intel";
+import { cityMeta } from "@/seo/routeMeta";
 import { usePageMeta, useJsonLd } from "@/hooks/usePageMeta";
 import { buildShareUrl } from "@/features/share/viewState";
 import { CITIES, type City } from "@/data/cities";
@@ -75,14 +76,8 @@ function cityUrl(slug: string): string {
 }
 
 export function CityPage({ city }: Props) {
-  usePageMeta({
-    // Written to match how people actually search: the place first, then what
-    // they can do. "maNOWj" is deliberately last - nobody is searching for a
-    // brand they have never heard of.
-    title: `${city.name} map, population and geographic data | maNOWj GeoIntel`,
-    description: `${city.summary} Population, air quality, hospitals, schools and satellite imagery for ${city.name}, ${city.state}.`,
-    url: cityUrl(city.slug),
-  });
+  // Shared with the build step that writes this page's HTML - see src/seo/routeMeta.ts.
+  usePageMeta(cityMeta(city));
 
   /*
     WebPage and BreadcrumbList, not FAQPage.

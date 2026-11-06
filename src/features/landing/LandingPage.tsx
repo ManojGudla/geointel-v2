@@ -3,6 +3,7 @@ import maplibregl, { Map as MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { buildBasemapStyle } from "@/features/map/basemaps";
 import "./LandingPage.css";
+import { LANDING_META } from "@/seo/routeMeta";
 
 /**
  * The page a stranger lands on.
@@ -454,13 +455,9 @@ function prefersReducedMotion() {
    Changing a title does move the search listing. Google re-crawls and
    updates it within days, the URL does not change, and nothing that points
    at this page breaks, so this is a safe edit rather than a risky one. */
-const PAGE_TITLE = "AI Map Search that shows its sources | maNOWj GeoIntel";
-/* Kept under about 155 characters. Google truncates a description roughly
-   there, and the previous one ran to 198, so the sentence carrying the whole
-   point (that every answer shows its source) was being cut off mid-way in
-   the search result. */
-const PAGE_DESC =
-  "Ask any place on Earth a real question: how many hospitals within 5 km, what is here, what the air is like. Every answer shows its source and date.";
+const PAGE_TITLE = LANDING_META.title;
+/* Kept under about 155 characters; see src/seo/routeMeta.ts. */
+const PAGE_DESC = LANDING_META.description;
 
 /* Pull in Archivo and JetBrains Mono without putting them on the critical
    path. See the note at the top of LandingPage.css for why this is not an
@@ -491,7 +488,7 @@ function useScrollableDocument() {
   }, []);
 }
 
-const PAGE_URL = "https://www.manowj.com/ai-map-search";
+const PAGE_URL = LANDING_META.url;
 
 /*
   FAQ structured data.
