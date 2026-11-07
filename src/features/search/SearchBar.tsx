@@ -118,6 +118,10 @@ export function SearchBar() {
   // bare coordinate string anyway). See coordinateSearch.ts.
   const coordinateMatch = useMemo(() => parseCoordinatePair(debouncedQuery), [debouncedQuery]);
 
+  // A spatial question with no place in it ("hospitals within 2 km") is
+  // answered by "Find on map", not by a place lookup - see mentionsAPlace.
+  const placeSearchEnabled = debouncedQuery.trim().length >= 3 && !coordinateMatch && (!spatialCommand || mentionsAPlace(debouncedQuery));
+
   const suggestionsQuery = useQuery({
     // The map centre is part of the key AND the request: the same word means
     // different places depending on where you are looking, and the API ranks
@@ -126,9 +130,38 @@ export function SearchBar() {
     queryFn: ({ signal }) => searchLocations(debouncedQuery, signal, { lat: mapCenter[1], lon: mapCenter[0] }),
     // A spatial question with no place in it ("hospitals within 2 km") is
     // answered by "Find on map", not by a place lookup - see mentionsAPlace.
-    enabled: debouncedQuery.trim().length >= 3 && !coordinateMatch && (!spatialCommand || mentionsAPlace(debouncedQuery)),
+    enabled: placeSearchEnabled,
     staleTime: 30_000,
   });
+
+  /*
+   * The search funnel: one "search_started" per settled query (after the
+   * 600 ms pause), then exactly one "search_completed" (with how many results
+   * and how long they took) or "search_failed" ("no-results" or "error").
+   * Search success rate = completed / started. Only the length of the query
+   * is sent, never its text.
+   */
+  const searchClock = useRef<{ key: string; started: number; reported: boolean } | null>(null);
+  useEffect(() => {
+    if (!placeSearchEnabled) return;
+    searchClock.current = { key: debouncedQuery, started: Date.now(), reported: false };
+    track("search_started", { kind: "typeahead", queryLength: debouncedQuery.trim().length });
+  }, [debouncedQuery, placeSearchEnabled]);
+  useEffect(() => {
+    const clock = searchClock.current;
+    if (!clock || clock.reported || clock.key !== debouncedQuery || suggestionsQuery.isFetching) return;
+    const durationMs = Date.now() - clock.started;
+    const queryLength = debouncedQuery.trim().length;
+    if (suggestionsQuery.isError) {
+      clock.reported = true;
+      track("search_failed", { kind: "typeahead", reason: "error", queryLength, durationMs });
+    } else if (suggestionsQuery.isSuccess) {
+      clock.reported = true;
+      const resultCount = suggestionsQuery.data?.length ?? 0;
+      if (resultCount > 0) track("search_completed", { kind: "typeahead", resultCount, queryLength, durationMs });
+      else track("search_failed", { kind: "typeahead", reason: "no-results", queryLength, durationMs });
+    }
+  }, [debouncedQuery, suggestionsQuery.isFetching, suggestionsQuery.isError, suggestionsQuery.isSuccess, suggestionsQuery.data]);
 
   const suggestions = useMemo<SearchSuggestion[]>(() => {
     if (coordinateMatch) {

@@ -51,6 +51,9 @@ export type AnalyticsEvent =
   // Core tools
   | "route_started"
   | "radius_created"
+  | "analysis_completed"
+  | "analysis_failed"
+  | "report_printed"
   | "area_measured"
   | "distance_measured"
   | "basemap_changed"
@@ -97,6 +100,7 @@ const SAFE_NUMERIC_KEYS = new Set([
   "zoom",
   "streak",
   "rating",
+  "pointCount",
 ]);
 
 export function scrubProps(props: AnalyticsProps | undefined): AnalyticsProps {

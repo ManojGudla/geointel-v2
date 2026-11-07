@@ -1,3 +1,4 @@
+import { track } from "@/services/analytics";
 import { apiPost } from "@/services/apiClient";
 import { createRequestGate } from "@/services/aiRequestQueue";
 import type { AgentKind, AgentResult, CopilotContext } from "@/types/ai";
@@ -24,6 +25,25 @@ export interface CopilotTurn {
   content: string;
 }
 
+/**
+ * Counts an AI request the person was waiting for. A cancelled request (they
+ * closed the panel or asked something else) is neither a success nor a
+ * failure, so it is not counted. The question text never leaves in an event.
+ */
+async function measured<T>(surface: string, run: () => Promise<T>, modelOf?: (value: T) => string | undefined): Promise<T> {
+  const started = Date.now();
+  try {
+    const value = await run();
+    track("ai_question_asked", { surface, durationMs: Date.now() - started, model: modelOf?.(value) });
+    return value;
+  } catch (error) {
+    if ((error as { name?: string } | null)?.name !== "AbortError") {
+      track("ai_question_failed", { surface, durationMs: Date.now() - started, reason: error instanceof Error && /timed out/.test(error.message) ? "timeout" : error instanceof Error ? error.name : "unknown" });
+    }
+    throw error;
+  }
+}
+
 export async function askCopilot(
   question: string,
   context: CopilotContext,
@@ -32,25 +52,32 @@ export async function askCopilot(
 ): Promise<{ answer: string; sources: string[]; model: string; generatedAt?: string }> {
   // priority: a person is watching this one send box, so it goes ahead of
   // any agent cards already queued up behind it.
-  return aiGate.run(
+  return measured(
+    "copilot",
     () =>
-      apiPost<{ answer: string; sources: string[]; model: string; generatedAt?: string }>(
-        "/api/ai/copilot",
-        // The last six turns; the server trims and caps them again.
-        { question, context, history: history.slice(-6) },
-        signal,
-        AI_REQUEST_TIMEOUT_MS
+      aiGate.run(
+        () =>
+          apiPost<{ answer: string; sources: string[]; model: string; generatedAt?: string }>(
+            "/api/ai/copilot",
+            // The last six turns; the server trims and caps them again.
+            { question, context, history: history.slice(-6) },
+            signal,
+            AI_REQUEST_TIMEOUT_MS
+          ),
+        { priority: true }
       ),
-    { priority: true }
+    (value) => value.model
   );
 }
 
 export async function runAgent(kind: AgentKind, context: CopilotContext, signal?: AbortSignal, onStart?: () => void): Promise<AgentResult> {
-  return aiGate.run(
-    async () => {
-      const { result } = await apiPost<{ result: AgentResult }>("/api/ai/agent", { kind, context }, signal, AI_REQUEST_TIMEOUT_MS);
-      return result;
-    },
-    { onStart }
+  return measured(`agent:${kind}`, () =>
+    aiGate.run(
+      async () => {
+        const { result } = await apiPost<{ result: AgentResult }>("/api/ai/agent", { kind, context }, signal, AI_REQUEST_TIMEOUT_MS);
+        return result;
+      },
+      { onStart }
+    )
   );
 }

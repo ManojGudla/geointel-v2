@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { track } from "@/services/analytics";
 
 /**
  * Which live layers are switched on.
@@ -21,6 +22,10 @@ interface LiveLayerState {
 export const useLiveLayerStore = create<LiveLayerState>((set) => ({
   enabled: { earthquakes: false, radar: false },
   quakeWindow: "day",
-  toggle: (id) => set((s) => ({ enabled: { ...s.enabled, [id]: !s.enabled[id] } })),
+  toggle: (id) =>
+    set((s) => {
+      if (!s.enabled[id]) track("layer_opened", { layer: id, kind: "live" });
+      return { enabled: { ...s.enabled, [id]: !s.enabled[id] } };
+    }),
   setQuakeWindow: (quakeWindow) => set({ quakeWindow }),
 }));

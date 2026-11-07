@@ -1,3 +1,4 @@
+import { track } from "@/services/analytics";
 import { useEffect, useState } from "react";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useDialog } from "@/hooks/useDialog";
@@ -178,7 +179,10 @@ export function PlayHub() {
                           </span>
                         )}
                       </div>
-                      <button type="button" className="play-btn play-btn--primary" onClick={() => setView({ kind: "game", id: game.id })}>
+                      <button type="button" className="play-btn play-btn--primary" onClick={() => {
+                          track("game_started", { game: game.id });
+                          setView({ kind: "game", id: game.id });
+                        }}>
                         Play
                       </button>
                     </article>

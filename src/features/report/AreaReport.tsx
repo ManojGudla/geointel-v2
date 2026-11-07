@@ -1,3 +1,4 @@
+import { track } from "@/services/analytics";
 import { useQuery } from "@tanstack/react-query";
 import { useLocationStore } from "@/stores/locationStore";
 import { useReportStore } from "@/stores/reportStore";
@@ -63,7 +64,11 @@ export function AreaReport() {
     <div ref={dialogRef} className="report-overlay" role="dialog" aria-modal="true" aria-label="Area report">
       <div className="report-sheet">
         <div className="report-toolbar">
-          <button type="button" onClick={() => window.print()} className="report-toolbar__print">
+          <button type="button" onClick={() => {
+              track("report_printed");
+              window.print();
+            }}
+            className="report-toolbar__print">
             🖨️ Print / Save as PDF
           </button>
           <button type="button" onClick={close} className="report-toolbar__close">

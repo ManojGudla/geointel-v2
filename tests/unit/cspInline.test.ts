@@ -27,7 +27,7 @@ import { join } from "node:path";
 const root = process.cwd();
 const html = readFileSync(join(root, "index.html"), "utf8");
 const config = JSON.parse(readFileSync(join(root, "vercel.json"), "utf8")) as {
-  rewrites: Array<{ source: string; destination: string }>;
+  rewrites?: Array<{ source: string; destination: string }>;
   headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
 };
 
@@ -193,7 +193,7 @@ describe("the recovery guard", () => {
     // If /recovery.js were rewritten to index.html, the browser would refuse
     // an HTML document as a script - the exact failure this guard recovers
     // from would also disable the guard.
-    const swallowed = config.rewrites.some((r) => new RegExp(`^${r.source}$`).test("/recovery.js"));
+    const swallowed = (config.rewrites ?? []).some((r) => new RegExp(`^${r.source}$`).test("/recovery.js"));
     expect(swallowed).toBe(false);
   });
 });

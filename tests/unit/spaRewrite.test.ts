@@ -2,82 +2,73 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { prerenderRoutes } from "@/seo/routeMeta";
+import { CITIES } from "@/data/cities";
+
 /**
- * Guards the vercel.json SPA rewrite.
+ * Guards how URLs are answered now that there is no catch-all rewrite.
  *
- * This test exists because of a live outage on manowj.com. The rewrite was
- * `/((?!api/).*)` - everything except /api/ - which meant a request for an
- * asset hash that no longer existed returned index.html with HTTP 200 and
- * content-type text/html. The browser refuses HTML as a stylesheet or a
- * module, so the site rendered a completely blank page, and the service
- * worker cached that HTML under the asset's URL, making it permanent.
+ * History, because each step was a live problem on manowj.com:
+ *  1. The rewrite was `/((?!api/).*)`, so a missing asset hash came back as
+ *     index.html with HTTP 200 and the site rendered blank (the browser
+ *     refuses HTML as a script or stylesheet, and the service worker cached
+ *     it). Assets were excluded from the rewrite.
+ *  2. Every other URL still got index.html, so /maps/*, /compare/* and made-up
+ *     URLs all returned the homepage's HTML with HTTP 200: the homepage's
+ *     canonical on every page, and "soft 404s" for URLs that do not exist.
+ *  3. Now every app URL is a real file written at build time
+ *     (plugins/vite-plugin-prerender.ts), and the rewrite is gone. A URL with
+ *     no file gets dist/404.html with a real 404 status.
  *
- * A missing asset must 404. That is diagnosable and self-healing; a 200 of
- * the wrong content type is neither. If someone widens this rewrite again,
- * these tests fail before it ships.
+ * If a catch-all rewrite comes back, these tests say what it would break.
  */
 
 const config = JSON.parse(readFileSync(join(process.cwd(), "vercel.json"), "utf8")) as {
-  rewrites: Array<{ source: string; destination: string }>;
+  rewrites?: Array<{ source: string; destination: string }>;
   headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
 };
 
 /** Vercel source patterns are anchored regexes. */
 function rewrites(pathname: string): boolean {
-  return config.rewrites.some((r) => new RegExp(`^${r.source}$`).test(pathname));
+  return (config.rewrites ?? []).some((r) => new RegExp(`^${r.source}$`).test(pathname));
 }
 
-describe("SPA rewrite", () => {
-  it("sends real app routes to index.html", () => {
-    for (const p of ["/", "/status", "/admin", "/some/deep/route"]) {
-      expect(rewrites(p)).toBe(true);
+const prerendered = new Set(prerenderRoutes().map((r) => r.path));
+
+describe("URL handling without a catch-all rewrite", () => {
+  it("has a real file for every URL the app renders", () => {
+    // "/" is index.html itself. Everything else App.tsx recognises must have
+    // its own prerendered file, or it would now 404.
+    for (const p of ["/ai-map-search", "/status", "/admin", "/privacy"]) expect(prerendered.has(p), p).toBe(true);
+    for (const c of CITIES) expect(prerendered.has(`/maps/${c.slug}`), c.slug).toBe(true);
+    for (const a of CITIES)
+      for (const b of CITIES) if (a.slug !== b.slug) expect(prerendered.has(`/compare/${a.slug}-vs-${b.slug}`)).toBe(true);
+  });
+
+  it("lets unknown URLs fall through to a real 404", () => {
+    for (const p of ["/some/deep/route", "/maps/atlantis", "/compare/hyderabad-vs-hyderabad", "/google-maps-comparison"]) {
+      expect(rewrites(p), p).toBe(false);
+      expect(prerendered.has(p), p).toBe(false);
     }
   });
 
-  it("does NOT swallow build assets - a missing one must 404", () => {
+  it("never answers an asset, a crawler file or the API with HTML", () => {
     for (const p of [
-      "/assets/index-CQOnuD4P.js",
-      "/assets/index-D6-G6fe5.css",
+      "/assets/index-Bu0wYZql.css", // the stale hash that caused the blank-page outage
       "/assets/PlayHub-2MZ30-Gh.js",
-      "/assets/index-Bu0wYZql.css", // the stale hash that caused the outage
+      "/robots.txt",
+      "/sitemap.xml",
+      "/llms.txt",
+      "/og-image-v3.jpg",
+      "/icons/icon-192.png",
+      "/googleb676b63b365dcfba.html",
+      "/sw.js",
+      "/recovery.js",
+      "/manifest.json",
+      "/api/geocode",
+      "/api/ai/copilot",
     ]) {
-      expect(rewrites(p)).toBe(false);
-    }
-  });
-
-  it("does not swallow the files crawlers and social scrapers fetch", () => {
-    // A rewrite that answers /og-image.png with index.html gives every
-    // scraper an HTML page where an image should be - the link preview then
-    // renders with no picture and nothing explains why. Same for robots and
-    // the sitemap: Google would read HTML as a directives file.
-    for (const p of ["/robots.txt", "/sitemap.xml", "/og-image.jpg", "/icons/icon-192.png"]) {
-      expect(rewrites(p)).toBe(false);
-    }
-  });
-
-  it("does not swallow a search-engine verification file", () => {
-    // Google Search Console fetches /google<hash>.html and expects the exact
-    // one line that file contains. Answered with index.html it reads as a
-    // wrong file, verification fails, and the reason is invisible - the URL
-    // returns HTTP 200, so nothing looks broken. Vercel serves real static
-    // files ahead of rewrites anyway; this makes that independent of ordering.
-    expect(rewrites("/googleb676b63b365dcfba.html")).toBe(false);
-    // The pattern must cover any such file, not only today's one.
-    expect(rewrites("/google0123456789abcdef.html")).toBe(false);
-    // ...without becoming a hole for ordinary app routes that start "google".
-    expect(rewrites("/google-maps-comparison")).toBe(true);
-  });
-
-  it("does not swallow the service worker or the manifest", () => {
-    // A rewritten sw.js would serve index.html as the worker script, which
-    // fails registration and silently kills installability.
-    expect(rewrites("/sw.js")).toBe(false);
-    expect(rewrites("/manifest.json")).toBe(false);
-  });
-
-  it("does not swallow API calls", () => {
-    for (const p of ["/api/geocode", "/api/route", "/api/ai/copilot"]) {
-      expect(rewrites(p)).toBe(false);
+      expect(rewrites(p), p).toBe(false);
     }
   });
 });
