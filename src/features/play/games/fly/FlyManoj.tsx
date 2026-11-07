@@ -161,68 +161,23 @@ function drawPin(ctx: CanvasRenderingContext2D, x: number, y: number, t: number)
   ctx.restore();
 }
 
-function drawFlyer(ctx: CanvasRenderingContext2D, s: FlyState, face: HTMLImageElement | null, flapAge: number) {
+function drawFlyer(ctx: CanvasRenderingContext2D, s: FlyState, face: HTMLImageElement | null) {
+  // Just the head, cut out from the photo: no frame, no wings, no ring. It
+  // tilts with the climb and the dive, which is all the motion it needs.
   const tilt = s.phase === "ready" ? Math.sin(s.time * 4) * 0.08 : Math.max(-0.45, Math.min(1.2, s.vy / 650));
+  // After a second chance he blinks while the shield lasts.
+  if (s.shield > 0 && Math.floor(s.time * 12) % 2 === 0) return;
+  const size = FLYER_R * 2.9;
   ctx.save();
   ctx.translate(FLYER_X, s.y);
   ctx.rotate(tilt);
-  // Wings: beat fast right after a tap, glide otherwise.
-  const beat = s.phase === "dead" ? 0 : Math.sin((flapAge < 0.25 ? s.time * 38 : s.time * 9)) * (flapAge < 0.25 ? 0.9 : 0.35);
-  for (const side of [-1, 1]) {
-    ctx.save();
-    ctx.translate(-6, 2);
-    ctx.rotate(side === -1 ? -0.5 + beat : 0.3 - beat * 0.6);
-    ctx.fillStyle = side === -1 ? "#ffffff" : "#e6e9f5";
-    ctx.strokeStyle = "rgba(60,50,140,0.35)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.ellipse(-16, side * 2, 17, 8, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-  }
-  // Face with a white ring and a soft shadow.
-  ctx.shadowColor = "rgba(0,0,0,0.3)";
-  ctx.shadowBlur = 8;
-  ctx.shadowOffsetY = 3;
-  ctx.fillStyle = "#ffffff";
-  ctx.beginPath();
-  ctx.arc(0, 0, FLYER_R + 3, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowColor = "transparent";
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(0, 0, FLYER_R, 0, Math.PI * 2);
-  ctx.clip();
   if (face && face.complete && face.naturalWidth) {
-    ctx.drawImage(face, -FLYER_R, -FLYER_R, FLYER_R * 2, FLYER_R * 2);
+    ctx.drawImage(face, -size / 2, -size / 2, size, size);
   } else {
     ctx.fillStyle = "#6d5bff";
-    ctx.fillRect(-FLYER_R, -FLYER_R, FLYER_R * 2, FLYER_R * 2);
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 20px system-ui";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("M", 0, 1);
-  }
-  ctx.restore();
-  // The second-chance shield, blinking as it runs out.
-  if (s.shield > 0 && (s.shield > 0.6 || Math.floor(s.time * 12) % 2 === 0)) {
-    ctx.strokeStyle = "rgba(94,234,212,0.9)";
-    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(0, 0, FLYER_R + 9, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  // Dizzy stars after a crash.
-  if (s.phase === "dead") {
-    ctx.fillStyle = "#ffd54a";
-    for (let i = 0; i < 3; i++) {
-      const a = s.time * 6 + (i * Math.PI * 2) / 3;
-      ctx.beginPath();
-      ctx.arc(Math.cos(a) * 20, -FLYER_R - 6 + Math.sin(a) * 5, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    ctx.arc(0, 0, FLYER_R, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
 }
@@ -464,7 +419,7 @@ export function FlyManoj({ onBackToHub }: { onBackToHub: () => void }) {
       ctx.fillStyle = "#3fbf72";
       ctx.fillRect(-ox / scale, gy, W / scale, 4);
 
-      drawFlyer(ctx, s, faceRef.current, s.time - flapAtRef.current);
+      drawFlyer(ctx, s, faceRef.current);
 
       // Particles.
       particlesRef.current = particlesRef.current.filter((p) => p.life < p.max);

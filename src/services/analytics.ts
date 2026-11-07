@@ -65,6 +65,8 @@ export type AnalyticsEvent =
   | "daily_game_started"
   | "daily_game_completed"
   | "game_started"
+  | "games_nudge_shown"
+  | "games_nudge_clicked"
   // Trust and feedback
   | "feedback_submitted"
   | "data_issue_reported";
