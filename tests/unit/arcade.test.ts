@@ -4,9 +4,7 @@ import {
   IMPOSTOR_STATEMENTS,
   buildImpostorGame,
   buildImpostorRound,
-  buildRealOrFakeQueue,
   impostorPoints,
-  realOrFakePoints,
 } from "../../src/features/play/games/arcade/factGames";
 import {
   buildCodeGame,
@@ -108,37 +106,6 @@ describe("The Impostor", () => {
     expect(impostorPoints(true, 1)).toBeGreaterThan(impostorPoints(true, 15));
     expect(impostorPoints(false, 1)).toBe(0);
     expect(impostorPoints(true, 999)).toBeGreaterThan(0);
-  });
-});
-
-describe("Impossible or Real", () => {
-  const queue = buildRealOrFakeQueue("rf");
-
-  it("builds a long queue so a good run cannot exhaust it", () => {
-    expect(queue.length).toBeGreaterThanOrEqual(30);
-  });
-
-  it("mixes true and false rather than dealing runs of one", () => {
-    // If the answer is REAL five times running, the player learns to press
-    // REAL and stops reading the claim, which is the whole game.
-    const first20 = queue.slice(0, 20);
-    const trues = first20.filter((f) => f.isTrue).length;
-    expect(trues).toBeGreaterThan(3);
-    expect(trues).toBeLessThan(17);
-
-    let longestRun = 1;
-    let run = 1;
-    for (let i = 1; i < queue.length; i++) {
-      run = queue[i]!.isTrue === queue[i - 1]!.isTrue ? run + 1 : 1;
-      longestRun = Math.max(longestRun, run);
-    }
-    expect(longestRun).toBeLessThanOrEqual(5);
-  });
-
-  it("pays more the longer the run goes", () => {
-    expect(realOrFakePoints(0)).toBeLessThan(realOrFakePoints(5));
-    expect(realOrFakePoints(5)).toBeLessThan(realOrFakePoints(20));
-    expect(realOrFakePoints(-3)).toBeGreaterThan(0);
   });
 });
 

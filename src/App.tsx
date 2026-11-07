@@ -65,6 +65,7 @@ import { ConsentBanner } from "@/features/analytics/ConsentBanner";
 import { FreeToUseNotice } from "@/features/notice/FreeToUseNotice";
 import { FeatureTour } from "@/features/tour/FeatureTour";
 import { NetworkStatus } from "@/components/NetworkStatus";
+import { GamesNudge } from "@/features/play/nudge/GamesNudge";
 import { LazyPanel } from "@/components/LazyPanel";
 import { useFeedbackStore } from "@/stores/feedbackStore";
 import { useHelpStore } from "@/stores/helpStore";
@@ -328,6 +329,11 @@ export default function App() {
 
       <ErrorBoundary label="Feature tour" variant="silent">
         <FeatureTour />
+      </ErrorBoundary>
+
+      {/* Tells map visitors the games exist, once, after a while of real use. */}
+      <ErrorBoundary label="Games hint" variant="silent">
+        <GamesNudge />
       </ErrorBoundary>
 
       <footer className="app-footer">

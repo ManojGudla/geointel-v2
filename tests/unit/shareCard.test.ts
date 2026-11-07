@@ -7,7 +7,6 @@ import {
   formatCardDate,
 } from "../../src/features/play/share/shareCard";
 import { COUNTRIES } from "../../src/features/play/data/world";
-import { accuracy, applyAnswer, initialState } from "../../src/features/play/games/sixty/sixtyEngine";
 
 /**
  * The shareable result card.
@@ -96,17 +95,14 @@ describe("the filename", () => {
 
 describe("the card does not spoil the game", () => {
   it("carries numbers only, never a place name", () => {
-    // Built the way the game actually builds it, from a real played state.
-    let state = initialState();
-    for (let i = 0; i < 9; i++) state = applyAnswer(state, i % 3 !== 0);
-
+    // The shape a quiz round's card is built with: counts and a percentage.
     const card = buildScoreCard({
-      game: "60 Seconds",
-      score: state.score,
+      game: "World Quiz",
+      score: 720,
       stats: [
-        { label: "Correct", value: `${state.correct}/${state.answered}` },
-        { label: "Accuracy", value: `${accuracy(state)}%` },
-        { label: "Best streak", value: state.longestStreak },
+        { label: "Correct", value: "6/9" },
+        { label: "Accuracy", value: "67%" },
+        { label: "Best streak", value: 4 },
       ],
     });
 

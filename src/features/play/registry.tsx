@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import { UltimateTicTacToe } from "./games/ultimate/UltimateTicTacToe";
 import { QuizGame } from "./games/quiz/QuizGame";
-import { CricketChallenge } from "./games/cricket/CricketChallenge";
-import { SixtySeconds } from "./games/sixty/SixtySeconds";
+import { CricketPro } from "./games/cricket/CricketPro";
+import { FlyManoj } from "./games/fly/FlyManoj";
 import { Impostor } from "./games/arcade/Impostor";
-import { RealOrFake } from "./games/arcade/RealOrFake";
 import { CrackTheCode } from "./games/arcade/CrackTheCode";
 import { PatternBreaker } from "./games/arcade/PatternBreaker";
 /*
@@ -80,6 +79,18 @@ export interface GameEntry {
 
 export const GAMES: GameEntry[] = [
   {
+    // First on purpose: the quickest game to understand (one button), the
+    // fastest to replay, and the founder is the one flying.
+    id: "fly-manowj",
+    title: "Fly maNOWj",
+    tagline: "Tap to keep Manoj in the air. Thread the towers, grab the map pins.",
+    icon: "🪽",
+    categories: ["trending", "quick", "casual"],
+    duration: "1 min",
+    scored: true,
+    render: ({ onBackToHub }) => <FlyManoj onBackToHub={onBackToHub} />,
+  },
+  {
     id: "tic-tac-toe",
     title: "Ultimate Tic-Tac-Toe",
     tagline: "Nine boards. Your move decides where your opponent plays next.",
@@ -102,29 +113,6 @@ export const GAMES: GameEntry[] = [
     ),
   },
   {
-    id: "flag-quiz",
-    title: "Flag Quiz",
-    tagline: "One flag, four countries. How many do you know?",
-    icon: "🏳️",
-    categories: ["quiz", "quick"],
-    duration: "2 min",
-    scored: true,
-    render: ({ onBackToHub }) => <QuizGame gameId="flag-quiz" gameTitle="Flag Quiz" kinds={["flag"]} onBackToHub={onBackToHub} />,
-  },
-  {
-    // Placed high because it is the shortest commitment in the hub: one
-    // minute, no setup, and it can be replayed immediately. That combination
-    // is what gets a visitor to press a second time.
-    id: "sixty",
-    title: "60 Seconds",
-    tagline: "One minute. The questions keep changing. Wrong answers cost you time.",
-    icon: "⚡",
-    categories: ["trending", "geo", "quiz", "quick"],
-    duration: "1 min",
-    scored: true,
-    render: ({ onBackToHub }) => <SixtySeconds onBackToHub={onBackToHub} />,
-  },
-  {
     id: "impostor",
     title: "The Impostor",
     tagline: "Five statements. Four are true. Find the one that is lying.",
@@ -133,16 +121,6 @@ export const GAMES: GameEntry[] = [
     duration: "3 min",
     scored: true,
     render: ({ onBackToHub }) => <Impostor onBackToHub={onBackToHub} />,
-  },
-  {
-    id: "real-or-fake",
-    title: "Impossible or Real",
-    tagline: "Strange claims, one at a time. One wrong answer ends the run.",
-    icon: "🧪",
-    categories: ["trending", "quiz", "quick"],
-    duration: "2 min",
-    scored: true,
-    render: ({ onBackToHub }) => <RealOrFake onBackToHub={onBackToHub} />,
   },
   {
     id: "crack-the-code",
@@ -166,13 +144,13 @@ export const GAMES: GameEntry[] = [
   },
   {
     id: "cricket",
-    title: "Cricket Challenge",
-    tagline: "Time your shot as the ball comes at you. Three overs to chase.",
+    title: "Cricket: Super Chase",
+    tagline: "Broadcast-view batting. Read the pitch marker, swipe your shot, loft it for six. Three overs to chase.",
     icon: "🏏",
     categories: ["trending", "sports"],
     duration: "3 min",
     scored: true,
-    render: ({ onBackToHub }) => <CricketChallenge onBackToHub={onBackToHub} />,
+    render: ({ onBackToHub }) => <CricketPro onBackToHub={onBackToHub} />,
   },
   {
     id: "find-it",

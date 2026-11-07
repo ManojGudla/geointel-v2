@@ -1,0 +1,264 @@
+.game--fly {
+  display: flex;
+  justify-content: center;
+}
+
+.fly__stage {
+  position: relative;
+  width: min(100%, 420px);
+  aspect-ratio: 9 / 16;
+  max-height: min(74vh, 720px);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #5ec8f2;
+  box-shadow: 0 18px 40px rgba(20, 10, 70, 0.28);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.fly__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.fly__intro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 18%;
+  gap: 6px;
+  pointer-events: none;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 0 2px 0 rgba(30, 20, 90, 0.85), 0 0 14px rgba(30, 20, 90, 0.35);
+}
+
+.fly__title {
+  margin: 0;
+  font-size: clamp(30px, 9vw, 40px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.fly__title b {
+  color: #5eead4;
+}
+
+.fly__hint {
+  margin: 58% 0 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(20, 12, 70, 0.55);
+  font-size: 15px;
+  font-weight: 800;
+  text-shadow: none;
+  animation: fly-pulse 1.2s ease-in-out infinite;
+}
+
+.fly__sub,
+.fly__best {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@keyframes fly-pulse {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+.fly__over {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  background: rgba(12, 8, 40, 0.45);
+  backdrop-filter: blur(2px);
+  cursor: default;
+  animation: fly-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes fly-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.fly__over-title {
+  margin: 0;
+  color: #ffffff;
+  text-align: center;
+  font-size: clamp(22px, 7vw, 30px);
+  font-weight: 900;
+  text-shadow: 0 3px 0 rgba(30, 20, 90, 0.9);
+}
+
+.fly__card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(100%, 300px);
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff8e6;
+  border: 3px solid #3a2fb0;
+  color: #1b1640;
+}
+
+.fly__medal {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+  background: #d6d3e6;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18);
+}
+
+.fly__medal--bronze {
+  background: radial-gradient(circle at 35% 30%, #f3b37a, #b06a2c);
+}
+
+.fly__medal--silver {
+  background: radial-gradient(circle at 35% 30%, #f4f6fa, #9aa3b5);
+  color: #3b4252;
+}
+
+.fly__medal--gold {
+  background: radial-gradient(circle at 35% 30%, #ffe58a, #d4a017);
+  color: #5a3d00;
+}
+
+.fly__medal--platinum {
+  background: radial-gradient(circle at 35% 30%, #e9fbff, #7dd3e8);
+  color: #0b4a5a;
+}
+
+.fly__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  flex: 1;
+  margin: 0;
+}
+
+.fly__stats div {
+  text-align: center;
+}
+
+.fly__stats dt {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a4b12;
+}
+
+.fly__stats dd {
+  margin: 2px 0 0;
+  font-size: 26px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.fly__next {
+  margin: 0;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.fly__actions {
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .fly__stage {
+    width: 100%;
+    max-height: 70vh;
+    border-radius: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fly__hint,
+  .fly__over {
+    animation: none;
+  }
+}
+
+.fly__actions .play-btn--quiet {
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.fly__chances {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(20, 12, 70, 0.6);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+.fly__chances span {
+  color: #ff5d7a;
+}
+
+.fly__continue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: min(100%, 260px);
+  padding: 12px 22px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #2dd4bf, #0d9488);
+  color: #ffffff;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #0b6b62, 0 10px 24px rgba(13, 148, 136, 0.45);
+  animation: fly-pulse 1.2s ease-in-out infinite;
+}
+
+.fly__continue small {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.95;
+}
+
+.fly__continue small span {
+  color: #ffe1e8;
+}
+
+.fly__continue:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #0b6b62;
+}

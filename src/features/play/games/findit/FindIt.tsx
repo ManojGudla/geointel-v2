@@ -3,7 +3,7 @@ import { buildLevel, scoreFind, type Level } from "./findItEngine";
 import { RoundSummary } from "../../components/RoundSummary";
 import { usePlayStore } from "../../progress/playStore";
 import type { AppliedRound } from "../../progress/applyRound";
-import { playTone } from "../../sound";
+import { sfx } from "../../sfx";
 import "./FindIt.css";
 
 /** Wrong taps you can afford before the run ends. */
@@ -69,7 +69,7 @@ export function FindIt({ onBackToHub }: { onBackToHub: () => void }) {
         const left = next.timeMs - (performance.now() - startedAtRef.current);
         if (left <= 0) {
           setRemainingMs(0);
-          if (soundEnabled) playTone(180, 0.18);
+          sfx("lose");
           setFlash("timeout");
           finish("time");
           return;
@@ -104,7 +104,7 @@ export function FindIt({ onBackToHub }: { onBackToHub: () => void }) {
       const gained = scoreFind(level, taken, current.timeMs);
       setScore((s) => s + gained);
       setFlash("hit");
-      if (soundEnabled) playTone(700, 0.07);
+      sfx("correct");
       if (flashTimer.current) window.clearTimeout(flashTimer.current);
       flashTimer.current = window.setTimeout(() => setFlash(null), 400);
       startLevel(level + 1);
@@ -115,7 +115,7 @@ export function FindIt({ onBackToHub }: { onBackToHub: () => void }) {
     const nextMisses = misses + 1;
     setMisses(nextMisses);
     setFlash("miss");
-    if (soundEnabled) playTone(200, 0.07);
+    sfx("wrong");
     if (flashTimer.current) window.clearTimeout(flashTimer.current);
     flashTimer.current = window.setTimeout(() => setFlash(null), 400);
     if (nextMisses >= MAX_MISSES) finish("misses");
