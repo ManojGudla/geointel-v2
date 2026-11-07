@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePlayStore } from "../../progress/playStore";
-import { playTone } from "../../sound";
+import { sfx } from "../../sfx";
 import {
   applyClassic,
   applyMove,
@@ -98,7 +98,7 @@ export function UltimateTicTacToe({ onBackToHub }: { onBackToHub: () => void }) 
   useEffect(() => {
     if (!winner || recordedRef.current) return;
     recordedRef.current = true;
-    if (soundEnabled) playTone(winner === "X" ? 880 : 300, 0.14);
+    sfx(winner === "X" ? "win" : "lose");
     recordRound({
       gameId: "tic-tac-toe",
       score: winner === "X" ? 1 : 0,
@@ -117,12 +117,12 @@ export function UltimateTicTacToe({ onBackToHub }: { onBackToHub: () => void }) 
     if (mode === "ultimate") {
       const next = applyMove(game, board, cell);
       if (next === game) return; // illegal; the board says why
-      if (soundEnabled) playTone(520, 0.05);
+      sfx("tap");
       setGame(next);
     } else {
       const next = applyClassic(classic, cell);
       if (next === classic) return;
-      if (soundEnabled) playTone(520, 0.05);
+      sfx("tap");
       setClassic(next);
     }
   };

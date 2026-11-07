@@ -18,7 +18,7 @@ import {
 import { RoundSummary } from "../../components/RoundSummary";
 import { usePlayStore } from "../../progress/playStore";
 import type { AppliedRound } from "../../progress/applyRound";
-import { playTone } from "../../sound";
+import { sfx } from "../../sfx";
 import "./GeoMemory.css";
 
 const SIZES: GridSize[] = [12, 16, 20];
@@ -43,7 +43,6 @@ export function GeoMemory({ onBackToHub }: { onBackToHub: () => void }) {
   const [peeked, setPeeked] = useState(false);
 
   const recordRound = usePlayStore((s) => s.recordRound);
-  const soundEnabled = usePlayStore((s) => s.soundEnabled);
   const hideTimer = useRef<number | null>(null);
   const recordedRef = useRef(false);
 
@@ -87,17 +86,17 @@ export function GeoMemory({ onBackToHub }: { onBackToHub: () => void }) {
     setMoves((m) => m + result.movesDelta);
 
     if (result.matched) {
-      if (soundEnabled) playTone(660, 0.09);
+      sfx("correct");
       if (isComplete(result.cards)) {
         setFinished(true);
         setRunning(false);
-        if (soundEnabled) window.setTimeout(() => playTone(880, 0.2), 120);
+        window.setTimeout(() => sfx("win"), 160);
       }
       return;
     }
 
     if (result.mismatch) {
-      if (soundEnabled) playTone(260, 0.06);
+      sfx("wrong");
       // Long enough to actually see and remember the second card.
       hideTimer.current = window.setTimeout(() => setCards((c) => hideUnmatched(c)), 850);
     }

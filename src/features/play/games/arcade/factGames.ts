@@ -64,48 +64,9 @@ export function buildImpostorGame(seed: number | string): ImpostorRound[] {
   return rounds;
 }
 
-/**
- * The claim order for Impossible or Real.
- *
- * True and false are interleaved at a fixed alternating cadence rather than
- * shuffled, then the pairs themselves are shuffled. Pure randomness produces
- * runs - five true claims in a row teaches the player to just press REAL, and
- * the game stops being about the claims at all.
- */
-export function buildRealOrFakeQueue(seed: number | string, length = 40): Fact[] {
-  const rng = createRng(`realfake:${seed}`);
-  const trues = rng.shuffle(factsByTruth(true));
-  const falses = rng.shuffle(factsByTruth(false));
+// ── Scoring ───────────────────────────────────────────────────────────────
 
-  const queue: Fact[] = [];
-  let t = 0;
-  let f = 0;
-  for (let i = 0; queue.length < length; i++) {
-    // Alternate, but flip the starting foot on each pair so the pattern is
-    // not itself learnable.
-    const wantTrue = rng.next() < 0.5;
-    const first = wantTrue ? trues[t] : falses[f];
-    if (wantTrue && first) t++;
-    else if (!wantTrue && first) f++;
-    if (first) queue.push(first);
-    if (t >= trues.length && f >= falses.length) break;
-    if (t >= trues.length) t = 0;
-    if (f >= falses.length) f = 0;
-    if (i > length * 4) break;
-  }
-  return queue;
-}
-
-// ── Scoring, shared by both ───────────────────────────────────────────────
-
-export const REAL_BASE_POINTS = 100;
 export const IMPOSTOR_BASE_POINTS = 250;
-
-/** Survival scoring: each correct answer is worth more than the last. */
-export function realOrFakePoints(streak: number): number {
-  const safe = Number.isFinite(streak) && streak > 0 ? Math.floor(streak) : 0;
-  return REAL_BASE_POINTS + safe * 25;
-}
 
 /**
  * The Impostor scores on speed as well as correctness, because with only five
@@ -116,15 +77,6 @@ export function impostorPoints(correct: boolean, secondsTaken: number): number {
   if (!correct) return 0;
   const speed = Math.max(0, Math.round((20 - Math.min(20, secondsTaken)) * 10));
   return IMPOSTOR_BASE_POINTS + speed;
-}
-
-export function realOrFakeShare(streak: number, best: number): string {
-  const lines = [
-    `maNOWj Impossible or Real: ${streak} in a row`,
-    streak >= best && streak > 0 ? "New personal best" : "",
-    PLAY_URL,
-  ];
-  return lines.filter(Boolean).join("\n");
 }
 
 export function impostorShare(score: number, found: number, rounds: number): string {

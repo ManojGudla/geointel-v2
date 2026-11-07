@@ -4,7 +4,7 @@ import { Flag } from "../../components/Flag";
 import { RoundSummary } from "../../components/RoundSummary";
 import { usePlayStore } from "../../progress/playStore";
 import type { AppliedRound } from "../../progress/applyRound";
-import { playTone } from "../../sound";
+import { sfx } from "../../sfx";
 
 interface Props {
   gameId: string;
@@ -50,7 +50,6 @@ export function QuizGame({ gameId, gameTitle, kinds, count = 10, onBackToHub, se
   const [usedFiftyFifty, setUsedFiftyFifty] = useState(false);
 
   const recordRound = usePlayStore((s) => s.recordRound);
-  const soundEnabled = usePlayStore((s) => s.soundEnabled);
   const recordedRef = useRef(false);
   const askedAtRef = useRef(Date.now());
 
@@ -86,7 +85,7 @@ export function QuizGame({ gameId, gameTitle, kinds, count = 10, onBackToHub, se
       ...a,
       { prompt: question.prompt, correct, answer: question.answer, chosen: option, points: applyHint(scoreAnswer(correct, seconds), usedFiftyFifty) },
     ]);
-    if (soundEnabled) playTone(correct ? 680 : 200, 0.1);
+    sfx(correct ? "correct" : "wrong");
   };
 
   const next = () => {

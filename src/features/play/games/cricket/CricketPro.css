@@ -1,0 +1,612 @@
+.game--cricketpro {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.game--cricketpro.is-fs {
+  max-width: none;
+  height: 100%;
+  padding: 10px;
+  background: #050a1f;
+  color: #ffffff;
+  justify-content: center;
+}
+
+.cp-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.cp-setup__note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-align: center;
+}
+
+.cp-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  max-height: 68vh;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #050a1f;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  box-shadow: 0 16px 40px rgba(5, 10, 31, 0.35);
+}
+
+.is-fs .cp-stage {
+  max-height: none;
+  flex: 1;
+  aspect-ratio: auto;
+}
+
+.cp-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* TV scoreboard strip */
+.cp-tv {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  display: flex;
+  align-items: stretch;
+  transform: translateX(-50%);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.cp-tv > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+}
+
+.cp-tv__bat {
+  background: linear-gradient(135deg, #2a3fb8, #4c5fe0);
+  color: #ffffff;
+}
+
+.cp-tv__team {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f5c518;
+  color: #111;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.cp-tv__bat strong {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.cp-tv__ov {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.cp-tv__chase {
+  background: rgba(10, 14, 40, 0.92);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cp-tv__chase b {
+  color: #f5c518;
+  font-size: 15px;
+}
+
+.cp-tv__over {
+  background: rgba(255, 255, 255, 0.95);
+  gap: 4px !important;
+}
+
+.cp-ball {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #e3e6ef;
+  color: #333;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.cp-ball--4 {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.cp-ball--6 {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+.cp-ball--w {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.cp-ball--1,
+.cp-ball--2,
+.cp-ball--3 {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.cp-bowler {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(10, 14, 40, 0.85);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.cp-bowler strong {
+  padding: 2px 8px;
+  border-radius: 5px;
+  background: #f5c518;
+  color: #111;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.cp-fs {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  background: rgba(10, 14, 40, 0.7);
+  color: #ffffff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* The big moment */
+.cp-splash {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  text-align: center;
+  animation: cp-pop 380ms cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes cp-pop {
+  from {
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.cp-splash__big {
+  font-size: clamp(34px, 8vw, 72px);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.35), 0 0 30px rgba(0, 0, 0, 0.4);
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.2);
+}
+
+.cp-splash--six .cp-splash__big {
+  background: linear-gradient(180deg, #fff6a8, #f5c518 60%, #e08a00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 4px 0 rgba(90, 40, 0, 0.6));
+}
+
+.cp-splash--four .cp-splash__big {
+  color: #7dd3fc;
+}
+
+.cp-splash--out .cp-splash__big {
+  color: #ff5a5a;
+}
+
+.cp-splash__timing {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(10, 14, 40, 0.85);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.cp-meter {
+  position: absolute;
+  top: 58px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 168px;
+  pointer-events: none;
+}
+
+.cp-meter__bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3fr 2fr 1.3fr 2fr 3fr;
+  gap: 2px;
+  height: 10px;
+}
+
+.cp-meter__seg {
+  border-radius: 2px;
+}
+
+.cp-meter__seg--early,
+.cp-meter__seg--late {
+  background: #e8573a;
+}
+
+.cp-meter__seg--good {
+  background: #f2b632;
+}
+
+.cp-meter__seg--perfect {
+  background: #2fc35a;
+}
+
+.cp-meter__tick {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 20px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #111, 0 0 8px rgba(255, 255, 255, 0.9);
+}
+
+.cp-meter__labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: rgba(10, 14, 40, 0.75);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.cp-prompt {
+  position: absolute;
+  inset: auto 0 22%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  text-align: center;
+}
+
+.cp-prompt__title {
+  margin: 0;
+  padding: 6px 16px;
+  border-radius: 10px;
+  background: rgba(10, 14, 40, 0.85);
+  color: #f5c518;
+  font-size: clamp(16px, 3.4vw, 22px);
+  font-weight: 900;
+}
+
+.cp-prompt__sub {
+  margin: 0;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  animation: cp-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes cp-blink {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.cp-drs {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(320px, 86%);
+  padding: 16px;
+  transform: translate(-50%, -50%);
+  border-radius: 14px;
+  background: rgba(10, 14, 40, 0.94);
+  border: 1px solid rgba(245, 197, 24, 0.6);
+  color: #ffffff;
+  text-align: center;
+  cursor: default;
+}
+
+.cp-drs__head {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.cp-drs__note {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.cp-drs__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.cp-drs__actions button {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cp-drs__go {
+  border: none;
+  background: #f5c518;
+  color: #111;
+}
+
+.cp-drs__go:disabled {
+  opacity: 0.5;
+}
+
+.cp-drs__no {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: transparent;
+  color: #ffffff;
+}
+
+.cp-commentary {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-align: center;
+}
+
+.is-fs .cp-commentary {
+  color: #ffffff;
+}
+
+.cp-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cp-pad {
+  display: flex;
+  gap: 6px;
+}
+
+.cp-pad button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border: 2px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  aspect-ratio: 1;
+}
+
+.cp-pad button small {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.cp-pad button.is-on {
+  border-color: #0d9488;
+  background: #0d9488;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.4);
+}
+
+.cp-shots {
+  display: flex;
+  gap: 8px;
+}
+
+.cp-shot {
+  min-width: 92px;
+  min-height: 56px;
+  padding: 0 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  touch-action: manipulation;
+  transform: skewX(-8deg);
+}
+
+.cp-shot--defend {
+  background: linear-gradient(180deg, #475569, #2c3748);
+  box-shadow: 0 3px 0 #1e293b;
+}
+
+.cp-shot--ground {
+  background: linear-gradient(180deg, #2a9d8f, #0b6b62);
+  box-shadow: 0 3px 0 #08544d;
+}
+
+.cp-shot--loft {
+  background: linear-gradient(180deg, #ffb020, #e07800);
+  box-shadow: 0 3px 0 #a85600;
+}
+
+.cp-shot:active {
+  transform: skewX(-8deg) translateY(2px);
+  box-shadow: none;
+}
+
+.cp-help {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.is-fs .cp-help {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.cp-help--touch {
+  display: none;
+}
+
+@media (hover: none) {
+  .cp-help--touch {
+    display: inline;
+  }
+
+  .cp-help--keys {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .cp-stage {
+    aspect-ratio: 4 / 5;
+    max-height: 66vh;
+    border-radius: 12px;
+  }
+
+  .cp-tv {
+    bottom: 8px;
+    max-width: calc(100% - 16px);
+  }
+
+  .cp-tv > div {
+    padding: 6px 8px;
+    gap: 5px;
+  }
+
+  .cp-tv__bat strong {
+    font-size: 17px;
+  }
+
+  .cp-tv__chase {
+    font-size: 11px;
+  }
+
+  .cp-ball {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  .cp-controls {
+    gap: 8px;
+  }
+
+  .cp-pad {
+    gap: 4px;
+  }
+
+  .cp-pad button {
+    width: 52px;
+    height: 52px;
+    font-size: 16px;
+  }
+
+  .cp-pad button small {
+    display: none;
+  }
+
+  .cp-shots {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .cp-shot {
+    min-width: 0;
+    min-height: 38px;
+    padding: 0 18px;
+    font-size: 13px;
+  }
+
+  .cp-meter {
+    top: 54px;
+    width: 128px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-splash,
+  .cp-prompt__sub {
+    animation: none;
+  }
+}

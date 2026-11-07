@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePlayStore } from "../../progress/playStore";
-import { playTone } from "../../sound";
+import { sfx } from "../../sfx";
 import { buildScoreCard, shareScoreCard } from "../../share/shareCard";
 import { buildCodeGame, puzzlePoints } from "./puzzles";
 import "./arcade.css";
@@ -67,7 +67,7 @@ export function CrackTheCode({ onBackToHub }: { onBackToHub: () => void }) {
       if (picked !== null || !puzzle) return;
       const correct = value === puzzle.answer;
       setPicked(value);
-      if (soundEnabled) playTone(correct ? 880 : 200, 0.09);
+      sfx(correct ? "correct" : "wrong");
       if (correct) {
         setScore((s) => s + puzzlePoints(round, (Date.now() - askedAt.current) / 1000));
         setSolved((n) => n + 1);

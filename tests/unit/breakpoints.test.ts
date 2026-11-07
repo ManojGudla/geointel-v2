@@ -33,8 +33,6 @@ const EXCEPTIONS: Record<number, readonly string[]> = {
   // Square game boards run out of width earlier than a column of text does.
   560: [
     "features/play/components/Certificate.css",
-    "features/play/games/cricket/Stadium.css",
-    "features/play/games/sixty/SixtySeconds.css",
     "features/play/games/arcade/arcade.css",
     "features/site/SitePanel.css",
   ],

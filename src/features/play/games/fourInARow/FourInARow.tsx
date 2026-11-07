@@ -14,7 +14,7 @@ import { chooseColumn, type Difficulty } from "./ai";
 import { usePlayStore } from "../../progress/playStore";
 import { RoundSummary } from "../../components/RoundSummary";
 import type { AppliedRound } from "../../progress/applyRound";
-import { playTone } from "../../sound";
+import { sfx } from "../../sfx";
 
 type Mode = "computer" | "friend";
 
@@ -75,7 +75,7 @@ export function FourInARow({ onBackToHub }: { onBackToHub: () => void }) {
     if (next === board) return;
     setBoard(next);
     setLastColumn(column);
-    if (soundEnabled) playTone(mode === "computer" ? 320 : 300, 0.06);
+    sfx("drop");
   };
 
   // The computer's reply, on a short delay so it reads as a move rather than
@@ -100,7 +100,7 @@ export function FourInARow({ onBackToHub }: { onBackToHub: () => void }) {
         return applyMove(b, column);
       });
       setLastColumn(column);
-      if (soundEnabled) playTone(260, 0.06);
+      sfx("drop");
     }, 380);
 
     return () => {
@@ -127,7 +127,7 @@ export function FourInARow({ onBackToHub }: { onBackToHub: () => void }) {
         flags,
       })
     );
-    if (soundEnabled) playTone(won ? 660 : 200, 0.18);
+    sfx(won ? "win" : "lose");
   }, [status, mode, difficulty, recordRound, soundEnabled]);
 
   const winningCells = status.kind === "won" ? new Set(status.line) : new Set<number>();
