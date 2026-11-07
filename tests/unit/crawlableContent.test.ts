@@ -204,19 +204,14 @@ describe("llms.txt", () => {
     expect(llms).toMatch(/^#\s+maNOWj GeoIntel/m);
   });
 
-  it("is served as itself rather than being swallowed by the SPA rewrite", () => {
+  it("is served as itself rather than being swallowed by a rewrite", () => {
     const config = JSON.parse(readFileSync(join(process.cwd(), "vercel.json"), "utf8")) as {
-      rewrites: Array<{ source: string }>;
+      rewrites?: Array<{ source: string }>;
     };
-    const rewrite = config.rewrites[0]!.source;
-    expect(rewrite).toContain("llms\\.txt");
-
-    // And prove it, by running the rewrite's own pattern against the path.
-    // A file left out of the exclusion list matches, and matching means the
-    // request is answered with index.html instead of the file.
-    const pattern = new RegExp(`^${rewrite}$`);
-    expect(pattern.test("/llms.txt"), "/llms.txt must NOT match the SPA rewrite").toBe(false);
-    expect(pattern.test("/some-page"), "a normal route must still match").toBe(true);
+    // Run every rewrite's own pattern against the path: matching would mean
+    // the request is answered with index.html instead of the file.
+    const swallowed = (config.rewrites ?? []).some((r) => new RegExp(`^${r.source}$`).test("/llms.txt"));
+    expect(swallowed, "/llms.txt must not match any rewrite").toBe(false);
   });
 
   it("describes the product rather than repeating its name", () => {

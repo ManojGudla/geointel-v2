@@ -1,3 +1,4 @@
+import { track } from "@/services/analytics";
 import { useCallback } from "react";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { useGisUiStore } from "@/stores/gisUiStore";
@@ -37,6 +38,9 @@ export function useRunAnalysis() {
   return useCallback(
     async (request: AnalysisRequest) => {
       setRunning(request);
+      const started = Date.now();
+      // What was asked and how big the answer was - never where.
+      const asked = { operation: request.operation, category: request.category ?? request.presetId, radiusMeters: request.radiusMeters };
       try {
         // "Nearest" searches a wide fixed area to find one thing; forcing the
         // map's radius out to 10 km for it would misrepresent the question
@@ -48,11 +52,13 @@ export function useRunAnalysis() {
 
         const result = await runAnalysis(request, units);
         setResult({ ...result, layersUsed: layerLabels(layers) });
+        track("analysis_completed", { ...asked, resultCount: result.points.length, durationMs: Date.now() - started });
         requestCamera({ center: [request.origin.lon, request.origin.lat], zoom: zoomForRadius(request.radiusMeters) });
         return result;
       } catch (error) {
         const message = error instanceof Error ? error.message : "The analysis could not be completed.";
         setError(message);
+        track("analysis_failed", { ...asked, durationMs: Date.now() - started });
         throw error;
       }
     },

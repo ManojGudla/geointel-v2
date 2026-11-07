@@ -1,0 +1,48 @@
+# Checks every pull request and every push to main before it can reach users.
+#
+# Vercel's own build only runs `tsc -b && vite build`; the 1,400 unit tests
+# never ran anywhere automatic, so a change could break a feature and still
+# deploy. This workflow runs them. To make it a hard gate, turn on branch
+# protection for main in GitHub (Settings -> Branches -> Add rule -> "Require
+# status checks to pass" -> select "checks").
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Colour contrast (light and dark)
+        run: npm run check:contrast
+
+      - name: Production build
+        run: npm run build

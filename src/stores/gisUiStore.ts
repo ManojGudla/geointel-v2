@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { track } from "@/services/analytics";
 import type { GISLayerId } from "@/types/gis";
 import { LAYER_DEFS } from "@/features/gis/layerBuckets";
 
@@ -31,7 +32,11 @@ function defaultVisibility(): Record<GISLayerId, boolean> {
 export const useGisUiStore = create<GisUiState>((set) => ({
   visibility: defaultVisibility(),
   opacity: 0.85,
-  toggleLayer: (id) => set((s) => ({ visibility: { ...s.visibility, [id]: !s.visibility[id] } })),
+  toggleLayer: (id) =>
+    set((s) => {
+      if (!s.visibility[id]) track("layer_opened", { layer: id, kind: "gis" });
+      return { visibility: { ...s.visibility, [id]: !s.visibility[id] } };
+    }),
   showLayers: (ids) =>
     set((s) => {
       const visibility = { ...s.visibility };

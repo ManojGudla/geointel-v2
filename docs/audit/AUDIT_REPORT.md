@@ -108,3 +108,15 @@ Nothing is deployed. Three commits, each with its own tests, all 1,400+ tests pa
    - `api/_lib/nominatim.ts`: requests start at least 1.1 s apart per instance, and are refused (falling back to Photon) if the wait would exceed 2.5 s.
    - The User-Agent now carries the site URL. The Wikidata User-Agent is fixed too.
    - Tests: `tests/unit/nominatimPacing.test.ts`.
+
+## 6. Progress log
+
+**Week 1 (branch `feat/week1-tracking-ci-404`)**
+- **P1-1 done:** the funnel events now fire. They cover:
+  - `search_started` / `search_completed` / `search_failed` (typeahead, with result count and time);
+  - `ai_question_asked` / `ai_question_failed` (chat and all six agents, with model and time);
+  - `analysis_completed` / `analysis_failed`, `distance_measured`, `area_measured`, `route_started`, `layer_opened`, `game_started`, `report_printed`, `feedback_submitted`.
+  - No query text, question text, message or coordinate is ever sent. Tested by `tests/unit/funnelEvents.test.ts`.
+- **P1-2 done:** removed the catch-all rewrite from `vercel.json`. Every app URL is a real prerendered file, so an unknown URL now gets `404.html` with HTTP 404. Guarded by `tests/unit/spaRewrite.test.ts`. Verify on the Vercel preview before merging.
+- **P1-9 done:** `.github/workflows/ci.yml` runs typecheck, unit tests, the contrast check and the build on every pull request and every push to `main`. To make it block merges, turn on branch protection (see the comment in the workflow file).
+- **Search success rate** = `search_completed` ÷ `search_started` where `kind = typeahead`.
