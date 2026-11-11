@@ -22,7 +22,7 @@ import type { SiteResult } from "../../src/services/site";
 
 const fetchSite = vi.hoisted(() => vi.fn());
 const fetchConstructionNearby = vi.hoisted(() => vi.fn());
-vi.mock("../../src/services/site", () => ({ fetchSite, fetchConstructionNearby, WIDE_SEARCH_METERS: 5000 }));
+vi.mock("../../src/services/site", () => ({ fetchSite, fetchConstructionNearby, WIDE_SEARCH_STEPS: [2000, 5000] }));
 
 const RESULT: SiteResult = {
   roads: [
@@ -169,11 +169,14 @@ describe("construction records in the site panel", () => {
     fetchConstructionNearby.mockReturnValue(new Promise((resolve) => (finish = resolve)));
     await renderPanel();
     // While it looks, it says so. It does not show an empty list and stop.
-    await waitFor(() => expect(document.body.textContent).toMatch(/Searching a wider area \(5 km\)/));
+    // The first, quick step is 2 km.
+    await waitFor(() => expect(document.body.textContent).toMatch(/Searching a wider area \(2 km\)/));
     finish({ roads: [], features: [FAR], counts: { roads: 0, underConstruction: 1, awaitingDevelopment: 0 }, radiusMeters: 5000 });
     await waitFor(() => expect(screen.getByText("Flyover works")).toBeTruthy());
     expect(document.body.textContent).toMatch(/Try these nearby sites/);
-    expect(fetchConstructionNearby).toHaveBeenCalledWith(17.385, 78.4867, expect.anything());
+    expect(fetchConstructionNearby).toHaveBeenCalledWith(17.385, 78.4867, 2000, expect.anything());
+    // Found at 2 km, so the heavier 5 km search is never made.
+    expect(fetchConstructionNearby).toHaveBeenCalledTimes(1);
   });
 
   it("says plainly when nothing is mapped even in the wider area", async () => {
@@ -182,6 +185,8 @@ describe("construction records in the site panel", () => {
     fetchConstructionNearby.mockResolvedValue({ roads: [], features: [], counts: { roads: 0, underConstruction: 0, awaitingDevelopment: 0 }, radiusMeters: 5000 });
     await renderPanel();
     await waitFor(() => expect(document.body.textContent).toMatch(/No construction or development is mapped within 5 km/));
+    // It only says "nothing" after trying both distances.
+    expect(fetchConstructionNearby.mock.calls.map((c) => c[2])).toEqual([2000, 5000]);
     expect(document.body.textContent).toMatch(/official portals below/);
   });
 

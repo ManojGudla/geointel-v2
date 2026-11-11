@@ -57,9 +57,22 @@ export async function fetchSite(
   return apiGet<SiteResult>("/api/site", { lat, lon, radius: radiusMeters }, signal);
 }
 
-/** The wider search: construction and development records only, up to 5 km. */
-export const WIDE_SEARCH_METERS = 5000;
+/**
+ * The wider search, in two steps: 2 km, then 5 km only if that found nothing.
+ *
+ * It used to go straight to 5 km. In a city that is a heavy question (146
+ * records around Gachibowli, 8 seconds on a cold cache) asked in order to show
+ * the dozen nearest, nearly all of which are inside 2 km anyway. The small
+ * circle answers quickly and is usually enough; the big one is kept for places
+ * where it is genuinely needed, which are the quiet ones where it is cheap.
+ */
+export const WIDE_SEARCH_STEPS = [2000, 5000] as const;
 
-export async function fetchConstructionNearby(lat: number, lon: number, signal?: AbortSignal): Promise<SiteResult> {
-  return apiGet<SiteResult>("/api/site", { lat, lon, radius: WIDE_SEARCH_METERS, scope: "construction" }, signal);
+export async function fetchConstructionNearby(
+  lat: number,
+  lon: number,
+  radiusMeters: number,
+  signal?: AbortSignal
+): Promise<SiteResult> {
+  return apiGet<SiteResult>("/api/site", { lat, lon, radius: radiusMeters, scope: "construction" }, signal);
 }

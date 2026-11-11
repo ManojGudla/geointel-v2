@@ -139,14 +139,27 @@ way["highway"]["name"]${a};
 out tags center 600;`;
 }
 
-/** Construction and development records only, for the wider search. No roads. */
+/**
+ * Construction and development records only, for the wider search. No roads.
+ *
+ * Written with plain tag equality rather than the regular expression the
+ * normal query uses: over a circle this size Overpass answers equality
+ * noticeably faster, and the first live run of the 5 km search took 8.4 s
+ * against a 9 s limit. Relations are left out for the same reason; a site
+ * mapped as a relation is rare, and the normal query still finds it close by.
+ */
 export function buildConstructionQuery(lat: number, lon: number, radius: number): string {
   const a = `(around:${radius},${lat},${lon})`;
-  return `[out:json][timeout:30];
+  return `[out:json][timeout:25];
 (
-${DEVELOPMENT_CLAUSES(a)}
+  way["highway"="construction"]${a};
+  way["building"="construction"]${a};
+  way["landuse"="construction"]${a};
+  way["landuse"="brownfield"]${a};
+  way["landuse"="greenfield"]${a};
+  way["proposed:highway"]${a};
 );
-out meta center 250;`;
+out meta center 150;`;
 }
 
 const ROAD_RANK: Record<string, number> = {
