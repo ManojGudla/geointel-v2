@@ -2,7 +2,16 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AsyncPanel } from "@/components/AsyncPanel";
 import { useLocationStore } from "@/stores/locationStore";
-import { fetchSite, type SiteFeature, type SiteFeatureKind } from "@/services/site";
+import {
+  fetchSite,
+  fetchConstructionNearby,
+  WIDE_SEARCH_METERS,
+  type SiteFeature,
+  type SiteFeatureKind,
+} from "@/services/site";
+import { useMapStore } from "@/stores/mapStore";
+import { useUiStore } from "@/stores/uiStore";
+import { distanceMeters, formatDistance } from "@/features/map/geo";
 import { portalGroups } from "./portals";
 import "./SitePanel.css";
 import { track } from "@/services/analytics";
@@ -60,10 +69,46 @@ const RADII = [
   { meters: 1200, label: "1.2 km" },
 ];
 
-function FeatureRow({ f }: { f: SiteFeature }) {
+type Point = { lat: number; lon: number };
+
+/** "Oct 2026" from an OpenStreetMap edit time; null if it is missing or unreadable. */
+export function formatUpdated(iso: string | undefined): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString("en-IN", { month: "short", year: "numeric", timeZone: "UTC" });
+}
+
+/** Nearest first. Records with no position (rare) go last, in the order they came. */
+export function nearestFirst(features: SiteFeature[], from: Point): Array<SiteFeature & { distance: number | null }> {
+  return features
+    .map((f) => ({ ...f, distance: f.lat !== undefined && f.lon !== undefined ? distanceMeters(from, { lat: f.lat, lon: f.lon }) : null }))
+    .sort((x, y) => (x.distance ?? Infinity) - (y.distance ?? Infinity));
+}
+
+/**
+ * One construction or development record.
+ *
+ * Two things to tap, and they are different on purpose. The row itself moves
+ * the map to the site, because "where exactly is that" is the first question.
+ * "Source" opens the record on OpenStreetMap, where its full tags, history and
+ * editors are, because the second question is "says who".
+ */
+function FeatureRow({ f, distance }: { f: SiteFeature; distance: number | null }) {
   const meta = FEATURE_META[f.kind];
-  return (
-    <li className={`site__feature site__feature--${meta.tone}`}>
+  const units = useUiStore((s) => s.units);
+  const requestCamera = useMapStore((s) => s.requestCamera);
+  const updated = formatUpdated(f.updatedAt);
+  const hasPosition = f.lat !== undefined && f.lon !== undefined;
+
+  const show = () => {
+    if (!hasPosition) return;
+    requestCamera({ center: [f.lon!, f.lat!], zoom: 17 });
+    track("place_opened", { source: "site-record", kind: f.kind });
+  };
+
+  const body = (
+    <>
       <span className="site__feature-icon" aria-hidden="true">
         {meta.icon}
       </span>
@@ -77,17 +122,111 @@ function FeatureRow({ f }: { f: SiteFeature }) {
           {f.operator ? ` · ${f.operator}` : null}
           {f.endDate ? ` · due ${f.endDate}` : null}
         </span>
+        <span className="site__feature-meta">
+          {distance !== null ? `${formatDistance(distance, units)} away` : "Position not recorded"}
+          {updated ? ` · updated on the map ${updated}` : ""}
+        </span>
       </span>
+    </>
+  );
+
+  return (
+    <li className={`site__feature site__feature--${meta.tone}`}>
+      {hasPosition ? (
+        <button type="button" className="site__feature-go" onClick={show} title="Show this site on the map">
+          {body}
+        </button>
+      ) : (
+        <span className="site__feature-go site__feature-go--static">{body}</span>
+      )}
       <a
         className="site__feature-link"
         href={`https://www.openstreetmap.org/${f.osm}`}
         target="_blank"
         rel="noopener noreferrer"
+        aria-label={`Source record for ${f.name ?? meta.label} on OpenStreetMap`}
       >
-        OSM
+        Source ↗
       </a>
     </li>
   );
+}
+
+/**
+ * Shown when nothing is being built inside the chosen radius.
+ *
+ * An empty list is the least useful answer this panel can give, and for the
+ * people who use it most (checking a site's surroundings) it used to be the
+ * usual one. So instead of stopping, it looks again over 5 km, for
+ * construction only, and says what it is doing while it does it. Three
+ * outcomes, each said plainly: nearer sites to try, nothing mapped at all, or
+ * the wider search itself failed.
+ */
+function WiderSearch({ at, searchedMeters }: { at: Point; searchedMeters: number }) {
+  const wide = useQuery({
+    queryKey: ["site-wide", at.lat, at.lon],
+    queryFn: ({ signal }) => fetchConstructionNearby(at.lat, at.lon, signal),
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+  const km = WIDE_SEARCH_METERS / 1000;
+
+  if (wide.isPending) {
+    return (
+      <p className="site__wider" role="status">
+        <span className="site__wider-spinner" aria-hidden="true" />
+        No construction or site record is mapped within {searchedMeters} m of this place. Searching a wider area ({km} km) for
+        the nearest ones…
+      </p>
+    );
+  }
+
+  if (wide.isError) {
+    return (
+      <div className="site__wider" role="status">
+        <p>
+          No construction or site record is mapped within {searchedMeters} m. The wider search could not reach OpenStreetMap
+          just now.
+        </p>
+        <button type="button" className="site__more" onClick={() => void wide.refetch()}>
+          Try the wider search again
+        </button>
+      </div>
+    );
+  }
+
+  const nearby = nearestFirst(wide.data.features, at).slice(0, 12);
+  if (nearby.length === 0) {
+    return (
+      <p className="site__wider" role="status">
+        No construction or development is mapped within {km} km of this place. That can mean nothing is being built, or that
+        nobody has mapped it yet. The official portals below are the place to check an approved plan.
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <p className="site__wider" role="status">
+        Nothing is mapped within {searchedMeters} m of this place. Try these nearby sites, nearest first:
+      </p>
+      <ul className="site__features">
+        {nearby.map((f) => (
+          <FeatureRow key={f.osm} f={f} distance={f.distance} />
+        ))}
+      </ul>
+    </>
+  );
+}
+
+/** "today, 2:32 pm" or "9 Nov, 2:32 pm" in the visitor's own time. */
+function fetchedLabel(iso: string | undefined): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const time = date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  const sameDay = date.toDateString() === new Date().toDateString();
+  return sameDay ? `today at ${time}` : `${date.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} at ${time}`;
 }
 
 export function SitePanel() {
@@ -118,7 +257,7 @@ export function SitePanel() {
     <div className="site">
       <section className="site__block">
         <div className="site__head">
-          <h3 className="site__title">What is here, and what is being built</h3>
+          <h3 className="site__title">Construction and development nearby</h3>
           <div className="site__radius" role="group" aria-label="Search radius">
             {RADII.map((r) => (
               <button
@@ -136,8 +275,9 @@ export function SitePanel() {
         <AsyncPanel
           query={query}
           label="Site and development"
-          isEmpty={(d) => d.roads.length === 0 && d.features.length === 0}
-          emptyMessage="OpenStreetMap has no named roads or development records mapped within this radius. That usually means the area is lightly mapped rather than empty."
+          // Never "empty": with nothing in the radius the panel searches wider
+          // instead of stopping (see WiderSearch).
+          isEmpty={() => false}
           idleMessage="Choose a place to see its roads and development status."
         >
           {(data) => {
@@ -156,20 +296,19 @@ export function SitePanel() {
                   </span>
                 </div>
 
-                {data.features.length > 0 && (
-                  <>
-                    <h4 className="site__subtitle">Construction and development</h4>
-                    <ul className="site__features">
-                      {data.features.map((f) => (
-                        <FeatureRow key={f.osm} f={f} />
-                      ))}
-                    </ul>
-                  </>
+                {data.features.length > 0 ? (
+                  <ul className="site__features">
+                    {nearestFirst(data.features, location!).map((f) => (
+                      <FeatureRow key={f.osm} f={f} distance={f.distance} />
+                    ))}
+                  </ul>
+                ) : (
+                  <WiderSearch at={{ lat: location!.lat, lon: location!.lon }} searchedMeters={data.radiusMeters} />
                 )}
 
                 {data.roads.length > 0 && (
-                  <>
-                    <h4 className="site__subtitle">Road names</h4>
+                  <details className="site__roads-box">
+                    <summary>Road names here ({data.roads.length})</summary>
                     <ul className="site__roads">
                       {roads.map((r) => (
                         <li key={`${r.name}-${r.kind}`} className="site__road">
@@ -188,15 +327,17 @@ export function SitePanel() {
                         {showAllRoads ? "Show fewer" : `Show all ${data.roads.length} roads`}
                       </button>
                     )}
-                  </>
+                  </details>
                 )}
-
                 <p className="site__source">
-                  Roads and construction status from{" "}
+                  From{" "}
                   <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">
                     OpenStreetMap contributors
                   </a>
-                  , within {data.radiusMeters} m of this point.
+                  , within {data.radiusMeters} m of this point
+                  {fetchedLabel(data.fetchedAt) ? `, fetched ${fetchedLabel(data.fetchedAt)}` : ""}. It shows what volunteers
+                  have mapped, with the date each record was last updated. It is not an official construction status: use the
+                  approval portals below for that.
                 </p>
               </>
             );
@@ -206,7 +347,7 @@ export function SitePanel() {
 
       {groups.length > 0 && (
         <section className="site__block">
-          <h3 className="site__title">Site plans and land records</h3>
+          <h3 className="site__title">Site plans, approvals and land records</h3>
           {/*
             The honesty paragraph, and it earns its place.
 

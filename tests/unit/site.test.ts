@@ -67,18 +67,37 @@ describe("the Overpass query", () => {
     Development therefore gets its own `out` with its own budget.
   */
   it("gives development records their own output budget, so roads cannot crowd them out", () => {
-    const outs = q.match(/out tags center \d+;/g) ?? [];
-    expect(outs).toHaveLength(2);
+    // Development prints with `out meta` (it carries the last-edited time the
+    // panel shows); roads print with `out tags`. Two statements, two budgets.
+    const outs = q.match(/out (tags|meta) center \d+;/g) ?? [];
+    expect(outs).toEqual(["out meta center 250;", "out tags center 600;"]);
 
     // Development is collected and printed before the roads clause is reached.
-    const devOut = q.indexOf("out tags center 250;");
+    const devOut = q.indexOf("out meta center 250;");
     const roadsClause = q.indexOf('way["highway"]["name"]');
     expect(devOut).toBeGreaterThan(q.indexOf('way["building"="construction"]'));
     expect(roadsClause).toBeGreaterThan(devOut);
   });
 });
 
+describe("the wider construction-only search", () => {
+  it("asks for the same development tags and no roads", async () => {
+    const { buildConstructionQuery } = await import("../../api/_routes/site");
+    const wide = buildConstructionQuery(17.385, 78.4867, 5000);
+    expect(wide).toContain('way["building"="construction"](around:5000,17.385,78.4867)');
+    expect(wide).toContain('"landuse"~"^(construction|brownfield|greenfield)$"');
+    expect(wide).not.toContain('["name"]');
+    expect(wide).toContain("out meta center 250;");
+    expect(wide).not.toContain("out geom");
+  });
+});
+
 describe("classifying what came back", () => {
+  it("keeps when a record was last edited, so the panel can say how current it is", () => {
+    const f = classify({ type: "way", id: 9, tags: { building: "construction" }, timestamp: "2026-10-02T08:15:00Z" });
+    expect(f?.updatedAt).toBe("2026-10-02T08:15:00Z");
+  });
+
   it("reads the class a road under construction will become", () => {
     const f = classify(way(1, { highway: "construction", construction: "motorway", name: "Outer Ring Road" }));
     expect(f?.kind).toBe("road-works");

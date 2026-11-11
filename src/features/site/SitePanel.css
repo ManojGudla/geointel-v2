@@ -311,3 +311,131 @@
     text-align: left;
   }
 }
+
+/* ── Records you can tap ──────────────────────────────────────────────────
+   The row is a button (it moves the map to the site) with the source link
+   beside it. Both are at least 44px tall: this panel is used on phones, in a
+   bottom sheet, with a thumb. */
+.site__feature {
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+}
+
+.site__feature-go {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.site__feature-go--static {
+  cursor: default;
+}
+
+button.site__feature-go:hover {
+  background: var(--color-bg);
+}
+
+.site__feature-link {
+  flex: none;
+  min-width: 72px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-3);
+  border-left: 1px solid var(--color-border);
+  color: var(--color-brand-text);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site__feature-link:hover {
+  background: var(--color-bg);
+  text-decoration: underline;
+}
+
+.site__feature-go:focus-visible,
+.site__feature-link:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: -2px;
+}
+
+/* ── The wider search ───────────────────────────────────────────────────── */
+.site__wider {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border-strong, var(--color-border));
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.site__wider p {
+  margin: 0 0 var(--space-2);
+}
+
+.site__wider-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: var(--space-2);
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-brand-500);
+  border-radius: 50%;
+  vertical-align: -1px;
+  animation: site-spin 800ms linear infinite;
+}
+
+@keyframes site-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site__wider-spinner {
+    animation: none;
+  }
+}
+
+/* ── Road names, folded away ────────────────────────────────────────────── */
+.site__roads-box summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.site__roads-box[open] summary {
+  margin-bottom: var(--space-2);
+}
+
+/* The panel's content ran edge to edge, flush against the side of a phone
+   screen, unlike the tabs beside it. */
+.site {
+  padding-inline: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+/* Tapped with a thumb as often as clicked. */
+.site__radius button {
+  min-height: 40px;
+}

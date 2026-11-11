@@ -107,7 +107,7 @@ export function QuickActions() {
     }
   };
 
-  const showPlaceTab = (tab: "evidence" | "nearby") => {
+  const showPlaceTab = (tab: "evidence" | "nearby" | "site") => {
     setIntelTab(tab);
     openSection("place");
   };
@@ -206,6 +206,16 @@ export function QuickActions() {
           title={needsPlace ? "See what is mapped at the centre of this view, with its sources" : "See what is mapped around this place, with its sources"}
         >
           📊 What's here
+        </button>
+        {/* The reason many people open this app at all: what is being built
+            around a place, and where its approved plans are held. It was a
+            tab inside Explore that most never found. */}
+        <button
+          type="button"
+          onClick={runHere(() => showPlaceTab("site"))}
+          title={needsPlace ? "Construction and site plans around the centre of this view" : "Construction nearby and where this place's site plans are held"}
+        >
+          🏗️ Site plans
         </button>
         <button
           type="button"

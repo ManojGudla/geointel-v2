@@ -41,6 +41,8 @@ export interface OverpassElement {
   /** Present when the query uses `out geom` - the way's full node ring, for building footprints etc. */
   geometry?: Array<{ lat: number; lon: number }>;
   tags?: Record<string, string>;
+  /** Present when the query uses `out meta`: when this element was last edited in OpenStreetMap. */
+  timestamp?: string;
 }
 
 // 9s, down from 14s. A mirror that has not answered a small radius query in

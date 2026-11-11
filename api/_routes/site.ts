@@ -39,6 +39,14 @@ import { runOverpassQuery, type OverpassElement } from "../_lib/overpass.js";
 /** Defaults chosen so a single query covers a walkable area without timing out. */
 const DEFAULT_RADIUS = 600;
 const MAX_RADIUS = 2000;
+/*
+  The wider search. When nothing is being built inside the radius somebody
+  chose, the panel asks again for construction only, over 5 km, so it can say
+  "nothing here, but the nearest site is 1.8 km that way" instead of leaving
+  them with an empty list. It can afford the bigger circle because it skips the
+  roads, which are the heavy half of the normal query.
+*/
+const MAX_WIDE_RADIUS = 5000;
 
 /*
   OSM's built environment moves over weeks. Six hours matches nearby.ts and
@@ -73,6 +81,8 @@ interface SiteFeature {
   lat?: number;
   lon?: number;
   osm: string;
+  /** When this record was last edited in OpenStreetMap. How fresh the claim is. */
+  updatedAt?: string;
 }
 
 interface SiteResult {
@@ -81,6 +91,8 @@ interface SiteResult {
   /** Straight counts, so the panel can lead with a number before the lists. */
   counts: { roads: number; underConstruction: number; awaitingDevelopment: number };
   radiusMeters: number;
+  /** When this answer was fetched from OpenStreetMap. Kept with a cached answer, so it never claims to be newer than it is. */
+  fetchedAt: string;
 }
 
 /**
@@ -106,30 +118,37 @@ interface SiteResult {
  * full geometry - this panel lists things, it does not draw them, and asking
  * for geometry would multiply the payload for nothing.
  */
-export function buildSiteQuery(lat: number, lon: number, radius: number): string {
-  const a = `(around:${radius},${lat},${lon})`;
-  return `[out:json][timeout:30];
-(
-  way["highway"="construction"]${a};
+const DEVELOPMENT_CLAUSES = (a: string) => `  way["highway"="construction"]${a};
   way["proposed:highway"]${a};
   way["building"="construction"]${a};
   relation["building"="construction"]${a};
   way["landuse"~"^(construction|brownfield|greenfield)$"]${a};
-  relation["landuse"~"^(construction|brownfield|greenfield)$"]${a};
+  relation["landuse"~"^(construction|brownfield|greenfield)$"]${a};`;
+
+export function buildSiteQuery(lat: number, lon: number, radius: number): string {
+  const a = `(around:${radius},${lat},${lon})`;
+  // `out meta` on the development records only: it adds the last-edited time,
+  // which is what tells a reader how current "under construction" is. The
+  // roads stay on `out tags`; nobody needs to know when a street name was typed.
+  return `[out:json][timeout:30];
+(
+${DEVELOPMENT_CLAUSES(a)}
 );
-out tags center 250;
+out meta center 250;
 way["highway"]["name"]${a};
 out tags center 600;`;
 }
 
-/**
- * Road classes worth showing, most significant first.
- *
- * Service roads, driveways and footpaths are excluded outright. They are
- * legitimately named in OSM and they would swamp the list: in a dense
- * neighbourhood they outnumber real streets several to one, and nobody
- * reading "what roads are here" means the parking aisle behind a shop.
- */
+/** Construction and development records only, for the wider search. No roads. */
+export function buildConstructionQuery(lat: number, lon: number, radius: number): string {
+  const a = `(around:${radius},${lat},${lon})`;
+  return `[out:json][timeout:30];
+(
+${DEVELOPMENT_CLAUSES(a)}
+);
+out meta center 250;`;
+}
+
 const ROAD_RANK: Record<string, number> = {
   motorway: 0,
   trunk: 1,
@@ -167,6 +186,7 @@ export function classify(el: OverpassElement): SiteFeature | null {
     lat: el.center?.lat ?? el.lat,
     lon: el.center?.lon ?? el.lon,
     osm,
+    updatedAt: el.timestamp,
   };
 
   if (tags.highway === "construction") {
@@ -246,7 +266,9 @@ const handler: ApiHandler = async (req, res) => {
   if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
     return err(res, 400, "lat and lon are required and must be valid coordinates");
   }
-  const radius = Number.isFinite(radiusRaw) ? Math.min(MAX_RADIUS, Math.max(100, radiusRaw)) : DEFAULT_RADIUS;
+  const constructionOnly = getQueryParam(req, "scope") === "construction";
+  const maxRadius = constructionOnly ? MAX_WIDE_RADIUS : MAX_RADIUS;
+  const radius = Number.isFinite(radiusRaw) ? Math.min(maxRadius, Math.max(100, radiusRaw)) : DEFAULT_RADIUS;
 
   const rate = limiter.check(getClientIp(req));
   if (!rate.allowed) {
@@ -255,13 +277,15 @@ const handler: ApiHandler = async (req, res) => {
 
   // Rounded to about 100m, so panning a few metres reuses the cached answer
   // instead of firing another Overpass query for the same street.
-  const key = `${lat.toFixed(3)},${lon.toFixed(3)},${radius}`;
+  const key = `${lat.toFixed(3)},${lon.toFixed(3)},${radius}${constructionOnly ? ",c" : ""}`;
   const cached = cache.get(key);
   if (cached) return ok(res, cached);
 
   let elements: OverpassElement[];
   try {
-    elements = await runOverpassQuery(buildSiteQuery(lat, lon, radius));
+    elements = await runOverpassQuery(
+      constructionOnly ? buildConstructionQuery(lat, lon, radius) : buildSiteQuery(lat, lon, radius)
+    );
   } catch {
     // Honest failure. The free Overpass mirrors go through rough patches and
     // the panel says "couldn't reach OpenStreetMap" rather than "nothing here",
@@ -285,6 +309,7 @@ const handler: ApiHandler = async (req, res) => {
     features,
     counts: { roads: roads.length, underConstruction, awaitingDevelopment },
     radiusMeters: radius,
+    fetchedAt: new Date().toISOString(),
   };
 
   cache.set(key, result);

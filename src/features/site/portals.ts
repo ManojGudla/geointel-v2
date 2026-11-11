@@ -296,6 +296,58 @@ const INDIA_STATES: StateEntry[] = [
   { aliases: ["tripura"], portals: [{ label: "Bhunaksha Tripura", url: "https://bhunaksha.tripura.gov.in", note: "Cadastral maps for Tripura." }] },
 ];
 
+/* ─────────────────────────────────────────────────────────────────
+   Construction projects and building approvals.
+
+   This is where "what is being built here, and is it approved" is actually
+   answered in India. Every housing project above a small size has to register
+   with its state's RERA authority, and the registration page carries the
+   sanctioned plans, the promoter, the completion date and progress updates.
+   OpenStreetMap can say a site exists; RERA says what was approved on it.
+
+   Checked in November 2026. The addresses were taken from a current
+   state-by-state guide and from news coverage of Telangana's BuildNow launch,
+   not opened from here: several of these hosts refuse connections from
+   outside India (see the note at the top of this file). None accepts
+   coordinates - they search by project name, promoter or registration number,
+   so the panel shows the locality name to search for.
+
+   A state missing from this table gets no link rather than a guessed one.
+   ───────────────────────────────────────────────────────────────── */
+
+const RERA_NOTE = "Search by project name, promoter or registration number to see the sanctioned plans, completion date and progress.";
+
+const INDIA_CONSTRUCTION: StateEntry[] = [
+  {
+    aliases: ["telangana"],
+    portals: [
+      { label: "Telangana RERA projects", url: "https://rera.telangana.gov.in/", note: `Every registered housing project in Telangana. ${RERA_NOTE}` },
+      {
+        label: "BuildNow building permissions",
+        url: "https://buildnow.telangana.gov.in/",
+        note: "Telangana's building permission system. It replaced TG-bPASS on 15 December 2025; plans sanctioned under TG-bPASS stay valid.",
+      },
+    ],
+  },
+  { aliases: ["karnataka"], portals: [{ label: "Karnataka RERA projects", url: "https://rera.karnataka.gov.in/", note: `Every registered housing project in Karnataka. ${RERA_NOTE}` }] },
+  { aliases: ["maharashtra"], portals: [{ label: "MahaRERA projects", url: "https://maharerait.maharashtra.gov.in/", note: `Every registered housing project in Maharashtra. ${RERA_NOTE}` }] },
+  { aliases: ["tamil nadu", "tamilnadu"], portals: [{ label: "Tamil Nadu RERA projects", url: "https://www.tnrera.in/", note: `Registered housing projects in Tamil Nadu. ${RERA_NOTE}` }] },
+  {
+    aliases: ["delhi", "nct of delhi", "national capital territory of delhi"],
+    portals: [{ label: "Delhi RERA projects", url: "https://rera.delhi.gov.in/", note: `Registered housing projects in Delhi. ${RERA_NOTE}` }],
+  },
+  { aliases: ["gujarat"], portals: [{ label: "Gujarat RERA projects", url: "https://gujrera.gujarat.gov.in/", note: `Registered housing projects in Gujarat. ${RERA_NOTE}` }] },
+  { aliases: ["uttar pradesh"], portals: [{ label: "UP RERA projects", url: "https://www.up-rera.in/", note: `Registered housing projects in Uttar Pradesh. ${RERA_NOTE}` }] },
+  { aliases: ["haryana"], portals: [{ label: "Haryana RERA projects", url: "https://haryanarera.gov.in/", note: `Registered housing projects in Haryana. ${RERA_NOTE}` }] },
+];
+
+export function constructionPortals(stateName: string | undefined): Portal[] {
+  if (!stateName) return [];
+  const want = normalise(stateName);
+  const entry = INDIA_CONSTRUCTION.find((s) => s.aliases.some((a) => want === a || want.includes(a)));
+  return entry ? entry.portals : [];
+}
+
 /** Case and punctuation insensitive, because geocoders are not consistent. */
 function normalise(s: string): string {
   return s.toLowerCase().replace(/[^a-z ]/g, "").replace(/\s+/g, " ").trim();
@@ -325,6 +377,17 @@ export function portalGroups(
   const inIndia = (countryCode ?? "").toLowerCase() === "in";
 
   if (inIndia) {
+    // First, because it is the question people open this panel with: what is
+    // being built here, and was it approved.
+    const building = constructionPortals(state);
+    if (building.length > 0) {
+      groups.push({
+        title: "Construction projects and approvals",
+        blurb:
+          "The official record of what is approved and being built. These portals search by project or promoter name, not by map location, so search for the locality or the project's name.",
+        portals: building,
+      });
+    }
     const local = statePortals(state);
     if (local.length > 0) {
       groups.push({
