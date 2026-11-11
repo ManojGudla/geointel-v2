@@ -294,10 +294,6 @@
   display: none;
 }
 
-.app-header__menu-item--mobile {
-  display: none !important;
-}
-
 /* Phones: the header collapses to a single row - short wordmark, icon-only
    utility buttons, a status dot, and everything else behind More. It used to
    wrap onto four rows here, eating about a quarter of the screen before the
@@ -342,15 +338,6 @@
     padding: var(--space-2);
   }
 
-  /* Folded into the More menu at this width - see Header.tsx. */
-  .app-header__cta {
-    display: none;
-  }
-
-  .app-header__menu-item--mobile {
-    display: flex !important;
-  }
-
   .app-header__status {
     padding: var(--space-2);
   }
@@ -382,17 +369,6 @@
   background: var(--color-text-faint);
 }
 
-.app-header__status--online {
-  background: var(--color-success-bg);
-  border-color: transparent;
-  color: var(--color-success);
-}
-
-.app-header__status--online .app-header__status-dot {
-  background: var(--color-success);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 25%, transparent);
-}
-
 .app-header__status--offline {
   background: var(--color-danger-bg);
   border-color: transparent;
@@ -413,10 +389,6 @@
 .app-header__status--degraded .app-header__status-dot {
   background: var(--color-warning);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-warning) 25%, transparent);
-}
-
-.app-header__status--checking .app-header__status-dot {
-  background: var(--color-warning);
 }
 
 /* Error boundary fallbacks */

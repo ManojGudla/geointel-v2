@@ -1,0 +1,126 @@
+/*
+  Part of the search column, in normal flow under the chips. Not positioned,
+  so it cannot land on top of another control at any screen size.
+*/
+.starter {
+  position: relative;
+  padding: var(--space-3) var(--space-8) var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.starter__headline {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.starter__text {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.starter__examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.starter__try {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.starter__examples button {
+  /* 40px tall with 8px between them: comfortably tappable, still one row. */
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-brand-300);
+  border-radius: 999px;
+  background: var(--color-primary-soft, var(--color-bg));
+  color: var(--color-brand-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.starter__examples button:hover {
+  border-color: var(--color-brand-500);
+}
+
+.starter__close {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  cursor: pointer;
+}
+
+.starter__close:hover {
+  color: var(--color-text);
+}
+
+.starter__close:focus-visible,
+.starter__examples button:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  /* The map's own buttons (compass, fullscreen, locate) run down the right
+     edge on phones and tablets. The card stops short of that strip, so on a
+     short screen the two sit side by side instead of on top of each other. */
+  .starter {
+    margin-right: 56px;
+  }
+}
+
+@media (max-width: 640px) {
+  .starter {
+    padding: var(--space-2) var(--space-8) var(--space-2) var(--space-3);
+  }
+
+  .starter__headline {
+    font-size: var(--text-base);
+  }
+
+  .starter__text {
+    margin-bottom: var(--space-2);
+    font-size: var(--text-xs);
+  }
+
+  /* One row that scrolls sideways, like the chips above it, rather than
+     wrapping to a second row and pushing further down the map. */
+  .starter__examples {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Lets the last chip scroll fully into view under the close button's column. */
+    margin-right: calc(var(--space-8) * -1 + var(--space-2));
+    padding-bottom: 2px;
+  }
+
+  .starter__examples::-webkit-scrollbar {
+    display: none;
+  }
+
+  .starter__examples button,
+  .starter__try {
+    flex: none;
+  }
+}

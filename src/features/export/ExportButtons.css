@@ -1,0 +1,36 @@
+.export-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.export-buttons__label {
+  font-weight: 600;
+}
+
+.export-buttons button {
+  /* 44px tall on every screen: these are tapped on phones as often as clicked. */
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong, var(--color-border));
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.export-buttons button:hover {
+  background: var(--color-bg);
+  border-color: var(--color-brand-500);
+}
+
+.export-buttons button:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}

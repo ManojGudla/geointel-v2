@@ -76,11 +76,20 @@ export function usePageMeta({ title, description, url, image }: PageMeta) {
 export function useJsonLd(schema: object | null, id: string) {
   useEffect(() => {
     if (!schema) return;
-    const el = document.createElement("script");
+    // A page opened directly already has this block in its static HTML, put
+    // there at build time under the same id. Adopt it rather than adding a
+    // second copy, and remove it on the way out like one of our own.
+    // Matched by reading the attribute, not by building a selector from the
+    // id: no escaping to get wrong, and no CSS.escape, which jsdom lacks.
+    const existing =
+      Array.from(document.head.querySelectorAll<HTMLScriptElement>('script[type="application/ld+json"]')).find(
+        (node) => node.dataset.schemaId === id
+      ) ?? null;
+    const el = existing ?? document.createElement("script");
     el.type = "application/ld+json";
     el.dataset.schemaId = id;
     el.textContent = JSON.stringify(schema);
-    document.head.appendChild(el);
+    if (!existing) document.head.appendChild(el);
     return () => el.remove();
   }, [schema, id]);
 }

@@ -10,7 +10,20 @@
   width: 100%;
 }
 
-.maplibregl-ctrl-attrib {
+/*
+  Every override of a MapLibre class in this file is written as
+  ".map-view .maplibregl-..." and not as the bare class.
+
+  MapLibre's own stylesheet is in the lazily loaded map chunk, so in the
+  production build it arrives AFTER this file. A bare ".maplibregl-ctrl-top-right"
+  here has the same weight as the library's rule, and at the same weight the
+  later one wins - so the library's defaults silently beat these: on phones
+  the compass and fullscreen buttons stayed in the top-right corner at 29px,
+  half hidden behind the search box, and the map credit lost its z-index. The
+  development server loads the two files the other way round, which is why it
+  looked right there. The extra ".map-view" makes these win in both.
+*/
+.map-view .maplibregl-ctrl-attrib {
   font-size: 11px;
 }
 
@@ -31,7 +44,7 @@
   19 over the map, so this stays on top without covering panels or dialogs,
   which sit outside the map container.)
 */
-.maplibregl-ctrl-bottom-right {
+.map-view .maplibregl-ctrl-bottom-right {
   z-index: 20;
 }
 
@@ -72,8 +85,8 @@
    compass (tap to reset north) and fullscreen stay, since neither has a
    gesture equivalent. Desktop keeps the full stack. */
 @media (max-width: 900px) {
-  .maplibregl-ctrl-group button.maplibregl-ctrl-zoom-in,
-  .maplibregl-ctrl-group button.maplibregl-ctrl-zoom-out {
+  .map-view .maplibregl-ctrl-group button.maplibregl-ctrl-zoom-in,
+  .map-view .maplibregl-ctrl-group button.maplibregl-ctrl-zoom-out {
     display: none;
   }
 
@@ -85,7 +98,7 @@
     only as a stray outline at the end of the action row. The bottom-right
     is also where a thumb actually is.
   */
-  .maplibregl-ctrl-top-right {
+  .map-view .maplibregl-ctrl-top-right {
     top: auto;
     bottom: calc(48px + var(--space-3) + 56px + 56px);
     margin-top: 0;
@@ -100,7 +113,7 @@
     (zoom is hidden in favour of pinch), so they are the whole of the map's
     button surface and they have to be hittable.
   */
-  .maplibregl-ctrl-group button {
+  .map-view .maplibregl-ctrl-group button {
     width: 44px;
     height: 44px;
   }

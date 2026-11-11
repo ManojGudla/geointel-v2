@@ -6,12 +6,11 @@ import { FEATURE_STATUS } from "@/data/featureStatus";
 import { useFeatureStatusStore } from "@/stores/featureStatusStore";
 import "./AboutPanel.css";
 import { useDialog } from "@/hooks/useDialog";
+import { FOUNDER, FOUNDER_SITE_URL } from "@/config/founder";
 
 const LIVE_COUNT = FEATURE_STATUS.flatMap((c) => c.items).filter((i) => i.status === "live").length;
 const TOTAL_COUNT = FEATURE_STATUS.flatMap((c) => c.items).length;
 
-const CREATOR_LINKEDIN_URL = "https://www.linkedin.com/in/manojkumar946/";
-const CREATOR_YOUTUBE_URL = "https://www.youtube.com/@maNOWj_Official";
 
 /**
  * "About" - who built this and what it is, reached from the header's More
@@ -67,15 +66,36 @@ export function AboutPanel() {
         <img className="about-panel__creator-photo" src="/about/creator.jpg" alt="Manoj Kumar Gudla" width={56} height={56} />
         <div className="about-panel__creator-info">
           <span className="about-panel__creator-label">Created &amp; built by</span>
-          <span className="about-panel__creator-name">Manoj Kumar Gudla</span>
+          <span className="about-panel__creator-name">{FOUNDER.name}</span>
+          <span className="about-panel__creator-roles">
+            {FOUNDER.roles}. {FOUNDER.location}.
+          </span>
           <div className="about-panel__creator-links">
-            <a href={CREATOR_LINKEDIN_URL} target="_blank" rel="noreferrer">
-              LinkedIn
-            </a>
-            <a href={CREATOR_YOUTUBE_URL} target="_blank" rel="noreferrer">
-              YouTube
-            </a>
+            {/* Only once his own domain exists - see config/founder.ts. */}
+            {FOUNDER_SITE_URL && (
+              <a href={FOUNDER_SITE_URL} target="_blank" rel="noreferrer">
+                Website
+              </a>
+            )}
+            {FOUNDER.links.map((link) => (
+              <a key={link.label} href={link.href} target="_blank" rel="noreferrer">
+                {link.label}
+              </a>
+            ))}
           </div>
+        </div>
+      </div>
+
+      <div className="about-panel__guides">
+        <span className="about-panel__creator-label">Guides and tools</span>
+        <div className="about-panel__guide-links">
+          <a href="/area-report">Area report</a>
+          <a href="/tools/radius-search">Radius search</a>
+          <a href="/tools/measure-area">Measure area</a>
+          <a href="/tools/satellite-history">Satellite by year</a>
+          <a href="/solutions/real-estate">For real estate</a>
+          <a href="/solutions/retail-site-selection">For shops</a>
+          <a href="/solutions/urban-planning">For planners</a>
         </div>
       </div>
 

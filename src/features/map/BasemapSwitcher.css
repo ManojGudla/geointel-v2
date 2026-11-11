@@ -156,3 +156,11 @@
     min-width: 168px;
   }
 }
+
+/* With the coordinate chip gone on phones (CoordinateReadout.css) there is
+   nothing underneath to clear, so the switcher sits in the corner itself. */
+@media (max-width: 640px) {
+  .basemap-switcher {
+    bottom: var(--space-2);
+  }
+}

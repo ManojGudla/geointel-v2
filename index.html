@@ -25,8 +25,8 @@
       answers to questions, the snippet IS the pitch.
     -->
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <title>maNOWj GeoIntel</title>
-    <meta name="description" content="Pick a place, ask a question, get a real answer. How many hospitals within 5 km? What's here? Every answer shows its source and its date. Built by Manoj Kumar Gudla." />
+    <title>Check Any Address: Free Area Report &amp; AI Map | maNOWj</title>
+    <meta name="description" content="See hospitals, schools, metro and shops around any address, with distances, sources and dates. Free, no sign-up. Built by Manoj Kumar Gudla." />
 
     <!--
       Who built this. `author` is a real, long-standing meta tag and is the
@@ -74,8 +74,8 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="maNOWj GeoIntel" />
     <meta property="og:url" content="https://www.manowj.com/" />
-    <meta property="og:title" content="maNOWj GeoIntel: Know any place, instantly" />
-    <meta property="og:description" content="Find what's near you, analyse any area and ask questions about a place in plain language. Free, no sign-up, built on open map data." />
+    <meta property="og:title" content="Check any address before you rent, buy or open a shop" />
+    <meta property="og:description" content="Counts of hospitals, schools, transit and shops around any point, with the source and date of every figure. Free, no sign-up." />
     <meta property="og:image" content="https://www.manowj.com/og-image-v3.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
@@ -84,8 +84,8 @@
     <meta property="og:locale" content="en_IN" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="maNOWj GeoIntel: Know any place, instantly" />
-    <meta name="twitter:description" content="Find what's near you, analyse any area and ask questions about a place in plain language. Free, no sign-up." />
+    <meta name="twitter:title" content="Check any address before you rent, buy or open a shop" />
+    <meta name="twitter:description" content="See what is around any address, with sources and dates. Free, no sign-up." />
     <meta name="twitter:image" content="https://www.manowj.com/og-image-v3.jpg" />
     <!-- og:image:alt has had one since it was added; its Twitter counterpart
          had not, so the card was an unlabelled image to a screen reader. -->
@@ -110,30 +110,67 @@
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
+        "@id": "https://www.manowj.com/#app",
         "name": "maNOWj GeoIntel",
-        "alternateName": ["maNOWj", "manowj", "maNOWj GeoIntel Platform"],
+        "alternateName": [
+          "maNOWj",
+          "manowj",
+          "maNOWj GeoIntel Platform"
+        ],
         "url": "https://www.manowj.com/",
-        "description": "A map that answers questions about a place. How many hospitals within 5 km, what is here, what is the weather, how do I get there. Every answer shows the source it came from and the date it applies to.",
-        "applicationCategory": "https://schema.org/UtilitiesApplication",
-        "operatingSystem": "Any web browser",
-        "browserRequirements": "Requires JavaScript",
+        "description": "A web map that answers questions about any place. Search an address or ask in plain English to count hospitals, schools, transit and shops within a radius, measure distances and areas, compare cities and print an area report. Every figure shows its source and date.",
+        "applicationCategory": "BusinessApplication",
+        "applicationSubCategory": "Location intelligence and map analysis",
+        "operatingSystem": "Any modern web browser (Windows, macOS, Linux, Android, iOS)",
+        "browserRequirements": "Requires JavaScript and WebGL",
+        "inLanguage": "en-IN",
         "isAccessibleForFree": true,
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "image": "https://www.manowj.com/og-image-v3.jpg",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "INR",
+          "availability": "https://schema.org/InStock"
+        },
         "author": {
           "@type": "Person",
+          "@id": "https://www.manowj.com/#founder",
           "name": "Manoj Kumar Gudla",
-          "alternateName": ["Manoj Gudla", "Gudla Manoj Kumar"],
-          "jobTitle": "Founder and developer",
-          "url": "https://www.manowj.com/"
+          "alternateName": [
+            "Manoj Gudla",
+            "Gudla Manoj Kumar"
+          ],
+          "jobTitle": "Founder and developer, maNOWj GeoIntel",
+          "url": "https://www.manowj.com/",
+          "sameAs": [
+            "https://www.linkedin.com/in/manojkumar946",
+            "https://github.com/ManojGudla"
+          ]
         },
-        "creator": { "@type": "Person", "name": "Manoj Kumar Gudla" },
+        "creator": {
+          "@id": "https://www.manowj.com/#founder"
+        },
+        "isPartOf": {
+          "@type": "WebSite",
+          "@id": "https://www.manowj.com/#website",
+          "url": "https://www.manowj.com/",
+          "name": "maNOWj GeoIntel",
+          "inLanguage": "en-IN",
+          "publisher": {
+            "@id": "https://www.manowj.com/#founder"
+          }
+        },
         "featureList": [
-          "Count hospitals, schools, shops and other places within a radius",
-          "Directions and live turn-by-turn navigation",
-          "Weather, air quality and rain radar for any point",
-          "Population with the census year it applies to",
-          "Satellite imagery with its capture date, 3D buildings, historical imagery",
-          "Distance and area measurement"
+          "Plain-English questions about any place, answered on the map with sources (Ask maNOWj)",
+          "Count hospitals, schools, shops, ATMs and other places within a radius of any point",
+          "Printable area report with distances and data sources",
+          "Download results as CSV or GeoJSON",
+          "Distance and area measurement",
+          "Satellite view with capture date, historical imagery and 3D buildings",
+          "Directions and turn-by-turn navigation",
+          "Weather, air quality and rain radar",
+          "Population and density with the census year",
+          "City-to-city comparisons"
         ]
       }
     </script>
@@ -193,7 +230,7 @@
         tell a blank page from a mounted one.
       -->
       <div id="prerender" class="prerender">
-        <h1>maNOWj GeoIntel</h1>
+        <h1>maNOWj GeoIntel: check any address in seconds</h1>
         <p>
           A map that answers questions about a place. Pick a point anywhere in the world and ask what is there,
           how many hospitals are within five kilometres, what the weather is doing, or how to get there. Every
@@ -219,16 +256,27 @@
           guessing.
         </p>
 
+        <h2>Tools and guides</h2>
+        <ul>
+          <li><a href="/area-report">Free area report for any address</a></li>
+          <li><a href="/tools/radius-search">Count places within a radius</a></li>
+          <li><a href="/tools/measure-area">Measure a distance or an area</a></li>
+          <li><a href="/tools/satellite-history">Satellite imagery by year</a></li>
+          <li><a href="/solutions/real-estate">Neighbourhood reports for property listings</a></li>
+          <li><a href="/solutions/retail-site-selection">Check a shop or restaurant location</a></li>
+          <li><a href="/solutions/urban-planning">Quick area checks for planners and researchers</a></li>
+          <li><a href="/ai-map-search">AI map search that shows its sources</a></li>
+        </ul>
+
         <h2>Who built it</h2>
         <p>
-          maNOWj GeoIntel was designed and built by Manoj Kumar Gudla. This is the part that actually makes the
-          name findable: a search engine indexes words people can read on the page, which is why it is written
-          here in the open rather than hidden in a tag.
+          maNOWj GeoIntel was designed and built by Manoj Kumar Gudla, a technology professional and digital creator
+          based in Hyderabad, India.
         </p>
 
         <p>
-          It is free, needs no sign-up, and does not track you. The map itself needs JavaScript, so please enable
-          it to use the app.
+          It is free and needs no sign-up. Usage analytics run only if you agree to them. The map itself needs
+          JavaScript, so please enable it to use the app.
         </p>
       </div>
     </div>

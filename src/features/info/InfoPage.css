@@ -1,0 +1,219 @@
+/*
+  The written pages (area report, tools, solutions).
+  A document, set like the city pages so the two read as one site.
+*/
+.info {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+.info__head,
+.info__main,
+.info__footer {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding-inline: var(--space-4);
+}
+
+.info__head {
+  padding-block: var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.info__crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.info__crumbs a {
+  color: var(--color-text-muted);
+}
+
+.info__title {
+  margin: 0 0 var(--space-3);
+  font-size: clamp(1.7rem, 5vw, 2.4rem);
+  line-height: 1.14;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.info__lede {
+  margin: 0;
+  max-width: 62ch;
+  font-size: var(--text-md);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.info__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.info__btn {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.info__btn--primary {
+  background: var(--color-brand-600);
+  color: #fff;
+}
+
+.info__btn--primary:hover {
+  background: var(--color-brand-700);
+}
+
+.info__free {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.info__main {
+  padding-block: var(--space-5);
+}
+
+.info__main h2 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.info__section {
+  margin-top: var(--space-8);
+}
+
+.info__section p,
+.info__section li {
+  max-width: 66ch;
+  font-size: var(--text-base);
+  line-height: 1.65;
+}
+
+.info__section p {
+  margin: 0 0 var(--space-3);
+}
+
+.info__section ol,
+.info__section ul {
+  margin: 0;
+  padding-left: 1.3em;
+}
+
+.info__section li + li {
+  margin-top: var(--space-2);
+}
+
+/* The examples: the fastest way to see the feature is to open it. */
+.info__try {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.info__try ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.info__try a {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.info__try a:hover {
+  border-color: var(--color-brand-500);
+  color: var(--color-brand-text);
+}
+
+.info__limits {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-warning-bg);
+}
+
+.info__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0 !important;
+  list-style: none;
+}
+
+.info__links li + li {
+  margin-top: 0;
+}
+
+.info__links a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.info__links a:hover {
+  border-color: var(--color-brand-500);
+  color: var(--color-brand-text);
+}
+
+.info a:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+.info__footer {
+  padding-block: var(--space-4) var(--space-8);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.info__footer a {
+  color: var(--color-brand-text);
+}
+
+@media (max-width: 640px) {
+  .info__btn--primary {
+    width: 100%;
+    justify-content: center;
+  }
+}

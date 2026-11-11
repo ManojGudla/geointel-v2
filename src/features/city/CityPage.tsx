@@ -1,8 +1,9 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/services/apiClient";
 import { fetchAirQuality } from "@/services/live";
 import { fetchNearby } from "@/services/intel";
-import { cityMeta } from "@/seo/routeMeta";
+import { cityMeta, citySchema, citySchemaId } from "@/seo/routeMeta";
 import { usePageMeta, useJsonLd } from "@/hooks/usePageMeta";
 import { buildShareUrl } from "@/features/share/viewState";
 import { CITIES, type City } from "@/data/cities";
@@ -52,29 +53,12 @@ const COUNT_CATEGORIES = [
 
 const COUNT_RADIUS = 5000;
 
-/**
- * The canonical URL for a city page - always on www.manowj.com, whatever host
- * served the request.
- *
- * This used to read `window.location.origin`, and that is a quietly expensive
- * mistake. This app is reachable on at least two hosts: www.manowj.com, and
- * the manowj-geointel.vercel.app address Vercel assigns and keeps live. An
- * origin-derived canonical means that if a crawler ever reaches a city page on
- * the vercel.app host, the page tells it "the canonical version of this is the
- * vercel.app one" - so the two hosts compete as duplicates, on exactly the
- * pages this site is trying to rank, and the authority splits between them.
- *
- * Naming the one preferred host is the entire job of rel=canonical; deriving
- * it from wherever you happen to be defeats the point. ComparePage already
- * hardcodes it, which is why comparison pages were never exposed to this and
- * city pages were.
- */
-const CANONICAL_ORIGIN = "https://www.manowj.com";
-
-function cityUrl(slug: string): string {
-  return `${CANONICAL_ORIGIN}/maps/${slug}`;
-}
-
+/*
+  The canonical URL and the structured data both come from src/seo/routeMeta.ts,
+  which names the one preferred host (www.manowj.com). Never build either from
+  window.location.origin: this app also answers on a vercel.app host, and an
+  origin-derived canonical would make the two compete as duplicates.
+*/
 export function CityPage({ city }: Props) {
   // Shared with the build step that writes this page's HTML - see src/seo/routeMeta.ts.
   usePageMeta(cityMeta(city));
@@ -88,30 +72,9 @@ export function CityPage({ city }: Props) {
     structured-data claim the page cannot back, which is the kind of thing that
     earns a manual action rather than a rich result.
   */
-  useJsonLd(
-    {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: `${city.name} map and geographic data`,
-      description: city.summary,
-      url: cityUrl(city.slug),
-      about: {
-        "@type": "City",
-        name: city.name,
-        address: { "@type": "PostalAddress", addressRegion: city.state, addressCountry: "IN" },
-        geo: { "@type": "GeoCoordinates", latitude: city.lat, longitude: city.lon },
-      },
-      isPartOf: { "@type": "WebSite", name: "maNOWj GeoIntel", url: "https://www.manowj.com/" },
-      breadcrumb: {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "maNOWj GeoIntel", item: "https://www.manowj.com/" },
-          { "@type": "ListItem", position: 2, name: city.name, item: cityUrl(city.slug) },
-        ],
-      },
-    },
-    `city-${city.slug}`
-  );
+  // Shared with the build step, which writes the same block into this page's static HTML.
+  const schema = useMemo(() => citySchema(city), [city]);
+  useJsonLd(schema, citySchemaId(city));
 
   const population = useQuery({
     queryKey: ["city-population", city.slug],

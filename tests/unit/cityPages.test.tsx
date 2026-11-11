@@ -5,6 +5,7 @@ import { render, cleanup, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CITIES, CITY_BY_SLUG, CITY_PATHS } from "../../src/data/cities";
 import { FEATURED_PAIR_PATHS } from "../../src/features/compare/comparePairs";
+import { INFO_PATHS } from "../../src/seo/infoPaths";
 
 /**
  * These pages exist for one reason: before them, the site had two indexable
@@ -164,7 +165,9 @@ describe("the sitemap and the routes agree", () => {
       whole reason it exists: a URL reaches the sitemap only once somebody has
       stated, here, that it is a real page.
     */
-    const known = new Set(["/", "/ai-map-search", ...CITY_PATHS, ...FEATURED_PAIR_PATHS]);
+    // The written pages (area report, tools, solutions) joined in November
+    // 2026; tests/unit/infoPages.test.ts holds them to the same bar.
+    const known = new Set(["/", "/ai-map-search", ...CITY_PATHS, ...FEATURED_PAIR_PATHS, ...INFO_PATHS]);
     for (const loc of locs) expect(known.has(loc), loc).toBe(true);
   });
 
