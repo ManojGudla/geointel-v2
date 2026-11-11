@@ -77,9 +77,8 @@ function useBackendStatus() {
   return online;
 }
 
-const STATUS_TEXT: Record<BackendStatus | "checking", { label: string; aria: string }> = {
-  checking: { label: "Checking…", aria: "Checking the connection to the data service" },
-  online: { label: "GIS Online", aria: "Data service online" },
+/** Only the two states that are shown. "online" has no pill; see below. */
+const STATUS_TEXT: Record<Exclude<BackendStatus, "online">, { label: string; aria: string }> = {
   degraded: {
     label: "GIS Limited",
     aria: "Data service online, but OpenStreetMap map data is slow or unavailable right now. Nearby and What's here may fail.",
@@ -270,12 +269,6 @@ export function Header() {
             </button>
             {moreOpen && (
               <div className="app-header__more-menu" role="menu">
-                {/* Phone-only: the Join CTA can't hold its own row at this
-                    width, so it folds in here rather than pushing the header
-                    onto a second line. */}
-                <button type="button" role="menuitem" className="app-header__menu-item--mobile" onClick={() => runFromMenu(openJoinTeam)}>
-                  <span aria-hidden="true">🤝</span> Join Our Team
-                </button>
                 {/* Help is no longer duplicated here - it is a visible
                     control in the row above, for the reason given there. */}
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openFeatureStatus)}>
@@ -286,6 +279,13 @@ export function Header() {
                 </button>
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openFeedback)}>
                   <span aria-hidden="true">💬</span> Feedback
+                </button>
+                {/* Used to be a filled button in the header itself, the
+                    brightest thing on the screen. It is an invitation, not
+                    something a person using the map is looking for, so it
+                    lives here at every width now (it already did on phones). */}
+                <button type="button" role="menuitem" onClick={() => runFromMenu(openJoinTeam)}>
+                  <span aria-hidden="true">🤝</span> Join Our Team
                 </button>
                 <button type="button" role="menuitem" onClick={() => runFromMenu(openPrivacy)}>
                   <span aria-hidden="true">🔒</span> Privacy &amp; security
@@ -311,19 +311,6 @@ export function Header() {
           </div>
         </div>
 
-        {/* The one real call-to-action in the header - visually distinct
-            (filled, brand-colored) so it reads as the primary action rather
-            than one more item in a row of identical pills. */}
-        <button
-          type="button"
-          className="app-header__icon-btn app-header__icon-btn--primary app-header__cta"
-          onClick={openJoinTeam}
-          aria-label="Join our team"
-          title="Join our team"
-        >
-          <span aria-hidden="true">🤝</span> Join Our Team
-        </button>
-
         {/* A live status readout, not an action - role="status" plus its
             own pill styling (tinted by the current state) keeps it from
             reading as just another clickable button in the row. */}
@@ -331,15 +318,21 @@ export function Header() {
             hidden with display:none, which also removes it from screen
             readers, leaving a coloured dot that said nothing to anyone who
             could not see its colour. */}
-        <span
-          className={`app-header__status app-header__status--${online === null ? "checking" : online}`}
-          role="status"
-          aria-label={STATUS_TEXT[online ?? "checking"].aria}
-          title={STATUS_TEXT[online ?? "checking"].aria}
-        >
-          <span className="app-header__status-dot" aria-hidden="true" />
-          <span className="app-header__btn-label">{STATUS_TEXT[online ?? "checking"].label}</span>
-        </span>
+        {/* Shown only when there is something to say. A permanent green
+            "GIS Online" pill told every visitor, all the time, that nothing
+            was wrong - which is noise, and it made the two states that do
+            matter (limited, offline) easy to miss among the buttons. */}
+        {(online === "degraded" || online === "offline") && (
+          <span
+            className={`app-header__status app-header__status--${online}`}
+            role="status"
+            aria-label={STATUS_TEXT[online].aria}
+            title={STATUS_TEXT[online].aria}
+          >
+            <span className="app-header__status-dot" aria-hidden="true" />
+            <span className="app-header__btn-label">{STATUS_TEXT[online].label}</span>
+          </span>
+        )}
       </div>
     </header>
 

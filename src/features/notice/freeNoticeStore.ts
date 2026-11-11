@@ -11,12 +11,23 @@ import { create } from "zustand";
  * keep confidential data out of every outside site, this one included.
  */
 /*
-  Shown on EVERY visit, by request: the site is being promoted, and the "free
-  for everyone" message is the first thing each visit should say - not only
-  a first-ever visit. It closes itself after four seconds (see
-  FreeToUseNotice.tsx), so a returning visitor loses almost nothing, and the
-  ✕ / Cancel close it at once.
+  First visit only. For a while this opened on every visit, on request, while
+  the site was being promoted. It was then the first thing every returning
+  visitor had to get past before reaching the map, every single time, and it
+  was the slowest thing on the page to appear. The message has not gone
+  anywhere: it is one tap away under More > Free to use.
 */
+const SEEN_KEY = "geointel.freeNoticeSeen.v1";
+
+function alreadySeen(): boolean {
+  try {
+    return localStorage.getItem(SEEN_KEY) === "1";
+  } catch {
+    // Blocked storage: show it. Seeing it twice is better than never.
+    return false;
+  }
+}
+
 interface FreeNoticeState {
   isOpen: boolean;
   open: () => void;
@@ -24,7 +35,14 @@ interface FreeNoticeState {
 }
 
 export const useFreeNoticeStore = create<FreeNoticeState>((set) => ({
-  isOpen: true,
+  isOpen: !alreadySeen(),
   open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false }),
+  close: () => {
+    try {
+      localStorage.setItem(SEEN_KEY, "1");
+    } catch {
+      // Hidden for this visit only.
+    }
+    set({ isOpen: false });
+  },
 }));

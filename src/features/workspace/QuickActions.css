@@ -117,24 +117,6 @@
   }
 }
 
-/* The "on" state for toggles in this row (currently 3D).
-
-   A toggle that looks identical whether it is on or off is a toggle people
-   press twice and then give up on, so this is a real filled state rather
-   than a tint: the same brand colour the rail uses for its active section,
-   so "this is switched on" reads the same way everywhere in the app. */
-.quick-actions button.quick-actions__on {
-  background: var(--color-brand-600);
-  border-color: var(--color-brand-600);
-  color: #fff;
-  font-weight: 700;
-}
-
-.quick-actions button.quick-actions__on:hover {
-  background: var(--color-brand-700);
-  border-color: var(--color-brand-700);
-}
-
 /* The next-step suggestion.
 
    Its own opaque chip for the same reason as the hint above it: bare text

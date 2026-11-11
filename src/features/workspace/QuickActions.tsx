@@ -224,20 +224,10 @@ export function QuickActions() {
         >
           📏 Measure
         </button>
-        {/* Neither does 3D - it is a property of the view, not of a place. */}
-        <button
-          type="button"
-          className={is3D ? "quick-actions__on" : undefined}
-          onClick={toggle3DWithBuildings}
-          aria-pressed={is3D}
-          title={
-            is3D
-              ? "Turn 3D off and flatten the map"
-              : "Tilt the map and extrude real building shapes, at their real heights"
-          }
-        >
-          🏙️ {is3D ? "3D on" : "3D"}
-        </button>
+        {/* There was a 3D button here too. It did exactly what "Show 3D
+            buildings" in Layers does, so the row had two switches for one
+            thing; the Layers one stays, and the suggestion line below still
+            offers 3D when it would help. */}
       </div>
 
       {/* Was "to use the first three", which is no longer true and was never

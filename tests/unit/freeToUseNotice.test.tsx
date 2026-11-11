@@ -20,7 +20,7 @@ describe("Free to use notice", () => {
     vi.unstubAllGlobals();
   });
 
-  it("opens on every visit, even after being closed before", async () => {
+  it("opens on the first visit only, and can be reopened from the menu", async () => {
     const { useFreeNoticeStore } = await import("../../src/features/notice/freeNoticeStore");
     expect(useFreeNoticeStore.getState().isOpen).toBe(true);
     useFreeNoticeStore.getState().close();
@@ -28,6 +28,9 @@ describe("Free to use notice", () => {
 
     vi.resetModules();
     const nextVisit = await import("../../src/features/notice/freeNoticeStore");
+    expect(nextVisit.useFreeNoticeStore.getState().isOpen).toBe(false);
+    // More > Free to use.
+    nextVisit.useFreeNoticeStore.getState().open();
     expect(nextVisit.useFreeNoticeStore.getState().isOpen).toBe(true);
   });
 

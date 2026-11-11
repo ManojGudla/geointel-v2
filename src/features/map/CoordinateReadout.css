@@ -50,3 +50,13 @@
     display: none;
   }
 }
+
+/* Phones: not shown at all. The centre's latitude and longitude to six
+   places is a desk tool; on a phone it took the bottom-left corner, ran into
+   the map credit beside it, and was a tap target nobody meant to hit. A
+   place's coordinates are still shown in its Explore panel. */
+@media (max-width: 640px) {
+  .coordinate-readout {
+    display: none;
+  }
+}
