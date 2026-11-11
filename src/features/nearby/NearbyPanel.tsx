@@ -8,6 +8,7 @@ import { useRouteStore } from "@/stores/routeStore";
 import { useUiStore } from "@/stores/uiStore";
 import type { NearbyCategory } from "@/types/intel";
 import "./NearbyPanel.css";
+import { ExportButtons } from "@/features/export/ExportButtons";
 
 const CATEGORIES: Array<{ id: NearbyCategory; label: string; icon: string }> = [
   { id: "restaurants", label: "Restaurants", icon: "🍽️" },
@@ -101,6 +102,21 @@ export function NearbyPanel() {
               </li>
             ))}
           </ul>
+            <ExportButtons
+              places={result.items.map((item) => ({
+                id: item.id,
+                name: item.name,
+                category: item.category,
+                lat: item.lat,
+                lon: item.lon,
+                distanceMeters: item.distanceMeters,
+              }))}
+              meta={{
+                title: `${category} near ${location?.name ?? "selected place"}`,
+                origin: location ? { lat: location.lat, lon: location.lon } : undefined,
+                radiusMeters: result.radiusMeters,
+              }}
+            />
           </>
         )}
       </AsyncPanel>

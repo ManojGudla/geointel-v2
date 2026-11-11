@@ -79,8 +79,14 @@ describe("public URLs", () => {
         */
         .replace(/(^|[^:])\/\/.*$/gm, "$1");
       expect(source, `${path} derives its canonical from the current origin`).not.toMatch(/window\.location\.origin/);
-      expect(source, `${path} does not name the canonical host`).toContain(`https://${CANONICAL_HOST}`);
+      // The pages no longer spell the host themselves: canonical URLs and
+      // structured data both come from src/seo/routeMeta.ts, so that is the
+      // one file that has to name it, and the pages have to use it.
+      expect(source, `${path} does not take its URLs from routeMeta`).toMatch(/from "@\/seo\/routeMeta"/);
     }
+    const routeMeta = read("src/seo/routeMeta.ts");
+    expect(routeMeta, "routeMeta.ts derives a URL from the current origin").not.toMatch(/window\.location\.origin/);
+    expect(routeMeta, "routeMeta.ts does not name the canonical host").toContain(`https://${CANONICAL_HOST}`);
   });
 
   it("actually found URLs to check", () => {

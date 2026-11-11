@@ -3,6 +3,7 @@ import { useAnalysisStore } from "@/stores/analysisStore";
 import { formatDistance } from "@/features/map/geo";
 import { useUiStore } from "@/stores/uiStore";
 import "./SpatialAnalysisPanel.css";
+import { ExportButtons } from "@/features/export/ExportButtons";
 
 /**
  * Renders whatever analysis is currently live.
@@ -86,6 +87,19 @@ export function AnalysisResultView() {
             </li>
           ))}
         </ol>
+      )}
+
+      {result.kind !== "suitability" && (
+        <ExportButtons
+          places={result.points.map((point) => ({
+            id: point.id,
+            name: point.label,
+            lat: point.lat,
+            lon: point.lon,
+            distanceMeters: point.distanceMeters,
+          }))}
+          meta={{ title: result.title, origin: result.origin, radiusMeters: result.bufferMeters }}
+        />
       )}
 
       <p className="analysis__note">{result.note}</p>

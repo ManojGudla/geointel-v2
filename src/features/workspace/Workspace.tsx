@@ -37,6 +37,7 @@ import { LocateButton } from "@/features/location/LocateButton";
 import { NearMeChips } from "@/features/location/NearMeChips";
 import { useSheetInsetStore } from "@/features/shell/sheetInsetStore";
 import "./Workspace.css";
+import { StarterCard } from "./StarterCard";
 
 /**
  * Map-first workspace: a labelled rail, one panel, and a map that fills
@@ -124,6 +125,11 @@ export function Workspace() {
               </ErrorBoundary>
               <ErrorBoundary label="Near me" variant="silent">
                 <NearMeChips />
+              </ErrorBoundary>
+              {/* What this is for, and three places to try. In the column's
+                  normal flow, not floating: see StarterCard.tsx. */}
+              <ErrorBoundary label="Starter tip" variant="silent">
+                <StarterCard />
               </ErrorBoundary>
             </div>
 

@@ -23,6 +23,7 @@
  */
 import { CITIES, type City } from "../data/cities";
 import { canonicalPairSlug, parsePairSlug, FEATURED_PAIRS, type Pair } from "../features/compare/comparePairs";
+import { INFO_PAGES, INFO_PAGE_BY_PATH, type InfoPage } from "./infoPages";
 
 export const SITE_ORIGIN = "https://www.manowj.com";
 
@@ -54,6 +55,93 @@ export function compareMeta(pair: Pair): RouteMeta {
   };
 }
 
+/**
+ * Structured data for a city page. The page adds it in the browser (useJsonLd)
+ * and the build step writes the same object into the page's static HTML, so a
+ * crawler that runs no JavaScript sees a page about this city rather than the
+ * homepage's "this is a web application" block repeated on every URL.
+ */
+export function citySchema(city: City): Record<string, unknown> {
+  const url = `${SITE_ORIGIN}/maps/${city.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: `${city.name} map and geographic data`,
+    description: city.summary,
+    url,
+    about: {
+      "@type": "City",
+      name: city.name,
+      address: { "@type": "PostalAddress", addressRegion: city.state, addressCountry: "IN" },
+      geo: { "@type": "GeoCoordinates", latitude: city.lat, longitude: city.lon },
+    },
+    isPartOf: { "@type": "WebSite", name: "maNOWj GeoIntel", url: `${SITE_ORIGIN}/` },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "maNOWj GeoIntel", item: `${SITE_ORIGIN}/` },
+        { "@type": "ListItem", position: 2, name: city.name, item: url },
+      ],
+    },
+  };
+}
+
+export function compareSchema(pair: Pair): Record<string, unknown> {
+  const { a, b } = pair;
+  const url = `${SITE_ORIGIN}/compare/${pair.canonicalSlug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: `${a.name} vs ${b.name}`,
+    description: `A geographic comparison of ${a.name}, ${a.state} and ${b.name}, ${b.state}.`,
+    url,
+    about: [
+      { "@type": "City", name: a.name, geo: { "@type": "GeoCoordinates", latitude: a.lat, longitude: a.lon } },
+      { "@type": "City", name: b.name, geo: { "@type": "GeoCoordinates", latitude: b.lat, longitude: b.lon } },
+    ],
+    isPartOf: { "@type": "WebSite", name: "maNOWj GeoIntel", url: `${SITE_ORIGIN}/` },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "maNOWj GeoIntel", item: `${SITE_ORIGIN}/` },
+        { "@type": "ListItem", position: 2, name: `${a.name} vs ${b.name}`, item: url },
+      ],
+    },
+  };
+}
+
+export function infoMeta(page: InfoPage): RouteMeta {
+  return { title: page.title, description: page.description, url: `${SITE_ORIGIN}${page.path}` };
+}
+
+export function infoSchema(page: InfoPage): Record<string, unknown> {
+  const url = `${SITE_ORIGIN}${page.path}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: page.h1,
+    description: page.description,
+    url,
+    inLanguage: "en-IN",
+    isPartOf: { "@type": "WebSite", name: "maNOWj GeoIntel", url: `${SITE_ORIGIN}/` },
+    about: { "@type": "WebApplication", "@id": `${SITE_ORIGIN}/#app`, name: "maNOWj GeoIntel", url: `${SITE_ORIGIN}/` },
+    author: { "@type": "Person", name: "Manoj Kumar Gudla" },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "maNOWj GeoIntel", item: `${SITE_ORIGIN}/` },
+        { "@type": "ListItem", position: 2, name: page.nav, item: url },
+      ],
+    },
+  };
+}
+
+export const infoSchemaId = (page: InfoPage) => `info-${page.path.replace(/^\//, "").replace(/\//g, "-")}`;
+
+/** The id useJsonLd and the build step both use, so the browser adopts the static block instead of adding a second. */
+export const citySchemaId = (city: City) => `city-${city.slug}`;
+export const compareSchemaId = (pair: Pair) => `compare-${pair.canonicalSlug}`;
+
 /* Kept under about 155 characters: Google truncates a description roughly there. */
 export const LANDING_META: RouteMeta = {
   title: "AI Map Search that shows its sources | maNOWj GeoIntel",
@@ -72,6 +160,8 @@ export interface PrerenderRoute {
   robots?: string;
   /** Static HTML for the #prerender block, read by anything that does not run JavaScript. */
   body: string;
+  /** This page's own structured data. Replaces the homepage's block in the static HTML. */
+  jsonLd?: { id: string; data: Record<string, unknown> };
 }
 
 function esc(text: string): string {
@@ -98,6 +188,7 @@ function cityBody(city: City): string {
     `<h2>Questions you can ask about ${esc(city.name)}</h2><ul>${city.questions.map((q) => `<li>${esc(q)}</li>`).join("")}</ul>`,
     featured.length ? `<h2>Compare ${esc(city.name)}</h2><ul>${featured.join("")}</ul>` : "",
     `<p><a href="/">Open ${esc(city.name)} in maNOWj GeoIntel</a></p>`,
+    infoLinks(""),
     cityLinks([city.slug]),
   ].join("\n");
 }
@@ -113,6 +204,33 @@ function compareBody(pair: Pair): string {
   ].join("\n");
 }
 
+function infoLinks(except: string): string {
+  const items = INFO_PAGES.filter((p) => p.path !== except)
+    .map((p) => `<li><a href="${p.path}">${esc(p.nav)}</a></li>`)
+    .join("");
+  return `<h2>Tools and guides</h2><ul>${items}</ul>`;
+}
+
+function infoBody(page: InfoPage): string {
+  const section = (s: InfoPage["sections"][number]) =>
+    [
+      `<h2>${esc(s.heading)}</h2>`,
+      ...(s.paragraphs ?? []).map((text) => `<p>${esc(text)}</p>`),
+      s.steps ? `<ol>${s.steps.map((step) => `<li>${esc(step)}</li>`).join("")}</ol>` : "",
+      s.bullets ? `<ul>${s.bullets.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>` : "",
+    ].join("");
+  return [
+    `<h1>${esc(page.h1)}</h1>`,
+    `<p>${esc(page.lead)}</p>`,
+    `<p><a href="/">Open the map</a>. Free, no sign-up.</p>`,
+    `<h2>Try it on a real place</h2><ul>${page.examples.map((e) => `<li><a href="${esc(e.href)}">${esc(e.label)}</a></li>`).join("")}</ul>`,
+    ...page.sections.map(section),
+    `<h2>What it cannot tell you</h2><ul>${page.limits.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>`,
+    infoLinks(page.path),
+    cityLinks([]),
+  ].join("\n");
+}
+
 /** Every URL that gets its own HTML file at build time. */
 export function prerenderRoutes(): PrerenderRoute[] {
   const routes: PrerenderRoute[] = [];
@@ -123,13 +241,32 @@ export function prerenderRoutes(): PrerenderRoute[] {
     body: [
       `<h1>AI map search that shows its sources</h1>`,
       `<p>${esc(LANDING_META.description)}</p>`,
-      `<p><a href="/">Open the map</a></p>`,
+      `<h2>What you can ask</h2>`,
+      `<ul><li>How many hospitals are within 5 km of this point?</li><li>What is here, and what is within 800 m?</li><li>Where is the nearest metro station, pharmacy or ATM?</li><li>Is this a good place for a restaurant, a shop or a clinic?</li><li>What is the weather and the air quality here right now?</li></ul>`,
+      `<h2>How the answers are made</h2>`,
+      `<p>Counts, distances and nearest places are worked out directly from OpenStreetMap data, not guessed by a language model. The AI writes its summary only from the facts already loaded for the place you chose, and every answer lists the sources and dates it used. Where a source has no figure, the app says so.</p>`,
+      `<p><a href="/">Open the map</a>. Free, no sign-up.</p>`,
+      infoLinks(""),
       cityLinks([]),
     ].join("\n"),
   });
 
+  for (const page of INFO_PAGES) {
+    routes.push({
+      path: page.path,
+      meta: infoMeta(page),
+      body: infoBody(page),
+      jsonLd: { id: infoSchemaId(page), data: infoSchema(page) },
+    });
+  }
+
   for (const city of CITIES) {
-    routes.push({ path: `/maps/${city.slug}`, meta: cityMeta(city), body: cityBody(city) });
+    routes.push({
+      path: `/maps/${city.slug}`,
+      meta: cityMeta(city),
+      body: cityBody(city),
+      jsonLd: { id: citySchemaId(city), data: citySchema(city) },
+    });
   }
 
   // Every ordering of every pair renders in the app, so every one gets a file
@@ -139,7 +276,12 @@ export function prerenderRoutes(): PrerenderRoute[] {
     for (const b of CITIES) {
       if (a.slug === b.slug) continue;
       const pair = parsePairSlug(`${a.slug}-vs-${b.slug}`)!;
-      routes.push({ path: `/compare/${a.slug}-vs-${b.slug}`, meta: compareMeta(pair), body: compareBody(pair) });
+      routes.push({
+        path: `/compare/${a.slug}-vs-${b.slug}`,
+        meta: compareMeta(pair),
+        body: compareBody(pair),
+        jsonLd: { id: compareSchemaId(pair), data: compareSchema(pair) },
+      });
     }
   }
 
@@ -173,4 +315,4 @@ export function prerenderRoutes(): PrerenderRoute[] {
   return routes;
 }
 
-export { canonicalPairSlug };
+export { canonicalPairSlug, INFO_PAGE_BY_PATH };

@@ -14,6 +14,9 @@
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   z-index: 13;
+  /* Leaves the bottom-right corner to the map credit (about 200px wide plus
+     its margins), whatever the width of the map. */
+  max-width: calc(100% - 240px);
 }
 
 .coordinate-readout:hover {
@@ -29,6 +32,21 @@
 .coordinate-readout__dms {
   font-size: 11px;
   color: var(--color-text-faint);
+  /* The first thing to give way when the map is narrow (a laptop with the
+     side panel open): it shrinks and ends in "…" so the chip stops short of
+     the map credit in the opposite corner instead of sliding under it. The
+     decimal pair and the zoom never shrink. */
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coordinate-readout__decimal,
+.coordinate-readout__zoom {
+  flex: none;
+  white-space: nowrap;
 }
 
 .coordinate-readout__zoom {

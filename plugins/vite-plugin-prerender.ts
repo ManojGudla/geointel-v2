@@ -40,6 +40,14 @@ export function renderRoute(html: string, route: PrerenderRoute): string {
   out = setAttr(out, /(<meta name="twitter:description" content=")[^"]*(")/, meta.description, "twitter:description");
   if (route.robots) out = setAttr(out, /(<meta name="robots" content=")[^"]*(")/, route.robots, "robots meta");
 
+  if (route.jsonLd) {
+    const ld = /<script type="application\/ld\+json">[\s\S]*?<\/script>/;
+    if (!ld.test(out)) throw new Error("[prerender] index.html has no JSON-LD block to replace");
+    // "<" is escaped so no value can ever close the script element early.
+    const json = JSON.stringify(route.jsonLd.data).replace(/</g, "\\u003c");
+    out = out.replace(ld, () => `<script type="application/ld+json" data-schema-id="${esc(route.jsonLd!.id)}">${json}</script>`);
+  }
+
   const block = /(<div id="prerender" class="prerender">)([\s\S]*?)(<\/div>)/;
   const match = out.match(block);
   if (!match) throw new Error("[prerender] index.html has no #prerender block");

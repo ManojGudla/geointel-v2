@@ -3,6 +3,7 @@ import { useRouteStore } from "@/stores/routeStore";
 import { useIntelTabStore } from "@/stores/intelTabStore";
 import { useMeasureStore } from "@/stores/measureStore";
 import { useShellStore } from "@/stores/shellStore";
+import { useReportStore } from "@/stores/reportStore";
 import { useShow3D } from "@/features/map/useShow3D";
 import { useMapStore } from "@/stores/mapStore";
 import { useGisEvidence } from "@/features/gis/useGisEvidence";
@@ -44,6 +45,7 @@ export function QuickActions() {
   const setIntelTab = useIntelTabStore((s) => s.setTab);
   const setMeasureMode = useMeasureStore((s) => s.setMode);
   const openSection = useShellStore((s) => s.openSection);
+  const openReport = useReportStore((s) => s.open);
   const { is3D, toggle: toggle3DWithBuildings } = useShow3D();
   const radiusMeters = useLocationStore((s) => s.radiusMeters);
   const setRadiusMeters = useLocationStore((s) => s.setRadiusMeters);
@@ -223,6 +225,18 @@ export function QuickActions() {
           title="Measure a distance on the map"
         >
           📏 Measure
+        </button>
+        {/* The printable report was three taps away, inside the Ask section,
+            and most people never found it. It is the thing people actually
+            take away from a visit, so it sits here with the other things you
+            do straight after finding a place. With nothing selected it
+            reports on the centre of the view, like the two buttons before it. */}
+        <button
+          type="button"
+          onClick={runHere(openReport)}
+          title={needsPlace ? "A printable report for the centre of this view" : "A printable report for this place. Save it as a PDF"}
+        >
+          📄 Report
         </button>
         {/* There was a 3D button here too. It did exactly what "Show 3D
             buildings" in Layers does, so the row had two switches for one

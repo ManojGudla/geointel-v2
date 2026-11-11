@@ -54,6 +54,7 @@ const LandingPage = lazyWithRetry(() => import("@/features/landing/LandingPage")
    download the whole workspace to read it. */
 const CityPage = lazyWithRetry(() => import("@/features/city/CityPage").then((m) => ({ default: m.CityPage })));
 const ComparePage = lazyWithRetry(() => import("@/features/compare/ComparePage").then((m) => ({ default: m.ComparePage })));
+const InfoPage = lazyWithRetry(() => import("@/features/info/InfoPage").then((m) => ({ default: m.InfoPage })));
 import { MaintenancePage } from "@/features/maintenance/MaintenancePage";
 import { useMaintenanceStore } from "@/stores/maintenanceStore";
 import { usePrivacyStore } from "@/stores/privacyStore";
@@ -78,6 +79,7 @@ import { useGamesStore } from "@/stores/gamesStore";
 import { NotFoundPage } from "@/features/notfound/NotFoundPage";
 import { CITY_BY_SLUG, CITY_PATHS } from "@/data/cities";
 import { FEATURED_PAIR_PATHS, parsePairSlug } from "@/features/compare/comparePairs";
+import { INFO_PATHS } from "@/seo/infoPaths";
 
 /**
  * App.tsx is layout orchestration only: header, workspace composition, and
@@ -142,6 +144,7 @@ export default function App() {
     "/privacy",
     ...CITY_PATHS,
     ...FEATURED_PAIR_PATHS,
+    ...INFO_PATHS,
   ]);
   const comparePair = pathname.startsWith("/compare/") ? parsePairSlug(pathname.slice("/compare/".length)) : null;
   const isKnownPath = KNOWN_PATHS.has(pathname) || comparePair !== null;
@@ -171,6 +174,18 @@ export default function App() {
       <ErrorBoundary label="Landing page" variant="page">
         <Suspense fallback={<div className="app-loading">Loading…</div>}>
           <LandingPage />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
+  // The written pages: area report, tools and solutions. Outside the
+  // maintenance gate for the same reason as the landing page above.
+  if (INFO_PATHS.includes(pathname)) {
+    return (
+      <ErrorBoundary label="Guide page" variant="page">
+        <Suspense fallback={<div className="app-loading">Loading…</div>}>
+          <InfoPage path={pathname} />
         </Suspense>
       </ErrorBoundary>
     );

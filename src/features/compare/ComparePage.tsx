@@ -1,8 +1,9 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/services/apiClient";
 import { fetchAirQuality } from "@/services/live";
 import { fetchNearby } from "@/services/intel";
-import { compareMeta } from "@/seo/routeMeta";
+import { compareMeta, compareSchema, compareSchemaId } from "@/seo/routeMeta";
 import { usePageMeta, useJsonLd } from "@/hooks/usePageMeta";
 import { buildShareUrl } from "@/features/share/viewState";
 import { track } from "@/services/analytics";
@@ -88,34 +89,13 @@ function Cell({ value, note }: { value: string | null; note?: string }) {
 
 export function ComparePage({ pair }: Props) {
   const { a, b } = pair;
-  const canonical = `https://www.manowj.com/compare/${pair.canonicalSlug}`;
 
   // Shared with the build step that writes this page's HTML - see src/seo/routeMeta.ts.
   // Both orderings of a pair render, and both point at the one alphabetical URL.
   usePageMeta(compareMeta(pair));
 
-  useJsonLd(
-    {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: `${a.name} vs ${b.name}`,
-      description: `A geographic comparison of ${a.name}, ${a.state} and ${b.name}, ${b.state}.`,
-      url: canonical,
-      about: [
-        { "@type": "City", name: a.name, geo: { "@type": "GeoCoordinates", latitude: a.lat, longitude: a.lon } },
-        { "@type": "City", name: b.name, geo: { "@type": "GeoCoordinates", latitude: b.lat, longitude: b.lon } },
-      ],
-      isPartOf: { "@type": "WebSite", name: "maNOWj GeoIntel", url: "https://www.manowj.com/" },
-      breadcrumb: {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "maNOWj GeoIntel", item: "https://www.manowj.com/" },
-          { "@type": "ListItem", position: 2, name: `${a.name} vs ${b.name}`, item: canonical },
-        ],
-      },
-    },
-    `compare-${pair.canonicalSlug}`
-  );
+  const schema = useMemo(() => compareSchema(pair), [pair]);
+  useJsonLd(schema, compareSchemaId(pair));
 
   const da = useCityData(a);
   const db = useCityData(b);
