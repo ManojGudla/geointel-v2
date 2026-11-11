@@ -84,10 +84,20 @@ describe("the wider construction-only search", () => {
   it("asks for the same development tags and no roads", async () => {
     const { buildConstructionQuery } = await import("../../api/_routes/site");
     const wide = buildConstructionQuery(17.385, 78.4867, 5000);
-    expect(wide).toContain('way["building"="construction"](around:5000,17.385,78.4867)');
-    expect(wide).toContain('"landuse"~"^(construction|brownfield|greenfield)$"');
+    for (const clause of [
+      'way["highway"="construction"]',
+      'way["building"="construction"]',
+      'way["landuse"="construction"]',
+      'way["landuse"="brownfield"]',
+      'way["landuse"="greenfield"]',
+      'way["proposed:highway"]',
+    ]) {
+      expect(wide).toContain(`${clause}(around:5000,17.385,78.4867)`);
+    }
     expect(wide).not.toContain('["name"]');
-    expect(wide).toContain("out meta center 250;");
+    // Plain equality, not a regular expression: faster over a circle this size.
+    expect(wide).not.toContain("~");
+    expect(wide).toContain("out meta center 150;");
     expect(wide).not.toContain("out geom");
   });
 });

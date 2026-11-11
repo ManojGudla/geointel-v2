@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AsyncPanel } from "@/components/AsyncPanel";
 import { useLocationStore } from "@/stores/locationStore";
 import {
   fetchSite,
   fetchConstructionNearby,
-  WIDE_SEARCH_METERS,
+  WIDE_SEARCH_STEPS,
   type SiteFeature,
   type SiteFeatureKind,
 } from "@/services/site";
@@ -163,15 +163,23 @@ function FeatureRow({ f, distance }: { f: SiteFeature; distance: number | null }
  * the wider search itself failed.
  */
 function WiderSearch({ at, searchedMeters }: { at: Point; searchedMeters: number }) {
+  // 2 km first; 5 km only if that is empty too. See WIDE_SEARCH_STEPS.
+  const [step, setStep] = useState(0);
+  const radius = WIDE_SEARCH_STEPS[step]!;
   const wide = useQuery({
-    queryKey: ["site-wide", at.lat, at.lon],
-    queryFn: ({ signal }) => fetchConstructionNearby(at.lat, at.lon, signal),
+    queryKey: ["site-wide", at.lat, at.lon, radius],
+    queryFn: ({ signal }) => fetchConstructionNearby(at.lat, at.lon, radius, signal),
     staleTime: 10 * 60 * 1000,
     retry: 1,
   });
-  const km = WIDE_SEARCH_METERS / 1000;
+  const isLastStep = step === WIDE_SEARCH_STEPS.length - 1;
+  const foundNothing = wide.isSuccess && wide.data.features.length === 0;
+  useEffect(() => {
+    if (foundNothing && !isLastStep) setStep((s) => s + 1);
+  }, [foundNothing, isLastStep]);
+  const km = radius / 1000;
 
-  if (wide.isPending) {
+  if (wide.isPending || (foundNothing && !isLastStep)) {
     return (
       <p className="site__wider" role="status">
         <span className="site__wider-spinner" aria-hidden="true" />
