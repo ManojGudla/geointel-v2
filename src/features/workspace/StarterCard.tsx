@@ -19,6 +19,8 @@ const EXAMPLES: Array<{ name: string; where: string; lat: number; lon: number }>
   { name: "Andheri West", where: "Mumbai", lat: 19.1364, lon: 72.8296 },
 ];
 
+const EXAMPLE_RADIUS_METERS = 1000;
+
 function wasDismissed(): boolean {
   try {
     return localStorage.getItem(DISMISSED_KEY) === "1";
@@ -44,6 +46,7 @@ function wasDismissed(): boolean {
 export function StarterCard() {
   const location = useLocationStore((s) => s.selectedLocation);
   const setSelectedLocation = useLocationStore((s) => s.setSelectedLocation);
+  const setRadiusMeters = useLocationStore((s) => s.setRadiusMeters);
   const requestCamera = useMapStore((s) => s.requestCamera);
   const query = useSearchStore((s) => s.query);
   const openSection = useShellStore((s) => s.openSection);
@@ -79,6 +82,10 @@ export function StarterCard() {
       address: {},
       source: "OpenStreetMap / Nominatim",
     });
+    // A neighbourhood, not a block. At the default 250 m most categories
+    // around a locality's centre point read 0, which makes the example look
+    // empty; 1 km is the distance the headline is actually talking about.
+    setRadiusMeters(EXAMPLE_RADIUS_METERS);
     requestCamera({ center: [example.lon, example.lat], zoom: 15 });
     setIntelTab("evidence");
     openSection("place");

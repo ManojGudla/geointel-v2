@@ -34,6 +34,8 @@ describe("the first-screen starter card", () => {
     const selected = useLocationStore.getState().selectedLocation;
     expect(selected?.name).toBe("Gachibowli");
     expect(selected?.lat).toBeCloseTo(17.4401, 3);
+    // Looks 1 km around it, so the example shows a neighbourhood's worth of places.
+    expect(useLocationStore.getState().radiusMeters).toBe(1000);
     expect(useShellStore.getState().section).toBe("place");
     expect(useShellStore.getState().open).toBe(true);
     expect(useIntelTabStore.getState().tab).toBe("evidence");
