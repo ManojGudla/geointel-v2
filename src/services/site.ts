@@ -35,6 +35,8 @@ export interface SiteFeature {
   lat?: number;
   lon?: number;
   osm: string;
+  /** When this record was last edited in OpenStreetMap. */
+  updatedAt?: string;
 }
 
 export interface SiteResult {
@@ -42,6 +44,8 @@ export interface SiteResult {
   features: SiteFeature[];
   counts: { roads: number; underConstruction: number; awaitingDevelopment: number };
   radiusMeters: number;
+  /** When the server fetched this from OpenStreetMap. Absent on answers cached before this field existed. */
+  fetchedAt?: string;
 }
 
 export async function fetchSite(
@@ -51,4 +55,11 @@ export async function fetchSite(
   signal?: AbortSignal
 ): Promise<SiteResult> {
   return apiGet<SiteResult>("/api/site", { lat, lon, radius: radiusMeters }, signal);
+}
+
+/** The wider search: construction and development records only, up to 5 km. */
+export const WIDE_SEARCH_METERS = 5000;
+
+export async function fetchConstructionNearby(lat: number, lon: number, signal?: AbortSignal): Promise<SiteResult> {
+  return apiGet<SiteResult>("/api/site", { lat, lon, radius: WIDE_SEARCH_METERS, scope: "construction" }, signal);
 }

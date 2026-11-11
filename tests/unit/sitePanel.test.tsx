@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, cleanup, waitFor, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useLocationStore } from "../../src/stores/locationStore";
 import type { SiteResult } from "../../src/services/site";
@@ -21,7 +21,8 @@ import type { SiteResult } from "../../src/services/site";
  */
 
 const fetchSite = vi.hoisted(() => vi.fn());
-vi.mock("../../src/services/site", () => ({ fetchSite }));
+const fetchConstructionNearby = vi.hoisted(() => vi.fn());
+vi.mock("../../src/services/site", () => ({ fetchSite, fetchConstructionNearby, WIDE_SEARCH_METERS: 5000 }));
 
 const RESULT: SiteResult = {
   roads: [
@@ -61,6 +62,7 @@ async function renderPanel() {
 
 beforeEach(() => {
   fetchSite.mockReset();
+  fetchConstructionNearby.mockReset();
   useLocationStore.setState({ selectedLocation: null });
 });
 afterEach(cleanup);
@@ -127,5 +129,78 @@ describe("the site panel", () => {
   it("asks for nothing until a place is chosen", async () => {
     await renderPanel();
     expect(fetchSite).not.toHaveBeenCalled();
+  });
+});
+
+describe("construction records in the site panel", () => {
+  const NEAR = { kind: "building-site" as const, name: "Tower B", osm: "way/11", lat: 17.3852, lon: 78.4869, updatedAt: "2026-10-02T08:15:00Z" };
+  const FAR = { kind: "construction-area" as const, name: "Flyover works", osm: "way/12", lat: 17.39, lon: 78.49 };
+
+  it("lists them nearest first, with a distance and when each was last updated", async () => {
+    setLocation();
+    fetchSite.mockResolvedValue({ ...RESULT, features: [FAR, NEAR], fetchedAt: new Date().toISOString() });
+    await renderPanel();
+    await waitFor(() => expect(screen.getByText("Tower B")).toBeTruthy());
+    const names = [...document.querySelectorAll(".site__feature-name")].map((n) => n.textContent);
+    expect(names).toEqual(["Tower B", "Flyover works"]);
+    expect(document.body.textContent).toMatch(/m away · updated on the map Oct 2026/);
+    expect(document.body.textContent).toMatch(/fetched today at/);
+    // Says what it is not, so nobody reads a volunteer map as an official status.
+    expect(document.body.textContent).toMatch(/not an official construction status/i);
+  });
+
+  it("moves the map to a site when its row is tapped, and links to the source record", async () => {
+    const { useMapStore } = await import("../../src/stores/mapStore");
+    setLocation();
+    fetchSite.mockResolvedValue({ ...RESULT, features: [NEAR] });
+    await renderPanel();
+    await waitFor(() => expect(screen.getByText("Tower B")).toBeTruthy());
+    fireEvent.click(screen.getByTitle("Show this site on the map"));
+    expect(useMapStore.getState().cameraRequest?.center).toEqual([78.4869, 17.3852]);
+    const source = screen.getByRole("link", { name: /Source record for Tower B/i });
+    expect(source.getAttribute("href")).toBe("https://www.openstreetmap.org/way/11");
+    expect(source.getAttribute("target")).toBe("_blank");
+  });
+
+  it("searches a wider area when nothing is mapped close by, and offers the nearest sites", async () => {
+    setLocation();
+    fetchSite.mockResolvedValue({ ...RESULT, features: [], counts: { roads: 2, underConstruction: 0, awaitingDevelopment: 0 } });
+    let finish: (value: unknown) => void = () => {};
+    fetchConstructionNearby.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    await renderPanel();
+    // While it looks, it says so. It does not show an empty list and stop.
+    await waitFor(() => expect(document.body.textContent).toMatch(/Searching a wider area \(5 km\)/));
+    finish({ roads: [], features: [FAR], counts: { roads: 0, underConstruction: 1, awaitingDevelopment: 0 }, radiusMeters: 5000 });
+    await waitFor(() => expect(screen.getByText("Flyover works")).toBeTruthy());
+    expect(document.body.textContent).toMatch(/Try these nearby sites/);
+    expect(fetchConstructionNearby).toHaveBeenCalledWith(17.385, 78.4867, expect.anything());
+  });
+
+  it("says plainly when nothing is mapped even in the wider area", async () => {
+    setLocation();
+    fetchSite.mockResolvedValue({ ...RESULT, features: [] });
+    fetchConstructionNearby.mockResolvedValue({ roads: [], features: [], counts: { roads: 0, underConstruction: 0, awaitingDevelopment: 0 }, radiusMeters: 5000 });
+    await renderPanel();
+    await waitFor(() => expect(document.body.textContent).toMatch(/No construction or development is mapped within 5 km/));
+    expect(document.body.textContent).toMatch(/official portals below/);
+  });
+
+  it("does not run the wider search when there is something close by", async () => {
+    setLocation();
+    fetchSite.mockResolvedValue({ ...RESULT, features: [NEAR] });
+    await renderPanel();
+    await waitFor(() => expect(screen.getByText("Tower B")).toBeTruthy());
+    expect(fetchConstructionNearby).not.toHaveBeenCalled();
+  });
+
+  it("puts the state's construction approval portals first", async () => {
+    setLocation();
+    fetchSite.mockResolvedValue(RESULT);
+    await renderPanel();
+    await waitFor(() => expect(screen.getByText("Tank Bund Road")).toBeTruthy());
+    const titles = [...document.querySelectorAll(".site__group .site__subtitle")].map((n) => n.textContent);
+    expect(titles[0]).toBe("Construction projects and approvals");
+    expect(screen.getByRole("link", { name: /Telangana RERA projects/ }).getAttribute("href")).toBe("https://rera.telangana.gov.in/");
+    expect(screen.getByRole("link", { name: /BuildNow building permissions/ })).toBeTruthy();
   });
 });
