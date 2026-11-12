@@ -75,10 +75,19 @@ describe("the founder's personal website link", () => {
     expect(httpsUrlOrNull("https://example.com")).toBe("https://example.com/");
   });
 
-  it("is not written into the code as a temporary address", () => {
-    // The domain is not bought yet; a vercel.app link would be dead within weeks.
-    for (const file of ["src/config/founder.ts", "src/features/about/AboutPanel.tsx", "index.html"]) {
-      expect(fs.readFileSync(path.join(root, file), "utf8"), file).not.toMatch(/manoj-gudla-website|vercel\.app\/?"/);
-    }
+  it("is shown in About, from one place, and can be replaced without a code change", async () => {
+    const founder = fs.readFileSync(path.join(root, "src/config/founder.ts"), "utf8");
+    // One default, overridable by the environment variable.
+    expect(founder).toContain("VITE_FOUNDER_SITE_URL");
+    expect(founder.match(/manoj-gudla-website\.vercel\.app/g)).toHaveLength(1);
+    const { FOUNDER_SITE_URL } = await import("../../src/config/founder");
+    expect(FOUNDER_SITE_URL).toMatch(/^https:\/\//);
+    // The panel reads it from the config, never its own copy.
+    expect(fs.readFileSync(path.join(root, "src/features/about/AboutPanel.tsx"), "utf8")).not.toMatch(/vercel\.app/);
+  });
+
+  it("keeps the temporary address out of what search engines store", () => {
+    // Structured data is remembered for a long time; this address will change.
+    expect(fs.readFileSync(path.join(root, "index.html"), "utf8")).not.toMatch(/manoj-gudla-website/);
   });
 });

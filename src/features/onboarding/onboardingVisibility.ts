@@ -91,7 +91,7 @@ export function onboardingVisible(hasLocation: boolean, dismissed: boolean): boo
   One first-run card at a time. The "Free for everyone" notice opens on the
   same first visit, and with this card still drawn behind it the screen
   showed two stacked pop-ups, which looked broken. The intro waits until the
-  notice has closed (at most four seconds), then appears on its own.
+  notice has closed (at most six seconds), then appears on its own.
 */
 export function useOnboardingVisible(): boolean {
   const location = useLocationStore((s) => s.selectedLocation);

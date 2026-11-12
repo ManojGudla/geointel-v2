@@ -71,7 +71,7 @@ export function AboutPanel() {
             {FOUNDER.roles}. {FOUNDER.location}.
           </span>
           <div className="about-panel__creator-links">
-            {/* Only once his own domain exists - see config/founder.ts. */}
+            {/* The address comes from config/founder.ts and can be changed without a code edit. */}
             {FOUNDER_SITE_URL && (
               <a href={FOUNDER_SITE_URL} target="_blank" rel="noreferrer">
                 Website

@@ -1,13 +1,19 @@
 /**
  * Who built this, in one place.
  *
- * The personal website is deliberately NOT written here as an address. Its
- * domain has not been bought yet, and a link to a temporary address would be
- * dead, or pointing at the wrong thing, a week after it shipped. So the link
- * is switched on from outside the code: set VITE_FOUNDER_SITE_URL in Vercel's
- * environment variables (for example https://example.com) and redeploy. Until
- * then no "Website" link is shown anywhere, which is the honest state.
+ * The personal website's address will change: it is on a temporary Vercel
+ * address now and moves to its own domain once that is bought. So the address
+ * has a default here and can be replaced without touching the code: set
+ * VITE_FOUNDER_SITE_URL in Vercel's environment variables (for example
+ * https://example.com) and redeploy, and every "Website" link follows.
+ *
+ * It is deliberately NOT in the page's structured data (index.html). Search
+ * engines keep what they read there for a long time, and a temporary address
+ * is the wrong thing for them to remember. Add it there once the domain is final.
  */
+
+/** Until the domain is bought. Replaced by VITE_FOUNDER_SITE_URL when that is set. */
+const DEFAULT_SITE_URL = "https://manoj-gudla-website.vercel.app/";
 
 function httpsUrlOrNull(value: unknown): string | null {
   if (typeof value !== "string" || value.trim() === "") return null;
@@ -34,7 +40,8 @@ export const FOUNDER = {
   ],
 } as const;
 
-/** Null until the domain exists and the environment variable is set. */
-export const FOUNDER_SITE_URL: string | null = httpsUrlOrNull(import.meta.env.VITE_FOUNDER_SITE_URL);
+/** The environment variable when it holds a valid https address, otherwise the default above. */
+export const FOUNDER_SITE_URL: string | null =
+  httpsUrlOrNull(import.meta.env.VITE_FOUNDER_SITE_URL) ?? httpsUrlOrNull(DEFAULT_SITE_URL);
 
 export { httpsUrlOrNull };

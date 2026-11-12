@@ -22,6 +22,7 @@ import { useLocationStore } from "@/stores/locationStore";
 import { useReportStore } from "@/stores/reportStore";
 import { GettingStarted } from "@/features/onboarding/GettingStarted";
 import "./SidePanel.css";
+import { ImportPanel } from "@/features/import/ImportPanel";
 
 /**
  * The workspace panel: one container, one scrollbar, one section visible at
@@ -121,6 +122,9 @@ export function SidePanel() {
             </ErrorBoundary>
             <ErrorBoundary label="Analysis radius" variant="panel">
               <RadiusSelector />
+            </ErrorBoundary>
+            <ErrorBoundary label="Your data" variant="panel">
+              <ImportPanel />
             </ErrorBoundary>
             <ErrorBoundary label="3D buildings" variant="panel">
               <section className="side-panel__group">

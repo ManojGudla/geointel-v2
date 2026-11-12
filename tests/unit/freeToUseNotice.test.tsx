@@ -43,25 +43,32 @@ describe("Free to use notice", () => {
     expect(screen.getByText(/follow your employer.s rules and never\s+enter confidential/i)).toBeTruthy();
   });
 
-  it("closes itself after 4 seconds", async () => {
+  it("closes itself after 6 seconds", async () => {
     vi.useFakeTimers();
     const { FreeToUseNotice, AUTO_CLOSE_MS } = await import("../../src/features/notice/FreeToUseNotice");
-    expect(AUTO_CLOSE_MS).toBe(4000);
+    expect(AUTO_CLOSE_MS).toBe(6000);
     render(<FreeToUseNotice />);
     expect(screen.queryByRole("dialog")).toBeTruthy();
-    act(() => vi.advanceTimersByTime(3_900));
+    act(() => vi.advanceTimersByTime(5_900));
     expect(screen.queryByRole("dialog")).toBeTruthy();
     act(() => vi.advanceTimersByTime(200));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("does not close while the pointer is over it", async () => {
+  /*
+    It used to pause while the pointer was over it. The card is in the middle
+    of the screen, where the pointer usually already is, so it paused as it
+    appeared and never closed - reported as "stuck, we have to cancel it
+    manually". It closes on time wherever the pointer is.
+  */
+  it("still closes by itself with the pointer resting on it", async () => {
     vi.useFakeTimers();
-    const { FreeToUseNotice } = await import("../../src/features/notice/FreeToUseNotice");
+    const { FreeToUseNotice, AUTO_CLOSE_MS } = await import("../../src/features/notice/FreeToUseNotice");
     render(<FreeToUseNotice />);
     fireEvent.pointerEnter(screen.getByRole("dialog"));
-    act(() => vi.advanceTimersByTime(10_000));
-    expect(screen.queryByRole("dialog")).toBeTruthy();
+    fireEvent.mouseMove(screen.getByRole("dialog"));
+    act(() => vi.advanceTimersByTime(AUTO_CLOSE_MS + 100));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("closes with the ✕ and with Cancel", async () => {

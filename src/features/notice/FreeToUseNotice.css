@@ -195,7 +195,7 @@
 }
 
 /* The highlighted line for Apple and Google employees: brand-tinted, bold,
-   and directly under the headline so it is read inside the four seconds. */
+   and directly under the headline so it is read inside the six seconds. */
 .free-notice__welcome {
   margin: 0 0 var(--space-4);
   padding: var(--space-3) var(--space-4);
