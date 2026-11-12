@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useLocationStore } from "@/stores/locationStore";
 import { useRouteStore } from "@/stores/routeStore";
 import { useIntelTabStore } from "@/stores/intelTabStore";
@@ -46,6 +47,21 @@ export function QuickActions() {
   const setMeasureMode = useMeasureStore((s) => s.setMode);
   const openSection = useShellStore((s) => s.openSection);
   const openReport = useReportStore((s) => s.open);
+
+  // Whether the row is wider than its column and therefore scrolls. The edge
+  // fade is drawn only then, so a row that fits is not shown half-faded.
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [overflowing, setOverflowing] = useState(false);
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+    const measure = () => setOverflowing(row.scrollWidth > row.clientWidth + 1);
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, []);
   const { is3D, toggle: toggle3DWithBuildings } = useShow3D();
   const radiusMeters = useLocationStore((s) => s.radiusMeters);
   const setRadiusMeters = useLocationStore((s) => s.setRadiusMeters);
@@ -188,7 +204,7 @@ export function QuickActions() {
 
   return (
     <div className="quick-actions">
-      <div className="quick-actions__row">
+      <div ref={rowRef} className={`quick-actions__row${overflowing ? " quick-actions__row--overflowing" : ""}`}>
         <button
           type="button"
           className={needsPlace ? "quick-actions__needs-place" : undefined}

@@ -47,10 +47,10 @@
      the one input that explains what this product does look like a rendering
      fault. */
   /* The 48px keeps the column clear of the zoom buttons in the top-right
-     corner. On a wide map the 560px cap applies and this changes nothing; on
+     corner. On a wide map the 640px cap applies and this changes nothing; on
      a laptop with the side panel open the map is under 600px wide, and the
      column used to run underneath those buttons and hide them. */
-  width: min(560px, calc(100% - var(--space-3) * 2 - 48px));
+  width: min(640px, calc(100% - var(--space-3) * 2 - 48px));
   display: flex;
   flex-direction: column;
   /* Clear of the search row's own drop shadow, so the action row beneath

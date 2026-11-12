@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useDialog } from "@/hooks/useDialog";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
@@ -8,7 +8,7 @@ import { useTourStore } from "@/features/tour/tourStore";
 import "./FreeToUseNotice.css";
 
 /** How long the notice stays up on its own before closing. */
-export const AUTO_CLOSE_MS = 4_000;
+export const AUTO_CLOSE_MS = 6_000;
 
 /**
  * Every line here has to be true and checkable, because the point of this
@@ -17,7 +17,7 @@ export const AUTO_CLOSE_MS = 4_000;
  * and does not claim to grant anyone's employer's permission, which no
  * website can do.
  *
- * Short on purpose: it closes itself after four seconds, so each point is a
+ * Short on purpose: it closes itself after six seconds, so each point is a
  * few words a visitor can take in at a glance.
  */
 const POINTS: Array<{ icon: string; title: string; text: string }> = [
@@ -35,34 +35,27 @@ export function FreeToUseNotice() {
   const motionEnabled = useMotionPreference();
 
   /*
-    Auto-close after four seconds, paused while the pointer is over the card.
+    Auto-close after six seconds. Always.
 
-    The pause matters: four seconds is enough to see the headline, not to
-    finish reading, so anyone who reaches for it to keep reading keeps it.
-    The bar along the bottom shows the time left, so the closing is never a
-    surprise. The ✕ and the button close it at any moment.
+    It used to pause while the pointer was over the card, so somebody reading
+    could keep it. But the card sits in the middle of the screen, which is
+    where the pointer already is on most computers, so for most people it
+    paused the moment it appeared and never closed: it was reported as stuck,
+    needing a manual close every time. A notice that says "this closes by
+    itself" has to close by itself. The time is a little longer instead, the
+    bar along the bottom shows what is left, and the whole text stays
+    available under More > Free to use.
   */
-  const [paused, setPaused] = useState(false);
-  const remaining = useRef(AUTO_CLOSE_MS);
   const [progressKey, setProgressKey] = useState(0);
 
   useEffect(() => {
     if (!isOpen) {
-      remaining.current = AUTO_CLOSE_MS;
-      setPaused(false);
       setProgressKey((k) => k + 1);
+      return;
     }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen || paused) return;
-    const started = Date.now();
-    const timer = setTimeout(close, remaining.current);
-    return () => {
-      clearTimeout(timer);
-      remaining.current = Math.max(0, remaining.current - (Date.now() - started));
-    };
-  }, [isOpen, paused, close]);
+    const timer = setTimeout(close, AUTO_CLOSE_MS);
+    return () => clearTimeout(timer);
+  }, [isOpen, close]);
 
   const body = (
     <>
@@ -132,7 +125,7 @@ export function FreeToUseNotice() {
         <span
           key={progressKey}
           className="free-notice__timer-bar"
-          style={{ animationDuration: `${AUTO_CLOSE_MS}ms`, animationPlayState: paused ? "paused" : "running" }}
+          style={{ animationDuration: `${AUTO_CLOSE_MS}ms` }}
         />
       </div>
     </>
@@ -145,8 +138,6 @@ export function FreeToUseNotice() {
     "aria-modal": true,
     "aria-labelledby": "free-notice-title",
     onClick: (e: React.MouseEvent) => e.stopPropagation(),
-    onPointerEnter: () => setPaused(true),
-    onPointerLeave: () => setPaused(false),
   };
 
   if (!motionEnabled) {

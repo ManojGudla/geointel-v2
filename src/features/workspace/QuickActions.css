@@ -4,10 +4,40 @@
   gap: 6px;
 }
 
+/*
+  Always one line, at every width.
+
+  This row used to wrap. With five buttons it fitted the search column on a
+  computer; the sixth (Report) dropped to a second row on its own, which
+  pushed the chips below it down and took a strip of the map for one button.
+  So the buttons are a little tighter (they now fit the full-width column
+  exactly) and, where the column is narrower than that - a laptop with the
+  side panel open, a phone - the row scrolls sideways under a fade, the same
+  way the near-me chips under it already do. It never grows a second row.
+*/
 .quick-actions__row {
   display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.quick-actions__row::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-actions__row > button {
+  flex: none;
+  padding-inline: 10px;
+}
+
+/* The fade only where there is something to scroll to (see QuickActions.tsx). */
+.quick-actions__row--overflowing {
+  padding-right: 28px;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
 }
 
 .quick-actions button {
@@ -96,15 +126,16 @@
    next chip to signal that it scrolls. */
 @media (max-width: 900px) {
   .quick-actions__row {
-    flex-wrap: nowrap;
-    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-    /* Same edge fade as the near-me chips: scrollable, not cut off. */
+    gap: var(--space-2);
+    /* Phones always scroll here, so the fade is always on. */
     padding-right: 28px;
     -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
     mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+
+  .quick-actions__row > button {
+    padding-inline: var(--space-3);
   }
 
   .quick-actions__row::-webkit-scrollbar {

@@ -28,6 +28,7 @@ import { useLiveLocationStore, type LiveFix } from "@/features/location/liveLoca
 import { useSheetInsetStore } from "@/features/shell/sheetInsetStore";
 import { MapLoadState, type MapLoadPhase } from "./MapLoadState";
 import "./MapView.css";
+import { useImportStore, importCollection } from "@/stores/importStore";
 
 // How long before we stop pretending everything is normal. Under a second is
 // a normal load on a decent connection; past SLOW_AFTER_MS the user deserves
@@ -58,6 +59,12 @@ const MEASURE_LAYER_FILL = "geointel-measure-fill";
 const MEASURE_LAYER_LINE = "geointel-measure-line";
 const MEASURE_LAYER_LINE_CASING = "geointel-measure-line-casing";
 const ANALYSIS_SOURCE = "geointel-analysis";
+// Files the visitor added (features/import). One source for all of them; each
+// feature carries its own layer's colour in `__color`.
+const IMPORT_SOURCE = "geointel-import";
+const IMPORT_LAYER_FILL = "geointel-import-fill";
+const IMPORT_LAYER_LINE = "geointel-import-line";
+const IMPORT_LAYER_POINT = "geointel-import-point";
 const ANALYSIS_LAYER_BUFFER_FILL = "geointel-analysis-buffer-fill";
 const ANALYSIS_LAYER_BUFFER_LINE = "geointel-analysis-buffer-line";
 const ANALYSIS_LAYER_CONNECTOR = "geointel-analysis-connector";
@@ -341,6 +348,36 @@ function addOverlaySources(map: MapLibreMap) {
         "circle-stroke-width": 1,
         "circle-stroke-color": "#ffffff",
       },
+    });
+  }
+
+  // The visitor's own files. Below analysis and measurement, so a result or a
+  // measurement drawn over imported data stays on top of it.
+  if (!map.getSource(IMPORT_SOURCE)) {
+    map.addSource(IMPORT_SOURCE, { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    const color: maplibregl.ExpressionSpecification = ["coalesce", ["get", "__color"], "#e11d48"];
+    map.addLayer({
+      id: IMPORT_LAYER_FILL,
+      type: "fill",
+      source: IMPORT_SOURCE,
+      filter: ["==", ["geometry-type"], "Polygon"],
+      paint: { "fill-color": color, "fill-opacity": 0.18 },
+    });
+    map.addLayer({
+      id: IMPORT_LAYER_LINE,
+      type: "line",
+      source: IMPORT_SOURCE,
+      filter: ["in", ["geometry-type"], ["literal", ["LineString", "Polygon"]]],
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: { "line-color": color, "line-width": 2.5 },
+    });
+    map.addLayer({
+      id: IMPORT_LAYER_POINT,
+      type: "circle",
+      source: IMPORT_SOURCE,
+      filter: ["==", ["geometry-type"], "Point"],
+      // A white ring keeps a point readable on satellite imagery and on a fill of its own colour.
+      paint: { "circle-color": color, "circle-radius": 5.5, "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 },
     });
   }
 
@@ -992,6 +1029,17 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     whenSourceReady(map, MEASURE_SOURCE, () => syncMeasure(map, measureCollection));
     map.getCanvas().style.cursor = measureMode !== "off" ? "crosshair" : "";
   }, [measureCollection, measureMode]);
+
+  // The visitor's own files (features/import/ImportPanel.tsx).
+  const importedLayers = useImportStore((s) => s.layers);
+  const importedCollection = useMemo(() => importCollection(importedLayers), [importedLayers]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    whenSourceReady(map, IMPORT_SOURCE, () => {
+      (map.getSource(IMPORT_SOURCE) as maplibregl.GeoJSONSource | undefined)?.setData(importedCollection);
+    });
+  }, [importedCollection]);
 
   // Spatial analysis output (SpatialAnalysisPanel.tsx): the buffer ring,
   // result points and the nearest-connector line, all from one source.

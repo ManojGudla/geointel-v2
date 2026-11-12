@@ -55,6 +55,7 @@ export type AnalyticsEvent =
   | "analysis_failed"
   | "report_printed"
   | "results_exported"
+  | "data_imported"
   | "area_measured"
   | "distance_measured"
   | "basemap_changed"
