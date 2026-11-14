@@ -564,25 +564,48 @@ function useDocumentMeta() {
 }
 
 /*
-  The satellite style with a deep-sea ground under the photographs.
+  The satellite style, built so a flight never shows a hole.
 
-  Each tour stop is a flight across continents, and the satellite tiles for
-  where the camera is heading arrive a few hundred milliseconds apart. Until
-  they do, MapLibre shows whatever is under the imagery, which was nothing:
-  black, cut into a staircase along the tile edges, so a visitor looking at
-  the hero mid-flight saw half a map and a jagged black hole. Most of the
-  route between stops is ocean anyway, so a ground in Esri's own deep-water
-  tone makes a tile still on its way read as open sea, and the edge between a
-  loaded and an unloaded tile all but disappears.
+  Each tour stop is a flight across continents. The detailed tiles for where
+  the camera is passing arrive a moment after it gets there, and until they
+  do MapLibre had nothing to draw: the page's black ground showed through,
+  cut into a staircase along the tile edges. A deep-sea background alone did
+  not fix it - the hole was still a hole, just a blue one - and was measured
+  as such in a simulated flight with slow tiles.
+
+  So a second copy of the same imagery sits underneath, capped at zoom 4. At
+  that zoom a handful of tiles cover a whole region, they arrive almost at
+  once and stay cached for the rest of the tour, and MapLibre stretches them
+  to fill any view. The sharp layer draws over them as its tiles land, so a
+  visitor sees a soft picture sharpening rather than a black gap. The sea
+  colour is only for the first fraction of a second before even those come.
 */
 const HERO_SEA = "#0b2537";
+const LOW_DETAIL_MAX_ZOOM = 4;
 
 function heroStyle() {
   const style = buildBasemapStyle("satellite");
+  const base = style.sources.base;
   return {
     ...style,
+    /* Underlays first: MapLibre asks for tiles source by source in this
+       order and runs a limited number of image requests at once, so listing
+       them first puts their few tiles at the front of the queue instead of
+       behind dozens of detailed ones. */
+    sources: {
+      ...(base && base.type === "raster"
+        ? { "base-world": { ...base, maxzoom: 0 }, "base-low": { ...base, maxzoom: LOW_DETAIL_MAX_ZOOM } }
+        : {}),
+      ...style.sources,
+    },
     layers: [
       { id: "hero-sea", type: "background" as const, paint: { "background-color": HERO_SEA } },
+      ...(base && base.type === "raster"
+        ? [
+            { id: "base-world", type: "raster" as const, source: "base-world", paint: { "raster-fade-duration": 0 } },
+            { id: "base-low", type: "raster" as const, source: "base-low", paint: { "raster-fade-duration": 0 } },
+          ]
+        : []),
       ...style.layers.map((layer) =>
         layer.type === "raster" ? { ...layer, paint: { ...layer.paint, "raster-fade-duration": 450 } } : layer
       ),
