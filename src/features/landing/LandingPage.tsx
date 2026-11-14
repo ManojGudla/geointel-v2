@@ -563,6 +563,33 @@ function useDocumentMeta() {
   }, []);
 }
 
+/*
+  The satellite style with a deep-sea ground under the photographs.
+
+  Each tour stop is a flight across continents, and the satellite tiles for
+  where the camera is heading arrive a few hundred milliseconds apart. Until
+  they do, MapLibre shows whatever is under the imagery, which was nothing:
+  black, cut into a staircase along the tile edges, so a visitor looking at
+  the hero mid-flight saw half a map and a jagged black hole. Most of the
+  route between stops is ocean anyway, so a ground in Esri's own deep-water
+  tone makes a tile still on its way read as open sea, and the edge between a
+  loaded and an unloaded tile all but disappears.
+*/
+const HERO_SEA = "#0b2537";
+
+function heroStyle() {
+  const style = buildBasemapStyle("satellite");
+  return {
+    ...style,
+    layers: [
+      { id: "hero-sea", type: "background" as const, paint: { "background-color": HERO_SEA } },
+      ...style.layers.map((layer) =>
+        layer.type === "raster" ? { ...layer, paint: { ...layer.paint, "raster-fade-duration": 450 } } : layer
+      ),
+    ],
+  };
+}
+
 export function LandingPage() {
   const mapNode = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -636,7 +663,7 @@ export function LandingPage() {
 
     const map = new maplibregl.Map({
       container: mapNode.current,
-      style: buildBasemapStyle("satellite"),
+      style: heroStyle(),
       center: TOUR[0].center,
       zoom: TOUR[0].zoom - 1.6,
       pitch: TOUR[0].pitch - 8,

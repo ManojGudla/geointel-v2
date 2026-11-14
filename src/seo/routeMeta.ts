@@ -175,19 +175,41 @@ function cityLinks(except: string[]): string {
   return `<h2>More cities</h2><ul>${items}</ul>`;
 }
 
+/**
+ * The app's own link for a city, in the format of encodeViewState
+ * (src/features/share/viewState.ts) with the same default zoom CityPage uses.
+ * Written out here because this file is also compiled for the build step,
+ * which has neither the browser nor the "@/" paths that module imports; the
+ * test in cityStaticLinks.test.ts holds the two to the same output.
+ */
+export function cityAppPath(city: Pick<City, "lat" | "lon" | "zoom">, question?: string): string {
+  const round = (n: number, d: number) => Math.round(n * 10 ** d) / 10 ** d;
+  const params = new URLSearchParams();
+  params.set("lat", String(round(city.lat, 5)));
+  params.set("lon", String(round(city.lon, 5)));
+  if (round(city.zoom, 1) !== 12) params.set("z", String(round(city.zoom, 1)));
+  if (question) params.set("q", question.slice(0, 200));
+  return `/?${params.toString()}`;
+}
+
 function cityBody(city: City): string {
   const featured = FEATURED_PAIRS.filter(([x, y]) => x === city.slug || y === city.slug).map(([x, y]) => {
     const pair = parsePairSlug(`${x}-vs-${y}`)!;
     return `<li><a href="/compare/${pair.canonicalSlug}">${esc(pair.a.name)} vs ${esc(pair.b.name)}</a></li>`;
   });
+  /* The same links the page itself uses once it loads (CityPage's
+     openInApp). The static copy used to send "Open Hyderabad" to the bare
+     homepage, so a visitor or crawler following it landed on the default map
+     with no city selected, and the example questions were plain text. */
+  const appLink = (question?: string) => esc(cityAppPath(city, question));
   return [
     `<h1>${esc(city.name)} map and geographic data</h1>`,
     `<p>${esc(city.summary)}</p>`,
     `<h2>Geography</h2><p>${esc(city.geography)}</p>`,
     `<h2>Landmarks on the map</h2><ul>${city.landmarks.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>`,
-    `<h2>Questions you can ask about ${esc(city.name)}</h2><ul>${city.questions.map((q) => `<li>${esc(q)}</li>`).join("")}</ul>`,
+    `<h2>Questions you can ask about ${esc(city.name)}</h2><ul>${city.questions.map((q) => `<li><a href="${appLink(q)}">${esc(q)}</a></li>`).join("")}</ul>`,
     featured.length ? `<h2>Compare ${esc(city.name)}</h2><ul>${featured.join("")}</ul>` : "",
-    `<p><a href="/">Open ${esc(city.name)} in maNOWj GeoIntel</a></p>`,
+    `<p><a href="${appLink()}">Open ${esc(city.name)} on the map</a></p>`,
     infoLinks(""),
     cityLinks([city.slug]),
   ].join("\n");
