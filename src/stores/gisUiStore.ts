@@ -21,6 +21,8 @@ interface GisUiState {
   setOpacity: (opacity: number) => void;
   /** Back to the starting set - the "Reset" in the active-analysis controls. */
   resetLayers: () => void;
+  /** Every data layer off, for the one-press "Turn everything off". */
+  hideAll: () => void;
 }
 
 const DEFAULT_VISIBLE: GISLayerId[] = ["buildings", "shops", "offices", "amenities"];
@@ -49,4 +51,5 @@ export const useGisUiStore = create<GisUiState>((set) => ({
     }),
   setOpacity: (opacity) => set({ opacity }),
   resetLayers: () => set({ visibility: defaultVisibility() }),
+  hideAll: () => set({ visibility: Object.fromEntries(LAYER_DEFS.map((l) => [l.id, false])) as Record<GISLayerId, boolean> }),
 }));

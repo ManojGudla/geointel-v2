@@ -13,7 +13,7 @@ import { useRouteStore } from "@/stores/routeStore";
 import { useNavigationStore } from "@/features/routing/navigation/navStore";
 import { selectMapPoint } from "@/features/location/selectPoint";
 import { useBuildings3D } from "./useBuildings3D";
-import { buildingsToGeoJSON } from "./buildings3d";
+import { buildingColorExpression, buildingsToGeoJSON } from "./buildings3d";
 import { useMeasureStore } from "@/stores/measureStore";
 import { buildMeasureGeoJSON } from "@/features/measure/measureGeo";
 import { useAnalysisStore } from "@/stores/analysisStore";
@@ -285,30 +285,10 @@ function addOverlaySources(map: MapLibreMap) {
          *
          * The estimated-height distinction still matters (it's the honest
          * signal that OSM didn't state a height), so it survives as a
-         * desaturated variant rather than as the primary colour.
+         * paler variant rather than as the primary colour. The ramp itself
+         * lives in buildings3d.ts, shared with the legend.
          */
-        "fill-extrusion-color": [
-          "case",
-          ["get", "heightIsEstimated"],
-          // Estimated: muted, cooler, visibly less confident.
-          [
-            "interpolate", ["linear"], ["get", "heightMeters"],
-            0, "#aab6cc",
-            15, "#93a3c0",
-            40, "#7d90b4",
-            100, "#6a7fa8",
-          ],
-          // Stated in the data: saturated, and it climbs to a warm top end
-          // so a genuine high-rise stands out from its neighbours.
-          [
-            "interpolate", ["linear"], ["get", "heightMeters"],
-            0, "#8fb0e8",
-            15, "#5b7fd1",
-            40, "#3f5fbf",
-            100, "#2b3f9e",
-            200, "#0d9488",
-          ],
-        ],
+        "fill-extrusion-color": buildingColorExpression() as maplibregl.ExpressionSpecification,
         "fill-extrusion-height": ["get", "heightMeters"],
         // Slightly lifted off the ground so the base edge reads as a wall
         // rather than the buildings looking painted onto the basemap.

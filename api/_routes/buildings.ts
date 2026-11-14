@@ -21,7 +21,22 @@ const MAX_BUILDINGS_RETURNED = 1500;
 // it evaporates on a cold start - it reduces load and speeds up repeat views,
 // it is not a durability guarantee.
 const cache = new TtlCache<OverpassElement[]>(6 * 60 * 60 * 1000);
-const limiter = new RateLimiter(60_000, 20);
+// 60, not 20: the map now asks for up to nine fixed cells at once (see
+// src/features/map/buildings3d.ts), and repeat cells are answered by the CDN
+// without reaching this function at all.
+const limiter = new RateLimiter(60_000, 60);
+
+/** Footprint size in square degrees, only ever used to rank buildings against each other. */
+function footprint(el: OverpassElement): number {
+  const g = el.geometry ?? [];
+  let twice = 0;
+  for (let i = 0; i < g.length; i++) {
+    const a = g[i]!;
+    const b = g[(i + 1) % g.length]!;
+    twice += a.lon * b.lat - b.lon * a.lat;
+  }
+  return Math.abs(twice) / 2;
+}
 
 export interface BuildingDto {
   id: number;
@@ -71,6 +86,11 @@ const handler: ApiHandler = async (req, res) => {
 
   const buildings: BuildingDto[] = elements
     .filter((el) => el.type === "way" && Array.isArray(el.geometry) && el.geometry.length >= 3 && el.tags?.building)
+    /* When an area has more buildings than the cap, the ones left out used
+       to be whichever Overpass happened to list last: an arbitrary scatter of
+       missing buildings, large ones included. Largest first means the cap,
+       when it bites, drops the smallest sheds and garages instead. */
+    .sort((a, b) => footprint(b) - footprint(a))
     .slice(0, MAX_BUILDINGS_RETURNED)
     .map((el) => {
       const ring = el.geometry!.map((pt): [number, number] => [pt.lon, pt.lat]);

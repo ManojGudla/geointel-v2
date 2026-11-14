@@ -1,6 +1,7 @@
 import { useMapStore } from "@/stores/mapStore";
 import { useShow3D } from "./useShow3D";
 import { useBuildings3D, MIN_ZOOM_FOR_3D_BUILDINGS } from "./useBuildings3D";
+import { BUILDING_HEIGHT_RAMP } from "./buildings3d";
 import "./Buildings3DStatus.css";
 
 /**
@@ -49,7 +50,7 @@ export function Buildings3DStatus() {
     action = { label: "Zoom to buildings", run: () => requestCamera({ zoom: MIN_ZOOM_FOR_3D_BUILDINGS + 0.5, pitch: 55 }) };
   } else if (query.isFetching) {
     tone = "wait";
-    message = "Loading building outlines for this view…";
+    message = count > 0 ? `${count.toLocaleString()} buildings so far. Loading the rest of this area…` : "Loading building outlines for this view…";
   } else if (query.isError) {
     tone = "error";
     message = "Building outlines couldn't be loaded. The OpenStreetMap query service didn't respond.";
@@ -57,14 +58,29 @@ export function Buildings3DStatus() {
   } else if (count === 0) {
     tone = "empty";
     message = "No building outlines are mapped in this area of OpenStreetMap. Coverage varies by city.";
+  } else if (query.isPartial) {
+    tone = "error";
+    message = `${count.toLocaleString()} buildings. Part of this area didn't load, because the OpenStreetMap query service didn't respond.`;
+    action = { label: "Load the rest", run: () => void query.refetch() };
   } else {
     tone = "ok";
-    message = `${count.toLocaleString()} buildings. Heights come from OpenStreetMap where tagged, and are estimated by building type where they aren't.`;
+    message = `${count.toLocaleString()} buildings. Coloured by height. Heights come from OpenStreetMap where tagged, and are estimated by building type where they aren't.`;
   }
 
   return (
     <div className={`buildings-status buildings-status--${tone}`}>
       <p className="buildings-status__text">{message}</p>
+      {is3D && count > 0 && (
+        <div className="buildings-status__legend" aria-label="Building height colours">
+          {BUILDING_HEIGHT_RAMP.map(([metres, colour]) => (
+            <span key={metres} className="buildings-status__swatch">
+              <i style={{ background: colour }} aria-hidden="true" />
+              {metres === 0 ? "Low" : `${metres} m`}
+            </span>
+          ))}
+          <span className="buildings-status__note">Paler = height estimated</span>
+        </div>
+      )}
       {action && (
         <button type="button" className="buildings-status__action" onClick={action.run}>
           {action.label}

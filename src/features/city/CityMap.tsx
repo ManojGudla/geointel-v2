@@ -27,6 +27,16 @@ import "./CityMap.css";
 export function CityMap({ city }: { city: City }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<"waiting" | "loading" | "ready" | "failed">("waiting");
+  /*
+    Whether the engine may start, kept apart from `phase` on purpose.
+
+    The effect that builds the map used to depend on `phase` itself. Its own
+    "load" handler sets phase to "ready", which re-ran the effect, whose
+    cleanup removed the map it had just built - so every city page showed an
+    empty box the moment its map finished loading, with the placeholder gone
+    because the phase said "ready". This flag only ever goes false to true.
+  */
+  const [started, setStarted] = useState(false);
 
   /*
     Wait for the browser to be idle before pulling in the map engine, so the
@@ -40,6 +50,7 @@ export function CityMap({ city }: { city: City }) {
     const start = () => {
       if (fired) return;
       fired = true;
+      setStarted(true);
       setPhase("loading");
     };
     const idle = window.requestIdleCallback?.(start, { timeout: 2000 });
@@ -51,7 +62,7 @@ export function CityMap({ city }: { city: City }) {
   }, []);
 
   useEffect(() => {
-    if (phase !== "loading" || !containerRef.current) return;
+    if (!started || !containerRef.current) return;
     const container = containerRef.current;
     let cancelled = false;
     let map: { remove: () => void } | null = null;
@@ -134,7 +145,7 @@ export function CityMap({ city }: { city: City }) {
       cancelled = true;
       map?.remove();
     };
-  }, [phase, city]);
+  }, [started, city]);
 
   // Failure removes the box entirely rather than leaving a grey rectangle:
   // the page below it is complete on its own and always was.

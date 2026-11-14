@@ -49,3 +49,32 @@
 .buildings-status--ok .buildings-status__text {
   color: var(--color-text);
 }
+
+/* Height legend: the same stops the map layer uses (buildings3d.ts). */
+.buildings-status__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.buildings-status__swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.buildings-status__swatch i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.buildings-status__note {
+  color: var(--color-text-faint);
+}

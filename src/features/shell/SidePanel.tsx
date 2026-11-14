@@ -1,3 +1,4 @@
+import { ClearLayers } from "@/features/layers/ClearLayers";
 import { useEffect } from "react";
 import { useSheetInsetStore } from "./sheetInsetStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -114,6 +115,7 @@ export function SidePanel() {
 
         {section === "layers" && (
           <div className="side-panel__stack">
+            <ClearLayers />
             <ErrorBoundary label="Basemap" variant="panel">
               <section className="side-panel__group">
                 <h3 className="side-panel__group-title">Basemap &amp; view</h3>
