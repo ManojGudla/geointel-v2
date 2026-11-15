@@ -38,7 +38,7 @@ Copy `.env.example` to `.env.local`, then:
 
 There is no separate API server to run.
 
-In production all 22 endpoints deploy as a **single** serverless function: they live under `api/_routes/` and are dispatched by the catch-all `api/[...path].ts`. That indirection is not stylistic. Vercel counts each file under `api/` as its own function and the Hobby plan caps a deployment at 12, so shipping them as separate files fails outright and leaves a frontend with no API behind it. The catch-all and the dev-server plugin resolve routes through the same `api/_routes/index.ts` table, so an unregistered handler 404s identically in both.
+In production all 23 endpoints deploy as a **single** serverless function: they live under `api/_routes/` and are dispatched by the catch-all `api/[...path].ts`. That indirection is not stylistic. Vercel counts each file under `api/` as its own function and the Hobby plan caps a deployment at 12, so shipping them as separate files fails outright and leaves a frontend with no API behind it. The catch-all and the dev-server plugin resolve routes through the same `api/_routes/index.ts` table, so an unregistered handler 404s identically in both.
 
 Two production-only details, both configured in `vercel.json`:
 

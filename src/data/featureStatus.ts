@@ -71,7 +71,7 @@ export const FEATURE_STATUS: FeatureCategory[] = [
       {
         name: "Historical satellite imagery timeline",
         status: "partial",
-        note: "Layers \u2192 Time travel. A real year-by-year slider back to 2012 over NASA GIBS / MODIS imagery, keyless and free, with a blend control against the current map. Resolution is 250 m per pixel, so it shows reservoirs, coastlines, vegetation and large-scale urban growth \u2014 not individual buildings or streets, which would need commercial archive imagery.",
+        note: "Layers \u2192 Time travel. Sharp past versions of the satellite map (Esri World Imagery Wayback), about monthly since 2014, detailed enough for buildings and streets; each is labelled with the date Esri published it, not a capture date. NASA GIBS / MODIS daily imagery back to 2012 is still there for wide-area change at 250 m per pixel. Both blend against the current map.",
       },
       { name: "Wildfire / flight / vessel layers", status: "planned", note: "NASA FIRMS needs a registered key; the free flight and vessel tiers have been withdrawn. Left out rather than shown as switches that do nothing." },
       { name: "Public transit layer", status: "planned" },

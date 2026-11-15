@@ -70,6 +70,9 @@ const TILE_HOSTS = [
   "https://*.rainviewer.com",
   // NASA GIBS dated satellite imagery (see src/features/timeline/gibs.ts).
   "https://gibs.earthdata.nasa.gov",
+  // Esri World Imagery Wayback, the sharp past versions of the satellite map
+  // (see src/features/timeline/wayback.ts).
+  "https://wayback.maptiles.arcgis.com",
 ];
 
 /**

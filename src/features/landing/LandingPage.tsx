@@ -253,7 +253,7 @@ const INSIDE = [
   { icon: "count", t: "Radius search", d: "Count hospitals, schools, ATMs, shops or anything else OSM knows about, inside a circle you set." },
   { icon: "route", t: "Turn-by-turn navigation", d: "Real routing with live position tracking, not a static line on a map." },
   { icon: "blocks", t: "3D buildings", d: "Real footprints extruded to real heights, from OSM height and level tags." },
-  { icon: "time", t: "Time travel", d: "Satellite imagery back to 2012, each frame labelled with the date it was taken." },
+  { icon: "time", t: "Time travel", d: "Sharp past versions of the satellite map back to 2014, each labelled with the date it was published, and NASA daily imagery back to 2012." },
   { icon: "live", t: "Live layers", d: "Rain radar and earthquake feeds, drawn over the map as they update." },
   { icon: "measure", t: "Measure and draw", d: "Distance between points, area of a shape you trace out." },
   { icon: "report", t: "Area reports", d: "A printable summary of everything found at a location, sources included." },

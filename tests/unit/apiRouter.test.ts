@@ -44,6 +44,7 @@ describe("API router", () => {
       "gis",
       "health",
       "imagery",
+      "imagery-versions",
       "live",
       "nearby",
       "news",

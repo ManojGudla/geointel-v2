@@ -60,6 +60,8 @@ const MUST_CACHE = [
   "geocode.ts",
   "gis.ts",
   "imagery.ts",
+  // The public list of past satellite map versions; identical for everyone.
+  "imagery-versions.ts",
   "live.ts",
   "nearby.ts",
   "news.ts",

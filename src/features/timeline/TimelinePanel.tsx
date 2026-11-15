@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTimelineStore } from "@/stores/timelineStore";
 import { useMapStore } from "@/stores/mapStore";
 import { GIBS_LAYERS, timelineStops } from "./gibs";
+import { fetchWaybackVersions } from "./wayback";
 import "./TimelinePanel.css";
 
 const STOPS = timelineStops();
@@ -28,7 +30,7 @@ function formatStop(date: string): string {
  * the limit of what the data holds.
  */
 export function TimelinePanel() {
-  const { enabled, date, layerId, opacity, toggle, setDate, setLayer, setOpacity } = useTimelineStore();
+  const { enabled, source, date, layerId, opacity, toggle, setSource, setDate, setLayer, setOpacity } = useTimelineStore();
   const zoom = useMapStore((s) => s.zoom);
   const requestCamera = useMapStore((s) => s.requestCamera);
 
@@ -41,6 +43,7 @@ export function TimelinePanel() {
 
   const layer = GIBS_LAYERS.find((l) => l.id === layerId) ?? GIBS_LAYERS[0]!;
   const tooClose = zoom > USEFUL_MAX_ZOOM;
+  const sharp = source === "sharp";
 
   return (
     <div className="timeline">
@@ -48,11 +51,24 @@ export function TimelinePanel() {
         <input type="checkbox" checked={enabled} onChange={toggle} />
         <span>
           <strong>🕰️ Historical imagery</strong>
-          <span className="timeline__status">{enabled ? `Showing ${date}` : "Off"}</span>
+          <span className="timeline__status">{enabled ? (sharp ? "Sharp photos, past versions" : `NASA, ${date}`) : "Off"}</span>
         </span>
       </label>
 
       {enabled && (
+        <div className="timeline__layers timeline__source" role="group" aria-label="Which imagery">
+          <button type="button" className={sharp ? "active" : ""} aria-pressed={sharp} onClick={() => setSource("sharp")}>
+            Sharp, since 2014
+          </button>
+          <button type="button" className={!sharp ? "active" : ""} aria-pressed={!sharp} onClick={() => setSource("nasa")}>
+            NASA daily, since 2012
+          </button>
+        </div>
+      )}
+
+      {enabled && sharp && <SharpHistory opacity={opacity} setOpacity={setOpacity} />}
+
+      {enabled && !sharp && (
         <>
           <div className="timeline__slider">
             <input
@@ -107,5 +123,74 @@ export function TimelinePanel() {
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * Past versions of the satellite map, sharp enough to see buildings (Esri
+ * World Imagery Wayback). The slider steps through the versions Esri has
+ * published; each is labelled with its publication date, and the note says
+ * plainly that this is not the date every photo in it was taken.
+ */
+function SharpHistory({ opacity, setOpacity }: { opacity: number; setOpacity: (o: number) => void }) {
+  const release = useTimelineStore((s) => s.release);
+  const setRelease = useTimelineStore((s) => s.setRelease);
+  const versions = useQuery({ queryKey: ["wayback-versions"], queryFn: ({ signal }) => fetchWaybackVersions(signal), staleTime: 12 * 60 * 60 * 1000 });
+  const list = versions.data ?? [];
+
+  // Newest first, the first time the list arrives: switching the layer on
+  // should show today's map, and moving back is the interesting direction.
+  useEffect(() => {
+    if (list.length && (release === null || !list.some((v) => v.release === release))) setRelease(list[list.length - 1]!.release);
+  }, [list, release, setRelease]);
+
+  if (versions.isLoading) return <p className="timeline__blurb">Loading the list of past versions…</p>;
+  if (versions.isError || list.length === 0) {
+    return (
+      <div className="timeline__warning">
+        <p>The list of past satellite map versions couldn&apos;t be loaded right now.</p>
+        <button type="button" onClick={() => void versions.refetch()}>
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  const index = Math.max(0, list.findIndex((v) => v.release === release));
+  const current = list[index]!;
+
+  return (
+    <>
+      <div className="timeline__slider">
+        <input
+          type="range"
+          min={0}
+          max={list.length - 1}
+          step={1}
+          value={index}
+          onChange={(e) => setRelease(list[Number(e.target.value)]!.release)}
+          aria-label="Map version"
+          aria-valuetext={`Version of ${current.date}`}
+        />
+        <div className="timeline__scale" aria-hidden="true">
+          <span>{list[0]!.date.slice(0, 7)}</span>
+          <strong>{current.date}</strong>
+          <span>{list[list.length - 1]!.date.slice(0, 7)}</span>
+        </div>
+      </div>
+
+      <label className="timeline__opacity">
+        <span>
+          Blend with current map <strong>{Math.round(opacity * 100)}%</strong>
+        </span>
+        <input type="range" min={0} max={100} step={5} value={Math.round(opacity * 100)} onChange={(e) => setOpacity(Number(e.target.value) / 100)} />
+      </label>
+
+      <p className="timeline__note">
+        Esri World Imagery as it was published on {current.date}, {list.length} versions since {list[0]!.date.slice(0, 4)}. The
+        photos in a version were taken on or before that date, at different times in different places, so two versions can
+        show the same photo where nothing new was flown. Detail is good enough for buildings and streets in most cities.
+      </p>
+    </>
   );
 }

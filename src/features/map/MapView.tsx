@@ -23,6 +23,7 @@ import { useEarthquakes, useRadarFrame } from "@/features/live/useLiveLayers";
 import { earthquakesToGeoJSON } from "@/features/live/liveGeo";
 import { useTimelineStore } from "@/stores/timelineStore";
 import { buildGibsTileUrl, GIBS_LAYERS } from "@/features/timeline/gibs";
+import { WAYBACK_ATTRIBUTION, WAYBACK_MAX_ZOOM, waybackTileUrl } from "@/features/timeline/wayback";
 import { whenSourceReady } from "./whenSourceReady";
 import { useLiveLocationStore, type LiveFix } from "@/features/location/liveLocationStore";
 import { useSheetInsetStore } from "@/features/shell/sheetInsetStore";
@@ -603,8 +604,22 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   const historyDate = useTimelineStore((s) => s.date);
   const historyLayerId = useTimelineStore((s) => s.layerId);
   const historyOpacity = useTimelineStore((s) => s.opacity);
+  const historySource = useTimelineStore((s) => s.source);
+  const historyRelease = useTimelineStore((s) => s.release);
   const historyLayer = GIBS_LAYERS.find((l) => l.id === historyLayerId) ?? GIBS_LAYERS[0]!;
-  const historyTileUrl = historyEnabled ? buildGibsTileUrl(historyLayer, historyDate) : null;
+  // Sharp past versions of the satellite map (Esri Wayback) or NASA's daily
+  // 250 m mosaic; see timelineStore. Nothing is drawn for "sharp" until the
+  // list of versions has loaded and one is chosen.
+  const historySharp = historySource === "sharp";
+  const historyTileUrl = !historyEnabled
+    ? null
+    : historySharp
+      ? historyRelease !== null
+        ? waybackTileUrl(historyRelease)
+        : null
+      : buildGibsTileUrl(historyLayer, historyDate);
+  const historyMaxZoom = historySharp ? WAYBACK_MAX_ZOOM : historyLayer.maxZoom;
+  const historyAttribution = historySharp ? WAYBACK_ATTRIBUTION : "NASA EOSDIS GIBS";
 
   // The buildings collection actually pushed to the map: cleared (not merely
   // hidden) when 3D is off or the map is zoomed out, rather than left showing
@@ -651,7 +666,8 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     radarTileUrl,
     historyTileUrl,
     historyOpacity,
-    historyMaxZoom: historyLayer.maxZoom,
+    historyMaxZoom,
+    historyAttribution,
     routeGeometry: null,
     activeStepLocation: null,
     me: null,
@@ -667,7 +683,8 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     radarTileUrl,
     historyTileUrl,
     historyOpacity,
-    historyMaxZoom: historyLayer.maxZoom,
+    historyMaxZoom,
+    historyAttribution,
     routeGeometry: activeRouteGeometry,
     activeStepLocation: activeStepLocation,
     me: meVisible ? meFix : null,
@@ -1046,8 +1063,8 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !styleReadyRef.current) return;
-    syncHistoricalImagery(map, historyTileUrl, historyOpacity, historyLayer.maxZoom);
-  }, [historyTileUrl, historyOpacity, historyLayer.maxZoom]);
+    syncHistoricalImagery(map, historyTileUrl, historyOpacity, historyMaxZoom, historyAttribution);
+  }, [historyTileUrl, historyOpacity, historyMaxZoom, historyAttribution]);
 
   // Measurement VERTICES: rebuild the DOM Marker set from scratch every
   // time the store's points change. Deliberately NOT incremental
@@ -1415,6 +1432,7 @@ interface OverlaySnapshot {
   historyTileUrl: string | null;
   historyOpacity: number;
   historyMaxZoom: number;
+  historyAttribution: string;
   /** Geometry of the option currently drawn, so a style swap can redraw it. */
   routeGeometry: Array<[number, number]> | null;
   /** [lon, lat] of the highlighted turn, or null when the whole route shows. */
@@ -1443,7 +1461,7 @@ function restoreOverlays(map: MapLibreMap, snapshot: OverlaySnapshot) {
   syncAnalysis(map, snapshot.analysis);
   syncEarthquakes(map, snapshot.earthquakes);
   syncRadar(map, snapshot.radarTileUrl);
-  syncHistoricalImagery(map, snapshot.historyTileUrl, snapshot.historyOpacity, snapshot.historyMaxZoom);
+  syncHistoricalImagery(map, snapshot.historyTileUrl, snapshot.historyOpacity, snapshot.historyMaxZoom, snapshot.historyAttribution);
   syncMe(map, snapshot.me);
 }
 
@@ -1517,7 +1535,7 @@ function syncEarthquakes(map: MapLibreMap, collection: GeoJSON.FeatureCollection
  * live basemap is applied in place without a rebuild - otherwise dragging
  * the blend slider would tear down and re-fetch every tile on every step.
  */
-function syncHistoricalImagery(map: MapLibreMap, tileUrl: string | null, opacity: number, maxZoom: number) {
+function syncHistoricalImagery(map: MapLibreMap, tileUrl: string | null, opacity: number, maxZoom: number, attribution: string) {
   const existing = map.getSource(HISTORY_SOURCE) as (maplibregl.RasterTileSource & { tiles?: string[] }) | undefined;
   const currentUrl = existing?.tiles?.[0] ?? null;
 
@@ -1537,7 +1555,7 @@ function syncHistoricalImagery(map: MapLibreMap, tileUrl: string | null, opacity
     // Past this, GIBS returns 404s rather than upscaling. Capping here lets
     // MapLibre stretch the deepest real tiles instead of showing holes.
     maxzoom: maxZoom,
-    attribution: "NASA EOSDIS GIBS",
+    attribution,
   });
 
   // Directly above the basemap and below everything else: it replaces what

@@ -51,7 +51,7 @@ export const SECTIONS: SectionDef[] = [
     label: "Layers",
     icon: "🗺️",
     title: "Map layers & imagery",
-    hint: "Satellite and aerial imagery, map style, 3D buildings, search area, live feeds and imagery back to 2012.",
+    hint: "Satellite and aerial imagery, map style, 3D buildings, search area, live feeds and sharp past imagery back to 2014.",
   },
   {
     // "Analyse" with an s, matching every other label and hint in the app.

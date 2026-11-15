@@ -6,6 +6,7 @@ import geocode from "./geocode.js";
 import gis from "./gis.js";
 import health from "./health.js";
 import imagery from "./imagery.js";
+import imageryVersions from "./imagery-versions.js";
 import live from "./live.js";
 import nearby from "./nearby.js";
 import news from "./news.js";
@@ -50,6 +51,7 @@ export const ROUTES: Record<string, ApiHandler> = {
   gis,
   health,
   imagery,
+  "imagery-versions": imageryVersions,
   live,
   nearby,
   news,
