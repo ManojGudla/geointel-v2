@@ -35,7 +35,13 @@ export interface WaybackVersion {
   date: string;
 }
 
-const TITLE_DATE = /^Wayback (\d{4}-\d{2}-\d{2})$/;
+/*
+  Esri's titles read "World Imagery (Wayback 2014-02-20)". The first version
+  of this expected them to start with "Wayback", matched nothing, and the
+  route answered "no versions" for every request. Matched anywhere in the
+  title now, still requiring the full date shape.
+*/
+const TITLE_DATE = /\bWayback (\d{4}-\d{2}-\d{2})\b/;
 
 export function parseWaybackConfig(raw: unknown): WaybackVersion[] {
   if (!raw || typeof raw !== "object") return [];

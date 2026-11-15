@@ -29,6 +29,18 @@ describe("parseWaybackConfig", () => {
     ]);
   });
 
+  it("reads Esri's real title format", () => {
+    // Exactly as in Esri's published file, checked character by character.
+    const raw = {
+      "10": { itemTitle: "World Imagery (Wayback 2014-02-20)" },
+      "43291": { itemTitle: "World Imagery (Wayback 2026-10-29)" },
+    };
+    expect(parseWaybackConfig(raw)).toEqual([
+      { release: 10, date: "2014-02-20" },
+      { release: 43291, date: "2026-10-29" },
+    ]);
+  });
+
   it("returns nothing for something that is not Esri's list", () => {
     expect(parseWaybackConfig(null)).toEqual([]);
     expect(parseWaybackConfig("nope")).toEqual([]);
