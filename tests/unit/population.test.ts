@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { fakeReqRes } from "./testUtils";
-import handler from "../../api/_routes/population";
+import handler, { areaToKm2, pickFigures, MAX_PLAUSIBLE_DENSITY } from "../../api/_routes/population";
 
 /**
  * Population is the feature most likely to be quietly wrong, because a number
@@ -37,6 +37,24 @@ const overpass = (elements: unknown[]) => ({
   elements,
 });
 
+/**
+ * Wikidata is asked first and Overpass second, and each has its own response
+ * format. Giving both the same body used to "work" only because an Overpass
+ * failure was silently treated as "no figure"; now that a failure is reported
+ * as a failure, each source gets a realistic reply.
+ */
+function mockSequence(...bodies: unknown[]) {
+  let call = 0;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => {
+      const body = bodies[Math.min(call, bodies.length - 1)];
+      call += 1;
+      return { ok: true, status: 200, json: async () => body, text: async () => JSON.stringify(body) };
+    })
+  );
+}
+
 /** Each test needs fresh coordinates - the handler caches by rounded lat/lon. */
 let seed = 0;
 const coords = () => {
@@ -46,12 +64,25 @@ const coords = () => {
 
 const sparql = (bindings: unknown[]) => ({ results: { bindings } });
 
+/** Wikidata IRIs the query returns for units and statement ranks. */
+const unit = (qid: string) => ({ value: `http://www.wikidata.org/entity/${qid}` });
+const KM2 = unit("Q712226");
+const NORMAL = { value: "http://wikiba.se/ontology#NormalRank" };
+const PREFERRED = { value: "http://wikiba.se/ontology#PreferredRank" };
+
+/**
+ * One result row in the shape the query returns: a population statement
+ * (value, date, rank) beside an area statement (amount, unit, rank).
+ */
 const hyderabad = {
   place: { value: "http://www.wikidata.org/entity/Q1361" },
   placeLabel: { value: "Hyderabad" },
   population: { value: "6809970" },
   date: { value: "2011-01-01T00:00:00Z" },
-  area: { value: "650" },
+  popRank: PREFERRED,
+  areaAmount: { value: "650" },
+  areaUnit: KM2,
+  areaRank: NORMAL,
 };
 
 describe("api/population", () => {
@@ -130,7 +161,7 @@ describe("api/population", () => {
   });
 
   it("omits density when the area is unknown instead of guessing an area", async () => {
-    mockFetch(sparql([{ ...hyderabad, area: undefined }]));
+    mockFetch(sparql([{ ...hyderabad, areaAmount: undefined, areaUnit: undefined, areaRank: undefined }]));
     const r = fakeReqRes(coords());
     await handler(r.req, r.res);
     const { population } = r.body as { population: Record<string, unknown> };
@@ -140,23 +171,42 @@ describe("api/population", () => {
 
   it("answers null when no source has a figure, rather than estimating", async () => {
     // Wikidata returns nothing, then Overpass returns nothing.
-    mockFetch(sparql([]));
+    mockSequence(sparql([]), overpass([]));
     const r = fakeReqRes(coords());
     await handler(r.req, r.res);
     expect(r.statusCode).toBe(200);
     expect((r.body as { population: unknown }).population).toBeNull();
   });
 
-  it("survives a provider outage without inventing a number", async () => {
+  it("reports an outage as an outage, not as 'no published figure'", async () => {
+    // Both sources unreachable. This used to answer 200 with population: null,
+    // which the panel shows as "no published population figure for this
+    // area", cached for a day. That is a false statement about the world.
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("network down"); }));
     const r = fakeReqRes(coords());
     await handler(r.req, r.res);
-    expect(r.statusCode).toBe(200);
-    expect((r.body as { population: unknown }).population).toBeNull();
+    expect(r.statusCode).toBe(502);
+    expect((r.body as { code?: string }).code).toBe("PROVIDER_UNAVAILABLE");
+  });
+
+  it("reports an outage when Wikidata errors even if the error comes back as HTTP 200 with no result set", async () => {
+    let call = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        call += 1;
+        if (call === 1) return { ok: false, status: 429, json: async () => ({}), text: async () => "" };
+        throw new Error("overpass down");
+      })
+    );
+    const r = fakeReqRes(coords());
+    await handler(r.req, r.res);
+    expect(r.statusCode).toBe(502);
   });
 
   it("ignores a zero or negative population from a malformed record", async () => {
-    mockFetch(sparql([{ ...hyderabad, population: { value: "0" } }]));
+    // Wikidata's only figure is unusable, and Overpass has nothing either.
+    mockSequence(sparql([{ ...hyderabad, population: { value: "0" } }]), overpass([]));
     const r = fakeReqRes(coords());
     await handler(r.req, r.res);
     expect((r.body as { population: unknown }).population).toBeNull();
@@ -205,5 +255,122 @@ describe("api/population", () => {
     const r = fakeReqRes(coords());
     await handler(r.req, r.res);
     expect((r.body as { population: unknown }).population).toBeNull();
+  });
+});
+
+describe("area units and density (audit P1-A)", () => {
+  /*
+    Regression for the density bug: the query used to read wdt:P2046, the
+    bare number with its unit discarded, and divide by it as if it were
+    always km². Wikidata stores areas in whatever unit the editor used.
+  */
+  it("converts every supported area unit to km²", () => {
+    expect(areaToKm2("650", KM2.value)).toBe(650);
+    expect(areaToKm2("65000", unit("Q35852").value)).toBeCloseTo(650, 9); // hectares
+    expect(areaToKm2("650000000", unit("Q25343").value)).toBeCloseTo(650, 9); // square metres
+    expect(areaToKm2("251", unit("Q232291").value)).toBeCloseTo(650.087, 2); // square miles
+    expect(areaToKm2("160618", unit("Q81292").value)).toBeCloseTo(650, 0); // acres
+    expect(areaToKm2("+650", KM2.value)).toBe(650); // Wikidata writes a leading plus sign
+  });
+
+  it("rejects units that are not area, unknown units, and non-positive amounts", () => {
+    expect(areaToKm2("650", unit("Q11573").value)).toBeNull(); // metre: a length, not an area
+    expect(areaToKm2("650", unit("Q199").value)).toBeNull(); // the unitless "1"
+    expect(areaToKm2("650", undefined)).toBeNull();
+    expect(areaToKm2("0", KM2.value)).toBeNull();
+    expect(areaToKm2("-5", KM2.value)).toBeNull();
+    expect(areaToKm2("abc", KM2.value)).toBeNull();
+  });
+
+  it("computes density from an area given in hectares correctly", async () => {
+    mockFetch(sparql([{ ...hyderabad, areaAmount: { value: "65000" }, areaUnit: unit("Q35852") }]));
+    const r = fakeReqRes(coords());
+    await handler(r.req, r.res);
+    const { population } = r.body as { population: Record<string, unknown> };
+    expect(population.areaKm2).toBe(650);
+    // Was 6_809_970 / 65_000 = 105 people per km², a hundred times too low.
+    expect(population.densityPerKm2).toBe(Math.round(6_809_970 / 650));
+  });
+
+  it("shows no area or density for an unsupported unit, instead of a wrong one", async () => {
+    mockFetch(sparql([{ ...hyderabad, areaUnit: unit("Q11573") }]));
+    const r = fakeReqRes(coords());
+    await handler(r.req, r.res);
+    const { population } = r.body as { population: Record<string, unknown> };
+    expect(population.population).toBe(6_809_970);
+    expect(population.areaKm2).toBeNull();
+    expect(population.densityPerKm2).toBeNull();
+  });
+
+  it("withholds a density no real place could have", async () => {
+    // 650 entered as km² but really m²-scale: 6.8 million people on 0.00065 km².
+    mockFetch(sparql([{ ...hyderabad, areaAmount: { value: "650" }, areaUnit: unit("Q25343") }]));
+    const r = fakeReqRes(coords());
+    await handler(r.req, r.res);
+    const { population } = r.body as { population: Record<string, unknown> };
+    expect(population.densityPerKm2).toBeNull();
+    expect(population.areaKm2).toBeNull();
+    expect(MAX_PLAUSIBLE_DENSITY).toBeLessThan(6_809_970 / 0.00065);
+  });
+});
+
+describe("which population figure is reported", () => {
+  const row = (population: string, year: string | null, rank: { value: string }) => ({
+    ...hyderabad,
+    population: { value: population },
+    date: year ? { value: `${year}-01-01T00:00:00Z` } : undefined,
+    popRank: rank,
+  });
+
+  it("prefers the statement Wikidata marks as preferred", () => {
+    const picked = pickFigures([row("7000000", "2021", NORMAL), row("6809970", "2011", PREFERRED)]);
+    expect(picked?.population).toBe(6_809_970);
+    expect(picked?.year).toBe(2011);
+  });
+
+  it("without a preferred one, reports the most recent figure, not the largest", () => {
+    // A shrinking town: the old census was bigger. Taking the largest value
+    // used to report the old figure as if it were current.
+    const picked = pickFigures([row("52000", "2001", NORMAL), row("48000", "2011", NORMAL), row("50000", null, NORMAL)]);
+    expect(picked?.population).toBe(48_000);
+    expect(picked?.year).toBe(2011);
+  });
+
+  it("ignores an unbelievable census year rather than reporting it", () => {
+    const picked = pickFigures([row("48000", "1200", NORMAL)]);
+    expect(picked?.population).toBe(48_000);
+    expect(picked?.year).toBeNull();
+  });
+
+  it("prefers a preferred-rank area over a normal one", () => {
+    const picked = pickFigures([
+      { ...hyderabad, areaAmount: { value: "217" }, areaUnit: KM2, areaRank: NORMAL },
+      { ...hyderabad, areaAmount: { value: "650" }, areaUnit: KM2, areaRank: PREFERRED },
+    ]);
+    expect(picked?.areaKm2).toBe(650);
+  });
+});
+
+describe("if Wikidata rejects the detailed query", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("still reports the sourced population, just without area or density", async () => {
+    let call = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        call += 1;
+        if (call === 1) return { ok: false, status: 400, json: async () => ({}), text: async () => "query error" };
+        const body = sparql([{ ...hyderabad, areaAmount: undefined, areaUnit: undefined, areaRank: undefined }]);
+        return { ok: true, status: 200, json: async () => body, text: async () => JSON.stringify(body) };
+      })
+    );
+    const r = fakeReqRes(coords());
+    await handler(r.req, r.res);
+    expect(r.statusCode).toBe(200);
+    const { population } = r.body as { population: Record<string, unknown> };
+    expect(population.population).toBe(6_809_970);
+    expect(population.year).toBe(2011);
+    expect(population.densityPerKm2).toBeNull();
   });
 });
