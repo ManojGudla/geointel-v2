@@ -1,5 +1,40 @@
 # Changelog
 
+## v3.4 (unreleased)
+
+Easier to find your way around, ready for visitors outside India, and a bug
+hunt whose rule was: a failure is never shown as a fact. Details in
+docs/audit/BUG_REPORT_2026-11-25.md.
+
+### New
+- The six AI agents are easy to find: a one-line "AI agents can explain this
+  place" row at the top of every place, the bottom tab is now called "AI",
+  and the agents come first in that panel.
+- "All tools" in the header (it was a magnifying glass) opens one list of
+  every feature. It keeps its label on phones.
+- Visitors outside India get example places abroad, a map that opens on a
+  city in their own time zone, and miles in the US and UK.
+- Tracking counts a picked search result as an opened place, with the
+  country of the place (never the address).
+
+### Improved
+- On phones, the bottom sheet drops out of the way while you pan or measure,
+  the Fuel/ATM/Hospital chips step aside while a panel is open, and the
+  measuring readout with Undo, Clear and Done sits above the sheet.
+- Measurement handles are bigger on touch screens.
+- The weather panel shows "as of" next to its source.
+- Theme moved into Settings. The "quick game" pop-up no longer appears; the
+  games are in More and in All tools.
+
+### Fixed
+- A brief Esri outage was cached for weeks as "no capture date published".
+- An area outline that crossed itself showed a wrong, too-small area.
+- Missing weather readings showed as 0°C or NaN, on screen and in the report.
+- Overpass answers cut short were counted as complete; they are now flagged.
+- Forecast days were labelled a day early in the Americas.
+- Two dialogs were cut off behind phone browser bars, and safe-area insets
+  had no effect.
+
 ## v3.3 (11 November 2026)
 
 A clearer first screen, new guide pages, downloads, games, tracking and

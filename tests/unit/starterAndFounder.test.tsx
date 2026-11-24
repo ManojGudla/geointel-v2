@@ -79,11 +79,14 @@ describe("the founder's personal website link", () => {
     const founder = fs.readFileSync(path.join(root, "src/config/founder.ts"), "utf8");
     // One default, overridable by the environment variable.
     expect(founder).toContain("VITE_FOUNDER_SITE_URL");
-    expect(founder.match(/manoj-gudla-website\.vercel\.app/g)).toHaveLength(1);
+    // The portfolio's own domain now, not the temporary Vercel address.
+    expect(founder.match(/https:\/\/me\.manowj\.com\//g)).toHaveLength(1);
+    expect(founder).not.toMatch(/manoj-gudla-website\.vercel\.app/);
     const { FOUNDER_SITE_URL } = await import("../../src/config/founder");
     expect(FOUNDER_SITE_URL).toMatch(/^https:\/\//);
     // The panel reads it from the config, never its own copy.
     expect(fs.readFileSync(path.join(root, "src/features/about/AboutPanel.tsx"), "utf8")).not.toMatch(/vercel\.app/);
+    expect(fs.readFileSync(path.join(root, "src/features/about/AboutPanel.tsx"), "utf8")).not.toMatch(/me\.manowj\.com/);
   });
 
   it("keeps the temporary address out of what search engines store", () => {

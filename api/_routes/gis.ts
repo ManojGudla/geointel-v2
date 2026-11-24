@@ -2,7 +2,7 @@ import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
 import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
-import { runOverpassQuery, buildEvidenceQuery, normalizeElement, OverpassUnavailableError, type OverpassElement } from "../_lib/overpass.js";
+import { runOverpassQueryDetailed, buildEvidenceQuery, normalizeElement, OverpassUnavailableError, type OverpassElement } from "../_lib/overpass.js";
 
 const ALLOWED_RADII = [100, 250, 500, 1000, 2000, 5000];
 const MAX_CUSTOM_RADIUS = 5000;
@@ -29,7 +29,7 @@ export interface GISFeatureDto {
   fetched this second, and the panel's "retrieved at" was a claim about the
   request, not about the data.
 */
-const cache = new TtlCache<{ elements: OverpassElement[]; fetchedAt: string }>(6 * 60 * 60 * 1000);
+const cache = new TtlCache<{ elements: OverpassElement[]; fetchedAt: string; incomplete?: boolean }>(6 * 60 * 60 * 1000);
 const limiter = new RateLimiter(60_000, 20);
 
 /** Score buckets, shared by the weighted totals and the subject feature. */
@@ -381,14 +381,17 @@ const handler: ApiHandler = async (req, res) => {
 
   if (!cached) {
     try {
-      cached = { elements: await runOverpassQuery(buildEvidenceQuery(lat, lon, radius)), fetchedAt: new Date().toISOString() };
+      const answer = await runOverpassQueryDetailed(buildEvidenceQuery(lat, lon, radius));
+      cached = { elements: answer.elements, fetchedAt: new Date().toISOString(), incomplete: Boolean(answer.incomplete) };
       /*
         An empty answer is not kept for six hours. Overpass mirrors do
         occasionally return nothing for a well-mapped place, and caching that
         here and at the CDN made the spot read "Unknown" for hours after the
         mirror had recovered. Empty results are rare and cheap to ask again.
       */
-      if (cached.elements.length > 0) cache.set(cacheKey, cached);
+      // A result Overpass flagged as cut short is not kept either: the next
+      // request may well get the whole list.
+      if (cached.elements.length > 0 && !cached.incomplete) cache.set(cacheKey, cached);
     } catch (error) {
       console.error("[api/gis]", error);
       // Plain language, same as /api/nearby: say what happened and what to do,
@@ -401,8 +404,8 @@ const handler: ApiHandler = async (req, res) => {
     }
   }
 
-  const { elements, fetchedAt } = cached;
-  if (elements.length === 0) res.setHeader("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=60");
+  const { elements, fetchedAt, incomplete } = cached;
+  if (elements.length === 0 || incomplete) res.setHeader("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=60");
   const features: GISFeatureDto[] = elements
     .map((el) => {
       const coords = normalizeElement(el);
@@ -425,6 +428,9 @@ const handler: ApiHandler = async (req, res) => {
       features,
       source: "OpenStreetMap / Overpass",
       fetchedAt,
+      // Overpass stopped part-way, so the counts above may be low. The panels
+      // say so instead of presenting them as complete.
+      incomplete: Boolean(incomplete),
     },
     allowedRadii: ALLOWED_RADII,
   });

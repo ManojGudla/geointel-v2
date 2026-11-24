@@ -1,6 +1,8 @@
 import { ClearLayers } from "@/features/layers/ClearLayers";
 import { useEffect } from "react";
 import { useSheetInsetStore } from "./sheetInsetStore";
+import { useSheetCommandStore } from "./sheetCommandStore";
+import { useMeasureStore } from "@/stores/measureStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useShellStore } from "@/stores/shellStore";
 import { SECTION_BY_ID } from "./sections";
@@ -60,6 +62,15 @@ export function SidePanel() {
     setInset(settledFraction);
   }, [settledFraction, setInset]);
   useEffect(() => () => setInset(0), [setInset]);
+
+  // Starting a measurement on a phone: the points are placed on the map, so
+  // the sheet drops to its peek height to give the map the screen. The
+  // measure readout, Undo and Clear stay pinned over the map (MeasureHud).
+  const measuring = useMeasureStore((s) => s.mode !== "off");
+  const requestLower = useSheetCommandStore((s) => s.requestLower);
+  useEffect(() => {
+    if (measuring) requestLower();
+  }, [measuring, requestLower]);
 
   if (!open) return null;
   const def = SECTION_BY_ID.get(section);

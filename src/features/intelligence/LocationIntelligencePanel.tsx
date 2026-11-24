@@ -140,6 +140,14 @@ export function LocationIntelligencePanel() {
       <p className="li__sources">
         Sources: {intelligence.sources.join(", ")} · measured within {radiusMeters} m · {intelligence.confidenceReason}
       </p>
+      {/* Overpass flagged its answer as cut short, so the counts behind this
+          score may be low. Said here, next to the score, not only on the
+          Evidence tab where most people never look. */}
+      {evidence.data?.incomplete && (
+        <p className="li__sources" role="status">
+          The map data server stopped part-way, so some counts may be low and this score with them. Try again in a minute.
+        </p>
+      )}
     </section>
   );
 }

@@ -144,12 +144,30 @@ describe("api/imagery", () => {
     expect((r.body as { imagery: unknown }).imagery).toBeNull();
   });
 
-  it("survives a provider outage without inventing a date", async () => {
+  it("reports an outage as an outage, not as 'no date published'", async () => {
+    // This used to answer 200 with imagery: null, the same answer as "Esri
+    // has no footprint here", and that was then cached for a week and served
+    // by the CDN for weeks more. A failure must never be stated as a fact
+    // about the data.
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("network down"); }));
     const r = fakeReqRes(coords());
     await handler(r.req, r.res);
-    expect(r.statusCode).toBe(200);
-    expect((r.body as { imagery: unknown }).imagery).toBeNull();
+    expect(r.statusCode).toBe(502);
+    expect((r.body as { code?: string }).code).toBe("PROVIDER_UNAVAILABLE");
+  });
+
+  it("does not remember an outage: the next request gets the real answer", async () => {
+    const at = coords();
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("network down"); }));
+    const failed = fakeReqRes(at);
+    await handler(failed.req, failed.res);
+    expect(failed.statusCode).toBe(502);
+
+    mockLayers([[hyderabad], [], [], []]);
+    const recovered = fakeReqRes(at);
+    await handler(recovered.req, recovered.res);
+    expect(recovered.statusCode).toBe(200);
+    expect((recovered.body as { imagery: { captured: string } | null }).imagery?.captured).toBe("2025-11-15");
   });
 
   it("keeps the answer when only some of the parallel layers fail", async () => {
@@ -184,8 +202,10 @@ describe("api/imagery", () => {
     );
     const r = fakeReqRes(coords());
     await handler(r.req, r.res);
-    expect(r.statusCode).toBe(200);
-    expect((r.body as { imagery: unknown }).imagery).toBeNull();
+    // Every layer answered with an error, so nothing was learned about this
+    // ground. That is a failed check, not "no imagery here".
+    expect(r.statusCode).toBe(502);
+    expect((r.body as { code?: string }).code).toBe("PROVIDER_UNAVAILABLE");
   });
 });
 

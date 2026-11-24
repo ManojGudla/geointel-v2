@@ -55,6 +55,56 @@ describe("api/weather handler", () => {
     expect((result.body as { code: string }).code).toBe("PROVIDER_UNAVAILABLE");
   });
 
+  it("does not cache an incomplete reply, so the next request asks again (M1)", async () => {
+    // Open-Meteo answered 200 with no `current` block. That used to be cached
+    // BEFORE it was checked, turning one bad reply into fifteen minutes of
+    // 502s for this point.
+    mockFetchOnce(true, { daily: { time: [] } });
+    const first = fakeReqRes({ lat: "7.31", lon: "8.42" });
+    await handler(first.req, first.res);
+    expect(first.statusCode).toBe(502);
+
+    mockFetchOnce(true, {
+      current: { temperature_2m: 18, apparent_temperature: 18, relative_humidity_2m: 40, wind_speed_10m: 3, precipitation: 0, weather_code: 0 },
+      daily: { time: ["2026-11-25"], temperature_2m_max: [22], temperature_2m_min: [12], weather_code: [0] },
+    });
+    const second = fakeReqRes({ lat: "7.31", lon: "8.42" });
+    await handler(second.req, second.res);
+    expect(second.statusCode).toBe(200);
+  });
+
+  it("reports when Open-Meteo was asked, not when the cache was read (M1)", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2026-11-25T10:00:00Z"));
+      mockFetchOnce(true, {
+        current: { temperature_2m: 18, apparent_temperature: 18, relative_humidity_2m: 40, wind_speed_10m: 3, precipitation: 0, weather_code: 0 },
+        daily: { time: ["2026-11-25"], temperature_2m_max: [22], temperature_2m_min: [12], weather_code: [0] },
+      });
+      const fresh = fakeReqRes({ lat: "6.21", lon: "3.39" });
+      await handler(fresh.req, fresh.res);
+
+      vi.setSystemTime(new Date("2026-11-25T10:10:00Z"));
+      const cached = fakeReqRes({ lat: "6.21", lon: "3.39" });
+      await handler(cached.req, cached.res);
+      expect((cached.body as { weather: { fetchedAt: string } }).weather.fetchedAt).toBe("2026-11-25T10:00:00.000Z");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("passes a missing reading through as null rather than inventing one (H2)", async () => {
+    mockFetchOnce(true, {
+      current: { temperature_2m: null, apparent_temperature: null, relative_humidity_2m: 40, wind_speed_10m: null, precipitation: 0, weather_code: 0 },
+      daily: { time: ["2026-11-25"], temperature_2m_max: [null], temperature_2m_min: [12], weather_code: [0] },
+    });
+    const r = fakeReqRes({ lat: "4.44", lon: "5.55" });
+    await handler(r.req, r.res);
+    const w = (r.body as { weather: { temperatureC: unknown; windKph: unknown } }).weather;
+    expect(w.temperatureC).toBeNull();
+    expect(w.windKph).toBeNull();
+  });
+
   /**
    * Feature Status audit finding: this endpoint had caching but no rate
    * limiting at all, unlike every other data-fetching handler in the

@@ -1,19 +1,17 @@
 /**
  * Who built this, in one place.
  *
- * The personal website's address will change: it is on a temporary Vercel
- * address now and moves to its own domain once that is bought. So the address
- * has a default here and can be replaced without touching the code: set
- * VITE_FOUNDER_SITE_URL in Vercel's environment variables (for example
- * https://example.com) and redeploy, and every "Website" link follows.
+ * The personal website moved from its temporary Vercel address to
+ * https://me.manowj.com in November 2026. The address can still be replaced
+ * without touching the code: set VITE_FOUNDER_SITE_URL in Vercel's
+ * environment variables and redeploy, and every "Website" link follows.
  *
- * It is deliberately NOT in the page's structured data (index.html). Search
- * engines keep what they read there for a long time, and a temporary address
- * is the wrong thing for them to remember. Add it there once the domain is final.
+ * It is still NOT in the page's structured data (index.html). Add it there
+ * once you are sure this is the address you want search engines to keep.
  */
 
-/** Until the domain is bought. Replaced by VITE_FOUNDER_SITE_URL when that is set. */
-const DEFAULT_SITE_URL = "https://manoj-gudla-website.vercel.app/";
+/** Replaced by VITE_FOUNDER_SITE_URL when that is set. */
+const DEFAULT_SITE_URL = "https://me.manowj.com/";
 
 function httpsUrlOrNull(value: unknown): string | null {
   if (typeof value !== "string" || value.trim() === "") return null;

@@ -76,6 +76,12 @@ export interface GISEvidence {
   features: GISFeature[];
   source: string;
   fetchedAt: string;
+  /**
+   * Overpass flagged this answer as cut short (a timeout or memory limit
+   * mid-query), so every count above may be low. Optional because older
+   * cached responses predate it.
+   */
+  incomplete?: boolean;
 }
 
 /**

@@ -74,6 +74,20 @@ export function ImageryDate() {
     return <p className="imagery-date imagery-date--muted">Checking when this imagery was taken…</p>;
   }
 
+  // A failed check is not the same as "no date published", and must not be
+  // reported as one. Panning fast can hit the route's rate limit, and Esri
+  // has bad minutes; either way the honest line is that we couldn't check.
+  if (query.isError && query.data === undefined) {
+    return (
+      <p className="imagery-date imagery-date--muted" role="status">
+        Couldn&apos;t check when this imagery was taken just now.{" "}
+        <button type="button" className="imagery-date__retry" onClick={() => void query.refetch()}>
+          Try again
+        </button>
+      </p>
+    );
+  }
+
   const imagery = query.data?.imagery ?? null;
 
   if (!imagery) {

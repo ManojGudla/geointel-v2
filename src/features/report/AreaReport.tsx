@@ -9,6 +9,7 @@ import { fetchWeather } from "@/services/intel";
 import { aqiBand, useAirQuality } from "@/features/live/useLiveLayers";
 import { formatCoordinateLabel, formatDms } from "@/features/search/coordinateSearch";
 import { useDialog } from "@/hooks/useDialog";
+import { reading } from "@/lib/reading";
 import "./AreaReport.css";
 
 /**
@@ -237,7 +238,9 @@ export function AreaReport() {
             <dl className="report__grid report__grid--tight">
               <div>
                 <dt>Temperature</dt>
-                <dd>{weather.data ? `${Math.round(weather.data.temperatureC)} °C` : "Not available"}</dd>
+                {/* reading() turns a missing value into null instead of 0, so
+                    the printed report never says "0 °C" for "not reported". */}
+                <dd>{reading(weather.data?.temperatureC) !== null ? `${reading(weather.data?.temperatureC)} °C` : "Not available"}</dd>
               </div>
               <div>
                 <dt>Condition</dt>
@@ -245,11 +248,11 @@ export function AreaReport() {
               </div>
               <div>
                 <dt>Humidity</dt>
-                <dd>{weather.data ? `${weather.data.humidityPct}%` : "Not available"}</dd>
+                <dd>{reading(weather.data?.humidityPct) !== null ? `${reading(weather.data?.humidityPct)}%` : "Not available"}</dd>
               </div>
               <div>
                 <dt>Wind</dt>
-                <dd>{weather.data ? `${weather.data.windKph} km/h` : "Not available"}</dd>
+                <dd>{reading(weather.data?.windKph) !== null ? `${reading(weather.data?.windKph)} km/h` : "Not available"}</dd>
               </div>
               <div>
                 <dt>Air quality (EAQI)</dt>

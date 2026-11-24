@@ -39,6 +39,8 @@ export function formatDistance(
    */
   precise = false
 ): string {
+  // A dash, never "NaN km": a missing figure must not print as one.
+  if (!Number.isFinite(meters)) return "—";
   const dp = precise ? 2 : 1;
   if (units === "imperial") {
     const feet = meters * 3.28084;
@@ -56,6 +58,7 @@ export function formatDistance(
  * acres are what land is actually quoted in.
  */
 export function formatArea(squareMeters: number, units: "metric" | "imperial" = "metric"): string {
+  if (!Number.isFinite(squareMeters)) return "—";
   if (units === "imperial") {
     const squareFeet = squareMeters * 10.7639;
     if (squareFeet < 10_000) return `${Math.round(squareFeet)} sq ft`;

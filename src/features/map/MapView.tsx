@@ -30,6 +30,7 @@ import { useSheetInsetStore } from "@/features/shell/sheetInsetStore";
 import { MapLoadState, type MapLoadPhase } from "./MapLoadState";
 import "./MapView.css";
 import { useImportStore, importCollection } from "@/stores/importStore";
+import { useSheetCommandStore } from "@/features/shell/sheetCommandStore";
 
 // How long before we stop pretending everything is normal. Under a second is
 // a normal load on a decent connection; past SLOW_AFTER_MS the user deserves
@@ -899,6 +900,10 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     // dragstart fires for gestures only, never for the follow easeTo itself.
     map.on("dragstart", () => {
       if (useLiveLocationStore.getState().following) useLiveLocationStore.getState().setFollowing(false);
+      // On a phone, panning means the map is what you want to see: the
+      // bottom sheet drops to its peek height (no-op on desktop and when it
+      // is already low). See shell/sheetCommandStore.ts.
+      useSheetCommandStore.getState().requestLower();
     });
 
     mapRef.current = map;
