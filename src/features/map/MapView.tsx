@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import maplibregl, { Map as MapLibreMap, Marker, NavigationControl, FullscreenControl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { buildBasemapStyle, OSM_CREDIT } from "./basemaps";
-import { circlePolygon } from "./geo";
+import { circlePolygon, wrapLongitude } from "./geo";
 import { useMapStore } from "@/stores/mapStore";
 import { useLocationStore } from "@/stores/locationStore";
 import { useGisEvidence } from "@/features/gis/useGisEvidence";
@@ -866,7 +866,8 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
       pointLookupRef.current?.abort();
       const controller = new AbortController();
       pointLookupRef.current = controller;
-      void selectMapPoint(lat, lon, controller.signal);
+      // Wrapped: a click on a repeated copy of the world reports 286 for -74.
+      void selectMapPoint(lat, wrapLongitude(lon), controller.signal);
     };
 
     map.on("click", GIS_LAYER_POINTS, (e) => {

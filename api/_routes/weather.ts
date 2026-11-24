@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getClientIp, withEdgeCache, readLatLon, OUT_OF_RANGE_MESSAGE } from "../_lib/http.js";
 import { TtlCache, RateLimiter, fetchWithTimeout } from "../_lib/cache.js";
 
 // The time Open-Meteo was actually asked is cached WITH the answer. It used to
@@ -71,11 +71,11 @@ interface OpenMeteoResponse {
 }
 
 const handler: ApiHandler = async (req, res) => {
-  const lat = Number(getQueryParam(req, "lat"));
-  const lon = Number(getQueryParam(req, "lon"));
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return err(res, 400, "Query parameters 'lat' and 'lon' are required numbers.");
+  const point = readLatLon(req);
+  if (!point.ok) {
+    return err(res, 400, point.problem === "missing" ? "Query parameters 'lat' and 'lon' are required numbers." : OUT_OF_RANGE_MESSAGE);
   }
+  const { lat, lon } = point;
 
   const ip = getClientIp(req);
   const rate = limiter.check(ip);

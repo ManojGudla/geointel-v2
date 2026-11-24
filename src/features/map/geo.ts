@@ -1,6 +1,18 @@
 import * as turf from "@turf/turf";
 import type { Feature, Polygon } from "geojson";
 
+/**
+ * The same meridian, written between -180 and 180.
+ *
+ * The map repeats the world side by side, and a click on a repeated copy
+ * reports its longitude unwrapped: New York on the copy to the east is 286,
+ * not -74. Selected places, labels and API calls all want the plain form.
+ */
+export function wrapLongitude(lon: number): number {
+  if (!Number.isFinite(lon) || (lon >= -180 && lon <= 180)) return lon;
+  return ((((lon + 180) % 360) + 360) % 360) - 180;
+}
+
 export function circlePolygon(lat: number, lon: number, radiusMeters: number): Feature<Polygon> {
   return turf.circle([lon, lat], radiusMeters / 1000, { units: "kilometers", steps: 64 });
 }

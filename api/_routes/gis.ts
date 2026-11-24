@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getQueryParam, getClientIp, withEdgeCache, readLatLon, OUT_OF_RANGE_MESSAGE } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
 import { runOverpassQueryDetailed, buildEvidenceQuery, normalizeElement, OverpassUnavailableError, type OverpassElement } from "../_lib/overpass.js";
 
@@ -361,13 +361,13 @@ export function totalEvidenceCount(counts: ReturnType<typeof classifyFeatures>["
 }
 
 const handler: ApiHandler = async (req, res) => {
-  const lat = Number(getQueryParam(req, "lat"));
-  const lon = Number(getQueryParam(req, "lon"));
+  const point = readLatLon(req);
   const radius = Number(getQueryParam(req, "radius") ?? "250");
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return err(res, 400, "Query parameters 'lat' and 'lon' are required numbers.");
+  if (!point.ok) {
+    return err(res, 400, point.problem === "missing" ? "Query parameters 'lat' and 'lon' are required numbers." : OUT_OF_RANGE_MESSAGE);
   }
+  const { lat, lon } = point;
   if (!Number.isFinite(radius) || radius <= 0 || radius > MAX_CUSTOM_RADIUS) {
     return err(res, 400, `Radius must be between 1 and ${MAX_CUSTOM_RADIUS} meters.`);
   }

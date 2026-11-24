@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withPrivateCache } from "../_lib/http.js";
+import { ok, err, getQueryParam, getClientIp, withPrivateCache, readLatLon } from "../_lib/http.js";
 import { TtlCache, RateLimiter, fetchWithTimeout } from "../_lib/cache.js";
 
 // Multiple free OSRM-compatible mirrors, tried in order - the same
@@ -95,15 +95,20 @@ function describeStep(step: OsrmStep): string {
 }
 
 const handler: ApiHandler = async (req, res) => {
-  const fromLat = Number(getQueryParam(req, "fromLat"));
-  const fromLon = Number(getQueryParam(req, "fromLon"));
-  const toLat = Number(getQueryParam(req, "toLat"));
-  const toLon = Number(getQueryParam(req, "toLon"));
+  const from = readLatLon(req, "fromLat", "fromLon");
+  const to = readLatLon(req, "toLat", "toLon");
   const mode = (getQueryParam(req, "mode") || "car") as keyof typeof ROUTERS;
 
-  if (![fromLat, fromLon, toLat, toLon].every(Number.isFinite)) {
-    return err(res, 400, "fromLat, fromLon, toLat and toLon are required numbers.");
+  if (!from.ok || !to.ok) {
+    const missing = (!from.ok && from.problem === "missing") || (!to.ok && to.problem === "missing");
+    return err(
+      res,
+      400,
+      missing ? "fromLat, fromLon, toLat and toLon are required numbers." : "Both ends of a route must have a latitude between -90 and 90."
+    );
   }
+  const { lat: fromLat, lon: fromLon } = from;
+  const { lat: toLat, lon: toLon } = to;
   // Object.hasOwn, not a plain lookup: `?mode=constructor` walks the
   // prototype chain, passes a truthy check, and then throws "not iterable"
   // at the for-of below, which sits outside the try.

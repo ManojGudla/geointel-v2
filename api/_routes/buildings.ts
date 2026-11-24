@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getClientIp, withEdgeCache, getNumberParam } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
 import { runOverpassQuery, buildBuildingGeometryQuery, type OverpassElement, type Bbox } from "../_lib/overpass.js";
 import { estimateBuildingHeight } from "../_lib/buildingHeight.js";
@@ -47,11 +47,13 @@ export interface BuildingDto {
 }
 
 function parseBbox(req: Parameters<ApiHandler>[0]): Bbox | null {
-  const south = Number(getQueryParam(req, "south"));
-  const west = Number(getQueryParam(req, "west"));
-  const north = Number(getQueryParam(req, "north"));
-  const east = Number(getQueryParam(req, "east"));
-  if (![south, west, north, east].every(Number.isFinite)) return null;
+  const south = getNumberParam(req, "south");
+  const west = getNumberParam(req, "west");
+  const north = getNumberParam(req, "north");
+  const east = getNumberParam(req, "east");
+  if (south === null || west === null || north === null || east === null) return null;
+  // A box past a pole is not somewhere buildings can be.
+  if (south < -90 || north > 90) return null;
   if (north <= south || east <= west) return null;
   return { south, west, north, east };
 }

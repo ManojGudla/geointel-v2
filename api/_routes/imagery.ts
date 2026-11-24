@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getQueryParam, getClientIp, withEdgeCache, readLatLon } from "../_lib/http.js";
 import { TtlCache, RateLimiter, fetchWithTimeout } from "../_lib/cache.js";
 
 /**
@@ -160,17 +160,14 @@ export async function queryLayers(
 }
 
 const handler: ApiHandler = async (req, res) => {
-  const lat = Number(getQueryParam(req, "lat"));
-  const lon = Number(getQueryParam(req, "lon"));
+  const point = readLatLon(req);
   const zoomRaw = Number(getQueryParam(req, "zoom"));
   const zoom = Number.isFinite(zoomRaw) ? Math.min(22, Math.max(0, zoomRaw)) : 16;
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return err(res, 400, "lat and lon are required numbers.");
+  if (!point.ok) {
+    return err(res, 400, point.problem === "missing" ? "lat and lon are required numbers." : "lat and lon are out of range.");
   }
-  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-    return err(res, 400, "lat and lon are out of range.");
-  }
+  const { lat, lon } = point;
 
   const ip = getClientIp(req);
   if (!limiter.check(ip).allowed) {
