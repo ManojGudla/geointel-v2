@@ -52,6 +52,7 @@ export async function selectSuggestion(
   };
   setSelectedLocation(chosen);
 
+  let country: string | undefined;
   try {
     const enriched = await reverseGeocode(suggestion.lat, suggestion.lon);
     // A slower lookup must never overwrite a newer choice.
@@ -64,10 +65,17 @@ export async function selectSuggestion(
       delete address.houseNumber;
     }
     setSelectedLocation({ ...chosen, address });
+    country = address.countryCode;
   } catch {
     // The address stays empty; the name, point and everything keyed on the
     // point still work.
+    if (useLocationStore.getState().selectedLocation !== chosen) return;
   }
+  // Picking a search result is how most people check an address, and until
+  // now only map clicks counted as an opened place, so the activation number
+  // missed the main path in. Sent once the lookup settles so it can carry the
+  // place's country; a place the person already moved away from is not counted.
+  track("place_opened", { source: "search", place_country: country });
 }
 
 export function SearchBar() {

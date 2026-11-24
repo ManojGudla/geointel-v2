@@ -15,6 +15,11 @@ vi.mock("../../src/services/geocode", () => ({
   searchLocations: vi.fn(),
 }));
 
+const track = vi.fn();
+vi.mock("../../src/services/analytics", () => ({
+  track: (...args: unknown[]) => track(...args),
+}));
+
 import { selectSuggestion } from "../../src/features/search/SearchBar";
 import { useLocationStore } from "../../src/stores/locationStore";
 
@@ -35,8 +40,11 @@ const noop = () => {};
 
 beforeEach(() => {
   reverse.mockReset();
+  track.mockReset();
   useLocationStore.setState({ selectedLocation: null });
 });
+
+const opened = () => track.mock.calls.filter(([event]) => event === "place_opened");
 
 describe("selecting a search result", () => {
   it("selects it immediately, before any second lookup finishes", async () => {
@@ -87,5 +95,33 @@ describe("selecting a search result", () => {
     reverse.mockRejectedValue(new Error("offline"));
     await selectSuggestion(CHARMINAR, set, noop);
     expect(useLocationStore.getState().selectedLocation!.name).toBe("Charminar");
+  });
+});
+
+describe("counting a checked place", () => {
+  it("counts a picked result as an opened place, with its country", async () => {
+    reverse.mockResolvedValue(streetAt(CHARMINAR.lat, CHARMINAR.lon, "Charminar Road"));
+    await selectSuggestion(CHARMINAR, set, noop);
+    expect(opened()).toEqual([["place_opened", { source: "search", place_country: "IN" }]]);
+  });
+
+  it("still counts it when the address lookup fails, just without a country", async () => {
+    reverse.mockRejectedValue(new Error("offline"));
+    await selectSuggestion(CHARMINAR, set, noop);
+    expect(opened()).toEqual([["place_opened", { source: "search", place_country: undefined }]]);
+  });
+
+  it("does not count a place the person already moved away from", async () => {
+    let finishFirst!: (v: unknown) => void;
+    reverse
+      .mockReturnValueOnce(new Promise((r) => (finishFirst = r)))
+      .mockResolvedValueOnce(streetAt(CHARMINAR.lat, CHARMINAR.lon, "Charminar Road"));
+
+    const first = selectSuggestion(HYDERABAD, set, noop);
+    await selectSuggestion(CHARMINAR, set, noop);
+    finishFirst(streetAt(HYDERABAD.lat, HYDERABAD.lon, "Kalwa Street"));
+    await first;
+
+    expect(opened()).toHaveLength(1);
   });
 });
