@@ -222,6 +222,12 @@
   gap: var(--space-2);
 }
 
+/* The phone-width word for "All tools"; see Header.tsx. Off on wide screens,
+   where the full label shows instead. */
+.app-header__tools-short {
+  display: none;
+}
+
 .app-header__kbd-hint {
   font-size: 11px;
   font-weight: 700;
@@ -344,6 +350,19 @@
 
   .app-header__more-menu {
     min-width: 210px;
+  }
+
+  /* The one header button that keeps a word on phones. "All tools" is the
+     way to every feature, and as a bare emoji nobody could tell. */
+  .app-header__tools-short {
+    display: inline;
+    font-size: var(--text-sm);
+    font-weight: 700;
+  }
+
+  .app-header__tools-btn {
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
   }
 }
 

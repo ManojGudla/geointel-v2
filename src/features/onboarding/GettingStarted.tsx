@@ -26,9 +26,9 @@ const EXAMPLES: Array<{ name: string; where: string; lat: number; lon: number }>
 ];
 
 const NEXT_STEPS: Array<{ section: ShellSection; icon: string; title: string; body: string }> = [
-  { section: "layers", icon: "🗺️", title: "Data", body: "Change the map style, set the search area, and choose what the map shows." },
-  { section: "tools", icon: "📐", title: "Analyze", body: "Measure distances and areas, and score this site for a use." },
-  { section: "ai", icon: "🤖", title: "Ask", body: "Ask maNOWj a question in plain language, find things on the map, or generate a report." },
+  { section: "layers", icon: "🗺️", title: "Layers", body: "Satellite view, map style, the search area, and what the map shows." },
+  { section: "tools", icon: "📐", title: "Analyse", body: "Measure distances and areas, and score this site for a use." },
+  { section: "ai", icon: "🤖", title: "AI agents", body: "Six AI agents explain the place in plain words. You can also find things on the map or make a report." },
   { section: "travel", icon: "✈️", title: "Plan", body: "Search flights, trains, buses and hotels for wherever you've selected." },
 ];
 

@@ -65,20 +65,17 @@ export const SECTIONS: SectionDef[] = [
     hint: "Measure distance and area, find what's nearby or nearest, and score a site for a particular use.",
   },
   {
-    // Was labelled "Intelligence", which is the vaguest word on the rail: it
-    // names a category rather than an action, and gives no clue that this is
-    // where you type a question. "Ask" says what you do here, and matches the
-    // name the feature itself now carries everywhere else.
+    // Was "Intelligence", then "Ask". "Ask" collided with the "✨ Ask maNOWj"
+    // button floating on the map, which opens the chat rather than this
+    // panel, so two different things answered to the same word - and the six
+    // agents, the strongest thing in here, were not named anywhere a visitor
+    // looks. "AI" is the word people now scan for, and the panel opens with
+    // the agents.
     id: "ai",
-    label: "Ask",
+    label: "AI",
     icon: "🤖",
-    // The title stays broader than the label on purpose. This section holds
-    // four things - find on the map, Ask maNOWj, the agents, the report - and
-    // titling the whole panel after one of them ("Ask maNOWj") put that name
-    // twice on one screen, once as a heading over three features it does not
-    // cover. The feature keeps its name where the feature actually is.
-    title: "Ask & report",
-    hint: "Ask a question in plain language, find things on the map, run a specialist agent, or generate a report you can share.",
+    title: "AI agents & report",
+    hint: "Six AI agents explain this place in plain words. You can also find things on the map, ask a question, or make a report to share.",
   },
   {
     id: "travel",

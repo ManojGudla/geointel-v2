@@ -171,6 +171,12 @@ export function SidePanel() {
 
         {section === "ai" && (
           <div className="side-panel__stack">
+            {/* The agents first. They used to sit below three other blocks,
+                and on a phone that meant below the fold, where nobody saw
+                that they existed. */}
+            <ErrorBoundary label="AI agents" variant="panel">
+              <AgentStrip />
+            </ErrorBoundary>
             <ErrorBoundary label="Map commands" variant="panel">
               <section className="side-panel__group">
                 {/* Retitled from "Ask the map". This panel holds two boxes you
@@ -202,9 +208,6 @@ export function SidePanel() {
                 📄 Generate area report
               </button>
             </section>
-            <ErrorBoundary label="AI agents" variant="panel">
-              <AgentStrip />
-            </ErrorBoundary>
           </div>
         )}
 

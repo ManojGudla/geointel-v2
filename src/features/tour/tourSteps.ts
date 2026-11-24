@@ -25,7 +25,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     targets: [".near-me"],
     title: "Near me, in one tap",
-    text: "Petrol, ATMs, hospitals, food, metro and more, around where you are right now.",
+    text: "Fuel, ATMs, hospitals, food, transit and more, around where you are right now.",
   },
   {
     targets: [".locate__btn"],
@@ -40,13 +40,23 @@ export const TOUR_STEPS: TourStep[] = [
   {
     targets: [".nav-rail"],
     fit: "children",
-    title: "Every tool lives here",
-    text: "Explore a place, switch map layers and satellite view, analyse an area, ask questions, or plan a trip.",
+    title: "The main sections",
+    text: "Explore a place, switch map layers and satellite view, analyse an area, use the AI agents, or plan a trip.",
   },
   {
-    targets: [".copilot-launcher", ".nav-rail__item:nth-child(4)"],
+    targets: [".nav-rail__item:nth-child(4)"],
+    title: "AI agents",
+    text: "Six AI agents explain any place you pick: the area, the property, getting there and a day plan. Every answer shows its sources.",
+  },
+  {
+    targets: [".copilot-launcher"],
     title: "Ask maNOWj",
     text: "Ask about the place on the map in English, Telugu, Hindi or any mix. Answers come only from real data.",
+  },
+  {
+    targets: [".app-header__tools-btn"],
+    title: "All tools",
+    text: "Every feature in one list. Tap it, then type what you want to do, like \"report\" or \"satellite\".",
   },
   {
     targets: [".app-header__more > button"],

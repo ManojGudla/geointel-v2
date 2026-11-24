@@ -5,8 +5,8 @@ import { AgentCard } from "./AgentCard";
 import "./AgentStrip.css";
 
 /**
- * The six AI agent cards, in the workspace panel's "Ask" section (🤖 on the
- * rail), below Ask maNOWj and the report.
+ * The six AI agent cards, first in the workspace panel's "AI" section (🤖 on
+ * the rail). A place's Overview points here with AgentCallout.tsx.
  *
  * This is the only place they render. Two earlier arrangements are gone and
  * the comment here described both of them: a full grid in an Intelligence
@@ -23,9 +23,11 @@ export function AgentStrip() {
   return (
     <div className="agent-strip">
       <div className="agent-strip__head">
-        <strong>AI Agents</strong>
+        <strong>AI agents</strong>
         <span className="agent-strip__hint">
-          {location ? `${AGENT_DEFINITIONS.length} agents. Scroll down for all of them` : "Select a location on the map to run them."}
+          {location
+            ? `${AGENT_DEFINITIONS.length} agents, each explaining this place from one angle. Tap Run on any of them.`
+            : `${AGENT_DEFINITIONS.length} agents are ready. Search a place or tap the map first, then tap Run.`}
         </span>
       </div>
       <div className="agent-strip__row">

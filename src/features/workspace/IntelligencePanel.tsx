@@ -10,6 +10,7 @@ import { NewsPanel } from "@/features/news/NewsPanel";
 import { NearbyPanel } from "@/features/nearby/NearbyPanel";
 import { SitePanel } from "@/features/site/SitePanel";
 import { OfficialsPanel } from "@/features/officials/OfficialsPanel";
+import { AgentCallout } from "@/features/ai/AgentCallout";
 import "./IntelligencePanel.css";
 
 // No "AI Agents" tab here - the same six agent cards already render as an
@@ -54,6 +55,12 @@ export function IntelligencePanel() {
       <div className="intel-panel__content">
         {tab === "overview" && (
           <>
+            {/* A single row pointing at the AI agents, which otherwise live
+                only in the AI section where people who land here never
+                look. See AgentCallout.tsx. */}
+            <ErrorBoundary label="AI agents pointer" variant="silent">
+              <AgentCallout />
+            </ErrorBoundary>
             {/* The headline answer to "what is this place?" goes first -
                 before the raw identity fields, which are reference rather
                 than insight. */}

@@ -393,7 +393,7 @@ export function SearchBar() {
             ref={inputRef}
             type="text"
             className="search-bar__input"
-            placeholder="Search a place or a question…"
+            placeholder="Type an address or a question…"
             value={query}
             onChange={(e) => handleChange(e.target.value)}
             onPaste={() => {

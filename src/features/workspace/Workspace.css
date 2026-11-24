@@ -173,6 +173,20 @@
   .workspace__stage--sheeted .onboarding {
     display: none;
   }
+
+  /*
+    The near-me chips (Fuel, ATM, Hospital...) step aside while a panel is up.
+
+    With the sheet at half height, the search box, the quick-tool row, this
+    chip row and the next-step card left a strip of map about 140px tall on a
+    390px phone, between two piles of controls. These chips search around
+    where you ARE, and the panel is about a place you picked, so they are the
+    row that matters least at that moment. Close the panel and they are back,
+    the way category chips in other map apps make room for a place card.
+  */
+  .workspace__stage--sheeted .near-me {
+    display: none;
+  }
 }
 
 /*

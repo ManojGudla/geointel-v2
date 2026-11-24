@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useUiStore, type ThemeMode } from "@/stores/uiStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
 import { useFeedbackStore } from "@/stores/feedbackStore";
 import { useHelpStore } from "@/stores/helpStore";
@@ -14,7 +13,6 @@ import { useTourStore } from "@/features/tour/tourStore";
 import { LogoMark } from "./LogoMark";
 import { SecretGate } from "@/features/secret/SecretGate";
 
-const THEME_ICON: Record<ThemeMode, string> = { system: "🖥️", light: "☀️", dark: "🌙" };
 
 type BackendStatus = "online" | "degraded" | "offline";
 
@@ -86,23 +84,18 @@ const STATUS_TEXT: Record<Exclude<BackendStatus, "online">, { label: string; ari
   offline: { label: "GIS Offline", aria: "Data service offline" },
 };
 
-const THEME_CYCLE: ThemeMode[] = ["system", "light", "dark"];
-
 /**
  * "change these location and place where it will suit" - the header used to
  * lay out ⌘K/Help/Settings/Features/Feedback/Theme as six equal-weight
  * buttons in a flat row, which read as busy and undifferentiated no matter
  * how they were grouped or styled. The pattern most 2026 SaaS headers
  * actually use is: keep only the handful of things people reach for
- * constantly at top level (search, theme), and tuck everything else behind
- * one compact overflow menu. That's what this does - Help/Settings/
- * Features/Feedback move into a "More" menu; ⌘K and the theme toggle stay
- * visible since those get used far more often.
+ * constantly at top level, and tuck everything else behind one compact
+ * overflow menu. At top level now: All tools, How it works, and More. The
+ * theme toggle lives in Settings (see the note on the All tools button).
  */
 export function Header() {
   const online = useBackendStatus();
-  const theme = useUiStore((s) => s.theme);
-  const setTheme = useUiStore((s) => s.setTheme);
   const openPalette = useCommandPaletteStore((s) => s.open);
   const openFeedback = useFeedbackStore((s) => s.open);
   const openHelp = useHelpStore((s) => s.open);
@@ -141,11 +134,6 @@ export function Header() {
 
   const [gateOpen, setGateOpen] = useState(false);
 
-  const cycleTheme = () => {
-    const next = THEME_CYCLE[(THEME_CYCLE.indexOf(theme) + 1) % THEME_CYCLE.length]!;
-    setTheme(next);
-  };
-
   return (
     <>
     <header className="app-header">
@@ -183,42 +171,37 @@ export function Header() {
       </div>
 
       <div className="app-header__actions">
-        {/* Utility row: only the two things people reach for constantly -
-            the command palette and the theme toggle - stay at top level.
-            Ghost styling keeps these quiet so they don't compete with the
-            one real call-to-action. */}
+        {/* Utility row. Ghost styling keeps these quiet so they don't
+            compete with the search box, the one real call-to-action. */}
         <div className="app-header__group app-header__group--utility">
+          {/*
+            Every feature in one list. This opens the command palette, which
+            already lists every tool in the app, but it used to wear a
+            magnifying glass and the word "Search" - so on a phone it looked
+            like a second copy of the search box right below it, and nobody
+            found out it was the one place that reaches everything. It now
+            says what it is, and it keeps its word on phones too ("Tools"),
+            because an icon alone is exactly what hid it before.
+
+            The theme toggle that sat beside it moved into Settings: a monitor
+            emoji in the top bar read as a mystery button, and the room it
+            freed is what lets this label fit on a phone.
+          */}
           <button
             type="button"
-            className="app-header__icon-btn app-header__icon-btn--ghost app-header__search-btn"
+            className="app-header__icon-btn app-header__icon-btn--ghost app-header__search-btn app-header__tools-btn"
             onClick={openPalette}
-            /*
-              aria-label as well as title, and this is not belt-and-braces.
-
-              App.css hides .app-header__btn-label below 900px, so on every
-              phone this is an emoji inside a box. `title` is a tooltip: most
-              screen readers do not announce it reliably, and it never appears
-              on touch at all. Without an aria-label the button's accessible
-              name on a phone is the magnifying-glass emoji, or nothing.
-            */
-            aria-label="Search and commands"
-            title="Search & commands (Ctrl/Cmd+K)"
+            aria-label="All tools: every feature in one list"
+            title="All tools (Ctrl/Cmd+K)"
           >
-            <span aria-hidden="true">🔍</span>
-            <span className="app-header__btn-label">Search</span>
+            <span aria-hidden="true">🧰</span>
+            <span className="app-header__btn-label">All tools</span>
+            <span className="app-header__tools-short" aria-hidden="true">
+              Tools
+            </span>
             <span className="app-header__kbd-hint" aria-hidden="true">
               ⌘K
             </span>
-          </button>
-          <button
-            type="button"
-            className="app-header__icon-btn app-header__icon-btn--ghost"
-            onClick={cycleTheme}
-            aria-label={`Theme: ${theme}. Activate to change it.`}
-            title={`Theme: ${theme}. Click to change.`}
-          >
-            <span aria-hidden="true">{THEME_ICON[theme]}</span>
-            <span className="app-header__btn-label">{theme === "system" ? "Auto" : theme === "light" ? "Light" : "Dark"}</span>
           </button>
 
           {/*

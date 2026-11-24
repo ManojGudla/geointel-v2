@@ -90,12 +90,37 @@ export function CommandPalette() {
     () => [
       {
         id: "search",
-        label: "Focus search",
+        label: "Search an address or place",
         icon: "🔍",
         available: true,
         run: () => document.querySelector<HTMLInputElement>(".search-bar__input")?.focus(),
       },
+      // Second in the list because this is now the "All tools" button in the
+      // header, and the agents are the feature people most often never find.
+      { id: "agents", label: "AI agents: explain this place", icon: "🤖", available: true, run: () => openSection("ai") },
       { id: "directions", label: "Start directions", icon: "🧭", available: !!location, requiresLocation: true, run: () => openDirections(location ?? undefined) },
+      {
+        id: "site",
+        label: "Site plans & construction",
+        icon: "🏗️",
+        available: !!location,
+        requiresLocation: true,
+        run: () => {
+          setIntelTab("site");
+          openSection("place");
+        },
+      },
+      {
+        id: "weather-news",
+        label: "Weather & local news",
+        icon: "🌦️",
+        available: !!location,
+        requiresLocation: true,
+        run: () => {
+          setIntelTab("live");
+          openSection("place");
+        },
+      },
       // Every command that reveals something must also OPEN the surface it
       // lives on. These used to set an internal tab only, so running them
       // while the panel was closed did nothing observable.
@@ -121,9 +146,8 @@ export function CommandPalette() {
           openSection("place");
         },
       },
-      { id: "agents", label: "Open AI agents", icon: "🤖", available: true, run: () => openSection("ai") },
       { id: "travel", label: "Open Travel Planner", icon: "✈️", available: true, run: () => openSection("travel") },
-      { id: "layers", label: "Map layers & radius", icon: "🗂️", available: true, run: () => openSection("layers") },
+      { id: "layers", label: "Satellite, map style & layers", icon: "🗂️", available: true, run: () => openSection("layers") },
       { id: "copilot", label: "Ask maNOWj", icon: "✨", available: true, run: () => openCopilot() },
       { id: "3d", label: "Toggle 3D view", icon: "🧊", available: true, run: () => toggle3D() },
       {

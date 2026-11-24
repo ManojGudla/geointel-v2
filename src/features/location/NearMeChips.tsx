@@ -16,7 +16,9 @@ interface Chip {
 }
 
 const CHIPS: Chip[] = [
-  { id: "petrol", icon: "⛽", label: "Petrol", radiusMeters: 5000 },
+  // "Fuel" rather than "Petrol": it is the word every visitor reads the same
+  // way, whether they would say petrol or gas.
+  { id: "petrol", icon: "⛽", label: "Fuel", radiusMeters: 5000 },
   { id: "atms", icon: "🏧", label: "ATM", radiusMeters: 2000 },
   { id: "hospitals", icon: "🏥", label: "Hospital", radiusMeters: 5000 },
   { id: "restaurants", icon: "🍽️", label: "Food", radiusMeters: 2000 },
