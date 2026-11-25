@@ -54,6 +54,13 @@ export function formatGeneratedAt(iso: string | undefined | null, now: Date = ne
 /** The single line an AI answer carries: who wrote it and when. */
 export function aiAttribution(model: string | undefined | null, generatedAt?: string | null, now?: Date): string {
   const when = formatGeneratedAt(generatedAt, now);
-  const who = `Written by ${formatModelLabel(model)}`;
+  /*
+    The server reports "none: <why>" when no model wrote the result (too
+    little evidence to ask one, or the AI could not answer and only the
+    checked facts came back). "Written by none: ..." read as a model named
+    "none"; this says what happened.
+  */
+  const noModel = typeof model === "string" ? /^none:\s*(.+)$/i.exec(model.trim()) : null;
+  const who = noModel ? `No AI model used: ${noModel[1]}` : `Written by ${formatModelLabel(model)}`;
   return when ? `${who} · ${when}` : who;
 }

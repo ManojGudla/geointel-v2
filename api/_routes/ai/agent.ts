@@ -6,7 +6,7 @@ import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
 import { fenceRules, makeFence } from "../../_lib/untrusted.js";
 import { GROUNDING_RULES } from "../../_lib/aiGrounding.js";
 import { gatherForAgent } from "../../_lib/evidence/gather.js";
-import { INSUFFICIENT, checkAnswer, confidenceFor, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
+import { FACTS_FOLLOW, FACTS_ONLY_MODEL, INSUFFICIENT, checkAnswer, confidenceFor, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
 import { parseAnchor } from "../../_lib/evidence/anchor.js";
 import type { AgentKind, AgentResult, AgentStep } from "../../../src/types/ai.js";
 
@@ -111,7 +111,21 @@ const handler: ApiHandler = async (req, res) => {
   const remaining = REQUEST_BUDGET_MS - (aiStarted - started);
   const completion = await getAiCompletion(messages, { maxTokens: 1600, deadlineMs: Math.max(12_000, Math.min(30_000, remaining)) });
   steps.push({ step: "Writing the explanation (AI model)", status: completion.ok ? "ok" : "failed", ms: Date.now() - aiStarted });
-  if (!completion.ok) return err(res, 502, completion.error, "AI_UNAVAILABLE");
+  if (!completion.ok) {
+    // The facts stand without the model: show them, and say why there is
+    // no summary. See FACTS_ONLY_MODEL.
+    const result: AgentResult = {
+      ...base,
+      summary: `${completion.error} ${FACTS_FOLLOW.agent}`,
+      findings: [],
+      steps,
+      generatedAt: new Date().toISOString(),
+      model: FACTS_ONLY_MODEL,
+      removedSentences: 0,
+      aiUnavailable: completion.error,
+    };
+    return ok(res, { result });
+  }
 
   const checked = checkAnswer(completion.content, gathered.items);
   steps.push({ step: "Checking every number against the evidence", status: checked.removed ? "partial" : "ok", ms: 0 });

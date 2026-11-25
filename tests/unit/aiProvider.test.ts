@@ -1,11 +1,12 @@
 import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
-import { getAiCompletion } from "../../api/_lib/ai";
+import { getAiCompletion, resetAiPause } from "../../api/_lib/ai";
 
 const ORIGINAL_ENV = { ...process.env };
 
 describe("getAiCompletion", () => {
   beforeEach(() => {
     process.env = { ...ORIGINAL_ENV };
+    resetAiPause();
   });
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -66,7 +67,12 @@ describe("getAiCompletion", () => {
     );
     const result = await getAiCompletion([{ role: "user", content: "hi" }]);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toMatch(/rate limit|quota/i);
+    // Plain words now ("busy"), and a reason a caller can branch on.
+    if (!result.ok) {
+      expect(result.reason).toBe("busy");
+      expect(result.error).toMatch(/busy/i);
+      expect(result.error).not.toMatch(/temporarily unavailable/i);
+    }
   });
 
   it("degrades to ok:false instead of throwing when the network request itself fails", async () => {

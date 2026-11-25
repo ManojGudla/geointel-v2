@@ -17,6 +17,7 @@ export function ChatAnswer({
   evidence,
   removedSentences,
   animate,
+  factsOnly = false,
 }: {
   text: string;
   sources?: string[];
@@ -24,13 +25,18 @@ export function ChatAnswer({
   evidence?: EvidenceItem[];
   removedSentences?: number;
   animate: boolean;
+  /**
+   * The AI could not write, and `text` says why: the evidence is the answer,
+   * so it starts open and the text reads as a notice.
+   */
+  factsOnly?: boolean;
 }) {
   const motionEnabled = useMotionPreference();
   const words = text.split(/(\s+)/);
   const [shown, setShown] = useState(animate && motionEnabled ? 0 : words.length);
   const [copied, setCopied] = useState(false);
   const [showSources, setShowSources] = useState(false);
-  const [showEvidence, setShowEvidence] = useState(false);
+  const [showEvidence, setShowEvidence] = useState(factsOnly);
   const removed = removedNotice(removedSentences);
 
   useEffect(() => {
@@ -58,7 +64,7 @@ export function ChatAnswer({
         ✨
       </span>
       <div className="chat-answer__body">
-        <p className="chat-answer__text">
+        <p className={`chat-answer__text${factsOnly ? " chat-answer__text--notice" : ""}`}>
           {done ? text : words.slice(0, shown).join("")}
           {!done && <span className="chat-answer__caret" aria-hidden="true" />}
         </p>

@@ -86,7 +86,8 @@ export function removedNotice(count: number | undefined): string | null {
  * answered, not from the model.
  */
 export function AgentEvidence({ result }: { result: AgentResult }) {
-  const [open, setOpen] = useState(false);
+  // With no written answer the evidence IS the result, so it starts open.
+  const [open, setOpen] = useState(!!result.aiUnavailable);
   const [highlight, setHighlight] = useState<string | null>(null);
   const listId = useId();
   const evidence = result.evidence ?? [];
@@ -105,11 +106,20 @@ export function AgentEvidence({ result }: { result: AgentResult }) {
         </p>
       )}
 
-      <p className="agent-evidence__caption">AI interpretation of the evidence</p>
-      {findings.length > 0 ? (
-        <Findings findings={findings} onCite={show} listId={listId} />
+      {result.aiUnavailable ? (
+        /* No AI interpretation to label: say why, and point at the facts. */
+        <p className="agent-evidence__unavailable" role="status">
+          {result.aiUnavailable} The facts this agent checked are below.
+        </p>
       ) : (
-        <p className="agent-card__result">{formatAiText(result.summary)}</p>
+        <>
+          <p className="agent-evidence__caption">AI interpretation of the evidence</p>
+          {findings.length > 0 ? (
+            <Findings findings={findings} onCite={show} listId={listId} />
+          ) : (
+            <p className="agent-card__result">{formatAiText(result.summary)}</p>
+          )}
+        </>
       )}
 
       {removedNotice(result.removedSentences) && <p className="agent-evidence__removed">{removedNotice(result.removedSentences)}</p>}

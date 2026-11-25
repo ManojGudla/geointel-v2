@@ -107,4 +107,25 @@ describe("asking the agents together", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Show evidence E5" }));
     expect(container.querySelector(".is-highlighted")!.textContent).toContain("Route distance");
   });
+
+  it("says why there is no written report, opens the evidence, and still offers the route", async () => {
+    const reason = "Ask maNOWj has used today's free AI allowance. It resets at midnight UTC (5:30 AM India time).";
+    const factsOnly: TeamResult = {
+      ...RESULT,
+      sections: RESULT.sections.map((section) =>
+        section.confidence.level === "insufficient"
+          ? section
+          : { ...section, summary: "Not written this time, because the AI could not answer. This agent's facts are in the evidence list.", findings: [] }
+      ),
+      model: "none: the AI could not answer this time",
+      aiUnavailable: reason,
+    };
+    const { container } = await renderTeam(async () => factsOnly);
+    fireEvent.click(screen.getByRole("button", { name: "Analyse the area within 1 km of here" }));
+    expect(await screen.findByText(`${reason} The facts the agents checked are in the evidence list below.`)).toBeTruthy();
+    const evidence = [...container.querySelectorAll("details")].find((d) => d.textContent?.startsWith("Evidence"))!;
+    expect(evidence.open).toBe(true);
+    expect(screen.getByRole("button", { name: "Show the route to Care Clinic on the map" })).toBeTruthy();
+    expect(screen.getByText(/^No AI model used: the AI could not answer this time/)).toBeTruthy();
+  });
 });

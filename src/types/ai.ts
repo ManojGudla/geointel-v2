@@ -44,6 +44,13 @@ export interface CopilotContext {
   }>;
 }
 
+/**
+ * The "model" of an Ask maNOWj answer written by the app's own help
+ * (api/_lib/appHelp.ts) rather than an AI. Its text is already plain and
+ * keeps its paragraph breaks, so it is shown as written.
+ */
+export const BUILT_IN_HELP_MODEL = "built-in help";
+
 export interface CopilotMessage {
   role: "user" | "assistant";
   content: string;
@@ -60,6 +67,11 @@ export interface CopilotMessage {
   evidence?: EvidenceItem[];
   /** Sentences the number check removed from this answer. */
   removedSentences?: number;
+  /**
+   * Set when the AI could not write and only the checked facts came back:
+   * the reason, in words a visitor can read. The evidence is still real.
+   */
+  aiUnavailable?: string;
 }
 
 export type AgentKind = "search" | "gis" | "property" | "navigation" | "travel" | "makeMyTrip";
@@ -147,6 +159,11 @@ export interface AgentResult {
   steps?: AgentStep[];
   /** Sentences removed because they stated a number the evidence does not hold. */
   removedSentences?: number;
+  /**
+   * Set when the AI could not write and only the checked facts came back:
+   * the reason, in words a visitor can read. The evidence is still real.
+   */
+  aiUnavailable?: string;
 }
 
 /** One agent's part of a team answer (the orchestrator, /api/ai/ask). */
@@ -175,6 +192,11 @@ export interface TeamResult {
   model: string;
   generatedAt: string;
   removedSentences: number;
+  /**
+   * Set when the AI could not write and only the checked facts came back:
+   * the reason, in words a visitor can read. The evidence is still real.
+   */
+  aiUnavailable?: string;
 }
 
 /** A stop in a Make My Trip plan: a named, mapped place. */

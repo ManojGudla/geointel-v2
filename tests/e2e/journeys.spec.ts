@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { HITEC, skipNotices, stubApi } from "./fixtures";
+import { HITEC, TEAM_FACTS_ONLY, skipNotices, stubApi } from "./fixtures";
 
 /**
  * MOCK end-to-end journeys: the real built site in a real browser, with the
@@ -36,6 +36,20 @@ test("a shared link opens the place in the AI section, and the agents answer tog
   await page.getByRole("button", { name: "Show evidence E4" }).click();
   await expect(page.locator(".agent-evidence__item.is-highlighted")).toContainText("Route distance");
   await expect(page.getByRole("button", { name: "Show the route to Care Clinic on the map" })).toBeVisible();
+});
+
+test("when the AI is busy, the agents still show the facts they checked, and the route", async ({ page }) => {
+  // Registered after stubApi, so it answers /api/ai/ask instead of the fixture.
+  await page.route("**/api/ai/ask", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(TEAM_FACTS_ONLY) }));
+  await page.goto(`/?lat=${HITEC.lat}&lon=${HITEC.lon}&s=ai`);
+  const team = page.getByRole("region", { name: "Ask the agents together" });
+  await team.getByLabel("What should the agents do?").fill("Is this good for a family home? Route to the nearest hospital");
+  await team.getByRole("button", { name: "Ask", exact: true }).click();
+
+  await expect(team.getByRole("status")).toHaveText("The free AI models are busy right now. Please try again in a minute. The facts the agents checked are in the evidence list below.");
+  await expect(team.locator(".agent-evidence__item").filter({ hasText: "Route distance" })).toBeVisible();
+  await expect(team.getByRole("button", { name: "Show the route to Care Clinic on the map" })).toBeVisible();
+  await expect(team.getByText(/^No AI model used: the AI could not answer this time/)).toBeVisible();
 });
 
 test("a provider that is down is reported, not hidden: the trip builder says nothing could be planned", async ({ page }) => {

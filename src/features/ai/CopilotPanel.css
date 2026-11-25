@@ -389,3 +389,13 @@
     animation: none;
   }
 }
+
+/* A reply that is a notice (the AI could not write) rather than an answer;
+   the checked facts open underneath it. Same tokens as the agents' notice. */
+.chat-answer__text--notice {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-warning);
+  background: var(--color-warning-bg);
+  color: var(--color-text);
+}

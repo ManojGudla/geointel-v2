@@ -23,7 +23,39 @@ export type AiResult =
       /** What we asked for. Kept apart from `model` so the two can differ. */
       requestedModel: string;
     }
-  | { ok: false; error: string };
+  | { ok: false; error: string; reason: AiFailureReason };
+
+/** Why no answer came back, for callers and tests; `error` is what a person reads. */
+export type AiFailureReason =
+  /** No OPENROUTER_API_KEY on the server. */
+  | "not-configured"
+  /** 401/403: the key was refused. */
+  | "key-rejected"
+  /** 402: the OpenRouter account itself needs attention (for example a negative balance). */
+  | "account"
+  /** This account's free-model requests per minute, shared by every free model. */
+  | "minute-limit"
+  /** This account's free-model requests per day, shared by every free model. */
+  | "daily-limit"
+  /** Every model tried was busy at its provider. */
+  | "busy"
+  /** 404: a model name, or a request, that no endpoint serves. */
+  | "no-endpoint"
+  /** Every model tried answered with nothing. */
+  | "empty"
+  /** A 5xx, a timeout or a failed connection. */
+  | "unavailable";
+
+/**
+ * What a visitor reads when no answer came. Plain words: the earlier "busy
+ * (rate limited)" was shown for an account-wide limit as well as for a busy
+ * model, and it told nobody which.
+ */
+export const AI_MESSAGES = {
+  minuteLimit: "Ask maNOWj's free AI has had too many questions in the last minute. Please try again in a minute.",
+  dailyLimit: "Ask maNOWj has used today's free AI allowance. It resets at midnight UTC (5:30 AM India time).",
+  busy: "The free AI models are busy right now. Please try again in a minute.",
+} as const;
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -63,6 +95,82 @@ const FREE_ROUTER = "openrouter/free";
 const PREFERRED_FREE_MODELS = ["google/gemma-4-31b-it:free", "nvidia/nemotron-3.5-lightning:free", "google/gemma-4-26b-a4b-it:free"];
 
 /**
+ * Whose limit a 429 is.
+ *
+ * OpenRouter answers 429 for two very different reasons (its limits page,
+ * checked 2026-11-25):
+ *  - this ACCOUNT hit a free-model limit: 20 requests a minute, and 50 a day
+ *    (1,000 once 10 dollars of credits have been bought). One limiter covers
+ *    every free model, so asking another free model gets the same 429, and
+ *    failed attempts count towards the day's 50. Its error says
+ *    "free-models-per-min" or "free-models-per-day", with a `limit_source`
+ *    and an X-RateLimit-Reset time.
+ *  - ONE MODEL's provider is busy ("temporarily rate-limited upstream"),
+ *    which says nothing about the other models.
+ *
+ * The earlier check only knew "per day". A per-minute 429 was taken for a
+ * busy model, so each question went on to ask three more models, all of
+ * which refused for the same reason, and the visitor was told the models
+ * were busy. Only the message and the limit source are read when the body
+ * is JSON: a provider's own raw text (Google's says "check quota") is not
+ * this account's quota.
+ */
+export function rateLimitScope(body: string): { scope: "minute" | "day" | "upstream"; resetAt: number | null } {
+  let said = body;
+  let resetAt: number | null = null;
+  try {
+    const parsed = JSON.parse(body) as {
+      error?: { message?: unknown; metadata?: { limit_source?: unknown; headers?: Record<string, unknown> } };
+    };
+    const message = typeof parsed.error?.message === "string" ? parsed.error.message : "";
+    const source = typeof parsed.error?.metadata?.limit_source === "string" ? parsed.error.metadata.limit_source : "";
+    said = `${source} ${message}`;
+    const reset = Number(parsed.error?.metadata?.headers?.["X-RateLimit-Reset"]);
+    if (Number.isFinite(reset) && reset > 0) resetAt = reset;
+  } catch {
+    // Not JSON: classify the text as it is.
+  }
+  // The explicit markers first: a per-minute message that also suggested
+  // buying credits must not be taken for the day's limit.
+  if (/per[_ -]?min/i.test(said)) return { scope: "minute", resetAt };
+  if (/per[_ -]?day|daily|credits|quota/i.test(said)) return { scope: "day", resetAt };
+  return { scope: "upstream", resetAt: null };
+}
+
+/*
+  After an account-wide limit, stop asking for a while.
+
+  Every request that reaches OpenRouter during a limit fails, and failed
+  requests count towards the day's allowance, so a burst (six agent cards
+  and a chat question) could spend a good part of the day's 50 on refusals.
+  This remembers the limit inside this server instance and answers at once
+  until it lifts. Per instance only, so it can never stop the whole site:
+  a new instance simply asks once and learns again.
+
+  A day's limit is re-checked every 10 minutes rather than held until
+  midnight, so buying credits (which raises the limit at once) is noticed
+  within minutes.
+*/
+const MINUTE_PAUSE_MS = 60_000;
+const DAILY_RECHECK_MS = 10 * 60_000;
+let accountPause: { until: number; reason: "minute-limit" | "daily-limit" } | null = null;
+
+function pauseFor(scope: "minute" | "day", resetAt: number | null, now: number): void {
+  const longest = scope === "minute" ? MINUTE_PAUSE_MS + 5_000 : DAILY_RECHECK_MS;
+  const fallback = scope === "minute" ? MINUTE_PAUSE_MS : DAILY_RECHECK_MS;
+  const wait = resetAt !== null && resetAt > now ? Math.min(resetAt - now, longest) : fallback;
+  accountPause = { until: now + wait, reason: scope === "minute" ? "minute-limit" : "daily-limit" };
+}
+
+/** Forget a remembered account limit. For tests; nothing in the app needs it. */
+export function resetAiPause(): void {
+  accountPause = null;
+}
+
+/** Free models share the account's free-model limits; a paid model does not. */
+const isFreeModel = (model: string) => model.endsWith(":free") || model === "openrouter/free";
+
+/**
  * Some models leak their private reasoning into the answer as <think>…</think>.
  * The person asked a question, not for a transcript of the model's thoughts.
  */
@@ -100,7 +208,7 @@ export async function getAiCompletion(
   const requestedModel = configured && configured !== FREE_ROUTER ? configured : PREFERRED_FREE_MODELS[0]!;
 
   if (!apiKey) {
-    return { ok: false, error: "AI features aren't configured yet. An OPENROUTER_API_KEY is needed on the server." };
+    return { ok: false, error: "AI features aren't configured yet. An OPENROUTER_API_KEY is needed on the server.", reason: "not-configured" };
   }
 
   /*
@@ -177,12 +285,22 @@ export async function getAiCompletion(
   // with under 4 seconds left is not started at all.
   const deadline = Date.now() + (opts.deadlineMs ?? 30_000);
   let lastError = "The AI provider is temporarily unavailable.";
+  let lastReason: AiFailureReason = "unavailable";
 
-  for (let i = 0; i < attempts.length; i += 1) {
-    const model = attempts[i]!;
+  // During a remembered account limit (see accountPause), free models are
+  // not asked at all: the answer is already known, and asking costs quota.
+  if (accountPause && Date.now() >= accountPause.until) accountPause = null;
+  const paused = accountPause;
+  const toTry = paused ? attempts.filter((model) => !isFreeModel(model)) : attempts;
+  if (paused && toTry.length === 0) {
+    return { ok: false, error: paused.reason === "minute-limit" ? AI_MESSAGES.minuteLimit : AI_MESSAGES.dailyLimit, reason: paused.reason };
+  }
+
+  for (let i = 0; i < toTry.length; i += 1) {
+    const model = toTry[i]!;
     const remaining = deadline - Date.now();
-    const isLast = i === attempts.length - 1 || remaining - Math.min(perAttemptMs, remaining) < 4_000;
-    if (i > 0 && remaining < 4_000) return { ok: false, error: lastError };
+    const isLast = i === toTry.length - 1 || remaining - Math.min(perAttemptMs, remaining) < 4_000;
+    if (i > 0 && remaining < 4_000) return { ok: false, error: lastError, reason: lastReason };
 
     try {
       const response = await send(model, Math.min(perAttemptMs, remaining));
@@ -195,29 +313,34 @@ export async function getAiCompletion(
         // difference between "this will pass in a minute" and "this will
         // never work until you fix something".
         if (response.status === 401 || response.status === 403) {
-          return { ok: false, error: "The AI provider rejected the configured API key (unauthorized). Check OPENROUTER_API_KEY." };
+          return { ok: false, error: "The AI provider rejected the configured API key (unauthorized). Check OPENROUTER_API_KEY.", reason: "key-rejected" };
+        }
+        if (response.status === 402) {
+          // A negative balance blocks free models too, so no other model helps.
+          return { ok: false, error: "The AI service's account needs attention, so Ask maNOWj can't answer right now.", reason: "account" };
         }
         if (response.status === 429) {
           /*
             Two different things answer 429, and only one of them is final.
 
-            The account's daily free allowance being used up applies to every
-            model, so trying another only wastes time. But a single popular
-            free model being "temporarily rate-limited upstream" is common and
+            This account's free-model limit (per minute or per day) applies
+            to every free model, so trying another only spends more of the
+            day's allowance; see rateLimitScope. But a single popular free
+            model being "temporarily rate-limited upstream" is common and
             says nothing about the others - and this used to give up on the
             first one, so Ask maNOWj reported "quota hit" while the backup
             model was sitting idle. Seen live on 2026-11-06.
           */
-          const accountLimit = /per[- ]day|daily|credits|quota/i.test(text);
-          if (accountLimit || isLast) {
-            return {
-              ok: false,
-              error: accountLimit
-                ? "Ask maNOWj has used today's free AI allowance. It resets daily; please try again later."
-                : "The free AI models are busy (rate limited) right now. Please try again in a minute.",
-            };
+          const { scope, resetAt } = rateLimitScope(text);
+          if (scope !== "upstream" && isFreeModel(model)) {
+            pauseFor(scope, resetAt, Date.now());
+            return scope === "minute"
+              ? { ok: false, error: AI_MESSAGES.minuteLimit, reason: "minute-limit" }
+              : { ok: false, error: AI_MESSAGES.dailyLimit, reason: "daily-limit" };
           }
-          lastError = "The free AI models are busy (rate limited) right now. Please try again in a minute.";
+          lastError = AI_MESSAGES.busy;
+          lastReason = "busy";
+          if (isLast) return { ok: false, error: lastError, reason: lastReason };
           continue;
         }
         if (response.status === 404) {
@@ -232,10 +355,12 @@ export async function getAiCompletion(
             never set. The configured slug is the one they can act on.
           */
           lastError = `No AI endpoint matched this request. Check the OPENROUTER_MODEL setting ("${requestedModel}"). This is a configuration problem, not an outage.`;
+          lastReason = "no-endpoint";
         } else {
           lastError = `The AI provider is temporarily unavailable (HTTP ${response.status}).`;
+          lastReason = "unavailable";
         }
-        if (isLast) return { ok: false, error: lastError };
+        if (isLast) return { ok: false, error: lastError, reason: lastReason };
         continue;
       }
 
@@ -255,7 +380,8 @@ export async function getAiCompletion(
         console.warn("[ai] empty content from", model, "(rolling for a different model)");
         lastError =
           "Every model tried returned an empty answer. Free models are shared and this usually passes. Press Run again in a moment.";
-        if (isLast) return { ok: false, error: lastError };
+        lastReason = "empty";
+        if (isLast) return { ok: false, error: lastError, reason: lastReason };
         continue;
       }
 
@@ -264,9 +390,10 @@ export async function getAiCompletion(
     } catch (error) {
       console.error("[ai] request failed", model, error);
       lastError = "The AI provider is temporarily unavailable.";
-      if (isLast) return { ok: false, error: lastError };
+      lastReason = "unavailable";
+      if (isLast) return { ok: false, error: lastError, reason: lastReason };
     }
   }
 
-  return { ok: false, error: lastError };
+  return { ok: false, error: lastError, reason: lastReason };
 }

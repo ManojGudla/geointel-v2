@@ -17,6 +17,8 @@ const state = vi.hoisted(() => ({
   prompt: undefined as string | undefined,
   modelCalls: 0,
   reply: "Summary.",
+  /** When set, the model "fails" with this message, as a busy free tier does. */
+  fail: null as string | null,
 }));
 
 function stand(name: string) {
@@ -39,6 +41,7 @@ vi.mock("../../api/_lib/ai", () => ({
   getAiCompletion: vi.fn(async (messages: Array<{ role: string; content: string }>) => {
     state.modelCalls += 1;
     state.prompt = messages.find((m) => m.role === "system")?.content;
+    if (state.fail) return { ok: false, error: state.fail, reason: "busy" };
     return { ok: true, content: state.reply, model: "test-model" };
   }),
 }));
@@ -84,6 +87,7 @@ describe("api/ai/agent", () => {
     state.prompt = undefined;
     state.modelCalls = 0;
     state.reply = "Summary.";
+    state.fail = null;
   });
 
   it("refuses a request that sends facts but no anchor (a page from before the change)", async () => {
@@ -170,6 +174,23 @@ describe("api/ai/agent", () => {
       "Checking every number against the evidence",
     ]);
     expect(result.model).toBe("test-model");
+  });
+
+  it("still shows the checked facts when the AI cannot write, and says why", async () => {
+    // Reported 25 November 2026: every card showed only "busy" although the
+    // evidence had already been fetched and checked.
+    state.fail = "The free AI models are busy right now. Please try again in a minute.";
+    const r = await post({ kind: "gis", anchor: EIFFEL });
+    const result = resultOf(r);
+    expect(r.statusCode).toBe(200);
+    expect(result.aiUnavailable).toBe(state.fail);
+    expect(result.summary).toBe(`${state.fail} The facts this agent checked are listed below.`);
+    expect(result.findings).toEqual([]);
+    expect(result.model).toBe("none: the AI could not answer this time");
+    // The evidence and its confidence are exactly what a written answer would have had.
+    expect(result.evidence!.find((e) => e.label === "Mapped shops within 250 m")!.value).toBe("6");
+    expect(result.confidence?.level).toBe("high");
+    expect(result.steps!.at(-1)).toEqual(expect.objectContaining({ step: "Writing the explanation (AI model)", status: "failed" }));
   });
 
   it("rejects an unknown agent kind", async () => {
