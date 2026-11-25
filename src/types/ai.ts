@@ -76,10 +76,71 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
   { kind: "makeMyTrip", label: "Make My Trip", icon: "🧭", description: "Suggests a same-day plan around this location using real, already-loaded data." },
 ];
 
+/**
+ * What an agent is asked about. Only places and settings, never facts: the
+ * server fetches every fact itself from the providers, so nothing the
+ * browser says can become "verified" in an answer.
+ */
+export interface AgentAnchor {
+  lat: number;
+  lon: number;
+  /** The evidence radius the visitor picked (the server clamps it). */
+  radiusMeters?: number;
+  /** The route the visitor planned: its two ends and the travel mode. */
+  route?: { fromLat: number; fromLon: number; toLat: number; toLon: number; mode: "car" | "walk" | "bike" };
+  /** What the visitor typed in search, for the Search agent. */
+  query?: string;
+}
+
+/**
+ * One fact an answer may rest on.
+ *
+ * - retrieved: a provider's own value (a count, a temperature, a route time)
+ * - computed: worked out by this app from retrieved values, with the method
+ *   in `note`
+ * - unavailable: asked for and not obtained; `note` says why
+ */
+export interface EvidenceItem {
+  id: string;
+  label: string;
+  value: string;
+  kind: "retrieved" | "computed" | "unavailable";
+  source: string;
+  /** When the provider answered (ISO 8601), when known. */
+  retrievedAt?: string;
+  note?: string;
+}
+
+/** One sentence of an answer and the evidence it cites. Empty = interpretation. */
+export interface AgentFinding {
+  text: string;
+  evidenceIds: string[];
+}
+
+/** How sure an answer can be, from which sources answered, not from the model. */
+export interface AgentConfidence {
+  level: "high" | "medium" | "low" | "insufficient";
+  reason: string;
+}
+
+/** One real server step behind an answer, in order, with how long it took. */
+export interface AgentStep {
+  step: string;
+  status: "ok" | "partial" | "failed";
+  ms: number;
+}
+
 export interface AgentResult {
   kind: AgentKind;
   summary: string;
   sources: string[];
   generatedAt: string;
   model: string;
+  /** Present on answers from the evidence-first agents (v3.5 and later). */
+  findings?: AgentFinding[];
+  evidence?: EvidenceItem[];
+  confidence?: AgentConfidence;
+  steps?: AgentStep[];
+  /** Sentences removed because they stated a number the evidence does not hold. */
+  removedSentences?: number;
 }

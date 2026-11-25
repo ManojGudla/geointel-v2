@@ -18,7 +18,9 @@ import "./AgentStrip.css";
  */
 export function AgentStrip() {
   const location = useLocationStore((s) => s.selectedLocation);
-  const { context, pending } = useCopilotContextState();
+  // The cards still wait for the panels' own loads before offering Run, so
+  // an answer appears beside the numbers it explains, not before them.
+  const { pending } = useCopilotContextState();
 
   return (
     <div className="agent-strip">
@@ -33,7 +35,7 @@ export function AgentStrip() {
       <div className="agent-strip__row">
         {AGENT_DEFINITIONS.map((def) => (
           <div className="agent-strip__item" key={def.kind}>
-            <AgentCard definition={def} context={context} pending={pending} />
+            <AgentCard definition={def} pending={pending} />
           </div>
         ))}
       </div>

@@ -1,29 +1,31 @@
 import { useAiStore } from "@/stores/aiStore";
 import { useLocationStore } from "@/stores/locationStore";
 import { runAgent } from "@/services/ai";
-import { formatAiText } from "@/lib/formatAiText";
 import { aiAttribution } from "@/lib/formatAiMeta";
 import { agentSubject, stalenessNotice } from "./agentSubject";
 import { readinessNotice } from "./agentReadiness";
 import type { ContextPending } from "./useCopilotContext";
-import type { AgentDefinition, CopilotContext } from "@/types/ai";
+import type { AgentDefinition } from "@/types/ai";
 import "./AgentCard.css";
 import { describeAiFailure } from "./aiErrors";
+import { useAgentAnchor } from "./agentAnchor";
+import { AgentEvidence } from "./AgentEvidence";
+import { formatAiText } from "@/lib/formatAiText";
 
 const NOTHING_PENDING: ContextPending = { gis: false, weather: false, nearby: false, route: false, officials: false };
 
 export function AgentCard({
   definition,
-  context,
   pending = NOTHING_PENDING,
 }: {
   definition: AgentDefinition;
-  context: CopilotContext;
   pending?: ContextPending;
 }) {
   const run = useAiStore((s) => s.agentRuns[definition.kind]);
   const setAgentRun = useAiStore((s) => s.setAgentRun);
   const location = useLocationStore((s) => s.selectedLocation);
+  // Where to look, never what to say: the server fetches the facts itself.
+  const anchor = useAgentAnchor();
 
   const subject = agentSubject(location);
   const stale = run.status === "done" ? stalenessNotice(run.subject, subject) : null;
@@ -32,12 +34,13 @@ export function AgentCard({
   const waiting = location ? readinessNotice(definition.kind, pending) : null;
 
   const handleRun = async () => {
+    if (!anchor) return;
     // Queued until the AI request gate actually lets this one out - see
     // src/services/aiRequestQueue.ts. onStart is what flips it to "running",
     // so the card never claims to be running while it's really still waiting.
     setAgentRun(definition.kind, { status: "queued", subject });
     try {
-      const result = await runAgent(definition.kind, context, undefined, () =>
+      const result = await runAgent(definition.kind, anchor, undefined, () =>
         setAgentRun(definition.kind, { status: "running", subject })
       );
       // `subject` is the one captured above, at click time - the place this
@@ -110,7 +113,11 @@ export function AgentCard({
             what is on screen.
           */}
           {stale && <p className="agent-card__stale">{stale}</p>}
-          <p className="agent-card__result">{formatAiText(run.result.summary)}</p>
+          {run.result.evidence ? (
+            <AgentEvidence result={run.result} />
+          ) : (
+            <p className="agent-card__result">{formatAiText(run.result.summary)}</p>
+          )}
           {run.result.sources.length > 0 && <span className="agent-card__sources">Based on: {run.result.sources.join(", ")}</span>}
           {/*
             Who wrote this, and when. The server used to report the model slug

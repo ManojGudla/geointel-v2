@@ -1,5 +1,5 @@
 import type { GISEvidence, PropertyAnalysis, PropertyClassification } from "@/types/gis";
-import { totalEvidenceCount } from "@/features/gis/evidenceTotal";
+import { totalEvidenceCount } from "../gis/evidenceTotal.js";
 
 const MIN_EVIDENCE_FOR_CONFIDENCE = 6;
 

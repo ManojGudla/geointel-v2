@@ -109,7 +109,6 @@ describe("the agent card", () => {
     return render(
       <AgentCard
         definition={{ kind: "gis", label: "GIS Intelligence", icon: "🗺️", description: "Explains the evidence." }}
-        context={{}}
       />
     );
   }

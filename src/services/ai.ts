@@ -1,7 +1,7 @@
 import { track } from "@/services/analytics";
 import { apiPost } from "@/services/apiClient";
 import { createRequestGate } from "@/services/aiRequestQueue";
-import type { AgentKind, AgentResult, CopilotContext } from "@/types/ai";
+import type { AgentAnchor, AgentKind, AgentResult, CopilotContext } from "@/types/ai";
 
 // AI completions (OpenRouter, often on free-tier/rate-limited models) run
 // meaningfully slower than the other data endpoints and take the apiClient
@@ -11,6 +11,11 @@ import type { AgentKind, AgentResult, CopilotContext } from "@/types/ai";
 // the server's 25s (api/_lib/ai.ts) leaves real margin for network/parse
 // overhead on top of the provider's own response time.
 const AI_REQUEST_TIMEOUT_MS = 35_000;
+/**
+ * Agents fetch their own evidence on the server before the model writes, so
+ * they get a few seconds more. api/_routes/ai/agent.ts budgets 37 s.
+ */
+const AGENT_REQUEST_TIMEOUT_MS = 40_000;
 
 // Every AI call in the app shares one provider key, so they share one rate
 // limit - see aiRequestQueue.ts for the reported bug this fixes (clicking
@@ -70,11 +75,15 @@ export async function askCopilot(
   );
 }
 
-export async function runAgent(kind: AgentKind, context: CopilotContext, signal?: AbortSignal, onStart?: () => void): Promise<AgentResult> {
+/**
+ * Runs one agent on a place. Only the anchor (where to look) is sent; the
+ * server fetches and checks every fact itself.
+ */
+export async function runAgent(kind: AgentKind, anchor: AgentAnchor, signal?: AbortSignal, onStart?: () => void): Promise<AgentResult> {
   return measured(`agent:${kind}`, () =>
     aiGate.run(
       async () => {
-        const { result } = await apiPost<{ result: AgentResult }>("/api/ai/agent", { kind, context }, signal, AI_REQUEST_TIMEOUT_MS);
+        const { result } = await apiPost<{ result: AgentResult }>("/api/ai/agent", { kind, anchor }, signal, AGENT_REQUEST_TIMEOUT_MS);
         return result;
       },
       { onStart }

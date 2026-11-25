@@ -84,7 +84,9 @@ describe("what an answer says it was based on", () => {
     ]);
   });
 
-  for (const route of ["copilot", "agent"] as const) {
+  // The agents no longer take facts from the browser at all: their sources
+  // come from evidence the server fetched (tests/unit/aiAgentEndpoint.test.ts).
+  for (const route of ["copilot"] as const) {
     it(`the ${route} sends the rules and returns real sources`, async () => {
       vi.resetModules();
       const seen = capture();

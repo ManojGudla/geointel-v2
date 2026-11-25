@@ -80,7 +80,18 @@ export function stripReasoning(text: string): string {
  */
 export async function getAiCompletion(
   messages: AiMessage[],
-  opts: { model?: string; maxTokens?: number; temperature?: number } = {}
+  opts: {
+    model?: string;
+    maxTokens?: number;
+    temperature?: number;
+    /**
+     * Total time for every attempt together. Defaults to 30 s, inside the
+     * client's 35 s. Callers that spend time before asking (the agents fetch
+     * their evidence first) pass what is left, so a retry never lands after
+     * the visitor's browser has given up.
+     */
+    deadlineMs?: number;
+  } = {}
 ): Promise<AiResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   // A configured OPENROUTER_MODEL of "openrouter/free" (the old default in
@@ -164,7 +175,7 @@ export async function getAiCompletion(
   // model usually refuses in under a second, so four attempts normally fit;
   // when time is short the remaining ones get what is left, and an attempt
   // with under 4 seconds left is not started at all.
-  const deadline = Date.now() + 30_000;
+  const deadline = Date.now() + (opts.deadlineMs ?? 30_000);
   let lastError = "The AI provider is temporarily unavailable.";
 
   for (let i = 0; i < attempts.length; i += 1) {
