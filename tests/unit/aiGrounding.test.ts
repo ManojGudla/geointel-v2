@@ -52,6 +52,14 @@ function capture(reply = "Answer.") {
   return seen;
 }
 
+/** The model fails, as the free tier does when it is busy or used up. */
+function failing(error: string) {
+  vi.doMock("../../api/_lib/ai", () => ({
+    getAiCompletion: vi.fn(async () => ({ ok: false, error, reason: "busy" })),
+  }));
+  vi.doMock("../../api/_lib/kb", () => ({ searchKnowledgeBase: vi.fn(async () => []) }));
+}
+
 const AT = "2026-11-25T07:30:00.000Z";
 const WAVE_ROCK = { lat: -32.4436, lon: 118.8975 };
 
@@ -163,5 +171,38 @@ describe("what the Copilot is given, and what its answer says it was based on (m
     const body = call.body as { answer: string; removedSentences: number };
     expect(body.removedSentences).toBe(1);
     expect(body.answer).toBe("It is 31 °C at Wave Rock.");
+  });
+});
+
+describe("when the AI cannot write (mock model)", () => {
+  const BUSY = "The free AI models are busy right now. Please try again in a minute.";
+
+  it("still shows the facts it checked for a question about the place, and says why", async () => {
+    failing(BUSY);
+    const call = await ask("What's the weather here?");
+    const body = call.body as { answer: string; aiUnavailable: string; model: string; sources: string[]; evidence: Array<{ label: string; value: string }> };
+    expect(call.statusCode).toBe(200);
+    expect(body.aiUnavailable).toBe(BUSY);
+    expect(body.answer).toBe(`${BUSY} Meanwhile, here are the facts the app checked for this place.`);
+    expect(body.model).toBe("none: the AI could not answer this time");
+    expect(body.sources).toContain("Open-Meteo");
+    // The server's own weather, never the 99 degrees the browser sent.
+    expect(body.evidence.some((e) => e.value.includes("31"))).toBe(true);
+    expect(JSON.stringify(body.evidence)).not.toMatch(/\b99\s*°|Snow/);
+  });
+
+  it("gives the reason alone when every source failed too", async () => {
+    failing(BUSY);
+    routes.answers = {};
+    const call = await ask("What's the weather here?");
+    expect(call.statusCode).toBe(502);
+    expect(call.body).toEqual(expect.objectContaining({ error: BUSY, code: "AI_UNAVAILABLE" }));
+  });
+
+  it("gives the reason alone when there were no facts to show", async () => {
+    failing(BUSY);
+    const call = await ask("who is his future wife");
+    expect(call.statusCode).toBe(502);
+    expect(call.body).toEqual(expect.objectContaining({ error: BUSY, code: "AI_UNAVAILABLE" }));
   });
 });

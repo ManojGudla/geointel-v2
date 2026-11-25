@@ -83,6 +83,36 @@ describe("an agent answer, laid out by what each part is", () => {
   });
 });
 
+describe("an agent result the AI could not write", () => {
+  afterEach(cleanup);
+  const BUSY = "The free AI models are busy right now. Please try again in a minute.";
+  const FACTS_ONLY: AgentResult = {
+    ...RESULT,
+    summary: `${BUSY} The facts this agent checked are listed below.`,
+    findings: [],
+    removedSentences: 0,
+    model: "none: the AI could not answer this time",
+    aiUnavailable: BUSY,
+  };
+
+  it("says why there is no summary, and does not label anything as AI interpretation", () => {
+    render(<AgentEvidence result={FACTS_ONLY} />);
+    expect(screen.getByRole("status").textContent).toBe(`${BUSY} The facts this agent checked are below.`);
+    expect(screen.queryByText("AI interpretation of the evidence")).toBeNull();
+  });
+
+  it("opens the evidence straight away, since it is the whole result", () => {
+    const { container } = render(<AgentEvidence result={FACTS_ONLY} />);
+    expect((container.querySelector("details") as HTMLDetailsElement).open).toBe(true);
+    expect(screen.getByText("Temperature now")).toBeTruthy();
+  });
+
+  it("keeps the confidence, which is about the evidence and not the model", () => {
+    render(<AgentEvidence result={FACTS_ONLY} />);
+    expect(screen.getByText("Confidence: Medium.")).toBeTruthy();
+  });
+});
+
 describe("a Copilot answer with the facts behind it", () => {
   beforeEach(() => {
     // jsdom has no matchMedia; the answer asks it whether to animate.
@@ -107,5 +137,15 @@ describe("a Copilot answer with the facts behind it", () => {
     const { ChatAnswer } = await import("../../src/features/ai/ChatAnswer");
     render(<ChatAnswer text="Manoj Kumar Gudla built it." sources={[]} animate={false} />);
     expect(screen.queryByRole("button", { name: /Evidence/ })).toBeNull();
+  });
+
+  it("shows a facts-only reply as a notice, with the evidence already open", async () => {
+    const { ChatAnswer } = await import("../../src/features/ai/ChatAnswer");
+    const { container } = render(
+      <ChatAnswer text="The free AI models are busy right now. Meanwhile, here are the facts the app checked for this place." evidence={RESULT.evidence} animate={false} factsOnly />
+    );
+    expect(container.querySelector(".chat-answer__text--notice")).toBeTruthy();
+    expect(screen.getByText("Temperature now")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "☰ Evidence (4)" }).getAttribute("aria-expanded")).toBe("true");
   });
 });

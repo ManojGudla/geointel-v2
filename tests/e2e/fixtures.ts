@@ -45,6 +45,24 @@ const FIXTURES: Record<string, unknown> = {
   },
 };
 
+/**
+ * The team answer as the server sends it when the AI could not write: the
+ * same checked evidence and route, no findings, and the reason.
+ */
+export const TEAM_FACTS_ONLY = (() => {
+  const answer = FIXTURES["ai/ask"] as { ok: true; result: { sections: Array<Record<string, unknown>>; steps: Array<Record<string, unknown>> } & Record<string, unknown> };
+  return {
+    ok: true,
+    result: {
+      ...answer.result,
+      sections: answer.result.sections.map((section) => ({ ...section, summary: "Not written this time, because the AI could not answer. This agent's facts are in the evidence list.", findings: [] })),
+      steps: answer.result.steps.map((step) => (String(step.step).startsWith("Writing the report") ? { ...step, status: "failed" } : step)).filter((step) => !String(step.step).startsWith("Checking every number")),
+      model: "none: the AI could not answer this time",
+      aiUnavailable: "The free AI models are busy right now. Please try again in a minute.",
+    },
+  };
+})();
+
 export async function stubApi(page: Page): Promise<void> {
   await page.route("**/api/**", (route: Route) => {
     const path = new URL(route.request().url()).pathname.replace(/^\/api\//, "");

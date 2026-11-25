@@ -121,6 +121,11 @@ describe("how attribution reads", () => {
     expect(yesterday).toMatch(/Sep/);
   });
 
+  it("says no AI model was used when none wrote the result, instead of naming a model 'none'", () => {
+    expect(aiAttribution("none: the AI could not answer this time", undefined)).toBe("No AI model used: the AI could not answer this time");
+    expect(aiAttribution("none: not enough evidence to ask a model", undefined)).toBe("No AI model used: not enough evidence to ask a model");
+  });
+
   it("degrades to just the author when there is no usable timestamp", () => {
     expect(aiAttribution("x/y", undefined)).toBe("Written by x/y");
     expect(aiAttribution("x/y", "not-a-date")).toBe("Written by x/y");

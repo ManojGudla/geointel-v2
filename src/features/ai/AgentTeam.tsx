@@ -56,7 +56,10 @@ export function AgentTeam() {
     setHighlight(null);
     setOpen(false);
     try {
-      setState({ status: "done", result: await askAgentTeam(text, anchor) });
+      const result = await askAgentTeam(text, anchor);
+      setState({ status: "done", result });
+      // With no written answer the evidence IS the result, so it opens.
+      if (result.aiUnavailable) setOpen(true);
     } catch (error) {
       setState({ status: "error", error: describeAiFailure(error) });
     }
@@ -151,6 +154,12 @@ export function AgentTeam() {
               </li>
             ))}
           </ul>
+
+          {result.aiUnavailable && (
+            <p className="agent-evidence__unavailable" role="status">
+              {result.aiUnavailable} The facts the agents checked are in the evidence list below.
+            </p>
+          )}
 
           <details className="agent-evidence__details" open>
             <summary>What the agents did</summary>

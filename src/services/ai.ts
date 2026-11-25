@@ -56,6 +56,8 @@ export interface CopilotAnswer {
   generatedAt?: string;
   evidence?: EvidenceItem[];
   removedSentences?: number;
+  /** Set when the AI could not write and only the checked facts came back. */
+  aiUnavailable?: string;
 }
 
 /**

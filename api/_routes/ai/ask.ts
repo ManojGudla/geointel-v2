@@ -8,7 +8,7 @@ import { GROUNDING_RULES } from "../../_lib/aiGrounding.js";
 import { parseAnchor } from "../../_lib/evidence/anchor.js";
 import { gatherTools } from "../../_lib/evidence/gather.js";
 import { planRequest } from "../../_lib/evidence/planner.js";
-import { INSUFFICIENT, checkAnswer, confidenceFor, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
+import { FACTS_FOLLOW, FACTS_ONLY_MODEL, INSUFFICIENT, checkAnswer, confidenceFor, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
 import type { AgentKind, AgentStep, TeamResult, TeamSection } from "../../../src/types/ai.js";
 
 /**
@@ -141,7 +141,23 @@ const handler: ApiHandler = async (req, res) => {
     deadlineMs: Math.max(12_000, Math.min(30_000, REQUEST_BUDGET_MS - (aiStarted - started))),
   });
   steps.push({ step: "Writing the report (AI model, one request for all agents)", status: completion.ok ? "ok" : "failed", ms: Date.now() - aiStarted });
-  if (!completion.ok) return err(res, 502, completion.error, "AI_UNAVAILABLE");
+  if (!completion.ok) {
+    // The facts stand without the model: return them, one plain line per
+    // agent saying why its part is not written. See FACTS_ONLY_MODEL.
+    const sections = plan.agents.map((agent): TeamSection =>
+      confidence.get(agent)!.level === "insufficient" ? fixedSection(agent) : { agent, summary: FACTS_FOLLOW.teamSection, findings: [], confidence: confidence.get(agent)! }
+    );
+    const result: TeamResult = {
+      ...base,
+      sections,
+      steps,
+      model: FACTS_ONLY_MODEL,
+      generatedAt: new Date().toISOString(),
+      removedSentences: 0,
+      aiUnavailable: completion.error,
+    };
+    return ok(res, { result });
+  }
 
   const texts = splitSections(completion.content, answerable);
   let removed = 0;

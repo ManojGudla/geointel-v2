@@ -10,7 +10,7 @@ import { fenceRules, makeFence, sanitizeField } from "../../_lib/untrusted.js";
 import { GROUNDING_RULES, isAboutThePlace } from "../../_lib/aiGrounding.js";
 import { parseAnchor } from "../../_lib/evidence/anchor.js";
 import { gatherTools, type ToolName } from "../../_lib/evidence/gather.js";
-import { INSUFFICIENT, checkAnswer, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
+import { FACTS_FOLLOW, FACTS_ONLY_MODEL, INSUFFICIENT, checkAnswer, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
 import type { AgentStep, EvidenceItem } from "../../../src/types/ai.js";
 
 interface CopilotRequestBody {
@@ -212,7 +212,29 @@ const handler: ApiHandler = async (req, res) => {
     deadlineMs: Math.max(12_000, Math.min(30_000, 37_000 - (aiStarted - started))),
   });
   steps.push({ step: "Writing the answer (AI model)", status: result.ok ? "ok" : "failed", ms: Date.now() - aiStarted });
-  if (!result.ok) return err(res, 502, result.error, "AI_UNAVAILABLE");
+  if (!result.ok) {
+    /*
+      A question about the place had its facts fetched before the model was
+      asked. They stand without it, so they are returned, opened, with the
+      reason there is no written answer. A question with no facts behind it,
+      or whose sources all failed too, has nothing to show, and gets the
+      reason alone: a list of "unavailable" rows is not facts.
+    */
+    if (aboutPlace && evidence.some((item) => item.kind !== "unavailable")) {
+      return ok(res, {
+        answer: `${result.error} ${FACTS_FOLLOW.copilot}`,
+        sources: sourcesOf(evidence),
+        evidence,
+        findings: [],
+        steps,
+        removedSentences: 0,
+        model: FACTS_ONLY_MODEL,
+        generatedAt: new Date().toISOString(),
+        aiUnavailable: result.error,
+      });
+    }
+    return err(res, 502, result.error, "AI_UNAVAILABLE");
+  }
 
   /*
     The same check as the agents: a sentence with a number that is in

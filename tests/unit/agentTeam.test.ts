@@ -61,6 +61,8 @@ const state = vi.hoisted(() => ({
   prompt: "",
   modelCalls: 0,
   reply: "",
+  /** When set, the model "fails" with this message, as a busy free tier does. */
+  fail: null as string | null,
 }));
 
 function stand(name: string) {
@@ -85,6 +87,7 @@ vi.mock("../../api/_lib/ai", () => ({
   getAiCompletion: vi.fn(async (messages: Array<{ role: string; content: string }>) => {
     state.modelCalls += 1;
     state.prompt = messages.find((m) => m.role === "system")?.content ?? "";
+    if (state.fail) return { ok: false, error: state.fail, reason: "busy" };
     return { ok: true, content: state.reply, model: "test-model" };
   }),
 }));
@@ -149,6 +152,7 @@ describe("the agents working together on one request (mock providers and model)"
     state.prompt = "";
     state.modelCalls = 0;
     state.reply = "";
+    state.fail = null;
   });
 
   it("finds the nearest hospital from the nearby places, routes to it, and returns the destination", async () => {
@@ -209,6 +213,22 @@ describe("the agents working together on one request (mock providers and model)"
     state.reply = "GIS: Offices dominate [E8].";
     const result = resultOf(await ask("Evaluate this property", HITEC));
     expect(result.sections.find((s) => s.agent === "property")!.summary).toBe("Insufficient verified data to provide a reliable conclusion.");
+  });
+
+  it("still returns the checked facts and the route when the AI cannot write", async () => {
+    state.fail = "Ask maNOWj has used today's free AI allowance. It resets at midnight UTC (5:30 AM India time).";
+    const r = await ask("Is this good for a family home? Route to the nearest hospital", HITEC);
+    const result = resultOf(r);
+    expect(r.statusCode).toBe(200);
+    expect(result.aiUnavailable).toBe(state.fail);
+    expect(result.model).toBe("none: the AI could not answer this time");
+    expect(result.evidence.length).toBeGreaterThan(0);
+    // The nearest hospital was found from the evidence, not by the model, so the route still works.
+    expect(result.route).toEqual({ name: "Care Clinic", lat: 17.452, lon: 78.379, mode: "car" });
+    for (const section of result.sections) {
+      expect(section.findings).toEqual([]);
+      expect(section.summary).toBe("Not written this time, because the AI could not answer. This agent's facts are in the evidence list.");
+    }
   });
 
   it("needs a request and a place", async () => {

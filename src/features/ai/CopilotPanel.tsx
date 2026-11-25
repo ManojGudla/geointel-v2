@@ -55,12 +55,13 @@ export function CopilotPanel() {
       understood, but only while the same place is selected. After moving to
       another place, the old turns describe somewhere else, and sending them
       would invite the model to answer with the previous place's numbers.
-      Failed attempts are left out; they carry no information.
+      Failed attempts are left out; they carry no information. So are
+      facts-only replies: their text is a notice, not an answer to follow.
     */
     const placeKey = location ? `${location.lat},${location.lon}` : "none";
     const history =
       historyPlace.current === placeKey
-        ? messages.filter((m) => !m.isError).map((m) => ({ role: m.role, content: m.content }))
+        ? messages.filter((m) => !m.isError && !m.aiUnavailable).map((m) => ({ role: m.role, content: m.content }))
         : [];
     historyPlace.current = placeKey;
 
@@ -69,9 +70,9 @@ export function CopilotPanel() {
     setAsking(true);
 
     try {
-      const { answer, sources, model, generatedAt, evidence, removedSentences } = await askCopilot(trimmed, anchor, undefined, history);
+      const { answer, sources, model, generatedAt, evidence, removedSentences, aiUnavailable } = await askCopilot(trimmed, anchor, undefined, history);
       justAnswered.current = true;
-      addMessage({ role: "assistant", content: answer, sources, model, generatedAt, evidence, removedSentences });
+      addMessage({ role: "assistant", content: answer, sources, model, generatedAt, evidence, removedSentences, aiUnavailable });
     } catch (error) {
       addMessage({ role: "assistant", content: describeAiFailure(error), isError: true });
       // Put the question back, so trying again is one press rather than
@@ -139,6 +140,7 @@ export function CopilotPanel() {
               evidence={m.evidence}
               removedSentences={m.removedSentences}
               animate={i === messages.length - 1 && !!justAnswered.current}
+              factsOnly={!!m.aiUnavailable}
             />
           ) : (
             <div key={i} className={`copilot-panel__message copilot-panel__message--${m.role}${m.isError ? " copilot-panel__message--error" : ""}`}>

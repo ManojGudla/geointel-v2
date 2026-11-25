@@ -153,3 +153,16 @@
 .agent-evidence__kind--unavailable {
   color: var(--color-danger);
 }
+
+/* The AI could not write, so the checked facts are the result. Warning
+   colour, not danger: nothing shown is wrong, the summary is just missing.
+   The same tokens as .agent-card__stale, defined for both themes. */
+.agent-evidence__unavailable {
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-warning);
+  background: var(--color-warning-bg);
+  font-size: var(--text-xs);
+  color: var(--color-text);
+}

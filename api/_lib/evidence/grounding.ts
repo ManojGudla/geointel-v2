@@ -4,6 +4,23 @@ import { AGENT_TOOLS, type ToolOutcome } from "./gather.js";
 /** The exact sentence the agent brief asks for when the evidence cannot carry an answer. */
 export const INSUFFICIENT = "Insufficient verified data to provide a reliable conclusion.";
 
+/*
+  When the facts were fetched and checked but the AI could not write.
+
+  Reported 25 November 2026: with the free AI busy, Ask maNOWj and every
+  agent card showed only "busy", although the evidence had already been
+  fetched and checked by then. The evidence is true without the model, so
+  the agents and the Copilot now return it, saying plainly why there is no
+  written answer (`aiUnavailable` on the result carries that reason).
+*/
+/** The "model" of a result no AI wrote. Shown as "No AI model used: ...". */
+export const FACTS_ONLY_MODEL = "none: the AI could not answer this time";
+export const FACTS_FOLLOW = {
+  copilot: "Meanwhile, here are the facts the app checked for this place.",
+  agent: "The facts this agent checked are listed below.",
+  teamSection: "Not written this time, because the AI could not answer. This agent's facts are in the evidence list.",
+} as const;
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** "25 Nov 2026, 07:30 UTC": the form the model and the reader both see. */
