@@ -1,6 +1,8 @@
 import { ClearLayers } from "@/features/layers/ClearLayers";
 import { useEffect } from "react";
 import { useSheetInsetStore } from "./sheetInsetStore";
+import { useSheetCommandStore } from "./sheetCommandStore";
+import { useMeasureStore } from "@/stores/measureStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useShellStore } from "@/stores/shellStore";
 import { SECTION_BY_ID } from "./sections";
@@ -60,6 +62,15 @@ export function SidePanel() {
     setInset(settledFraction);
   }, [settledFraction, setInset]);
   useEffect(() => () => setInset(0), [setInset]);
+
+  // Starting a measurement on a phone: the points are placed on the map, so
+  // the sheet drops to its peek height to give the map the screen. The
+  // measure readout, Undo and Clear stay pinned over the map (MeasureHud).
+  const measuring = useMeasureStore((s) => s.mode !== "off");
+  const requestLower = useSheetCommandStore((s) => s.requestLower);
+  useEffect(() => {
+    if (measuring) requestLower();
+  }, [measuring, requestLower]);
 
   if (!open) return null;
   const def = SECTION_BY_ID.get(section);
@@ -171,6 +182,12 @@ export function SidePanel() {
 
         {section === "ai" && (
           <div className="side-panel__stack">
+            {/* The agents first. They used to sit below three other blocks,
+                and on a phone that meant below the fold, where nobody saw
+                that they existed. */}
+            <ErrorBoundary label="AI agents" variant="panel">
+              <AgentStrip />
+            </ErrorBoundary>
             <ErrorBoundary label="Map commands" variant="panel">
               <section className="side-panel__group">
                 {/* Retitled from "Ask the map". This panel holds two boxes you
@@ -202,9 +219,6 @@ export function SidePanel() {
                 📄 Generate area report
               </button>
             </section>
-            <ErrorBoundary label="AI agents" variant="panel">
-              <AgentStrip />
-            </ErrorBoundary>
           </div>
         )}
 

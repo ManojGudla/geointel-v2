@@ -1,6 +1,11 @@
+/*
+  The numeric readings are `number | null` because that is what Open-Meteo
+  actually sends when it has no value. Typing them as plain numbers is how
+  "0°C" got printed for a missing temperature: see src/lib/reading.ts.
+*/
 export interface WeatherData {
-  temperatureC: number;
-  feelsLikeC: number;
+  temperatureC: number | null;
+  feelsLikeC: number | null;
   condition: string;
   /**
    * Raw WMO 4677 code from Open-Meteo. Optional because older cached
@@ -8,12 +13,12 @@ export interface WeatherData {
    * than on `condition`, whose wording is for humans and can change.
    */
   weatherCode?: number;
-  humidityPct: number;
-  windKph: number;
-  precipitationMm: number;
+  humidityPct: number | null;
+  windKph: number | null;
+  precipitationMm: number | null;
   sunrise?: string;
   sunset?: string;
-  forecast: Array<{ date: string; maxC: number; minC: number; condition: string }>;
+  forecast: Array<{ date: string; maxC: number | null; minC: number | null; condition: string }>;
   /**
    * IANA timezone of the queried point, from Open-Meteo. Optional because a
    * cached response may predate it, and because a value that is absent must

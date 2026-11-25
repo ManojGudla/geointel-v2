@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getQueryParam, getClientIp, withEdgeCache, readLatLon } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
 import { runOverpassQuery, type OverpassElement } from "../_lib/overpass.js";
 
@@ -272,13 +272,13 @@ export function roadLabel(kind: string): string {
 }
 
 const handler: ApiHandler = async (req, res) => {
-  const lat = Number(getQueryParam(req, "lat"));
-  const lon = Number(getQueryParam(req, "lon"));
+  const point = readLatLon(req);
   const radiusRaw = Number(getQueryParam(req, "radius") ?? DEFAULT_RADIUS);
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+  if (!point.ok) {
     return err(res, 400, "lat and lon are required and must be valid coordinates");
   }
+  const { lat, lon } = point;
   const constructionOnly = getQueryParam(req, "scope") === "construction";
   const maxRadius = constructionOnly ? MAX_WIDE_RADIUS : MAX_RADIUS;
   const radius = Number.isFinite(radiusRaw) ? Math.min(maxRadius, Math.max(100, radiusRaw)) : DEFAULT_RADIUS;

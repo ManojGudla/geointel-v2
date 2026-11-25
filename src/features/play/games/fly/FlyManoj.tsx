@@ -22,6 +22,15 @@ import {
 import "./FlyManoj.css";
 
 const FACE_SRC = "/play/manoj-face.webp";
+/**
+ * The same head, furious, for the moment you crash and the game-over card.
+ * Cut out of a photo Manoj supplied: background and shirt removed, and the
+ * part of the hair the photo's frame cut off (the right side and the very
+ * top) rebuilt from the hair right next to it, so the head is whole. 360x360
+ * so it stays sharp at the larger size on the card. Swapped in only once the
+ * run has ended.
+ */
+export const ANGRY_FACE_SRC = "/play/manoj-face-angry.webp";
 
 interface Particle {
   x: number;
@@ -161,18 +170,51 @@ function drawPin(ctx: CanvasRenderingContext2D, x: number, y: number, t: number)
   ctx.restore();
 }
 
-function drawFlyer(ctx: CanvasRenderingContext2D, s: FlyState, face: HTMLImageElement | null) {
+/** An image that has finished loading and can be drawn. */
+function ready(img: HTMLImageElement | null): img is HTMLImageElement {
+  return !!img && img.complete && img.naturalWidth > 0;
+}
+
+/**
+ * Which face to draw: the normal one while flying, the angry one once the
+ * run has ended. Falls back to the normal face if the angry one has not
+ * loaded, and to null (a plain dot) if neither has.
+ */
+export function pickFlyerFace(
+  phase: FlyState["phase"],
+  face: HTMLImageElement | null,
+  angry: HTMLImageElement | null
+): { img: HTMLImageElement | null; angry: boolean } {
+  if (phase === "dead" && ready(angry)) return { img: angry, angry: true };
+  return { img: ready(face) ? face : null, angry: false };
+}
+
+function drawFlyer(ctx: CanvasRenderingContext2D, s: FlyState, face: HTMLImageElement | null, angry: HTMLImageElement | null) {
   // Just the head, cut out from the photo: no frame, no wings, no ring. It
   // tilts with the climb and the dive, which is all the motion it needs.
-  const tilt = s.phase === "ready" ? Math.sin(s.time * 4) * 0.08 : Math.max(-0.45, Math.min(1.2, s.vy / 650));
+  // The moment the run ends it turns into the angry face, and stays angry
+  // while it falls and on the card.
+  const { img, angry: crashed } = pickFlyerFace(s.phase, face, angry);
+  // Upright once he has crashed: the dive tilt reaches about 70 degrees, and an
+  // angry face lying on its side reads as a blur rather than a face.
+  const tilt = crashed
+    ? 0
+    : s.phase === "ready"
+      ? Math.sin(s.time * 4) * 0.08
+      : Math.max(-0.45, Math.min(1.2, s.vy / 650));
   // After a second chance he blinks while the shield lasts.
   if (s.shield > 0 && Math.floor(s.time * 12) % 2 === 0) return;
   const size = FLYER_R * 2.9;
   ctx.save();
   ctx.translate(FLYER_X, s.y);
   ctx.rotate(tilt);
-  if (face && face.complete && face.naturalWidth) {
-    ctx.drawImage(face, -size / 2, -size / 2, size, size);
+  if (img) {
+    // A touch bigger when angry, so the change reads at a glance. The angry
+    // picture keeps a margin above the hair and below the beard (so the head
+    // is never cut flat by its own edge), hence 1.25 for a head about 15%
+    // taller than the flying one.
+    const drawn = crashed ? size * 1.25 : size;
+    ctx.drawImage(img, -drawn / 2, -drawn / 2, drawn, drawn);
   } else {
     ctx.fillStyle = "#6d5bff";
     ctx.beginPath();
@@ -194,6 +236,7 @@ export function FlyManoj({ onBackToHub }: { onBackToHub: () => void }) {
   const shakeRef = useRef(0);
   const flapAtRef = useRef(-10);
   const faceRef = useRef<HTMLImageElement | null>(null);
+  const angryRef = useRef<HTMLImageElement | null>(null);
   const deadAtRef = useRef<number | null>(null);
   const finalShownRef = useRef(false);
   const [phase, setPhase] = useState<FlyState["phase"]>("ready");
@@ -210,6 +253,10 @@ export function FlyManoj({ onBackToHub }: { onBackToHub: () => void }) {
     const img = new Image();
     img.src = FACE_SRC;
     faceRef.current = img;
+    // Loaded up front, so it is ready the instant the first crash happens.
+    const angry = new Image();
+    angry.src = ANGRY_FACE_SRC;
+    angryRef.current = angry;
   }, []);
 
   const burst = useCallback((x: number, y: number, colors: string[], n: number, speed = 160) => {
@@ -419,7 +466,7 @@ export function FlyManoj({ onBackToHub }: { onBackToHub: () => void }) {
       ctx.fillStyle = "#3fbf72";
       ctx.fillRect(-ox / scale, gy, W / scale, 4);
 
-      drawFlyer(ctx, s, faceRef.current);
+      drawFlyer(ctx, s, faceRef.current, angryRef.current);
 
       // Particles.
       particlesRef.current = particlesRef.current.filter((p) => p.life < p.max);
@@ -505,6 +552,9 @@ export function FlyManoj({ onBackToHub }: { onBackToHub: () => void }) {
 
         {final && (
           <div className="fly__over" role="dialog" aria-label="Game over" onPointerDown={(e) => e.stopPropagation()}>
+            {/* The founder is not pleased you crashed. Decorative, so it is
+                hidden from screen readers; the dialog title says what happened. */}
+            <img className="fly__over-face" src={ANGRY_FACE_SRC} alt="" aria-hidden="true" width={120} height={120} />
             <p className="fly__over-title">{chances > 0 ? "Take a second chance?" : final.newBest ? "New best!" : "Game over"}</p>
             <div className="fly__card">
               <div className={`fly__medal fly__medal--${medal}`} aria-label={medal === "none" ? "No medal" : `${MEDAL_LABEL[medal]} medal`}>

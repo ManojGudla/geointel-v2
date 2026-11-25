@@ -124,6 +124,14 @@ describe("scrubbing", () => {
   it("refuses non-finite numbers", () => {
     expect(scrubProps({ count: Infinity, score: NaN })).toEqual({});
   });
+
+  it("keeps the checked place's country only as a clean two-letter code", () => {
+    expect(scrubProps({ place_country: "gb" })).toEqual({ place_country: "GB" });
+    expect(scrubProps({ place_country: "US" })).toEqual({ place_country: "US" });
+    // Anything longer could be a town or a street riding along as a "country".
+    expect(scrubProps({ place_country: "Manchester, UK" })).toEqual({});
+    expect(scrubProps({ place_country: "GBR" })).toEqual({});
+  });
 });
 
 describe("never breaking what it measures", () => {

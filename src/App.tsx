@@ -66,7 +66,6 @@ import { ConsentBanner } from "@/features/analytics/ConsentBanner";
 import { FreeToUseNotice } from "@/features/notice/FreeToUseNotice";
 import { FeatureTour } from "@/features/tour/FeatureTour";
 import { NetworkStatus } from "@/components/NetworkStatus";
-import { GamesNudge } from "@/features/play/nudge/GamesNudge";
 import { LazyPanel } from "@/components/LazyPanel";
 import { useFeedbackStore } from "@/stores/feedbackStore";
 import { useHelpStore } from "@/stores/helpStore";
@@ -346,10 +345,16 @@ export default function App() {
         <FeatureTour />
       </ErrorBoundary>
 
-      {/* Tells map visitors the games exist, once, after a while of real use. */}
-      <ErrorBoundary label="Games hint" variant="silent">
-        <GamesNudge />
-      </ErrorBoundary>
+      {/*
+        The "Fancy a quick game?" card is no longer rendered. It popped up
+        over the map in the middle of checking an address, which is exactly
+        the moment a visitor is trying to work out what this app is for, and
+        it pulled them toward the one part of it that is not the product.
+        The games are still one tap away in More → maNOWj PLAY and in All
+        tools. The component and its tests are intact under
+        features/play/nudge/; to bring it back, import GamesNudge and render
+        it here again.
+      */}
 
       <footer className="app-footer">
         <span>© {new Date().getFullYear()} maNOWj GeoIntel. All rights reserved.</span>

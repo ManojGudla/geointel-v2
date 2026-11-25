@@ -296,3 +296,45 @@ describe("runOverpassQuery mirror racing", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("answers Overpass flagged as cut short (H3)", () => {
+  beforeEach(() => resetOverpassHealth());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("keeps the elements but marks the result incomplete", async () => {
+    // A `remark` beside real elements is Overpass saying it stopped
+    // part-way. The elements are kept, but counts built from them may be low,
+    // so the result must say so instead of passing as complete.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            elements: [{ type: "node", id: 7, lat: 1, lon: 2, tags: {} }],
+            remark: "runtime error: Query timed out in \"query\" at line 3 after 25 seconds.",
+            osm3s: FAKE_OSM3S,
+          }),
+      }))
+    );
+    const { runOverpassQueryDetailed } = await import("../../api/_lib/overpass");
+    const result = await runOverpassQueryDetailed("[out:json];out;");
+    expect(result.elements).toHaveLength(1);
+    expect(result.incomplete).toBe(true);
+  });
+
+  it("does not mark a normal answer incomplete", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ elements: [{ type: "node", id: 8, lat: 1, lon: 2, tags: {} }], osm3s: FAKE_OSM3S }),
+      }))
+    );
+    const { runOverpassQueryDetailed } = await import("../../api/_lib/overpass");
+    const result = await runOverpassQueryDetailed("[out:json];out;");
+    expect(result.incomplete).toBe(false);
+  });
+});

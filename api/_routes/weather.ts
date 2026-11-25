@@ -1,9 +1,12 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getClientIp, withEdgeCache, readLatLon, OUT_OF_RANGE_MESSAGE } from "../_lib/http.js";
 import { TtlCache, RateLimiter, fetchWithTimeout } from "../_lib/cache.js";
 
-const cache = new TtlCache<unknown>(15 * 60 * 1000);
+// The time Open-Meteo was actually asked is cached WITH the answer. It used to
+// be stamped when each response was built, so a 14-minute-old cached reading
+// went out as "as of now".
+const cache = new TtlCache<{ data: unknown; fetchedAt: string }>(15 * 60 * 1000);
 const limiter = new RateLimiter(60_000, 30);
 
 // WMO weather codes -> short human-readable condition, per Open-Meteo's docs.
@@ -68,19 +71,20 @@ interface OpenMeteoResponse {
 }
 
 const handler: ApiHandler = async (req, res) => {
-  const lat = Number(getQueryParam(req, "lat"));
-  const lon = Number(getQueryParam(req, "lon"));
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return err(res, 400, "Query parameters 'lat' and 'lon' are required numbers.");
+  const point = readLatLon(req);
+  if (!point.ok) {
+    return err(res, 400, point.problem === "missing" ? "Query parameters 'lat' and 'lon' are required numbers." : OUT_OF_RANGE_MESSAGE);
   }
+  const { lat, lon } = point;
 
   const ip = getClientIp(req);
   const rate = limiter.check(ip);
   if (!rate.allowed) return err(res, 429, "Too many weather requests. Please slow down.", "RATE_LIMITED");
 
   const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)}`;
-  const cached = cache.get(cacheKey) as OpenMeteoResponse | undefined;
-  let data = cached;
+  const cached = cache.get(cacheKey);
+  let data = cached?.data as OpenMeteoResponse | undefined;
+  let fetchedAt = cached?.fetchedAt ?? new Date().toISOString();
 
   if (!data) {
     try {
@@ -95,14 +99,18 @@ const handler: ApiHandler = async (req, res) => {
       const response = await fetchWithTimeout(url.toString(), {}, 8000);
       if (!response.ok) throw new Error(`Open-Meteo returned HTTP ${response.status}`);
       data = (await response.json()) as OpenMeteoResponse;
-      cache.set(cacheKey, data);
+      fetchedAt = new Date().toISOString();
+      // Checked BEFORE caching. An incomplete 200 used to be cached first and
+      // rejected after, so every request for that point got a 502 for the
+      // next fifteen minutes instead of trying Open-Meteo again.
+      if (data?.current && Array.isArray(data.daily?.time)) cache.set(cacheKey, { data, fetchedAt });
     } catch (error) {
       console.error("[api/weather]", error);
       return err(res, 502, "Weather is temporarily unavailable.", "PROVIDER_UNAVAILABLE");
     }
   }
 
-  if (!data?.current || !data.daily) {
+  if (!data?.current || !data.daily || !Array.isArray(data.daily.time)) {
     return err(res, 502, "Weather provider returned an incomplete response.", "PROVIDER_UNAVAILABLE");
   }
 
@@ -132,7 +140,7 @@ const handler: ApiHandler = async (req, res) => {
       timezone: data.timezone,
       timezoneAbbreviation: data.timezone_abbreviation,
       source: "Open-Meteo",
-      fetchedAt: new Date().toISOString(),
+      fetchedAt,
     },
   });
 };

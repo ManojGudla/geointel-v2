@@ -26,6 +26,27 @@
   color: var(--color-text-muted);
 }
 
+/* "🤖 AI agents" inside the sentence: a real button that reads as a link, so
+   the agents are named on the very first screen and one tap away. */
+.starter__link {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-brand-text);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.starter__link:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .starter__examples {
   display: flex;
   flex-wrap: wrap;

@@ -82,7 +82,7 @@ export async function selectMapPoint(
     // The activation event. Everything downstream in this app needs a place to
     // be selected first, so the ratio of visitors to place_opened is the single
     // clearest measure of whether the first screen is working.
-    track("place_opened", { source: source ?? "unknown" });
+    track("place_opened", { source: source ?? "unknown", place_country: located.address?.countryCode });
   } catch {
     if (signal?.aborted) return;
     const current = useLocationStore.getState().selectedLocation;

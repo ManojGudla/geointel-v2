@@ -13,7 +13,7 @@ import "./MeasureToolbar.css";
  * is why it can be rendered inside a panel rather than over the map.
  */
 export function MeasureToolbar() {
-  const { mode, points, setMode, undoPoint, clear, distanceLabel, areaLabel } = useMeasure();
+  const { mode, points, setMode, undoPoint, clear, distanceLabel, areaLabel, crosses } = useMeasure();
 
   return (
     <div className="measure-toolbar">
@@ -52,7 +52,9 @@ export function MeasureToolbar() {
                 ? `${points.length} point${points.length === 1 ? "" : "s"}`
                 : points.length < 3
                   ? `${points.length} point${points.length === 1 ? "" : "s"}, need 3+ to close`
-                  : `${points.length} point${points.length === 1 ? "" : "s"}`}
+                  : crosses
+                    ? "The outline crosses itself: drag a point or undo"
+                    : `${points.length} point${points.length === 1 ? "" : "s"}`}
             {points.length >= 2 && " · drag any point to move it"}
           </span>
           <div className="measure-toolbar__actions">

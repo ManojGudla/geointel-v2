@@ -194,6 +194,14 @@ export interface OverpassResult {
   elements: OverpassElement[];
   /** The mirror's own replica timestamp - how current the OpenStreetMap data behind this answer is. */
   dataAsOf: string | null;
+  /**
+   * True when Overpass attached a `remark` to an answer that still had
+   * elements: its own signal that it stopped part-way (a timeout or memory
+   * limit) and the list may be short. Counts built from it can be low, so
+   * routes pass this on and the UI says so rather than presenting them as
+   * complete.
+   */
+  incomplete?: boolean;
 }
 
 /**
@@ -213,6 +221,8 @@ interface MirrorOutcome {
   ok: boolean;
   elements?: OverpassElement[];
   dataAsOf?: string | null;
+  /** See OverpassResult.incomplete. */
+  incomplete?: boolean;
   error?: string;
 }
 
@@ -274,10 +284,15 @@ export async function runOverpassQueryDetailed(query: string): Promise<OverpassR
       // the list found something - then fall back to a genuine "every
       // mirror agreed there's nothing here," and only throw if literally
       // every mirror failed outright.
-      const nonEmpty = outcomes.find((o) => o.ok && o.elements && o.elements.length > 0);
+      // A complete answer beats one Overpass itself flagged as cut short.
+      const nonEmpty =
+        outcomes.find((o) => o.ok && o.elements && o.elements.length > 0 && !o.incomplete) ??
+        outcomes.find((o) => o.ok && o.elements && o.elements.length > 0);
       if (nonEmpty) {
         decided = true;
-        return resolve(settle(true, { elements: nonEmpty.elements!, dataAsOf: nonEmpty.dataAsOf ?? null }));
+        return resolve(
+          settle(true, { elements: nonEmpty.elements!, dataAsOf: nonEmpty.dataAsOf ?? null, incomplete: Boolean(nonEmpty.incomplete) })
+        );
       }
       const anyEmpty = outcomes.find((o) => o.ok);
       if (anyEmpty) {
@@ -342,15 +357,18 @@ export async function runOverpassQueryDetailed(query: string): Promise<OverpassR
           }
 
           const dataAsOf = data.osm3s?.timestamp_osm_base ?? null;
+          // Elements WITH a remark: kept (better than nothing) but flagged, so
+          // the counts built from them are not presented as complete.
+          const incomplete = Boolean(data.remark);
           recordMirror(endpoint, true);
-          outcomes.push({ endpoint, ok: true, elements: data.elements, dataAsOf });
+          outcomes.push({ endpoint, ok: true, elements: data.elements, dataAsOf, incomplete });
           if (data.elements.length > 0 && !decided) {
             decided = true;
             // Real data in hand - don't send the later waves at all. This is
             // the whole point of hedging: on a healthy request the mirrors
             // further down the list are never contacted.
             stopEscalating();
-            resolve(settle(true, { elements: data.elements, dataAsOf }));
+            resolve(settle(true, { elements: data.elements, dataAsOf, incomplete }));
           }
         } catch (error) {
           // Every error thrown INSIDE this try already mentions its own

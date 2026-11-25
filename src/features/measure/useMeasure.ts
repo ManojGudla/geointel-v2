@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useMeasureStore } from "@/stores/measureStore";
-import { computeAreaSquareMeters, computeDistanceMeters } from "./measureMath";
+import { computeAreaSquareMeters, computeDistanceMeters, outlineCrossesItself } from "./measureMath";
 import { formatArea, formatDistance } from "@/features/map/geo";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -21,6 +21,7 @@ export function useMeasure() {
 
   const distanceMeters = useMemo(() => (mode === "distance" ? computeDistanceMeters(points) : 0), [mode, points]);
   const areaSquareMeters = useMemo(() => (mode === "area" ? computeAreaSquareMeters(points) : 0), [mode, points]);
+  const crosses = useMemo(() => mode === "area" && outlineCrossesItself(points), [mode, points]);
 
   return {
     mode,
@@ -28,7 +29,11 @@ export function useMeasure() {
     setMode,
     undoPoint,
     clear,
-    distanceLabel: formatDistance(distanceMeters, units, true),
-    areaLabel: formatArea(areaSquareMeters, units),
+    /** True when the area outline crosses itself, so no area can be given. */
+    crosses,
+    // A dash until there is something to measure. "0 m" and "0 m²" before the
+    // second or third point read as a measurement of zero, which it is not.
+    distanceLabel: points.length < 2 ? "—" : formatDistance(distanceMeters, units, true),
+    areaLabel: points.length < 3 ? "—" : crosses ? "Lines cross" : formatArea(areaSquareMeters, units),
   };
 }

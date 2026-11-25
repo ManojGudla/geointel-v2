@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { useUiStore } from "@/stores/uiStore";
+import { startingCenter, visitorTimeZone } from "@/lib/visitorRegion";
 
 export type Basemap = "standard" | "satellite" | "dark" | "terrain";
 
@@ -55,9 +56,11 @@ interface MapState {
   set3D: (is3D: boolean) => void;
 }
 
-// Default view: India-wide, matching the product's primary market until a
-// location is selected or "Use My Location" is used.
-const DEFAULT_CENTER: [number, number] = [78.4867, 17.385];
+// Default view until a location is selected or "Use My Location" is used: a
+// big city in the visitor's own time zone when we know one (see
+// lib/visitorRegion.ts), otherwise Hyderabad, the product's home market.
+const HYDERABAD: [number, number] = [78.4867, 17.385];
+const DEFAULT_CENTER: [number, number] = startingCenter(visitorTimeZone()) ?? HYDERABAD;
 
 export const useMapStore = create<MapState>((set, get) => ({
   center: DEFAULT_CENTER,

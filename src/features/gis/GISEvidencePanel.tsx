@@ -104,6 +104,12 @@ export function GISEvidencePanel() {
                 <p className="gis-evidence-panel__limitation">
                   Limitation: OpenStreetMap coverage varies by area. Sparse mapping can under-count real features.
                 </p>
+                {evidence.incomplete && (
+                  <p className="gis-evidence-panel__limitation" role="status">
+                    The map data server stopped this query part-way, so these counts may be low. Try again in a minute for the
+                    full list.
+                  </p>
+                )}
               </div>
             )}
           </>

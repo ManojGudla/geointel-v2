@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getQueryParam, getClientIp, withEdgeCache, readLatLon } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
 import { runOverpassQueryDetailed, normalizeElement, OverpassUnavailableError, type OverpassElement } from "../_lib/overpass.js";
 
@@ -91,13 +91,14 @@ function categoryOf(tags: Record<string, string>): string | null {
 }
 
 const handler: ApiHandler = async (req, res) => {
-  const lat = Number(getQueryParam(req, "lat"));
-  const lon = Number(getQueryParam(req, "lon"));
+  const point = readLatLon(req);
   const radius = Number(getQueryParam(req, "radius") ?? "1000");
   const category = getQueryParam(req, "category");
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return err(res, 400, "'lat' and 'lon' are required numbers.");
-  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return err(res, 400, "'lat' and 'lon' are out of range.");
+  if (!point.ok) {
+    return err(res, 400, point.problem === "missing" ? "'lat' and 'lon' are required numbers." : "'lat' and 'lon' are out of range.");
+  }
+  const { lat, lon } = point;
   /**
    * The radius cap. This route had none, while /api/gis capped at 5000 and
    * /api/poi-evidence at 150.

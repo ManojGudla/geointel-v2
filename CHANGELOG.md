@@ -1,5 +1,88 @@
 # Changelog
 
+## v3.5 (unreleased, branch agents-v2)
+
+The AI agents now check their facts. Details in docs/agents/.
+
+### New
+- Ask the agents together: one request ("Is this good for a family home?
+  Route to the nearest hospital") runs several agents, shows what they
+  understood, the steps they really took with their times, a section per
+  agent with its confidence, and a button that draws the found route.
+- Make My Trip builds a 1-3 day plan from real mapped places near you, with
+  every hop measured by the routing service. Reorder or remove stops,
+  re-measure, and show the plan on the map.
+- Every agent and Copilot answer comes with its evidence: each fact with its
+  source and time, marked verified data, computed or unavailable. Tap a
+  citation to see the fact behind a sentence.
+- Navigation lists the routing service's alternative routes and first turns.
+
+### Changed
+- The agents and the Copilot no longer take facts from the page. The server
+  fetches them, so nothing the browser sends can be stated as verified, and
+  officials are looked up by the server only when you ask about them.
+- Any sentence with a number that is not in the evidence is removed before
+  you see it, and the answer says so.
+- Confidence comes from which sources answered, not from the AI.
+- With too little evidence, agents say "Insufficient verified data to provide
+  a reliable conclusion." without asking the AI, which saves the daily quota.
+- AI answers may take up to 40 seconds (was 35), since the evidence is
+  fetched first.
+
+### Security (branch deps-upgrade, on top of agents-v2)
+- Vite 7.3.8, Vitest 4.1.12 and @vitejs/plugin-react 5 replace Vite 5 and
+  Vitest 2, which had critical and high advisories in the dev server and the
+  test runner. The site's browser support is unchanged (now written in
+  vite.config.ts). Local development needs Node 20.19+ or 22.12+.
+
+## v3.4 (unreleased)
+
+Easier to find your way around, ready for visitors outside India, and a bug
+hunt whose rule was: a failure is never shown as a fact. Details in
+docs/audit/BUG_REPORT_2026-11-25.md.
+
+### New
+- The six AI agents are easy to find: a one-line "AI agents can explain this
+  place" row at the top of every place, the bottom tab is now called "AI",
+  and the agents come first in that panel.
+- "All tools" in the header (it was a magnifying glass) opens one list of
+  every feature. It keeps its label on phones.
+- Visitors outside India get example places abroad, a map that opens on a
+  city in their own time zone, and miles in the US and UK.
+- Tracking counts a picked search result as an opened place, with the
+  country of the place (never the address).
+
+### Improved
+- On phones, the bottom sheet drops out of the way while you pan or measure,
+  the Fuel/ATM/Hospital chips step aside while a panel is open, and the
+  measuring readout with Undo, Clear and Done sits above the sheet.
+- Measurement handles are bigger on touch screens.
+- The weather panel shows "as of" next to its source.
+- Theme moved into Settings. The "quick game" pop-up no longer appears; the
+  games are in More and in All tools.
+
+### Fixed
+- A brief Esri outage was cached for weeks as "no capture date published".
+- An area outline that crossed itself showed a wrong, too-small area.
+- Missing weather readings showed as 0°C or NaN, on screen and in the report.
+- Overpass answers cut short were counted as complete; they are now flagged.
+- Forecast days were labelled a day early in the Americas.
+- Two dialogs were cut off behind phone browser bars, and safe-area insets
+  had no effect.
+- Population density could be computed from an area in the wrong unit
+  (square metres or miles read as km²); areas are now converted from their
+  Wikidata unit, and a Wikidata outage is reported as an outage.
+- Fly maNOWj shows an angry Manoj when you crash and on the game-over card.
+- The API refused nothing off the globe: `?lat=500` went on to the weather,
+  Overpass, address and routing providers, and a blank `?lat=` meant 0,0.
+  Every route now answers 400 first. Clicking a repeated copy of the world
+  (beyond 180°) sent longitudes like 286; the map now sends -74.
+
+### Security
+- `source-map-js` updated to 1.2.4 (high-severity advisory, build tooling).
+- The dev server listens only on this computer. Use `npm run dev:phone` to
+  test from a phone on the same Wi-Fi.
+
 ## v3.3 (11 November 2026)
 
 A clearer first screen, new guide pages, downloads, games, tracking and

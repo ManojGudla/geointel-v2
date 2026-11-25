@@ -1,8 +1,8 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getClientIp, withEdgeCache, readLatLon } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
-import { sparqlQuery, qidFromUri, entityUrl, type SparqlRow } from "../_lib/wikidata.js";
+import { sparqlQueryOrThrow, qidFromUri, entityUrl, type SparqlRow } from "../_lib/wikidata.js";
 import { runOverpassQuery } from "../_lib/overpass.js";
 
 /**
@@ -42,6 +42,159 @@ export interface PopulationDto {
 }
 
 /**
+ * Wikidata area units and how many square kilometres one of each is.
+ *
+ * P2046 (area) is a QUANTITY WITH A UNIT, and Wikidata stores it in whatever
+ * unit the editor used: square kilometres for most cities, but hectares,
+ * square metres, square miles and acres are all common. The old query read
+ * `wdt:P2046`, which is the bare number with the unit thrown away, and
+ * divided the population by it as if it were always km². An area entered as
+ * 65,000 hectares became 65,000 km², a density 100 times too low; an area in
+ * square metres, a million times too low.
+ *
+ * Units not in this table are not guessed at: the area is reported as
+ * unknown and no density is computed.
+ */
+export const AREA_UNIT_TO_KM2: Readonly<Record<string, number>> = {
+  Q712226: 1, // square kilometre
+  Q25343: 1e-6, // square metre
+  Q35852: 0.01, // hectare
+  Q232291: 2.589988110336, // square mile (international)
+  Q81292: 0.0040468564224, // acre (international)
+  Q857027: 9.290304e-8, // square foot
+};
+
+/** An amount in a Wikidata unit, converted to km², or null if the unit is not a known area unit or the amount is not a positive number. */
+export function areaToKm2(amount: string | number | undefined, unitUri: string | undefined): number | null {
+  const value = typeof amount === "number" ? amount : Number(String(amount ?? "").replace(/^\+/, ""));
+  if (!Number.isFinite(value) || value <= 0) return null;
+  const unit = qidFromUri(unitUri);
+  const factor = unit ? AREA_UNIT_TO_KM2[unit] : undefined;
+  if (factor === undefined) return null;
+  const km2 = value * factor;
+  return Number.isFinite(km2) && km2 > 0 ? km2 : null;
+}
+
+/**
+ * The most people per km² any real settlement-level figure reaches is in the
+ * tens of thousands (Manila and the densest parts of Dhaka and Mumbai sit
+ * around 40,000 to 75,000). A computed density far above that does not
+ * describe a place, it describes a data error, usually an area entered in the
+ * wrong unit or for the wrong entity. It is withheld rather than shown.
+ */
+export const MAX_PLAUSIBLE_DENSITY = 150_000;
+
+const RANK_PREFERRED = "http://wikiba.se/ontology#PreferredRank";
+
+/** The year of a Wikidata point-in-time, or null when it is missing or not a believable census year. */
+function yearOf(date: string | undefined): number | null {
+  if (!date) return null;
+  const year = new Date(date).getUTCFullYear();
+  if (!Number.isFinite(year) || year < 1800 || year > new Date().getUTCFullYear() + 1) return null;
+  return year;
+}
+
+/**
+ * Picks the figures to report from the statement rows of one place.
+ *
+ * Population: Wikidata marks the current figure with the PREFERRED rank. When
+ * nothing is preferred, every normal-rank figure comes back, from several
+ * censuses, and the old query took the LARGEST - which for a shrinking town
+ * is an old figure presented as the current one. Now: preferred first, then
+ * the most recent date, then (only to break a tie) the larger value.
+ * Deprecated statements are excluded in the query itself.
+ *
+ * Area: preferred first, then the first statement whose unit converts.
+ */
+export function pickFigures(rows: SparqlRow[]): {
+  population: number;
+  year: number | null;
+  areaKm2: number | null;
+} | null {
+  type Pop = { value: number; year: number | null; preferred: boolean };
+  const pops: Pop[] = [];
+  const areas: Array<{ km2: number; preferred: boolean }> = [];
+  for (const row of rows) {
+    const value = Number(row.population?.value);
+    if (Number.isFinite(value) && value > 0) {
+      pops.push({ value: Math.round(value), year: yearOf(row.date?.value), preferred: row.popRank?.value === RANK_PREFERRED });
+    }
+    const km2 = areaToKm2(row.areaAmount?.value, row.areaUnit?.value);
+    if (km2 !== null) areas.push({ km2, preferred: row.areaRank?.value === RANK_PREFERRED });
+  }
+  if (pops.length === 0) return null;
+  pops.sort(
+    (a, b) =>
+      Number(b.preferred) - Number(a.preferred) ||
+      (b.year ?? -Infinity) - (a.year ?? -Infinity) ||
+      b.value - a.value
+  );
+  areas.sort((a, b) => Number(b.preferred) - Number(a.preferred));
+  const best = pops[0]!;
+  return { population: best.value, year: best.year, areaKm2: areas[0]?.km2 ?? null };
+}
+
+/** The main question: see the comment where it is used in fromWikidata(). */
+export function detailedPopulationQuery(lat: number, lon: number, radiusKm: number): string {
+  return `
+    SELECT ?place ?placeLabel ?population ?date ?popRank ?areaAmount ?areaUnit ?areaRank WHERE {
+      {
+        SELECT ?place (MAX(?p) AS ?maxPop) WHERE {
+          SERVICE wikibase:around {
+            ?place wdt:P625 ?location .
+            bd:serviceParam wikibase:center "Point(${lon} ${lat})"^^geo:wktLiteral .
+            bd:serviceParam wikibase:radius "${radiusKm}" .
+          }
+          ?place wdt:P31/wdt:P279* wd:Q486972 .
+          FILTER NOT EXISTS { ?place wdt:P576 ?dissolved }
+          ?place wdt:P1082 ?p .
+        }
+        GROUP BY ?place
+        ORDER BY DESC(?maxPop)
+        LIMIT 1
+      }
+      ?place p:P1082 ?popStatement .
+      ?popStatement ps:P1082 ?population ; wikibase:rank ?popRank .
+      FILTER(?popRank != wikibase:DeprecatedRank)
+      OPTIONAL { ?popStatement pq:P585 ?date }
+      OPTIONAL {
+        ?place p:P2046 ?areaStatement .
+        ?areaStatement psv:P2046 ?areaValue ; wikibase:rank ?areaRank .
+        ?areaValue wikibase:quantityAmount ?areaAmount ; wikibase:quantityUnit ?areaUnit .
+        FILTER(?areaRank != wikibase:DeprecatedRank)
+      }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
+    }
+    LIMIT 500
+  `;
+}
+
+/**
+ * The fallback question: the place and its population, no area. Same place
+ * filters as the main query (existing human settlements only).
+ */
+export function simplePopulationQuery(lat: number, lon: number, radiusKm: number): string {
+  return `
+    SELECT ?place ?placeLabel ?population ?date ?popRank WHERE {
+      SERVICE wikibase:around {
+        ?place wdt:P625 ?location .
+        bd:serviceParam wikibase:center "Point(${lon} ${lat})"^^geo:wktLiteral .
+        bd:serviceParam wikibase:radius "${radiusKm}" .
+      }
+      ?place wdt:P31/wdt:P279* wd:Q486972 .
+      FILTER NOT EXISTS { ?place wdt:P576 ?dissolved }
+      ?place p:P1082 ?popStatement .
+      ?popStatement ps:P1082 ?population ; wikibase:rank ?popRank .
+      FILTER(?popRank != wikibase:DeprecatedRank)
+      OPTIONAL { ?popStatement pq:P585 ?date }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
+    }
+    ORDER BY DESC(?population)
+    LIMIT 1
+  `;
+}
+
+/**
  * Asks Wikidata for the population of the nearest settlement to a point.
  *
  * Uses the Wikidata Query Service's geospatial search to find settlements
@@ -68,41 +221,50 @@ async function fromWikidata(lat: number, lon: number, radiusKm: number): Promise
    *                         former city or a renamed administrative body is
    *                         never reported as if it still existed.
    */
-  const query = `
-    SELECT ?place ?placeLabel ?population ?date ?area WHERE {
-      SERVICE wikibase:around {
-        ?place wdt:P625 ?location .
-        bd:serviceParam wikibase:center "Point(${lon} ${lat})"^^geo:wktLiteral .
-        bd:serviceParam wikibase:radius "${radiusKm}" .
-      }
-      ?place wdt:P31/wdt:P279* wd:Q486972 .
-      FILTER NOT EXISTS { ?place wdt:P576 ?dissolved }
-      ?place wdt:P1082 ?population .
-      OPTIONAL { ?place p:P1082 [ ps:P1082 ?population ; pq:P585 ?date ] }
-      OPTIONAL { ?place wdt:P2046 ?area }
-      SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
-    }
-    ORDER BY DESC(?population)
-    LIMIT 1
-  `;
+  /*
+    One round trip in two steps. The inner query picks the place exactly as
+    before: the most populous existing human settlement within the radius.
+    The outer part then reads that place's statements in full - every
+    non-deprecated population with its date and rank, and every area as a
+    value WITH ITS UNIT - so the choice of figure and the unit conversion
+    happen in pickFigures(), where they can be tested.
+  */
+  const query = detailedPopulationQuery(lat, lon, radiusKm);
 
-  const rows: SparqlRow[] = await sparqlQuery(query);
-  const row = rows[0];
-  if (!row?.population?.value || !row.placeLabel?.value) return null;
+  // Throws when Wikidata cannot be reached, so the handler can tell an outage
+  // apart from "no published figure". See sparqlQueryOrThrow.
+  let rows: SparqlRow[];
+  try {
+    rows = await sparqlQueryOrThrow(query);
+  } catch (error) {
+    /*
+      Safety net. If the detailed query is ever rejected (a query error, or a
+      timeout under load), ask the simpler question the app used before: the
+      place and its population, without area. The visitor still gets a
+      sourced, dated population; they only lose the density, which is the
+      safe direction. If this one fails too, the error goes to the handler.
+    */
+    console.error("[api/population] detailed query failed, retrying without area", error instanceof Error ? error.message : error);
+    rows = await sparqlQueryOrThrow(simplePopulationQuery(lat, lon, radiusKm));
+  }
+  const first = rows[0];
+  if (!first?.placeLabel?.value) return null;
 
-  const population = Number(row.population.value);
-  if (!Number.isFinite(population) || population <= 0) return null;
+  const figures = pickFigures(rows);
+  if (!figures) return null;
 
-  const areaKm2 = row.area?.value ? Number(row.area.value) : null;
-  const year = row.date?.value ? new Date(row.date.value).getUTCFullYear() : null;
-  const qid = qidFromUri(row.place?.value);
+  const qid = qidFromUri(first.place?.value);
+  const density = figures.areaKm2 ? Math.round(figures.population / figures.areaKm2) : null;
+  const plausible = density !== null && density > 0 && density <= MAX_PLAUSIBLE_DENSITY;
 
   return {
-    place: row.placeLabel.value,
-    population: Math.round(population),
-    year: Number.isFinite(year as number) ? year : null,
-    areaKm2: areaKm2 && Number.isFinite(areaKm2) && areaKm2 > 0 ? areaKm2 : null,
-    densityPerKm2: areaKm2 && areaKm2 > 0 ? Math.round(population / areaKm2) : null,
+    place: first.placeLabel.value,
+    population: figures.population,
+    year: figures.year,
+    // An area that gives an impossible density is almost certainly entered in
+    // the wrong unit or for the wrong thing, so neither is shown.
+    areaKm2: plausible ? Math.round(figures.areaKm2! * 100) / 100 : null,
+    densityPerKm2: plausible ? density : null,
     source: "Wikidata",
     sourceUrl: qid ? entityUrl(qid) : null,
   };
@@ -154,15 +316,11 @@ async function fromOpenStreetMap(lat: number, lon: number, radiusMeters: number)
 }
 
 const handler: ApiHandler = async (req, res) => {
-  const lat = Number(getQueryParam(req, "lat"));
-  const lon = Number(getQueryParam(req, "lon"));
-
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return err(res, 400, "lat and lon are required numbers.");
+  const point = readLatLon(req);
+  if (!point.ok) {
+    return err(res, 400, point.problem === "missing" ? "lat and lon are required numbers." : "lat and lon are out of range.");
   }
-  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-    return err(res, 400, "lat and lon are out of range.");
-  }
+  const { lat, lon } = point;
 
   const ip = getClientIp(req);
   if (!limiter.check(ip).allowed) {
@@ -174,10 +332,12 @@ const handler: ApiHandler = async (req, res) => {
   if (cached !== undefined) return ok(res, { population: cached });
 
   let result: PopulationDto | null = null;
+  let sourceFailed = false;
   try {
     // 25 km catches the city you're standing in without reaching the next one.
     result = await fromWikidata(lat, lon, 25);
   } catch (error) {
+    sourceFailed = true;
     console.error("[api/population] wikidata", error instanceof Error ? error.message : error);
   }
 
@@ -185,8 +345,18 @@ const handler: ApiHandler = async (req, res) => {
     try {
       result = await fromOpenStreetMap(lat, lon, 25_000);
     } catch (error) {
+      sourceFailed = true;
       console.error("[api/population] overpass", error instanceof Error ? error.message : error);
     }
+  }
+
+  // "No published figure" is only true when every source answered. If one of
+  // them failed, the honest answer is that the check failed: no-store, so
+  // neither this instance nor the CDN remembers it, and the panel says
+  // "couldn't reach the population sources" instead of claiming a gap in the
+  // data. This used to be cached for a day as if nothing existed.
+  if (!result && sourceFailed) {
+    return err(res, 502, "The population sources did not answer just now.", "PROVIDER_UNAVAILABLE");
   }
 
   // Null is a real answer here: plenty of the world has no published figure

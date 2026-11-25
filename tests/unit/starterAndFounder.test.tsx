@@ -1,16 +1,39 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import fs from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(__dirname, "../..");
 
+/**
+ * The examples follow the visitor's time zone (Indian places for India, others
+ * elsewhere), so each test pins it. Unpinned, these tests passed on a machine
+ * set to India time and failed in CI, which runs in UTC.
+ */
+function inTimeZone(tz: string) {
+  vi.doMock("../../src/lib/visitorRegion", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("../../src/lib/visitorRegion")>()),
+    visitorTimeZone: () => tz,
+  }));
+}
+
 describe("the first-screen starter card", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.resetModules();
+    inTimeZone("Asia/Kolkata");
     // A returning visitor: the first-visit notice has already been seen.
     localStorage.setItem("geointel.freeNoticeSeen.v1", "1");
+  });
+
+  afterEach(() => vi.doUnmock("../../src/lib/visitorRegion"));
+
+  it("offers places from elsewhere to a visitor outside India", async () => {
+    inTimeZone("Europe/London");
+    const { StarterCard } = await import("../../src/features/workspace/StarterCard");
+    render(<StarterCard />);
+    expect(screen.getByRole("button", { name: "Fallowfield" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Gachibowli" })).toBeNull();
   });
 
   it("says what the app is for and offers places to try", async () => {
@@ -79,11 +102,14 @@ describe("the founder's personal website link", () => {
     const founder = fs.readFileSync(path.join(root, "src/config/founder.ts"), "utf8");
     // One default, overridable by the environment variable.
     expect(founder).toContain("VITE_FOUNDER_SITE_URL");
-    expect(founder.match(/manoj-gudla-website\.vercel\.app/g)).toHaveLength(1);
+    // The portfolio's own domain now, not the temporary Vercel address.
+    expect(founder.match(/https:\/\/me\.manowj\.com\//g)).toHaveLength(1);
+    expect(founder).not.toMatch(/manoj-gudla-website\.vercel\.app/);
     const { FOUNDER_SITE_URL } = await import("../../src/config/founder");
     expect(FOUNDER_SITE_URL).toMatch(/^https:\/\//);
     // The panel reads it from the config, never its own copy.
     expect(fs.readFileSync(path.join(root, "src/features/about/AboutPanel.tsx"), "utf8")).not.toMatch(/vercel\.app/);
+    expect(fs.readFileSync(path.join(root, "src/features/about/AboutPanel.tsx"), "utf8")).not.toMatch(/me\.manowj\.com/);
   });
 
   it("keeps the temporary address out of what search engines store", () => {

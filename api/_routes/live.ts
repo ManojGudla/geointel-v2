@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getQueryParam, getClientIp, withEdgeCache, readLatLon, OUT_OF_RANGE_MESSAGE } from "../_lib/http.js";
 import { TtlCache, RateLimiter, fetchWithTimeout } from "../_lib/cache.js";
 
 /**
@@ -159,12 +159,11 @@ const handler: ApiHandler = async (req, res) => {
     }
 
     if (layer === "air-quality") {
-      const lat = Number(getQueryParam(req, "lat"));
-      const lon = Number(getQueryParam(req, "lon"));
-      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-        return err(res, 400, "Air quality needs 'lat' and 'lon' query parameters.");
+      const point = readLatLon(req);
+      if (!point.ok) {
+        return err(res, 400, point.problem === "missing" ? "Air quality needs 'lat' and 'lon' query parameters." : OUT_OF_RANGE_MESSAGE);
       }
-      return ok(res, await airQuality(lat, lon));
+      return ok(res, await airQuality(point.lat, point.lon));
     }
 
     return err(res, 400, "Unknown layer. Supported: earthquakes, radar, air-quality.", "UNKNOWN_LAYER");

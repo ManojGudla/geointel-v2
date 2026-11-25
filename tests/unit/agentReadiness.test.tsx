@@ -91,7 +91,6 @@ describe("the agent card while its data is still arriving", () => {
     return render(
       <AgentCard
         definition={{ kind: "gis", label: "GIS Intelligence", icon: "🗺️", description: "Explains the evidence." }}
-        context={{}}
         pending={pending}
       />
     );
@@ -147,7 +146,6 @@ describe("the agent card while its data is still arriving", () => {
     render(
       <AgentCard
         definition={{ kind: "gis", label: "GIS Intelligence", icon: "🗺️", description: "Explains the evidence." }}
-        context={{}}
       />
     );
     expect(screen.getByRole("button", { name: "Run" })).toBeTruthy();

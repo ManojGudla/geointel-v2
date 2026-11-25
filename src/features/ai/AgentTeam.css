@@ -1,0 +1,129 @@
+/* Several agents on one request (AgentTeam.tsx). */
+
+.agent-team {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  min-width: 0;
+}
+
+.agent-team__title {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.agent-team__hint,
+.agent-team__status {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.agent-team__form {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.agent-team__form input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 16px; /* 16px or more stops iOS zooming into the field */
+}
+
+.agent-team__form button,
+.agent-team__route {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--color-brand-600);
+  color: white;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.agent-team__form button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.agent-team__route {
+  align-self: flex-start;
+}
+
+.agent-team__examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.agent-team__examples button {
+  min-height: 36px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-brand-text);
+  font-size: var(--text-xs);
+  text-align: left;
+}
+
+.agent-team__error {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+}
+
+.agent-team__result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.agent-team__understood {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.agent-team__agents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-xs);
+}
+
+.agent-team__agents li {
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  background: var(--color-brand-100);
+  color: var(--color-brand-text);
+  font-weight: 700;
+}
+
+.agent-team__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.agent-team__section h4 {
+  margin: 0;
+  font-size: var(--text-sm);
+}

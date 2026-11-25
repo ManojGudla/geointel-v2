@@ -12,10 +12,12 @@ import "./MeasureHud.css";
  * costs nothing the rest of the time.
  */
 export function MeasureHud() {
-  const { mode, points, undoPoint, clear, setMode, distanceLabel, areaLabel } = useMeasure();
+  const { mode, points, undoPoint, clear, setMode, distanceLabel, areaLabel, crosses } = useMeasure();
   if (mode === "off") return null;
 
   const needsMorePoints = mode === "area" && points.length < 3;
+  // Taps, not clicks, on a phone - the hint is read by both.
+  const verb = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches ? "Tap" : "Click";
 
   return (
     <div className="measure-hud" role="status" aria-live="polite">
@@ -26,10 +28,12 @@ export function MeasureHud() {
 
       <p className="measure-hud__hint">
         {points.length === 0
-          ? "Click the map to place your first point."
-          : needsMorePoints
-            ? `${points.length} of 3 points. One more closes the shape.`
-            : `${points.length} point${points.length === 1 ? "" : "s"}. Click to add more.`}
+          ? `${verb} the map to place your first point.`
+          : crosses
+            ? "The outline crosses itself, so it has no single area. Drag a point or undo the last one."
+            : needsMorePoints
+              ? `${points.length} of 3 points. One more closes the shape.`
+              : `${points.length} point${points.length === 1 ? "" : "s"}. ${verb} to add more.`}
       </p>
 
       <div className="measure-hud__actions">

@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withPrivateCache } from "../_lib/http.js";
+import { ok, err, getClientIp, withPrivateCache, readLatLon, OUT_OF_RANGE_MESSAGE } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
 import { nominatimReverse, type NominatimResult } from "../_lib/nominatim.js";
 
@@ -83,11 +83,11 @@ function toDto(lat: number, lon: number, r: NominatimResult): LocationDto {
 }
 
 const handler: ApiHandler = async (req, res) => {
-  const lat = Number(getQueryParam(req, "lat"));
-  const lon = Number(getQueryParam(req, "lon"));
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return err(res, 400, "Query parameters 'lat' and 'lon' are required numbers.");
+  const point = readLatLon(req);
+  if (!point.ok) {
+    return err(res, 400, point.problem === "missing" ? "Query parameters 'lat' and 'lon' are required numbers." : OUT_OF_RANGE_MESSAGE);
   }
+  const { lat, lon } = point;
 
   const ip = getClientIp(req);
   const rate = limiter.check(ip);

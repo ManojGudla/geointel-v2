@@ -148,7 +148,11 @@ export function useCopilotContext(): CopilotContext {
         ? { classification: property.classification, confidence: property.confidence, trust: property.trust, reasoning: property.reasoning }
         : undefined,
       gis: gisQuery.data ? { radiusMeters, counts: gisQuery.data.counts, scores: gisQuery.data.scores } : undefined,
-      weather: weatherQuery.data ? { temperatureC: weatherQuery.data.temperatureC, condition: weatherQuery.data.condition } : undefined,
+      // A missing temperature is left out rather than sent as null, so the
+      // AI is never handed something it could read as a measurement.
+      weather: weatherQuery.data
+        ? { temperatureC: weatherQuery.data.temperatureC ?? undefined, condition: weatherQuery.data.condition }
+        : undefined,
       nearbyTopCategories,
       // The radius actually searched (it widens where mapping is sparse) and
       // whether the list was cut off, so a sample is never read as a count.

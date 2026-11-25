@@ -10,7 +10,7 @@
  * The handler itself still lives in api/_routes/ and is still registered in
  * the ROUTES table (which is what the dev server resolves through), so this
  * is purely an entry point - no logic, and no second copy to keep in sync.
- * Four of these plus the catch-all is five functions, well inside the Hobby
+ * Six of these plus the catch-all is seven functions, well inside the Hobby
  * plan's limit of 12.
  */
 export { default } from "../_routes/ai/copilot.js";

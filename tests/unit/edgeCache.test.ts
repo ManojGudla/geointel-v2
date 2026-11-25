@@ -49,6 +49,8 @@ const MUST_NOT_CACHE: Record<string, string> = {
   "ai-intent.ts": "shaped by the visitor's own question",
   "ai/agent.ts": "shaped by the visitor's own question",
   "ai/copilot.ts": "shaped by the visitor's own question",
+  "ai/ask.ts": "shaped by the visitor's own request",
+  "ai/trip.ts": "built from the visitor's own choices and edits",
   "admin/maintenance.ts": "authenticated, and its answer depends on the caller",
   "admin/submissions.ts": "returns other people's submitted data",
   "health.ts": "a liveness probe answered from cache is not a liveness probe",

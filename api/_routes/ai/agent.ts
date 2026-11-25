@@ -2,98 +2,42 @@ import type { ApiHandler } from "../../_lib/http.js";
 import { withMaintenanceGuard } from "../../_lib/maintenance.js";
 import { ok, err, getClientIp } from "../../_lib/http.js";
 import { checkDurableLimit } from "../../_lib/rateLimit.js";
-
 import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
-import { searchKnowledgeBase } from "../../_lib/kb.js";
-import { fenceRules, makeFence, sanitizeField, sanitizeNumber } from "../../_lib/untrusted.js";
-import type { AgentKind, CopilotContext } from "../../../src/types/ai.js";
-import { GROUNDING_RULES, dataSourcesFor, nearbyLine, routeLine } from "../../_lib/aiGrounding.js";
+import { fenceRules, makeFence } from "../../_lib/untrusted.js";
+import { GROUNDING_RULES } from "../../_lib/aiGrounding.js";
+import { gatherForAgent } from "../../_lib/evidence/gather.js";
+import { INSUFFICIENT, checkAnswer, confidenceFor, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
+import { parseAnchor } from "../../_lib/evidence/anchor.js";
+import type { AgentKind, AgentResult, AgentStep } from "../../../src/types/ai.js";
 
 const VALID_KINDS: AgentKind[] = ["search", "gis", "property", "navigation", "travel", "makeMyTrip"];
 
-interface AgentRequestBody {
-  kind?: AgentKind;
-  context?: CopilotContext & { searchResults?: Array<{ name: string; displayName: string }> };
-}
-
+/**
+ * What each agent explains. The facts come only from the evidence table;
+ * these sentences say which of them matter to this agent.
+ */
 const AGENT_FOCUS: Record<AgentKind, string> = {
-  search: "Focus on what was searched for and how strong the match is. If no location is selected, say the user should search or select a location first.",
-  gis: "Focus purely on the GIS evidence counts and category scores, what kind of built environment this radius shows, and how strong or thin that evidence is. Don't restate the property classification headline verbatim; interpret the underlying numbers.",
-  property: "Focus on explaining the property classification result in plain language: what it means, how confident it is, and what would make the confidence higher (more nearby evidence).",
-  navigation: "Focus on the active route (if any): is this a practical trip by the chosen mode, given the distance and duration? If no route is set, say directions haven't been planned yet and suggest opening the Directions panel.",
-  travel: "Focus on this location as a place to visit right now: combine the weather and nearby amenities data to say whether it's currently a comfortable, well-served place to spend time, citing the real numbers. If the user needs to actually book travel (flights, trains, buses, hotels), tell them to use the Travel tab, which opens real search pages on Google Flights, Skyscanner, IRCTC, ConfirmTkt, redBus, AbhiBus, Booking.com, and Google Hotels, never invent a price, schedule, or availability yourself.",
-  makeMyTrip: "Suggest a short, realistic same-day plan anchored on this location, using ONLY the real nearby categories and weather data provided, do not name specific businesses unless they appear in the data, and do not invent opening hours, prices, or addresses. For booking a movie (BookMyShow, District), a stay (Booking.com, Google Hotels), or getting here (flights, trains, buses), point the user to the Travel tab's real provider links instead of guessing at logistics you don't have data for.",
+  search:
+    "Explain what the search found: the best match, whether the selected place is that match, and whether other matches make the search ambiguous. If nothing was searched, describe the selected place from the evidence and suggest searching.",
+  gis:
+    "Explain what the mapped features around this point show: which kinds dominate, which are absent, how strong or thin the evidence is, and what the population figures say about the wider place. Point out data gaps (zero counts can mean unmapped).",
+  property:
+    "Explain the property classification in plain language: what it is based on, how confident it is and why, and what evidence would make it stronger. Never discuss value, ownership, zoning or legal status.",
+  navigation:
+    "Explain the planned route: how far and how long by the chosen mode, how it compares with the straight-line distance, and whether other routes were offered. Never mention traffic, closures or delays: there is no live traffic data.",
+  travel:
+    "Explain this place for a visitor right now: the weather and forecast, and what is nearby (food, stays, transport, parks, health). For booking flights, trains, buses or hotels, point to the Travel tab, which opens real booking sites. Never state prices, schedules, availability or opening hours.",
+  makeMyTrip:
+    "Suggest a short same-day plan around this place using only the nearby places and weather in the evidence, naming a place only if its name appears there, in a sensible order by distance. For tickets, stays or getting here, point to the Travel tab. Never state prices, opening hours or bookings.",
 };
 
-function buildDataBlock(context: AgentRequestBody["context"] | undefined, kind: AgentKind): string {
-  if (!context) return "No location is currently selected in the app.";
-  const lines: string[] = [];
-  /*
-    Every value here comes off a caller-controlled HTTP body, and all of it is
-    about to sit inside the system message. See api/_lib/untrusted.ts.
-  */
-  const name = sanitizeField(context.locationName, 200);
-  if (name) lines.push(`Location: ${name}`);
-  const address = sanitizeField(context.address, 300);
-  if (address) lines.push(`Address: ${address}`);
-  if (context.searchResults?.length) {
-    lines.push(`Search results shown: ${context.searchResults.slice(0, 10).map((r) => sanitizeField(r.displayName, 160)).join(" | ")}`);
-  }
-  if (context.property) {
-    lines.push(
-      `Property classification: ${sanitizeField(context.property.classification, 60) || "unknown"} (${context.property.trust === "unavailable" ? "no confidence: not enough mapped evidence to classify" : `confidence ${sanitizeNumber(context.property.confidence ?? 0)}%`}, trust: ${sanitizeField(context.property.trust, 30) || "unavailable"})`
-    );
-    const reasoning = sanitizeField(context.property.reasoning, 600);
-    if (reasoning) lines.push(`Property reasoning: ${reasoning}`);
-  }
-  if (context.gis) {
-    if (context.gis.radiusMeters) lines.push(`GIS evidence radius: ${sanitizeNumber(context.gis.radiusMeters)}m`);
-    if (context.gis.counts) lines.push(`GIS counts: ${sanitizeField(JSON.stringify(context.gis.counts), 600)}`);
-    if (context.gis.scores) lines.push(`GIS scores: ${sanitizeField(JSON.stringify(context.gis.scores), 600)}`);
-  }
-  if (context.weather)
-    lines.push(`Weather: ${sanitizeNumber(context.weather.temperatureC)}°C, ${sanitizeField(context.weather.condition, 60) || "unknown"}`);
-  const nearby = nearbyLine(context);
-  if (nearby) lines.push(nearby);
-  // Only mention the route at all when it's actually relevant: the
-  // navigation agent's whole focus is the active route, so it always needs
-  // to know (including "none set", which is a valid answer it's supposed to
-  // give). Every other agent (gis, property, search, ...) has nothing to do
-  // with directions, previously this pushed "Active route: none set." into
-  // EVERY agent's data block regardless of kind, and the model would latch
-  // onto that stray unrelated line and start commenting on routing even
-  // when asked about GIS/property data. Non-navigation agents now only see
-  // a route line when one is genuinely set (real, relevant context), and
-  // stay silent about it otherwise.
-  if (context.route) {
-    lines.push(routeLine(context)!);
-  } else if (kind === "navigation") {
-    lines.push("Active route: none set.");
-  }
-  if (context.officials?.length) {
-    /*
-      The highest-stakes field in the block.
+/** What to say, without asking the model, when the evidence cannot carry an answer. */
+const INSUFFICIENT_FOR: Partial<Record<AgentKind, string>> = {
+  navigation: "No route is planned yet. Choose a start and an end in Directions, then run this agent again.",
+};
 
-      The system prompt below tells the model this list is the ONLY source of
-      truth for an official's name. That instruction is what made an unescaped
-      version dangerous: a forged entry would not merely be repeated, it would
-      be laundered into an authoritative claim about a real public office, with
-      the guardrail itself vouching for it.
-    */
-    lines.push(
-      "Officials/authorities:\n" +
-        context.officials
-          .slice(0, 20)
-          .map((o) =>
-            o.status === "verified"
-              ? `- [${sanitizeField(o.level, 40)}] ${sanitizeField(o.role, 80)}: ${sanitizeField(o.name, 120)} (source: ${sanitizeField(o.sourceLabel, 80) || "unknown"}${o.since ? `, since ${sanitizeField(o.since, 20)}` : ""})`
-              : `- [${sanitizeField(o.level, 40)}] ${sanitizeField(o.role, 80)}: Unable to verify`
-          )
-          .join("\n")
-    );
-  }
-  return lines.length ? lines.join("\n") : "No location is currently selected in the app.";
-}
+/** The client gives up at 40 s; everything here has to fit inside that. */
+const REQUEST_BUDGET_MS = 37_000;
 
 const handler: ApiHandler = async (req, res) => {
   if (req.method !== "POST") return err(res, 405, "Use POST.");
@@ -104,63 +48,84 @@ const handler: ApiHandler = async (req, res) => {
   const rate = await checkDurableLimit("ai", ip, 60_000, 15);
   if (!rate.allowed) return err(res, 429, "Too many agent requests. Please slow down.", "RATE_LIMITED");
 
-  const body = (req.body ?? {}) as AgentRequestBody;
+  const body = (req.body ?? {}) as { kind?: AgentKind; anchor?: unknown };
   const kind = body.kind;
   if (!kind || !VALID_KINDS.includes(kind)) {
     return err(res, 400, `'kind' must be one of: ${VALID_KINDS.join(", ")}.`);
   }
-
-  /**
-   * Same cap as the Copilot route, and it matters more here: an agent request
-   * carries no question at all, so `body.context` IS the entire prompt. It was
-   * accepted unvalidated and billed to this project's OpenRouter key.
-   */
-  if (JSON.stringify(body.context ?? {}).length > 20_000) {
-    return err(res, 413, "Too much context sent with this request.");
+  if (JSON.stringify(body).length > 20_000) {
+    return err(res, 413, "Too much data sent with this request.");
   }
-  const dataBlock = buildDataBlock(body.context, kind).slice(0, 4_000);
   /*
-    Matters more here than on the Copilot route: an agent request carries no
-    question at all, so this block IS the entire prompt. See untrusted.ts.
+    The browser used to send the facts themselves ("context"), and the
+    answer repeated them as verified. Now it sends only where to look; a
+    request without that is from a page loaded before the change.
   */
-  const fence = makeFence("DATA");
-  const kbHits = await searchKnowledgeBase(AGENT_FOCUS[kind], 2);
-  const kbBlock = kbHits.length ? kbHits.map((h) => `### ${h.title}\n${h.content}`).join("\n\n") : "";
+  const anchor = parseAnchor(body.anchor);
+  if (!anchor) {
+    return err(res, 400, "Reload the page to use the agents: they now check every fact on the server, and need the selected place to do it.", "ANCHOR_REQUIRED");
+  }
 
+  const started = Date.now();
+  const gathered = await gatherForAgent(kind, anchor, req);
+  const confidence = confidenceFor(kind, gathered.outcomes);
+  const steps: AgentStep[] = [...gathered.steps];
+  const base = { kind, evidence: gathered.items, confidence, sources: sourcesOf(gathered.items) };
+
+  if (confidence.level === "insufficient") {
+    // Nothing to explain, so no model call: it would only spend the day's quota.
+    const result: AgentResult = {
+      ...base,
+      summary: INSUFFICIENT_FOR[kind] ?? `${INSUFFICIENT} ${confidence.reason}`.trim(),
+      findings: [],
+      steps,
+      generatedAt: new Date().toISOString(),
+      model: "none: not enough evidence to ask a model",
+      removedSentences: 0,
+    };
+    return ok(res, { result });
+  }
+
+  const fence = makeFence("EVIDENCE");
   const messages: AiMessage[] = [
     {
       role: "system",
       content:
-        `You are the ${kind} intelligence agent inside maNOWj GeoIntel, writing a short result card for a real person to read, not a document or a report. ${AGENT_FOCUS[kind]} ` +
-        "Write 3-5 plain, flowing sentences, never markdown of any kind (no **bold**, no *, -, or numbered list syntax, no ### headers). If you want to mention several numbers, weave them into a sentence ('7 petrol stations, 5 parks, and 4 hotels nearby') instead of a list. Never use an em dash. Use a comma, a colon, a full stop, or brackets instead. " +
-        "Never show your reasoning, planning, or thinking process, and never narrate what you're about to do ('Let me analyze this', 'Step 1: Analyze user input', 'As the X agent I will...'), respond with ONLY the final answer, as if you already worked it out. " +
-        "Match the person's language if the location data or question gives you a signal to (Telugu, Hindi, Tamil, Kannada, or a mixed/transliterated form like Tenglish or Hinglish are all fine); otherwise write in plain English. " +
-        "Use ONLY the CURRENT LOCATION DATA below (and the knowledge base, if relevant), never invent facts, businesses, prices, or numbers that aren't there. " +
-        "If the data is insufficient for this agent's focus, say so directly, in one plain sentence. " +
+        `You are the ${kind} intelligence agent inside maNOWj GeoIntel, writing a short result card for a real person. ${AGENT_FOCUS[kind]} ` +
+        "Write 3 to 5 plain sentences. No markdown, no lists, no headings, no em dashes. " +
+        "Never show your reasoning or narrate what you are doing; give only the final answer. " +
+        "Match the person's language only if the evidence signals one (Telugu, Hindi, Tamil, Kannada, Tenglish or Hinglish); otherwise write plain English. " +
+        "Use ONLY the EVIDENCE table below. After every sentence that states a fact, cite the ids of the evidence it uses in square brackets, like [E2] or [E2, E5]. " +
+        "Copy numbers exactly as the evidence writes them: never convert units, add up, average or estimate, because any sentence with a number that is not in the evidence is deleted before anyone sees it. " +
+        "Items marked 'unavailable' were not obtained: say so plainly where it matters, and never fill them in. " +
+        "When you give your own reading of the facts, say so ('this suggests'), and give no citation for it. " +
+        `If the evidence does not cover what this agent explains, write exactly: ${INSUFFICIENT} ` +
         `${GROUNDING_RULES} ` +
-        "If asked who built or developed this app, say Manoj Kumar Gudla built it. If asked personal questions about him unrelated to this app, " +
-        "politely decline rather than guessing. If the data includes an 'Officials/authorities' section, treat those as the ONLY source of truth for " +
-        "government officials' names, never state such a name from your own memory, and say 'Unable to verify' if a role isn't listed there.\n\n" +
-        `${fenceRules(fence)}\n\nCURRENT LOCATION DATA:\n${fence.wrap(dataBlock)}` +
-        (kbBlock ? `\n\nRELEVANT KNOWLEDGE BASE:\n${kbBlock}` : ""),
+        "If asked who built this app, say Manoj Kumar Gudla built it; decline personal questions about him.\n\n" +
+        `${fenceRules(fence)}\n\nEVIDENCE (id | what | value | kind | source | as of | note):\n${fence.wrap(evidenceTable(gathered.items))}`,
     },
-    { role: "user", content: `Run the ${kind} intelligence agent on the current data.` },
+    { role: "user", content: `Run the ${kind} intelligence agent on the evidence.` },
   ];
 
-  // Room for the hidden "thinking" every current free model does first; see
-  // the note on the same budget in copilot.ts.
-  const result = await getAiCompletion(messages, { maxTokens: 1600 });
-  if (!result.ok) return err(res, 502, result.error, "AI_UNAVAILABLE");
+  const aiStarted = Date.now();
+  const remaining = REQUEST_BUDGET_MS - (aiStarted - started);
+  const completion = await getAiCompletion(messages, { maxTokens: 1600, deadlineMs: Math.max(12_000, Math.min(30_000, remaining)) });
+  steps.push({ step: "Writing the explanation (AI model)", status: completion.ok ? "ok" : "failed", ms: Date.now() - aiStarted });
+  if (!completion.ok) return err(res, 502, completion.error, "AI_UNAVAILABLE");
 
-  ok(res, {
-    result: {
-      kind,
-      summary: result.content,
-      sources: [...dataSourcesFor(body.context), ...kbHits.map((h) => `Help article: ${h.title}`)],
-      generatedAt: new Date().toISOString(),
-      model: result.model,
-    },
-  });
+  const checked = checkAnswer(completion.content, gathered.items);
+  steps.push({ step: "Checking every number against the evidence", status: checked.removed ? "partial" : "ok", ms: 0 });
+
+  const result: AgentResult = {
+    ...base,
+    summary: checked.findings.length ? checked.summary : INSUFFICIENT,
+    findings: checked.findings,
+    steps,
+    generatedAt: new Date().toISOString(),
+    model: completion.model,
+    removedSentences: checked.removed,
+  };
+  ok(res, { result });
 };
 
 export default withMaintenanceGuard(handler);

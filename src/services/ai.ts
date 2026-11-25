@@ -1,7 +1,7 @@
 import { track } from "@/services/analytics";
 import { apiPost } from "@/services/apiClient";
 import { createRequestGate } from "@/services/aiRequestQueue";
-import type { AgentKind, AgentResult, CopilotContext } from "@/types/ai";
+import type { AgentAnchor, AgentKind, AgentResult, EvidenceItem, TeamResult, TripPlan, TripStop } from "@/types/ai";
 
 // AI completions (OpenRouter, often on free-tier/rate-limited models) run
 // meaningfully slower than the other data endpoints and take the apiClient
@@ -10,7 +10,12 @@ import type { AgentKind, AgentResult, CopilotContext } from "@/types/ai";
 // at almost the same moment the server might have succeeded. 35s here vs.
 // the server's 25s (api/_lib/ai.ts) leaves real margin for network/parse
 // overhead on top of the provider's own response time.
-const AI_REQUEST_TIMEOUT_MS = 35_000;
+/**
+ * How long the browser waits for an AI answer. The agents and the Copilot
+ * fetch their evidence on the server before the model writes, so this is a
+ * few seconds more than the model's own 30 s; the server budgets 37 s.
+ */
+const AGENT_REQUEST_TIMEOUT_MS = 40_000;
 
 // Every AI call in the app shares one provider key, so they share one rate
 // limit - see aiRequestQueue.ts for the reported bug this fixes (clicking
@@ -44,12 +49,20 @@ async function measured<T>(surface: string, run: () => Promise<T>, modelOf?: (va
   }
 }
 
-export async function askCopilot(
-  question: string,
-  context: CopilotContext,
-  signal?: AbortSignal,
-  history: CopilotTurn[] = []
-): Promise<{ answer: string; sources: string[]; model: string; generatedAt?: string }> {
+export interface CopilotAnswer {
+  answer: string;
+  sources: string[];
+  model: string;
+  generatedAt?: string;
+  evidence?: EvidenceItem[];
+  removedSentences?: number;
+}
+
+/**
+ * Asks the Copilot. Like the agents, it sends only where to look (nothing,
+ * with no place selected); the server fetches the facts a question needs.
+ */
+export async function askCopilot(question: string, anchor: AgentAnchor | null, signal?: AbortSignal, history: CopilotTurn[] = []): Promise<CopilotAnswer> {
   // priority: a person is watching this one send box, so it goes ahead of
   // any agent cards already queued up behind it.
   return measured(
@@ -57,12 +70,13 @@ export async function askCopilot(
     () =>
       aiGate.run(
         () =>
-          apiPost<{ answer: string; sources: string[]; model: string; generatedAt?: string }>(
+          apiPost<CopilotAnswer>(
             "/api/ai/copilot",
             // The last six turns; the server trims and caps them again.
-            { question, context, history: history.slice(-6) },
+            { question, anchor: anchor ?? undefined, history: history.slice(-6) },
             signal,
-            AI_REQUEST_TIMEOUT_MS
+            // The server may fetch evidence first, as the agents do.
+            AGENT_REQUEST_TIMEOUT_MS
           ),
         { priority: true }
       ),
@@ -70,14 +84,53 @@ export async function askCopilot(
   );
 }
 
-export async function runAgent(kind: AgentKind, context: CopilotContext, signal?: AbortSignal, onStart?: () => void): Promise<AgentResult> {
+/**
+ * Runs one agent on a place. Only the anchor (where to look) is sent; the
+ * server fetches and checks every fact itself.
+ */
+export async function runAgent(kind: AgentKind, anchor: AgentAnchor, signal?: AbortSignal, onStart?: () => void): Promise<AgentResult> {
   return measured(`agent:${kind}`, () =>
     aiGate.run(
       async () => {
-        const { result } = await apiPost<{ result: AgentResult }>("/api/ai/agent", { kind, context }, signal, AI_REQUEST_TIMEOUT_MS);
+        const { result } = await apiPost<{ result: AgentResult }>("/api/ai/agent", { kind, anchor }, signal, AGENT_REQUEST_TIMEOUT_MS);
         return result;
       },
       { onStart }
     )
   );
+}
+
+/**
+ * Several agents on one request ("evaluate this place for a family home and
+ * route to the nearest hospital"). One server request: it plans, fetches
+ * every source once, makes one model call and checks every number.
+ */
+export async function askAgentTeam(request: string, anchor: AgentAnchor, signal?: AbortSignal): Promise<TeamResult> {
+  return measured(
+    "agent:team",
+    () =>
+      aiGate.run(
+        async () => {
+          const { result } = await apiPost<{ result: TeamResult }>("/api/ai/ask", { request, anchor }, signal, AGENT_REQUEST_TIMEOUT_MS);
+          return result;
+        },
+        { priority: true }
+      ),
+    (value) => value.model
+  );
+}
+
+export interface TripOptions {
+  interests: string[];
+  days: number;
+  stopsPerDay: number;
+  mode: "car" | "walk" | "bike";
+  /** The visitor's own ordered stops, after editing. */
+  stops?: TripStop[];
+}
+
+/** A Make My Trip plan: real mapped places, real routing, no model call. */
+export async function buildTripPlan(anchor: AgentAnchor, options: TripOptions, signal?: AbortSignal): Promise<TripPlan> {
+  const { plan } = await apiPost<{ plan: TripPlan }>("/api/ai/trip", { anchor, ...options }, signal, AGENT_REQUEST_TIMEOUT_MS);
+  return plan;
 }

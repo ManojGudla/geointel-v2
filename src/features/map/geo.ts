@@ -1,6 +1,18 @@
 import * as turf from "@turf/turf";
 import type { Feature, Polygon } from "geojson";
 
+/**
+ * The same meridian, written between -180 and 180.
+ *
+ * The map repeats the world side by side, and a click on a repeated copy
+ * reports its longitude unwrapped: New York on the copy to the east is 286,
+ * not -74. Selected places, labels and API calls all want the plain form.
+ */
+export function wrapLongitude(lon: number): number {
+  if (!Number.isFinite(lon) || (lon >= -180 && lon <= 180)) return lon;
+  return ((((lon + 180) % 360) + 360) % 360) - 180;
+}
+
 export function circlePolygon(lat: number, lon: number, radiusMeters: number): Feature<Polygon> {
   return turf.circle([lon, lat], radiusMeters / 1000, { units: "kilometers", steps: 64 });
 }
@@ -39,6 +51,8 @@ export function formatDistance(
    */
   precise = false
 ): string {
+  // A dash, never "NaN km": a missing figure must not print as one.
+  if (!Number.isFinite(meters)) return "—";
   const dp = precise ? 2 : 1;
   if (units === "imperial") {
     const feet = meters * 3.28084;
@@ -56,6 +70,7 @@ export function formatDistance(
  * acres are what land is actually quoted in.
  */
 export function formatArea(squareMeters: number, units: "metric" | "imperial" = "metric"): string {
+  if (!Number.isFinite(squareMeters)) return "—";
   if (units === "imperial") {
     const squareFeet = squareMeters * 10.7639;
     if (squareFeet < 10_000) return `${Math.round(squareFeet)} sq ft`;

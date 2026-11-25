@@ -28,6 +28,11 @@ export function analysisToGeoJSON(result: AnalysisResult | null): GeoJSON.Featur
     });
   }
 
+  for (const path of result.paths ?? []) {
+    if (path.length < 2) continue;
+    features.push({ type: "Feature", properties: { role: "connector" }, geometry: { type: "LineString", coordinates: path } });
+  }
+
   for (const point of result.points) {
     features.push({
       type: "Feature",

@@ -196,9 +196,10 @@
 }
 
 /* ---- Measurement points: draggable handles -------------------------------
-   The visible dot is 14px; the element around it is a 32px touch target, so
-   a point can be picked up with a finger and moved to reshape the line or
-   area. */
+   The visible dot is 14px; the element around it is the touch target, so a
+   point can be picked up with a finger and moved to reshape the line or
+   area. 32px on a mouse, 44px on a touch screen: 32 is below the size a
+   fingertip reliably hits, and missing the handle pans the map instead. */
 .measure-point-marker {
   display: grid;
   place-items: center;
@@ -206,6 +207,18 @@
   height: 32px;
   cursor: grab;
   touch-action: none;
+}
+
+@media (pointer: coarse) {
+  .measure-point-marker {
+    width: 44px;
+    height: 44px;
+  }
+
+  .measure-point-marker__dot {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .measure-point-marker:active {

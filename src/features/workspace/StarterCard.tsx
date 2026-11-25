@@ -8,16 +8,38 @@ import { useMeasureStore } from "@/stores/measureStore";
 import { useFreeNoticeStore } from "@/features/notice/freeNoticeStore";
 import { reverseGeocode } from "@/services/geocode";
 import { track } from "@/services/analytics";
+import { isIndiaTimeZone, visitorTimeZone } from "@/lib/visitorRegion";
 import "./StarterCard.css";
 
 const DISMISSED_KEY = "manowj.starter.dismissed.v1";
 
+type Example = { name: string; where: string; lat: number; lon: number };
+
 /** Real localities people check before renting or buying, one tap each. */
-const EXAMPLES: Array<{ name: string; where: string; lat: number; lon: number }> = [
+export const INDIA_EXAMPLES: Example[] = [
   { name: "Gachibowli", where: "Hyderabad", lat: 17.4401, lon: 78.3489 },
   { name: "Koramangala", where: "Bengaluru", lat: 12.9352, lon: 77.6245 },
   { name: "Andheri West", where: "Mumbai", lat: 19.1364, lon: 72.8296 },
 ];
+
+/**
+ * The same idea for everyone else. Three Indian neighbourhood names mean
+ * nothing to a visitor in Manchester or Toronto and quietly say "this is not
+ * for you". These are places people abroad really do check before renting,
+ * many of them students and new arrivals from India.
+ */
+export const WORLD_EXAMPLES: Example[] = [
+  { name: "Fallowfield", where: "Manchester", lat: 53.4416, lon: -2.2265 },
+  { name: "Jersey City", where: "New Jersey", lat: 40.7191, lon: -74.0506 },
+  { name: "Brampton", where: "Ontario", lat: 43.689, lon: -79.759 },
+];
+
+/** Indian examples for visitors in India and when the zone is unknown. */
+export function examplesFor(tz: string | null): Example[] {
+  return tz === null || isIndiaTimeZone(tz) ? INDIA_EXAMPLES : WORLD_EXAMPLES;
+}
+
+const EXAMPLES = examplesFor(visitorTimeZone());
 
 const EXAMPLE_RADIUS_METERS = 1000;
 
@@ -105,7 +127,13 @@ export function StarterCard() {
         ✕
       </button>
       <h2 className="starter__headline">Check any address in seconds</h2>
-      <p className="starter__text">See the hospitals, schools, metro and shops around it, with the source of every figure. Free, no sign-up.</p>
+      <p className="starter__text">
+        See the hospitals, schools, transit and shops around it, with the source of every figure. Then ask the{" "}
+        <button type="button" className="starter__link" onClick={() => openSection("ai")}>
+          🤖 AI agents
+        </button>{" "}
+        to explain it. Free, no sign-up.
+      </p>
       <div className="starter__examples">
         <span className="starter__try">Try:</span>
         {EXAMPLES.map((example) => (

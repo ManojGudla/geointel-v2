@@ -12,6 +12,9 @@
 .settings-panel {
   width: min(420px, 92vw);
   max-height: min(600px, calc(100vh - var(--space-8)));
+  /* dvh after the vh fallback: on phones 100vh includes the browser bars, so
+     the bottom of this dialog sat hidden behind them. */
+  max-height: min(600px, calc(100dvh - var(--space-8)));
   overflow-y: auto;
   background: var(--color-surface);
   border-radius: var(--radius-lg);

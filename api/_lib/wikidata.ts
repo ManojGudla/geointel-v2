@@ -57,6 +57,24 @@ export async function sparqlQuery(query: string, timeoutMs = 12_000): Promise<Sp
   }
 }
 
+/**
+ * sparqlQuery, but a failed request THROWS instead of coming back as no rows.
+ *
+ * For callers that must tell "Wikidata has nothing" apart from "Wikidata
+ * could not be reached". /api/population is one: an outage reported as "no
+ * published figure for this area" is a false statement about the world, and
+ * it was being cached for a day. sparqlQuery itself is unchanged, because
+ * api/officials.ts deliberately treats both cases the same.
+ */
+export async function sparqlQueryOrThrow(query: string, timeoutMs = 12_000): Promise<SparqlRow[]> {
+  const url = `${SPARQL_ENDPOINT}?query=${encodeURIComponent(query)}&format=json`;
+  const response = await fetchWithTimeout(url, { headers: { Accept: "application/sparql-results+json", "User-Agent": USER_AGENT } }, timeoutMs);
+  if (!response.ok) throw new Error(`Wikidata SPARQL returned HTTP ${response.status}`);
+  const data = (await response.json()) as SparqlResponse;
+  if (!data || !data.results || !Array.isArray(data.results.bindings)) throw new Error("Wikidata SPARQL returned no result set");
+  return data.results.bindings;
+}
+
 /** Wikidata entity IRIs look like "http://www.wikidata.org/entity/Q30" - this pulls out just "Q30". */
 export function qidFromUri(uri: string | undefined): string | null {
   if (!uri) return null;

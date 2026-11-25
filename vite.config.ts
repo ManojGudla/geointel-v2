@@ -29,17 +29,26 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      // host: true binds to 0.0.0.0 instead of just localhost - needed so a
-      // phone on the same Wi-Fi can reach this dev server at all (to test
-      // the site, or /admin, from a mobile browser). Vite prints the exact
-      // LAN URL to use ("Network: http://<your-pc-ip>:5173/") in the
-      // terminal on startup. Local-network-only, not a public deployment -
-      // a phone on a different network still can't reach it this way.
-      host: true,
+      // Only this computer by default. This was `host: true`, which opened
+      // the dev server to everyone on the same Wi-Fi all the time, and Vite
+      // 5's dev server has path-traversal advisories: on café or office
+      // Wi-Fi, someone nearby could read project files such as .env.local.
+      // To test on a phone, run `npm run dev:phone`: it binds to the LAN for
+      // that session only, and Vite prints the "Network:" URL to open.
+      host: "localhost",
       port: 5173,
       strictPort: true,
     },
     build: {
+      /**
+       * The browsers this site has always supported, written out.
+       *
+       * Vite 7 raised its default target to "baseline-widely-available"
+       * (Safari 16, Chrome 107). Vite 5's default reached Safari 14 and
+       * Chrome 87, and many phones in India still run those. Pinning the old
+       * list keeps the tool upgrade from quietly dropping them.
+       */
+      target: ["es2020", "edge88", "firefox78", "chrome87", "safari14"],
       /**
        * Source maps in development, not in the deployed site.
        *

@@ -103,6 +103,41 @@ export function getQueryParam(req: ApiRequest, key: string): string | undefined 
 }
 
 /**
+ * A finite number from one query parameter, or null when it is absent, blank
+ * or not a number. Blank matters: Number("") is 0, so `?lat=` used to mean the
+ * equator rather than "no latitude".
+ */
+export function getNumberParam(req: ApiRequest, key: string): number | null {
+  const raw = getQueryParam(req, key);
+  if (raw === undefined || raw.trim() === "") return null;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
+export type LatLonParam = { ok: true; lat: number; lon: number } | { ok: false; problem: "missing" | "out_of_range" };
+
+/**
+ * A latitude/longitude pair that is actually on the globe.
+ *
+ * Checked here, before any provider is asked: several routes used to pass
+ * ?lat=500 straight on, and the provider's refusal then reached the visitor
+ * as "the service is unavailable" while spending a rate-limited request.
+ * Longitudes must already be written between -180 and 180; the map wraps a
+ * click on a repeated copy of the world before it asks (wrapLongitude in
+ * src/features/map/geo.ts).
+ */
+export function readLatLon(req: ApiRequest, latKey = "lat", lonKey = "lon"): LatLonParam {
+  const lat = getNumberParam(req, latKey);
+  const lon = getNumberParam(req, lonKey);
+  if (lat === null || lon === null) return { ok: false, problem: "missing" };
+  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return { ok: false, problem: "out_of_range" };
+  return { ok: true, lat, lon };
+}
+
+/** The 400 message for a pair that is present but not on the globe. */
+export const OUT_OF_RANGE_MESSAGE = "'lat' and 'lon' are out of range: latitude must be -90 to 90 and longitude -180 to 180.";
+
+/**
  * The caller's IP, taken from the end of the chain the proxy controls.
  *
  * This used to return `forwarded.split(",")[0]`, which is the WRONG end.

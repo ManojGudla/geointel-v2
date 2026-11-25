@@ -2,11 +2,13 @@ import { AGENT_DEFINITIONS } from "@/types/ai";
 import { useLocationStore } from "@/stores/locationStore";
 import { useCopilotContextState } from "./useCopilotContext";
 import { AgentCard } from "./AgentCard";
+import { AgentTeam } from "./AgentTeam";
+import { TripBuilder } from "./TripBuilder";
 import "./AgentStrip.css";
 
 /**
- * The six AI agent cards, in the workspace panel's "Ask" section (🤖 on the
- * rail), below Ask maNOWj and the report.
+ * The six AI agent cards, first in the workspace panel's "AI" section (🤖 on
+ * the rail). A place's Overview points here with AgentCallout.tsx.
  *
  * This is the only place they render. Two earlier arrangements are gone and
  * the comment here described both of them: a full grid in an Intelligence
@@ -18,20 +20,28 @@ import "./AgentStrip.css";
  */
 export function AgentStrip() {
   const location = useLocationStore((s) => s.selectedLocation);
-  const { context, pending } = useCopilotContextState();
+  // The cards still wait for the panels' own loads before offering Run, so
+  // an answer appears beside the numbers it explains, not before them.
+  const { pending } = useCopilotContextState();
 
   return (
     <div className="agent-strip">
+      {/* Several agents on one request comes first: it is the way to ask a
+          real question; the cards below each explain one angle on their own. */}
+      <AgentTeam />
+      <TripBuilder />
       <div className="agent-strip__head">
-        <strong>AI Agents</strong>
+        <strong>AI agents</strong>
         <span className="agent-strip__hint">
-          {location ? `${AGENT_DEFINITIONS.length} agents. Scroll down for all of them` : "Select a location on the map to run them."}
+          {location
+            ? `${AGENT_DEFINITIONS.length} agents, each explaining this place from one angle. Tap Run on any of them.`
+            : `${AGENT_DEFINITIONS.length} agents are ready. Search a place or tap the map first, then tap Run.`}
         </span>
       </div>
       <div className="agent-strip__row">
         {AGENT_DEFINITIONS.map((def) => (
           <div className="agent-strip__item" key={def.kind}>
-            <AgentCard definition={def} context={context} pending={pending} />
+            <AgentCard definition={def} pending={pending} />
           </div>
         ))}
       </div>

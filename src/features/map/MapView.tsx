@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import maplibregl, { Map as MapLibreMap, Marker, NavigationControl, FullscreenControl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { buildBasemapStyle, OSM_CREDIT } from "./basemaps";
-import { circlePolygon } from "./geo";
+import { circlePolygon, wrapLongitude } from "./geo";
 import { useMapStore } from "@/stores/mapStore";
 import { useLocationStore } from "@/stores/locationStore";
 import { useGisEvidence } from "@/features/gis/useGisEvidence";
@@ -30,6 +30,7 @@ import { useSheetInsetStore } from "@/features/shell/sheetInsetStore";
 import { MapLoadState, type MapLoadPhase } from "./MapLoadState";
 import "./MapView.css";
 import { useImportStore, importCollection } from "@/stores/importStore";
+import { useSheetCommandStore } from "@/features/shell/sheetCommandStore";
 
 // How long before we stop pretending everything is normal. Under a second is
 // a normal load on a decent connection; past SLOW_AFTER_MS the user deserves
@@ -865,7 +866,8 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
       pointLookupRef.current?.abort();
       const controller = new AbortController();
       pointLookupRef.current = controller;
-      void selectMapPoint(lat, lon, controller.signal);
+      // Wrapped: a click on a repeated copy of the world reports 286 for -74.
+      void selectMapPoint(lat, wrapLongitude(lon), controller.signal);
     };
 
     map.on("click", GIS_LAYER_POINTS, (e) => {
@@ -899,6 +901,10 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
     // dragstart fires for gestures only, never for the follow easeTo itself.
     map.on("dragstart", () => {
       if (useLiveLocationStore.getState().following) useLiveLocationStore.getState().setFollowing(false);
+      // On a phone, panning means the map is what you want to see: the
+      // bottom sheet drops to its peek height (no-op on desktop and when it
+      // is already low). See shell/sheetCommandStore.ts.
+      useSheetCommandStore.getState().requestLower();
     });
 
     mapRef.current = map;

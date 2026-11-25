@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { prefersMiles, visitorTimeZone } from "@/lib/visitorRegion";
 
 export type ThemeMode = "system" | "light" | "dark";
 export type AnimationIntensity = "full" | "reduced" | "off";
@@ -52,7 +53,9 @@ const persisted = loadPersisted();
 export const useUiStore = create<UiState>((set, get) => ({
   theme: persisted.theme ?? "system",
   animationIntensity: persisted.animationIntensity ?? "full",
-  units: persisted.units ?? "metric",
+  // Until the visitor chooses, miles where miles are the everyday unit (the
+  // US and the UK) and kilometres everywhere else. See lib/visitorRegion.ts.
+  units: persisted.units ?? (prefersMiles(visitorTimeZone()) ? "imperial" : "metric"),
   defaultRadiusMeters: persisted.defaultRadiusMeters ?? 250,
   is3DMapEnabled: persisted.is3DMapEnabled ?? false,
   displayName: persisted.displayName ?? "",

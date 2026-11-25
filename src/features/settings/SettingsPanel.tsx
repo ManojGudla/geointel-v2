@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useSettingsStore } from "@/stores/settingsStore";
-import { useUiStore, type AnimationIntensity, type Units } from "@/stores/uiStore";
+import { useUiStore, type AnimationIntensity, type ThemeMode, type Units } from "@/stores/uiStore";
 import { useMapStore } from "@/stores/mapStore";
 import { useWeatherEffectStore } from "@/features/weather/effects/weatherEffectStore";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
@@ -13,6 +13,13 @@ const RADIUS_PRESETS = [100, 250, 500, 1000, 2000, 5000];
 function formatRadius(meters: number): string {
   return meters >= 1000 ? `${meters / 1000}km` : `${meters}m`;
 }
+
+/* Moved here from the header, where a monitor emoji was a mystery button. */
+const THEME_OPTIONS: Array<{ id: ThemeMode; label: string }> = [
+  { id: "system", label: "Auto" },
+  { id: "light", label: "☀️ Light" },
+  { id: "dark", label: "🌙 Dark" },
+];
 
 const ANIMATION_OPTIONS: Array<{ id: AnimationIntensity; label: string }> = [
   { id: "full", label: "Full" },
@@ -40,6 +47,8 @@ export function SettingsPanel() {
   const dialogRef = useDialog({ open: isOpen, onClose: close });
   const motionEnabled = useMotionPreference();
 
+  const theme = useUiStore((s) => s.theme);
+  const setTheme = useUiStore((s) => s.setTheme);
   const units = useUiStore((s) => s.units);
   const setUnits = useUiStore((s) => s.setUnits);
   const animationIntensity = useUiStore((s) => s.animationIntensity);
@@ -82,6 +91,24 @@ export function SettingsPanel() {
           Saved to this browser only. GeoIntel doesn't have real user accounts yet (see Features → Personalization &amp;
           Settings), so this isn't synced anywhere else.
         </small>
+      </div>
+
+      <div className="settings-panel__group">
+        <span className="settings-panel__label">Theme</span>
+        <div className="settings-panel__segmented" role="group" aria-label="Theme">
+          {THEME_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={theme === option.id ? "active" : ""}
+              aria-pressed={theme === option.id}
+              onClick={() => setTheme(option.id)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <small>Auto follows your phone or computer.</small>
       </div>
 
       <div className="settings-panel__group">

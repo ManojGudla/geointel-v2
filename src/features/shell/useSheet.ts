@@ -9,6 +9,7 @@ import {
   raiseDetent,
   settle,
 } from "./sheet";
+import { useSheetCommandStore } from "./sheetCommandStore";
 
 /**
  * The drag behaviour for the mobile workspace sheet.
@@ -184,6 +185,21 @@ export function useSheet(enabled: boolean, onDismiss: () => void): Sheet {
     if (!enabled) return;
     setDetent((current) => cycleDetent(current));
   }, [enabled]);
+
+  /*
+    The map asked for room (a pan or a measurement started): drop to the peek
+    height so most of the screen is map again. See sheetCommandStore.ts.
+    Never raises, and ignores the request that was pending when the sheet
+    mounted, so opening a panel does not immediately shrink it.
+  */
+  const lowerRequest = useSheetCommandStore((s) => s.lowerRequest);
+  const seenRequest = useRef(lowerRequest);
+  useEffect(() => {
+    if (lowerRequest === seenRequest.current) return;
+    seenRequest.current = lowerRequest;
+    if (!enabled || drag.current) return;
+    setDetent((current) => (DETENT_FRACTION[current] > DETENT_FRACTION.peek ? "peek" : current));
+  }, [lowerRequest, enabled]);
 
   return {
     detent,

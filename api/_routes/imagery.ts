@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getQueryParam, getClientIp, withEdgeCache, readLatLon } from "../_lib/http.js";
 import { TtlCache, RateLimiter, fetchWithTimeout } from "../_lib/cache.js";
 
 /**
@@ -58,7 +58,7 @@ export interface ImageryDto {
   product: string | null;
 }
 
-interface Footprint {
+export interface Footprint {
   SRC_DATE?: number;
   SAMP_RES?: number;
   SRC_RES?: number;
@@ -136,24 +136,38 @@ async function queryLayer(layer: number, lat: number, lon: number): Promise<Foot
   return (body.features ?? []).map((f) => f.attributes ?? {});
 }
 
-/** One layer failing must not lose the answer another layer already has. */
-async function queryLayers(layers: number[], lat: number, lon: number): Promise<Footprint[]> {
-  const settled = await Promise.allSettled(layers.map((l) => queryLayer(l, lat, lon)));
-  return settled.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
+/**
+ * One layer failing must not lose the answer another layer already has.
+ *
+ * `answered` counts the layers that actually replied. It is what separates
+ * "Esri has no footprint here" (some layers answered, none had one) from
+ * "Esri could not be reached" (none answered). Both used to come out as an
+ * empty list, so a minute of 429s or timeouts was cached and served for
+ * weeks as "no capture date is published for this area": a failure stated
+ * as a fact about the data.
+ */
+export async function queryLayers(
+  layers: number[],
+  lat: number,
+  lon: number,
+  query: (layer: number, lat: number, lon: number) => Promise<Footprint[]> = queryLayer
+): Promise<{ features: Footprint[]; answered: number }> {
+  const settled = await Promise.allSettled(layers.map((l) => query(l, lat, lon)));
+  return {
+    features: settled.flatMap((r) => (r.status === "fulfilled" ? r.value : [])),
+    answered: settled.filter((r) => r.status === "fulfilled").length,
+  };
 }
 
 const handler: ApiHandler = async (req, res) => {
-  const lat = Number(getQueryParam(req, "lat"));
-  const lon = Number(getQueryParam(req, "lon"));
+  const point = readLatLon(req);
   const zoomRaw = Number(getQueryParam(req, "zoom"));
   const zoom = Number.isFinite(zoomRaw) ? Math.min(22, Math.max(0, zoomRaw)) : 16;
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return err(res, 400, "lat and lon are required numbers.");
+  if (!point.ok) {
+    return err(res, 400, point.problem === "missing" ? "lat and lon are required numbers." : "lat and lon are out of range.");
   }
-  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-    return err(res, 400, "lat and lon are out of range.");
-  }
+  const { lat, lon } = point;
 
   const ip = getClientIp(req);
   if (!limiter.check(ip).allowed) {
@@ -168,8 +182,19 @@ const handler: ApiHandler = async (req, res) => {
 
   let result: ImageryDto | null = null;
   try {
-    let features = await queryLayers(PRIMARY_LAYERS, lat, lon);
-    if (features.length === 0) features = await queryLayers(FALLBACK_LAYERS, lat, lon);
+    let { features, answered } = await queryLayers(PRIMARY_LAYERS, lat, lon);
+    if (features.length === 0) {
+      const fallback = await queryLayers(FALLBACK_LAYERS, lat, lon);
+      features = fallback.features;
+      answered += fallback.answered;
+    }
+
+    // Nobody answered, so there is no answer to give or to cache. err() is
+    // no-store, so neither this instance nor the CDN keeps it, and the
+    // client says the check failed instead of claiming no date exists.
+    if (answered === 0) {
+      return err(res, 502, "The imagery date service did not answer just now.", "PROVIDER_UNAVAILABLE");
+    }
 
     const best = selectFootprint(features, zoom);
     const captured = best ? parseSrcDate(best.SRC_DATE) : null;
@@ -186,10 +211,12 @@ const handler: ApiHandler = async (req, res) => {
     }
   } catch (error) {
     console.error("[api/imagery]", error instanceof Error ? error.message : error);
+    return err(res, 502, "The imagery date service did not answer just now.", "PROVIDER_UNAVAILABLE");
   }
 
   // Null is a real answer: plenty of ground has no published footprint, and
-  // saying so beats implying the picture is current.
+  // saying so beats implying the picture is current. It is only reached when
+  // Esri actually replied (see queryLayers).
   cache.set(cacheKey, result);
   ok(res, { imagery: result });
 };

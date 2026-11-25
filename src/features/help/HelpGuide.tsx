@@ -135,7 +135,7 @@ function HelpGuideBody({ section, setSection, close }: { section: Section; setSe
               <>
                 <h3>Ask maNOWj & AI Agents</h3>
                 <p>Click "✨ Ask maNOWj" (bottom-right of the map) to ask a free-text question about the selected location. It answers only from the real data already loaded (property analysis, GIS evidence, weather, nearby places, and the Official / Authority Intelligence data described in the Location Intelligence tab) plus a knowledge base about how GeoIntel itself works. If you ask about a government official and the app hasn't verified a name for that role, it says so rather than answering from its own memory. Officeholders change, and a name it merely "recalls" could be wrong.</p>
-                <p>Open <strong>🤖 Ask</strong> in the workspace rail for the AI Agents. There are six focused agents, each reading the same real on-screen data from its own angle:</p>
+                <p>Open <strong>🤖 AI</strong> in the workspace rail (on a phone, the bar at the bottom), or tap <strong>Open</strong> on the AI agents row at the top of any place. There are six focused agents, each reading the same real on-screen data from its own angle:</p>
                 <ul>
                   {AGENT_DEFINITIONS.map((a) => (
                     <li key={a.kind}>

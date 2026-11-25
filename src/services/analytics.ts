@@ -111,6 +111,18 @@ export function scrubProps(props: AnalyticsProps | undefined): AnalyticsProps {
   for (const [key, value] of Object.entries(props)) {
     if (value === undefined) continue;
     if (/lat|lon|lng|coord|address|query|name|email|user/i.test(key)) continue;
+    // The country of the place someone checked, as an ISO code ("GB", "US").
+    // Analytics already knows the VISITOR's country from their connection. It
+    // cannot know which country they were looking at, and that is the half
+    // that shows international use: a student in Hyderabad checking a flat in
+    // Manchester is filed under India by the visitor report. A country is
+    // nobody's location, but only a clean two-letter code gets through, never
+    // free text.
+    if (key === "place_country") {
+      const code = String(value).trim().toUpperCase();
+      if (/^[A-Z]{2}$/.test(code)) out[key] = code;
+      continue;
+    }
     if (typeof value === "number") {
       if (!Number.isFinite(value)) continue;
       if (!SAFE_NUMERIC_KEYS.has(key)) continue;

@@ -1,6 +1,6 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
-import { ok, err, getQueryParam, getClientIp, withEdgeCache } from "../_lib/http.js";
+import { ok, err, getQueryParam, getClientIp, withEdgeCache, readLatLon } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
 import { nominatimSearch, type NominatimResult } from "../_lib/nominatim.js";
 import { photonSearch, relaxedQueries } from "../_lib/photon.js";
@@ -191,10 +191,9 @@ const handler: ApiHandler = async (req, res) => {
   }
 
   // Where the user is looking. Optional - search still works without it.
-  const lat = Number(getQueryParam(req, "lat"));
-  const lon = Number(getQueryParam(req, "lon"));
-  const origin =
-    Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat, lon } : null;
+  // A blank or off-globe point means "no bias", not the equator.
+  const looking = readLatLon(req);
+  const origin = looking.ok ? { lat: looking.lat, lon: looking.lon } : null;
 
   // The viewport is part of the cache key: the same word means different
   // places depending on where you are, and caching on the word alone let the
