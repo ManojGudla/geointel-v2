@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAiStore } from "@/stores/aiStore";
 import { useLocationStore } from "@/stores/locationStore";
 import { askCopilot } from "@/services/ai";
-import { useCopilotContext } from "./useCopilotContext";
+import { useAgentAnchor } from "./agentAnchor";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
 import { panelRiseFromBottom } from "@/lib/motionVariants";
 import { formatAiText } from "@/lib/formatAiText";
@@ -29,7 +29,8 @@ export function CopilotPanel() {
   const setAsking = useAiStore((s) => s.setAsking);
   const clearConversation = useAiStore((s) => s.clearConversation);
   const location = useLocationStore((s) => s.selectedLocation);
-  const context = useCopilotContext();
+  // Where to look, never what to say: the server fetches the facts itself.
+  const anchor = useAgentAnchor();
   const [draft, setDraft] = useState("");
   const motionEnabled = useMotionPreference();
   /** Which place the conversation so far was about. */
@@ -67,9 +68,9 @@ export function CopilotPanel() {
     setAsking(true);
 
     try {
-      const { answer, sources, model, generatedAt } = await askCopilot(trimmed, context, undefined, history);
+      const { answer, sources, model, generatedAt, evidence, removedSentences } = await askCopilot(trimmed, anchor, undefined, history);
       justAnswered.current = true;
-      addMessage({ role: "assistant", content: answer, sources, model, generatedAt });
+      addMessage({ role: "assistant", content: answer, sources, model, generatedAt, evidence, removedSentences });
     } catch (error) {
       addMessage({ role: "assistant", content: describeAiFailure(error), isError: true });
       // Put the question back, so trying again is one press rather than
@@ -128,7 +129,14 @@ export function CopilotPanel() {
           m.role === "assistant" && !m.isError ? (
             // Only the newest answer types itself out; earlier ones (and the
             // whole thread when the panel reopens) appear complete.
-            <ChatAnswer key={i} text={formatAiText(m.content)} sources={m.sources} animate={i === messages.length - 1 && !!justAnswered.current} />
+            <ChatAnswer
+              key={i}
+              text={formatAiText(m.content)}
+              sources={m.sources}
+              evidence={m.evidence}
+              removedSentences={m.removedSentences}
+              animate={i === messages.length - 1 && !!justAnswered.current}
+            />
           ) : (
             <div key={i} className={`copilot-panel__message copilot-panel__message--${m.role}${m.isError ? " copilot-panel__message--error" : ""}`}>
               <p>{m.content}</p>

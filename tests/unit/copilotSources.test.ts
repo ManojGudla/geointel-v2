@@ -30,10 +30,15 @@ async function ask(question: string) {
     getAiCompletion: vi.fn(async () => ({ ok: true, content: "Answer.", model: "test-model" })),
   }));
   vi.doMock("../../api/_lib/kb", () => ({ searchKnowledgeBase: vi.fn(async () => [{ title: "Using the map", content: "..." }]) }));
+  // The server fetches its own facts: the weather route is replaced here, before the handler is imported.
+  vi.doMock("../../api/_routes/weather", () => ({
+    default: async (_req: unknown, res: { status: (n: number) => { json: (b: unknown) => void } }) =>
+      res.status(200).json({ ok: true, weather: { temperatureC: 14, condition: "Cloudy", source: "Open-Meteo", fetchedAt: "2026-11-25T07:30:00.000Z" } }),
+  }));
   const { default: handler } = await import("../../api/_routes/ai/copilot");
   const call = fakeReqRes({});
   call.req.method = "POST";
-  call.req.body = { question, context: { locationName: "Greater London", weather: { temperatureC: 14, condition: "Cloudy" } } };
+  call.req.body = { question, anchor: { lat: 51.5072, lon: -0.1276 } };
   await handler(call.req, call.res);
   return call.body as { sources: string[] };
 }
@@ -42,6 +47,7 @@ afterEach(() => {
   vi.resetModules();
   vi.doUnmock("../../api/_lib/ai");
   vi.doUnmock("../../api/_lib/kb");
+  vi.doUnmock("../../api/_routes/weather");
 });
 
 describe("Copilot sources", () => {
@@ -53,7 +59,7 @@ describe("Copilot sources", () => {
   it("still names them under a question about the place", async () => {
     vi.resetModules();
     const { sources } = await ask("What's the weather here?");
-    expect(sources).toContain("Open-Meteo (weather)");
+    expect(sources).toContain("Open-Meteo");
     expect(sources).toContain("Help article: Using the map");
   });
 });

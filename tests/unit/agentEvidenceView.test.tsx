@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { AgentEvidence } from "../../src/features/ai/AgentEvidence";
 import type { AgentResult } from "../../src/types/ai";
@@ -80,5 +80,32 @@ describe("an agent answer, laid out by what each part is", () => {
       "Looking up population (Wikidata): failed, 8.0 s",
       "Checking every number against the evidence: partly done",
     ]);
+  });
+});
+
+describe("a Copilot answer with the facts behind it", () => {
+  beforeEach(() => {
+    // jsdom has no matchMedia; the answer asks it whether to animate.
+    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} })));
+  });
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  it("offers the evidence on request, and says when a sentence was removed", async () => {
+    const { ChatAnswer } = await import("../../src/features/ai/ChatAnswer");
+    render(<ChatAnswer text="It is 31 °C now." sources={["Open-Meteo"]} evidence={RESULT.evidence} removedSentences={1} animate={false} />);
+    expect(screen.getByText("1 sentence was removed because it used a number that is not in the evidence.")).toBeTruthy();
+    expect(screen.queryByText("Temperature now")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "☰ Evidence (4)" }));
+    expect(screen.getByText("Temperature now")).toBeTruthy();
+    expect(screen.getByText("It did not answer within 8 seconds.")).toBeTruthy();
+  });
+
+  it("shows no evidence button for an answer that used none", async () => {
+    const { ChatAnswer } = await import("../../src/features/ai/ChatAnswer");
+    render(<ChatAnswer text="Manoj Kumar Gudla built it." sources={[]} animate={false} />);
+    expect(screen.queryByRole("button", { name: /Evidence/ })).toBeNull();
   });
 });

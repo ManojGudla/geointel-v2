@@ -86,7 +86,7 @@ export async function getAiCompletion(
     temperature?: number;
     /**
      * Total time for every attempt together. Defaults to 30 s, inside the
-     * client's 35 s. Callers that spend time before asking (the agents fetch
+     * client's 40 s. Callers that spend time before asking (the agents fetch
      * their evidence first) pass what is left, so a retry never lands after
      * the visitor's browser has given up.
      */
@@ -161,7 +161,7 @@ export async function getAiCompletion(
   // attempt has to fit inside the client's 35-second budget - see `deadline`.
   const attempts = [...new Set([requestedModel, ...PREFERRED_FREE_MODELS, FREE_ROUTER])].slice(0, 4);
   /*
-    The client aborts at 35s (AI_REQUEST_TIMEOUT_MS in src/services/ai.ts).
+    The client aborts at 40 s (AGENT_REQUEST_TIMEOUT_MS in src/services/ai.ts).
     Two attempts have to finish inside that, so each gets half the old 25s
     budget plus a little. A retry that arrives after the client has already
     given up is worse than no retry - it burns free-tier quota for nobody.

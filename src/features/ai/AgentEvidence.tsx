@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import type { AgentResult, EvidenceItem } from "@/types/ai";
 import { formatAiText } from "@/lib/formatAiText";
+import "./AgentEvidence.css";
 
 const KIND_LABEL: Record<EvidenceItem["kind"], string> = {
   retrieved: "Verified data",
@@ -19,6 +20,41 @@ function asOf(iso: string | undefined): string | null {
 
 function seconds(ms: number): string {
   return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
+}
+
+/**
+ * Each piece of evidence with what it is (verified data, computed,
+ * unavailable), where it came from and when. Used under agent answers and
+ * under Copilot answers.
+ */
+export function EvidenceList({ items, highlight = null, id }: { items: EvidenceItem[]; highlight?: string | null; id?: string }) {
+  return (
+    <ul className="agent-evidence__list" id={id}>
+      {items.map((item) => {
+        const when = asOf(item.retrievedAt);
+        return (
+          <li key={item.id} className={`agent-evidence__item agent-evidence__item--${item.kind}${highlight === item.id ? " is-highlighted" : ""}`}>
+            <span className="agent-evidence__id">{item.id}</span>
+            <span className="agent-evidence__label">{item.label}</span>
+            <span className="agent-evidence__value">{item.value}</span>
+            <span className="agent-evidence__meta">
+              <span className={`agent-evidence__kind agent-evidence__kind--${item.kind}`}>{KIND_LABEL[item.kind]}</span> · {item.source}
+              {when ? ` · as of ${when}` : ""}
+            </span>
+            {item.note && <span className="agent-evidence__note">{item.note}</span>}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** The notice for sentences the number check removed. */
+export function removedNotice(count: number | undefined): string | null {
+  if (!count) return null;
+  return count === 1
+    ? "1 sentence was removed because it used a number that is not in the evidence."
+    : `${count} sentences were removed because they used numbers that are not in the evidence.`;
 }
 
 /**
@@ -76,34 +112,12 @@ export function AgentEvidence({ result }: { result: AgentResult }) {
         <p className="agent-card__result">{formatAiText(result.summary)}</p>
       )}
 
-      {result.removedSentences ? (
-        <p className="agent-evidence__removed">
-          {result.removedSentences === 1
-            ? "1 sentence was removed because it used a number that is not in the evidence."
-            : `${result.removedSentences} sentences were removed because they used numbers that are not in the evidence.`}
-        </p>
-      ) : null}
+      {removedNotice(result.removedSentences) && <p className="agent-evidence__removed">{removedNotice(result.removedSentences)}</p>}
 
       {evidence.length > 0 && (
         <details className="agent-evidence__details" open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
           <summary>Evidence ({evidence.length})</summary>
-          <ul className="agent-evidence__list" id={listId}>
-            {evidence.map((item) => {
-              const when = asOf(item.retrievedAt);
-              return (
-                <li key={item.id} className={`agent-evidence__item agent-evidence__item--${item.kind}${highlight === item.id ? " is-highlighted" : ""}`}>
-                  <span className="agent-evidence__id">{item.id}</span>
-                  <span className="agent-evidence__label">{item.label}</span>
-                  <span className="agent-evidence__value">{item.value}</span>
-                  <span className="agent-evidence__meta">
-                    <span className={`agent-evidence__kind agent-evidence__kind--${item.kind}`}>{KIND_LABEL[item.kind]}</span> · {item.source}
-                    {when ? ` · as of ${when}` : ""}
-                  </span>
-                  {item.note && <span className="agent-evidence__note">{item.note}</span>}
-                </li>
-              );
-            })}
-          </ul>
+          <EvidenceList items={evidence} highlight={highlight} id={listId} />
         </details>
       )}
 

@@ -56,6 +56,10 @@ export interface CopilotMessage {
    */
   model?: string;
   generatedAt?: string;
+  /** The facts the server fetched for this answer (assistant answers about a place). */
+  evidence?: EvidenceItem[];
+  /** Sentences the number check removed from this answer. */
+  removedSentences?: number;
 }
 
 export type AgentKind = "search" | "gis" | "property" | "navigation" | "travel" | "makeMyTrip";

@@ -5,15 +5,33 @@ import { checkDurableLimit } from "../../_lib/rateLimit.js";
 
 import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
 import { searchKnowledgeBase } from "../../_lib/kb.js";
-import { fenceRules, makeFence, sanitizeField, sanitizeNumber } from "../../_lib/untrusted.js";
-import type { CopilotContext } from "../../../src/types/ai.js";
-import { GROUNDING_RULES, dataSourcesFor, isAboutThePlace, nearbyLine, routeLine } from "../../_lib/aiGrounding.js";
+import { fenceRules, makeFence, sanitizeField } from "../../_lib/untrusted.js";
+import { GROUNDING_RULES, isAboutThePlace } from "../../_lib/aiGrounding.js";
+import { parseAnchor } from "../../_lib/evidence/anchor.js";
+import { gatherTools, type ToolName } from "../../_lib/evidence/gather.js";
+import { INSUFFICIENT, checkAnswer, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
+import type { AgentStep, EvidenceItem } from "../../../src/types/ai.js";
 
 interface CopilotRequestBody {
   question?: string;
-  context?: CopilotContext;
+  /** Where to look. Facts are fetched here, never taken from the browser. */
+  anchor?: unknown;
+  /** Sent by pages from before the change. Ignored: see the handler. */
+  context?: unknown;
   /** Earlier turns of this conversation, oldest first. See recentTurns. */
   history?: Array<{ role?: unknown; content?: unknown }>;
+}
+
+/** Questions about who holds an office, the one place a wrong name does real harm. */
+const ABOUT_OFFICIALS =
+  /\b(officials?|minister|cm|pm|president|governor|mayor|collector|mla|mp|corporator|council+or|commissioner|sarpanch|head of (state|government)|who (runs|governs|leads|rules))\b/i;
+
+/** The sources the Copilot asks for a question about the selected place. */
+function toolsFor(question: string, hasRoute: boolean): ToolName[] {
+  const tools: ToolName[] = ["place", "gis", "property", "weather", "nearby"];
+  if (hasRoute) tools.push("route");
+  if (ABOUT_OFFICIALS.test(question)) tools.push("officials");
+  return tools;
 }
 
 /** How much of the conversation a follow-up can see. */
@@ -40,71 +58,6 @@ function recentTurns(history: CopilotRequestBody["history"]): AiMessage[] {
     )
     .slice(-MAX_HISTORY_TURNS)
     .map((t) => ({ role: t.role, content: sanitizeField(t.content, MAX_TURN_CHARS) }));
-}
-
-/*
-  Every value below arrives in an HTTP body the caller controls, and every one
-  of them used to be pasted into the SYSTEM message unchanged. See
-  api/_lib/untrusted.ts for why that is the one place untrusted text must never
-  go, and what the fence around this block now does.
-
-  sanitizeField also caps each value. The overall block is sliced to 4000
-  characters afterwards, but a per-field cap matters on its own: without it a
-  single enormous location name could push every other fact out of the block,
-  which is a quieter way to manipulate the answer than injecting an order.
-*/
-function buildDataBlock(context?: CopilotContext): string {
-  if (!context || (!context.locationName && !context.property && !context.gis)) {
-    return "No location is currently selected in the app.";
-  }
-  const lines: string[] = [];
-  const name = sanitizeField(context.locationName, 200);
-  if (name) lines.push(`Location: ${name}`);
-  const address = sanitizeField(context.address, 300);
-  if (address) lines.push(`Address: ${address}`);
-  if (context.property) {
-    lines.push(
-      `Property classification: ${sanitizeField(context.property.classification, 60) || "unknown"} ` +
-        `(${context.property.trust === "unavailable" ? "no confidence: not enough mapped evidence to classify" : `confidence ${sanitizeNumber(context.property.confidence ?? 0)}%`}, trust: ${sanitizeField(context.property.trust, 30) || "unavailable"})`
-    );
-    const reasoning = sanitizeField(context.property.reasoning, 600);
-    if (reasoning) lines.push(`Property reasoning: ${reasoning}`);
-  }
-  if (context.gis) {
-    if (context.gis.radiusMeters) lines.push(`GIS evidence radius: ${sanitizeNumber(context.gis.radiusMeters)}m`);
-    // JSON.stringify of a plain counts/scores object cannot carry a role
-    // marker past the fence, but it can carry arbitrary keys, so it is capped.
-    if (context.gis.counts) lines.push(`GIS counts: ${sanitizeField(JSON.stringify(context.gis.counts), 600)}`);
-    if (context.gis.scores) lines.push(`GIS scores: ${sanitizeField(JSON.stringify(context.gis.scores), 600)}`);
-  }
-  if (context.weather)
-    lines.push(`Weather: ${sanitizeNumber(context.weather.temperatureC)}\u00b0C, ${sanitizeField(context.weather.condition, 60) || "unknown"}`);
-  const nearby = nearbyLine(context);
-  if (nearby) lines.push(nearby);
-  const route = routeLine(context);
-  if (route) lines.push(route);
-  if (context.officials?.length) {
-    /*
-      The highest-stakes field in the whole block.
-
-      The system prompt tells the model these are the only source of truth for
-      an official's name, so a forged entry here would be laundered into an
-      authoritative-sounding claim about a real public office. Fencing and
-      sanitising both apply, and the list is capped at twenty.
-    */
-    lines.push(
-      "Officials/authorities:\n" +
-        context.officials
-          .slice(0, 20)
-          .map((o) =>
-            o.status === "verified"
-              ? `- [${sanitizeField(o.level, 40)}] ${sanitizeField(o.role, 80)}: ${sanitizeField(o.name, 120)} (source: ${sanitizeField(o.sourceLabel, 80) || "unknown"}${o.since ? `, since ${sanitizeField(o.since, 20)}` : ""})`
-              : `- [${sanitizeField(o.level, 40)}] ${sanitizeField(o.role, 80)}: Unable to verify`
-          )
-          .join("\n")
-    );
-  }
-  return lines.length ? lines.join("\n") : "No location is currently selected in the app.";
 }
 
 const handler: ApiHandler = async (req, res) => {
@@ -136,7 +89,7 @@ const handler: ApiHandler = async (req, res) => {
    * before doing any work, and hard-truncate what actually reaches the prompt.
    * 4,000 characters is far more than the real client ever sends.
    */
-  if (JSON.stringify(body.context ?? {}).length > 20_000) {
+  if (JSON.stringify(body.anchor ?? {}).length + JSON.stringify(body.context ?? {}).length > 20_000) {
     return err(res, 413, "Too much context sent with this question.");
   }
   // Same reasoning for the conversation: recentTurns trims what reaches the
@@ -144,7 +97,20 @@ const handler: ApiHandler = async (req, res) => {
   if (JSON.stringify(body.history ?? []).length > 10_000) {
     return err(res, 413, "Too much conversation history sent with this question.");
   }
-  const dataBlock = buildDataBlock(body.context).slice(0, 4_000);
+  /*
+    The facts. The browser used to send them ("context") and the answer
+    repeated them as verified, officials included. Now it sends only where
+    to look, and the server asks the providers itself, and only when the
+    question is about the place at all. A page from before the change sends
+    no anchor: it still gets an answer, just without place facts.
+  */
+  const started = Date.now();
+  const anchor = parseAnchor(body.anchor);
+  const aboutPlace = isAboutThePlace(question);
+  const gathered = anchor && aboutPlace ? await gatherTools(toolsFor(question, !!anchor.route), anchor, req) : null;
+  const evidence: EvidenceItem[] = gathered?.items ?? [];
+  const steps: AgentStep[] = [...(gathered?.steps ?? [])];
+  const dataBlock = evidence.length ? evidenceTable(evidence) : anchor ? "No place facts were needed for this question." : "No location is currently selected in the app.";
   /*
     A fresh, unguessable fence per request.
 
@@ -166,7 +132,8 @@ const handler: ApiHandler = async (req, res) => {
         "Never show your reasoning, planning, or thinking process, and never narrate what you're about to do ('Let me analyze this', 'Step 1:', 'Based on the data provided I will...'), go straight to the answer, as if you already worked it out.\n\n" +
         "Match the person's language and style. If they write in Telugu, Hindi, Tamil, Kannada, or a mixed/transliterated form (Tenglish, Hinglish, and so on), reply the same way, same language, same casual mixing if that's how they wrote it. Otherwise reply in plain English. " +
         "If the message is just casual conversation, a greeting, 'hi', 'namaste', 'good morning', thanks, goodbye, small talk, reply warmly and briefly like any normal assistant would, in a sentence or two, without stating facts about any place. Only pull in the location data below when the question actually calls for it.\n\n" +
-        "For real questions about this location: answer ONLY using the CURRENT LOCATION DATA and KNOWLEDGE BASE sections below. " +
+        "For real questions about this location: answer ONLY using the EVIDENCE and KNOWLEDGE BASE sections below. Evidence items marked 'unavailable' were not obtained: say so where it matters, never fill them in. " +
+        "After every sentence that states a fact from the EVIDENCE, put the ids it uses in square brackets, like [E3] or [E3, E7]; they are turned into source links and removed from what the person reads. Copy numbers exactly as the evidence writes them: a sentence with a number found in neither the evidence, the knowledge base nor the question is deleted before anyone sees it. " +
         "Never invent addresses, coordinates, prices, ratings, business names, or any fact not present in this data. " +
         "If the data doesn't cover the question, say so plainly and suggest what the user could check in the app instead. " +
         "Keep answers short and reference specific numbers from the data where relevant, written into the sentence naturally rather than as a list.\n\n" +
@@ -190,13 +157,13 @@ const handler: ApiHandler = async (req, res) => {
 
 "If asked about a government official, president, prime minister, governor, chief minister, mayor, or any other authority figure for this location: " +
 
-"answer ONLY from the 'Officials/authorities' lines in the data below, if present. NEVER state a person's name for a government role from your own training data or memory, " +
+"answer ONLY from EVIDENCE items whose source is Wikidata and whose label names that office. NEVER state a person's name for a government role from your own training data or memory, " +
 
 "even if you believe you know it and even if directly asked to guess, officeholders change and an unverified name could be wrong or out of date. " +
 
-"If the officials data doesn't include the role asked about, or shows 'Unable to verify', say plainly that it can't be verified right now and point the user to the Official / Authority Intelligence panel in the app.\n\n"+
+"If the evidence doesn't include the role asked about, or shows 'Unable to verify', say plainly that it can't be verified right now and point the user to the Official / Authority Intelligence panel in the app.\n\n"+
 
-        `${fenceRules(fence)}\n\nCURRENT LOCATION DATA:\n${fence.wrap(dataBlock)}\n\nKNOWLEDGE BASE:\n${kbBlock}`,
+        `${fenceRules(fence)}\n\nEVIDENCE (id | what | value | kind | source | as of | note):\n${fence.wrap(dataBlock)}\n\nKNOWLEDGE BASE:\n${kbBlock}`,
     },
     ...recentTurns(body.history),
     { role: "user", content: question },
@@ -210,16 +177,38 @@ const handler: ApiHandler = async (req, res) => {
   // thinking used it all up and the answer came back empty - seen live on
   // 2026-11-06 as "Every model tried returned an empty answer". The prompt,
   // not this number, is what keeps answers short.
-  const result = await getAiCompletion(messages, { maxTokens: 1600, temperature: 0.2 });
+  const aiStarted = Date.now();
+  const result = await getAiCompletion(messages, {
+    maxTokens: 1600,
+    temperature: 0.2,
+    // Evidence time comes out of the model's budget; the client waits 40 s.
+    deadlineMs: Math.max(12_000, Math.min(30_000, 37_000 - (aiStarted - started))),
+  });
+  steps.push({ step: "Writing the answer (AI model)", status: result.ok ? "ok" : "failed", ms: Date.now() - aiStarted });
   if (!result.ok) return err(res, 502, result.error, "AI_UNAVAILABLE");
+
+  /*
+    The same check as the agents: a sentence with a number that is in
+    neither the evidence, a help article nor the question itself is dropped.
+    History is allowed too, so a follow-up can repeat an earlier figure.
+  */
+  const checked = checkAnswer(result.content, evidence, [question, ...kbHits.map((h) => h.content), ...recentTurns(body.history).map((t) => t.content)]);
+  steps.push({ step: "Checking every number against the evidence", status: checked.removed ? "partial" : "ok", ms: 0 });
+  const answer = checked.findings.length ? checked.summary : checked.removed ? INSUFFICIENT : result.content.trim();
 
   // `model` is the model that ACTUALLY answered (see api/_lib/ai.ts), with
   // the default `openrouter/free` router that is a different model run to
   // run, so it is the only honest thing to put under an answer.
+  const cited = new Set(checked.findings.flatMap((f) => f.evidenceIds));
   ok(res, {
-    answer: result.content,
+    answer,
     // Sources only when the question was about the place; see isAboutThePlace.
-    sources: isAboutThePlace(question) ? [...dataSourcesFor(body.context), ...kbHits.map((h) => `Help article: ${h.title}`)] : [],
+    // With citations, only the sources the answer actually used.
+    sources: aboutPlace ? [...sourcesOf(cited.size ? evidence.filter((e) => cited.has(e.id)) : evidence), ...kbHits.map((h) => `Help article: ${h.title}`)] : [],
+    evidence: aboutPlace ? evidence : [],
+    findings: checked.findings,
+    steps,
+    removedSentences: checked.removed,
     model: result.model,
     generatedAt: new Date().toISOString(),
   });

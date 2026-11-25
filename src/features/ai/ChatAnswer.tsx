@@ -1,3 +1,5 @@
+import type { EvidenceItem } from "@/types/ai";
+import { EvidenceList, removedNotice } from "./AgentEvidence";
 import { useEffect, useState } from "react";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
 
@@ -9,12 +11,27 @@ import { useMotionPreference } from "@/hooks/useMotionPreference";
  * footer ("Written by nvidia/nemotron-… · 10:10 AM") read like a log line,
  * and people asked for a normal chat.
  */
-export function ChatAnswer({ text, sources, animate }: { text: string; sources?: string[]; animate: boolean }) {
+export function ChatAnswer({
+  text,
+  sources,
+  evidence,
+  removedSentences,
+  animate,
+}: {
+  text: string;
+  sources?: string[];
+  /** The facts the server fetched for this answer, shown on request. */
+  evidence?: EvidenceItem[];
+  removedSentences?: number;
+  animate: boolean;
+}) {
   const motionEnabled = useMotionPreference();
   const words = text.split(/(\s+)/);
   const [shown, setShown] = useState(animate && motionEnabled ? 0 : words.length);
   const [copied, setCopied] = useState(false);
   const [showSources, setShowSources] = useState(false);
+  const [showEvidence, setShowEvidence] = useState(false);
+  const removed = removedNotice(removedSentences);
 
   useEffect(() => {
     if (shown >= words.length) return;
@@ -55,8 +72,15 @@ export function ChatAnswer({ text, sources, animate }: { text: string; sources?:
                 ⓘ Sources
               </button>
             )}
+            {evidence && evidence.length > 0 && (
+              <button type="button" onClick={() => setShowEvidence((v) => !v)} aria-expanded={showEvidence}>
+                ☰ Evidence ({evidence.length})
+              </button>
+            )}
           </div>
         )}
+        {done && removed && <p className="agent-evidence__removed">{removed}</p>}
+        {showEvidence && evidence && <EvidenceList items={evidence} />}
         {showSources && sources && (
           <ul className="chat-answer__sources">
             {sources.map((s) => (

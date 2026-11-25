@@ -115,10 +115,14 @@ export interface CheckedAnswer {
  * tell those numbers from the real ones. Citations like [E3] are collected
  * into `evidenceIds` (unknown ids are ignored) and taken out of the text.
  * A sentence with no citation and no number is kept as interpretation.
+ * `alsoAllowed` is other text whose numbers may be used: the question
+ * itself, or a help article the Copilot was given.
  */
-export function checkAnswer(text: string, items: EvidenceItem[]): CheckedAnswer {
+export function checkAnswer(text: string, items: EvidenceItem[], alsoAllowed: string[] = []): CheckedAnswer {
   const known = new Set(items.map((item) => item.id));
   const allowed = allowedNumbers(items);
+  // Numbers the person wrote themselves, or that a help article states, may be repeated.
+  for (const n of numbersIn(alsoAllowed.join(" "))) allowed.add(n);
   const times = timeFragments(items);
   const findings: AgentFinding[] = [];
   let removed = 0;

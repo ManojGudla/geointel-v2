@@ -1,7 +1,7 @@
 import { track } from "@/services/analytics";
 import { apiPost } from "@/services/apiClient";
 import { createRequestGate } from "@/services/aiRequestQueue";
-import type { AgentAnchor, AgentKind, AgentResult, CopilotContext } from "@/types/ai";
+import type { AgentAnchor, AgentKind, AgentResult, EvidenceItem } from "@/types/ai";
 
 // AI completions (OpenRouter, often on free-tier/rate-limited models) run
 // meaningfully slower than the other data endpoints and take the apiClient
@@ -10,10 +10,10 @@ import type { AgentAnchor, AgentKind, AgentResult, CopilotContext } from "@/type
 // at almost the same moment the server might have succeeded. 35s here vs.
 // the server's 25s (api/_lib/ai.ts) leaves real margin for network/parse
 // overhead on top of the provider's own response time.
-const AI_REQUEST_TIMEOUT_MS = 35_000;
 /**
- * Agents fetch their own evidence on the server before the model writes, so
- * they get a few seconds more. api/_routes/ai/agent.ts budgets 37 s.
+ * How long the browser waits for an AI answer. The agents and the Copilot
+ * fetch their evidence on the server before the model writes, so this is a
+ * few seconds more than the model's own 30 s; the server budgets 37 s.
  */
 const AGENT_REQUEST_TIMEOUT_MS = 40_000;
 
@@ -49,12 +49,20 @@ async function measured<T>(surface: string, run: () => Promise<T>, modelOf?: (va
   }
 }
 
-export async function askCopilot(
-  question: string,
-  context: CopilotContext,
-  signal?: AbortSignal,
-  history: CopilotTurn[] = []
-): Promise<{ answer: string; sources: string[]; model: string; generatedAt?: string }> {
+export interface CopilotAnswer {
+  answer: string;
+  sources: string[];
+  model: string;
+  generatedAt?: string;
+  evidence?: EvidenceItem[];
+  removedSentences?: number;
+}
+
+/**
+ * Asks the Copilot. Like the agents, it sends only where to look (nothing,
+ * with no place selected); the server fetches the facts a question needs.
+ */
+export async function askCopilot(question: string, anchor: AgentAnchor | null, signal?: AbortSignal, history: CopilotTurn[] = []): Promise<CopilotAnswer> {
   // priority: a person is watching this one send box, so it goes ahead of
   // any agent cards already queued up behind it.
   return measured(
@@ -62,12 +70,13 @@ export async function askCopilot(
     () =>
       aiGate.run(
         () =>
-          apiPost<{ answer: string; sources: string[]; model: string; generatedAt?: string }>(
+          apiPost<CopilotAnswer>(
             "/api/ai/copilot",
             // The last six turns; the server trims and caps them again.
-            { question, context, history: history.slice(-6) },
+            { question, anchor: anchor ?? undefined, history: history.slice(-6) },
             signal,
-            AI_REQUEST_TIMEOUT_MS
+            // The server may fetch evidence first, as the agents do.
+            AGENT_REQUEST_TIMEOUT_MS
           ),
         { priority: true }
       ),

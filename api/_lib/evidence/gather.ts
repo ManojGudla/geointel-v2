@@ -11,6 +11,7 @@ import nearbyRoute from "../../_routes/nearby.js";
 import routeRoute from "../../_routes/route.js";
 import geocodeRoute from "../../_routes/geocode.js";
 import populationRoute from "../../_routes/population.js";
+import officialsRoute from "../../_routes/officials.js";
 
 /**
  * Evidence for the six agents, fetched by the server itself.
@@ -24,7 +25,7 @@ import populationRoute from "../../_routes/population.js";
  * says why; nothing is filled in.
  */
 
-export type ToolName = "place" | "gis" | "property" | "population" | "weather" | "nearby" | "route" | "search";
+export type ToolName = "place" | "gis" | "property" | "population" | "weather" | "nearby" | "route" | "search" | "officials";
 
 export interface ToolOutcome {
   tool: ToolName;
@@ -58,6 +59,7 @@ const STEP_LABELS: Record<ToolName, string> = {
   nearby: "Finding nearby places (OpenStreetMap via Overpass)",
   route: "Calculating the route (routing provider)",
   search: "Re-running the search (OpenStreetMap)",
+  officials: "Looking up office holders (Wikidata)",
 };
 
 const NEARBY_LABELS: Record<string, string> = {
@@ -133,24 +135,29 @@ export function snapRadius(radius: number | undefined): number {
 }
 
 type GisAnswer = RouteAnswer<{ evidence: GISEvidence & { source: string; fetchedAt: string; incomplete?: boolean } }>;
+type PlaceAnswer = RouteAnswer<{ location: { name?: string; displayName?: string; source?: string; address?: Record<string, string | undefined> } }>;
 
 interface ToolContext {
   anchor: AgentAnchor;
   req: ApiRequest;
   book: EvidenceBook;
-  /** Shared by one agent run's tools: the GIS answer, so Overpass is asked once for GIS and Property. */
-  shared: { gis?: Promise<GisAnswer> };
+  /**
+   * Shared by one run's tools, so a provider is asked once: the GIS answer
+   * (GIS and Property) and the place answer (Place and Officials).
+   */
+  shared: { gis?: Promise<GisAnswer>; place?: Promise<PlaceAnswer> };
 }
 
 type Tool = (ctx: ToolContext) => Promise<Omit<ToolOutcome, "tool">>;
 
-const place: Tool = async ({ anchor, req, book }) => {
-  const answer = await callRoute<{ location: { name?: string; displayName?: string; source?: string; address?: Record<string, string | undefined> } }>(
-    reverseGeocodeRoute,
-    { lat: anchor.lat, lon: anchor.lon },
-    req,
-    SOURCE_TIMEOUT_MS
-  );
+function fetchPlace(ctx: ToolContext): Promise<PlaceAnswer> {
+  ctx.shared.place ??= callRoute(reverseGeocodeRoute, { lat: ctx.anchor.lat, lon: ctx.anchor.lon }, ctx.req, SOURCE_TIMEOUT_MS);
+  return ctx.shared.place;
+}
+
+const place: Tool = async (ctx) => {
+  const { book } = ctx;
+  const answer = await fetchPlace(ctx);
   const location = answer.status === 200 ? answer.body?.location : undefined;
   const source = location?.source || "OpenStreetMap Nominatim";
   if (!location || !(location.name || location.displayName)) {
@@ -425,7 +432,53 @@ const search: Tool = async ({ anchor, req, book }) => {
   return { status: "ok" };
 };
 
-const TOOLS: Record<ToolName, Tool> = { place, gis, property, population, weather, nearby, route, search };
+/**
+ * Current office holders for the place's country, state, district and city,
+ * from the officials route (Wikidata). The browser used to send this list
+ * with each entry already marked "verified"; now the server asks for it.
+ */
+const officials: Tool = async (ctx) => {
+  const placeAnswer = await fetchPlace(ctx);
+  const address = placeAnswer.status === 200 ? placeAnswer.body?.location?.address : undefined;
+  if (!address?.countryCode) {
+    ctx.book.add({ label: "Office holders", value: "Unavailable", kind: "unavailable", source: "Wikidata", note: "The place's country could not be identified, so office holders were not looked up." });
+    return { status: "failed", problem: "Office holders could not be looked up without the place's country." };
+  }
+  const query: Record<string, string> = { countryCode: address.countryCode };
+  for (const key of ["country", "state", "stateCode", "district", "city"] as const) {
+    const value = address[key];
+    if (value) query[key] = value;
+  }
+  const answer = await callRoute<{ officials: Array<{ levelLabel: string; role: string; name: string | null; status: "verified" | "unavailable"; since: string | null; sourceUrl: string | null; sourceLabel: string; note?: string }>; fetchedAt?: string }>(
+    officialsRoute,
+    query,
+    ctx.req,
+    SOURCE_TIMEOUT_MS
+  );
+  const list = answer.status === 200 ? answer.body?.officials : undefined;
+  if (!Array.isArray(list)) {
+    ctx.book.add({ label: "Office holders", value: "Unavailable", kind: "unavailable", source: "Wikidata", note: failureReason(answer) });
+    return { status: "failed", problem: "Wikidata did not answer for office holders." };
+  }
+  for (const o of list.slice(0, 20)) {
+    const label = `${o.levelLabel} ${o.role}`;
+    if (o.status === "verified" && o.name) {
+      ctx.book.add({
+        label,
+        value: o.name,
+        kind: "retrieved",
+        source: sanitizeField(o.sourceLabel, 80) || "Wikidata",
+        retrievedAt: answer.body?.fetchedAt,
+        note: [o.since ? `In office since ${o.since}.` : "", o.sourceUrl ? `Check it: ${o.sourceUrl}` : ""].filter(Boolean).join(" ") || undefined,
+      });
+    } else {
+      ctx.book.add({ label, value: "Unable to verify", kind: "unavailable", source: "Wikidata", note: o.note ? sanitizeField(o.note, 200) : undefined });
+    }
+  }
+  return { status: "ok" };
+};
+
+const TOOLS: Record<ToolName, Tool> = { place, gis, property, population, weather, nearby, route, search, officials };
 
 /**
  * Runs an agent's sources in parallel and returns everything they found,
@@ -433,8 +486,12 @@ const TOOLS: Record<ToolName, Tool> = { place, gis, property, population, weathe
  * fixed order (the agent's tool order), not in the order sources answered,
  * so the same evidence always gets the same ids.
  */
-export async function gatherForAgent(kind: AgentKind, anchor: AgentAnchor, req: ApiRequest): Promise<Gathered> {
-  const { tools } = AGENT_TOOLS[kind];
+export function gatherForAgent(kind: AgentKind, anchor: AgentAnchor, req: ApiRequest): Promise<Gathered> {
+  return gatherTools(AGENT_TOOLS[kind].tools, anchor, req);
+}
+
+/** Runs any set of sources in parallel; used by the agents and the Copilot. */
+export async function gatherTools(tools: ToolName[], anchor: AgentAnchor, req: ApiRequest): Promise<Gathered> {
   const shared: ToolContext["shared"] = {};
   const results = await Promise.all(
     tools.map(async (tool) => {
