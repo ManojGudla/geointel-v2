@@ -17,7 +17,7 @@ export interface AnalysisPoint {
 }
 
 export interface AnalysisResult {
-  kind: "buffer" | "within" | "nearest" | "suitability";
+  kind: "buffer" | "within" | "nearest" | "suitability" | "trip";
   title: string;
   origin: { lat: number; lon: number };
   /** Draws a ring on the map when set. */
@@ -25,6 +25,8 @@ export interface AnalysisResult {
   points: AnalysisPoint[];
   /** A straight line from origin to a single result - used by "nearest". */
   connector?: [[number, number], [number, number]];
+  /** Lines through several points in order, [lon, lat] - used by a trip plan, one line per day. */
+  paths?: Array<Array<[number, number]>>;
   stats: Array<{ label: string; value: string }>;
   suitability?: { score: number; band: string; factors: SuitabilityFactor[] };
   /**

@@ -3,6 +3,7 @@ import { useLocationStore } from "@/stores/locationStore";
 import { useCopilotContextState } from "./useCopilotContext";
 import { AgentCard } from "./AgentCard";
 import { AgentTeam } from "./AgentTeam";
+import { TripBuilder } from "./TripBuilder";
 import "./AgentStrip.css";
 
 /**
@@ -28,6 +29,7 @@ export function AgentStrip() {
       {/* Several agents on one request comes first: it is the way to ask a
           real question; the cards below each explain one angle on their own. */}
       <AgentTeam />
+      <TripBuilder />
       <div className="agent-strip__head">
         <strong>AI agents</strong>
         <span className="agent-strip__hint">

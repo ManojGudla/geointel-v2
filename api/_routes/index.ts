@@ -22,6 +22,7 @@ import aiIntent from "./ai-intent.js";
 import aiAgent from "./ai/agent.js";
 import aiCopilot from "./ai/copilot.js";
 import aiAsk from "./ai/ask.js";
+import aiTrip from "./ai/trip.js";
 import adminMaintenance from "./admin/maintenance.js";
 import adminSubmissions from "./admin/submissions.js";
 
@@ -68,6 +69,7 @@ export const ROUTES: Record<string, ApiHandler> = {
   "ai/agent": aiAgent,
   "ai/copilot": aiCopilot,
   "ai/ask": aiAsk,
+  "ai/trip": aiTrip,
   "admin/maintenance": adminMaintenance,
   "admin/submissions": adminSubmissions,
 };

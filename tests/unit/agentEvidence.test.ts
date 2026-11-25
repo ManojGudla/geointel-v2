@@ -178,3 +178,40 @@ describe("evidence the agents gather themselves (mock providers)", () => {
     expect(routes.calls.gis![0]!.query.radius).toBe("500");
   });
 });
+
+describe("navigation evidence beyond the fastest route (mock providers)", () => {
+  beforeEach(() => {
+    routes.answers = {};
+    routes.calls = {};
+  });
+
+  it("lists the alternatives and the first turns exactly as the provider gave them", async () => {
+    routes.answers = {
+      "reverse-geocode": PLACE,
+      route: {
+        status: 200,
+        body: {
+          ok: true,
+          route: {
+            mode: "car",
+            distanceMeters: 12400,
+            durationSeconds: 1860,
+            alternatives: 1,
+            source: "OSRM",
+            options: [
+              { distanceMeters: 12400, durationSeconds: 1860, summary: "Fastest", steps: [{ instruction: "Head north on Road No. 1", distanceMeters: 400 }, { instruction: "Turn right onto Road No. 12", distanceMeters: 1200 }, { instruction: "Arrive at your destination", distanceMeters: 0 }] },
+              { distanceMeters: 13100, durationSeconds: 2040, summary: "3 min slower · 0.7 km longer" },
+            ],
+          },
+        },
+      },
+    };
+    const g = await gatherForAgent("navigation", { ...BANJARA, route: { fromLat: 17.44, fromLon: 78.38, toLat: 17.24, toLon: 78.43, mode: "car" } }, request());
+    expect(g.items.find((i) => i.label === "Alternative route 2")!.value).toBe("13.1 km, about 34 min (3 min slower · 0.7 km longer than the fastest)");
+    expect(g.items.find((i) => i.label.startsWith("Turn-by-turn"))).toMatchObject({
+      label: "Turn-by-turn (first 3 of 3 steps)",
+      value: "Head north on Road No. 1 (400 m); Turn right onto Road No. 12 (1.2 km); Arrive at your destination",
+      source: "OSRM",
+    });
+  });
+});

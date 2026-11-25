@@ -402,7 +402,17 @@ const route: Tool = async (ctx) => {
     book.add({ label: "Route", value: "No route planned", kind: "unavailable", source: "Directions panel", note: "Choose a start and an end in Directions first." });
     return { status: "failed", problem: "No route is planned yet." };
   }
-  const answer = await callRoute<{ route: { mode: string; distanceMeters: number; durationSeconds: number; alternatives?: number; source?: string } }>(
+  const answer = await callRoute<{
+    route: {
+      mode: string;
+      distanceMeters: number;
+      durationSeconds: number;
+      alternatives?: number;
+      source?: string;
+      steps?: Array<{ instruction?: string; distanceMeters?: number }>;
+      options?: Array<{ distanceMeters: number; durationSeconds: number; summary?: string; steps?: Array<{ instruction?: string; distanceMeters?: number }> }>;
+    };
+  }>(
     routeRoute,
     { fromLat: r.fromLat, fromLon: r.fromLon, toLat: r.toLat, toLon: r.toLon, mode: r.mode },
     req,
@@ -422,6 +432,27 @@ const route: Tool = async (ctx) => {
   }
   book.add({ ...base, label: "Straight-line distance", value: distanceLabel(metresBetween({ lat: r.fromLat, lon: r.fromLon }, { lat: r.toLat, lon: r.toLon })), kind: "computed", source: "maNOWj", note: "As the crow flies, for comparison with the route." });
   if (finite(found.alternatives) !== null) book.add({ ...base, label: "Other routes offered", value: String(found.alternatives) });
+  // Each alternative the provider offered, as the provider measured it.
+  (found.options ?? []).slice(1, 3).forEach((option, i) => {
+    if (finite(option.distanceMeters) === null || finite(option.durationSeconds) === null) return;
+    book.add({
+      ...base,
+      label: `Alternative route ${i + 2}`,
+      value: `${distanceLabel(option.distanceMeters)}, about ${Math.max(1, Math.round(option.durationSeconds / 60))} min${option.summary ? ` (${sanitizeField(option.summary, 60)} than the fastest)`.replace(" (About the same than the fastest)", " (about the same as the fastest)") : ""}`,
+    });
+  });
+  // The first turns, from the provider's own turn-by-turn list.
+  const steps = (found.options?.[0]?.steps ?? found.steps ?? []).filter((step) => typeof step?.instruction === "string" && step.instruction.trim());
+  if (steps.length) {
+    book.add({
+      ...base,
+      label: `Turn-by-turn (first ${Math.min(3, steps.length)} of ${steps.length} steps)`,
+      value: steps
+        .slice(0, 3)
+        .map((step) => `${sanitizeField(step.instruction, 80)}${finite(step.distanceMeters) !== null && step.distanceMeters! > 0 ? ` (${distanceLabel(step.distanceMeters!)})` : ""}`)
+        .join("; "),
+    });
+  }
   return { status: "ok" };
 };
 

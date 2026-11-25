@@ -176,3 +176,38 @@ export interface TeamResult {
   generatedAt: string;
   removedSentences: number;
 }
+
+/** A stop in a Make My Trip plan: a named, mapped place. */
+export interface TripStop {
+  name: string;
+  /** attractions, restaurants, cafes, parks, shopping, or custom. */
+  category: string;
+  lat: number;
+  lon: number;
+}
+
+export interface TripDay {
+  day: number;
+  stops: Array<
+    TripStop & {
+      /** This app's assumed time at the stop, stated with the plan. */
+      visitMinutes: number;
+      /** The hop from the previous stop (or the selected place), measured by the routing provider; null if it did not answer. */
+      leg: { distanceMeters: number; minutes: number; source: string } | null;
+    }
+  >;
+  totalMinutes: number;
+  /** Unknown hops, long hops and over-full days. */
+  warnings: string[];
+}
+
+export interface TripPlan {
+  days: TripDay[];
+  /** "nearest-next": the app ordered the stops; "yours": the visitor's own order was kept. */
+  order: "nearest-next" | "yours";
+  mode: "car" | "walk" | "bike";
+  assumptions: string[];
+  evidence: EvidenceItem[];
+  steps: AgentStep[];
+  generatedAt: string;
+}

@@ -1,7 +1,7 @@
 import { track } from "@/services/analytics";
 import { apiPost } from "@/services/apiClient";
 import { createRequestGate } from "@/services/aiRequestQueue";
-import type { AgentAnchor, AgentKind, AgentResult, EvidenceItem, TeamResult } from "@/types/ai";
+import type { AgentAnchor, AgentKind, AgentResult, EvidenceItem, TeamResult, TripPlan, TripStop } from "@/types/ai";
 
 // AI completions (OpenRouter, often on free-tier/rate-limited models) run
 // meaningfully slower than the other data endpoints and take the apiClient
@@ -118,4 +118,19 @@ export async function askAgentTeam(request: string, anchor: AgentAnchor, signal?
       ),
     (value) => value.model
   );
+}
+
+export interface TripOptions {
+  interests: string[];
+  days: number;
+  stopsPerDay: number;
+  mode: "car" | "walk" | "bike";
+  /** The visitor's own ordered stops, after editing. */
+  stops?: TripStop[];
+}
+
+/** A Make My Trip plan: real mapped places, real routing, no model call. */
+export async function buildTripPlan(anchor: AgentAnchor, options: TripOptions, signal?: AbortSignal): Promise<TripPlan> {
+  const { plan } = await apiPost<{ plan: TripPlan }>("/api/ai/trip", { anchor, ...options }, signal, AGENT_REQUEST_TIMEOUT_MS);
+  return plan;
 }
