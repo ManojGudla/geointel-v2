@@ -38,6 +38,13 @@ export interface Gathered {
   items: EvidenceItem[];
   steps: AgentStep[];
   outcomes: ToolOutcome[];
+  /** Where a "route to the nearest X" went, so the screen can draw it. */
+  routeTarget?: { name: string; lat: number; lon: number; mode: "car" | "walk" | "bike" };
+}
+
+export interface GatherOptions {
+  /** Route to the nearest place of this nearby category when no route is planned. */
+  nearest?: { category: string; label: string };
 }
 
 /** Which sources each agent uses, and which of them it cannot do without. */
@@ -135,6 +142,7 @@ export function snapRadius(radius: number | undefined): number {
 }
 
 type GisAnswer = RouteAnswer<{ evidence: GISEvidence & { source: string; fetchedAt: string; incomplete?: boolean } }>;
+type NearbyAnswer = RouteAnswer<{ items: Array<{ name: string; category: string; distanceMeters: number; lat: number; lon: number }>; radiusMeters: number; widened?: boolean; stale?: boolean; fetchedAt?: string; source?: string }>;
 type PlaceAnswer = RouteAnswer<{ location: { name?: string; displayName?: string; source?: string; address?: Record<string, string | undefined> } }>;
 
 interface ToolContext {
@@ -145,7 +153,8 @@ interface ToolContext {
    * Shared by one run's tools, so a provider is asked once: the GIS answer
    * (GIS and Property) and the place answer (Place and Officials).
    */
-  shared: { gis?: Promise<GisAnswer>; place?: Promise<PlaceAnswer> };
+  shared: { gis?: Promise<GisAnswer>; place?: Promise<PlaceAnswer>; nearby?: Promise<NearbyAnswer>; routeTarget?: Gathered["routeTarget"] };
+  options: GatherOptions;
 }
 
 type Tool = (ctx: ToolContext) => Promise<Omit<ToolOutcome, "tool">>;
@@ -316,13 +325,14 @@ const weather: Tool = async ({ anchor, req, book }) => {
   return t === null && !w.condition ? { status: "partial", problem: "The weather service answered without current readings." } : { status: "ok" };
 };
 
-const nearby: Tool = async ({ anchor, req, book }) => {
-  const answer = await callRoute<{ items: Array<{ name: string; category: string; distanceMeters: number }>; radiusMeters: number; widened?: boolean; stale?: boolean; fetchedAt?: string; source?: string }>(
-    nearbyRoute,
-    { lat: anchor.lat, lon: anchor.lon, radius: NEARBY_RADIUS_M },
-    req,
-    SOURCE_TIMEOUT_MS
-  );
+function fetchNearby(ctx: ToolContext): Promise<NearbyAnswer> {
+  ctx.shared.nearby ??= callRoute(nearbyRoute, { lat: ctx.anchor.lat, lon: ctx.anchor.lon, radius: NEARBY_RADIUS_M }, ctx.req, SOURCE_TIMEOUT_MS);
+  return ctx.shared.nearby;
+}
+
+const nearby: Tool = async (ctx) => {
+  const { book } = ctx;
+  const answer = await fetchNearby(ctx);
   const body = answer.status === 200 ? answer.body : null;
   if (!body || !Array.isArray(body.items)) {
     book.add({ label: `Places within ${distanceLabel(NEARBY_RADIUS_M)}`, value: "Unavailable", kind: "unavailable", source: "OpenStreetMap via Overpass", note: failureReason(answer) });
@@ -359,8 +369,35 @@ const nearby: Tool = async ({ anchor, req, book }) => {
   return body.stale ? { status: "partial", problem: "Nearby places come from an older saved copy." } : { status: "ok" };
 };
 
-const route: Tool = async ({ anchor, req, book }) => {
-  const r = anchor.route;
+/**
+ * For "route to the nearest X": the closest mapped place of that category,
+ * from the same nearby answer the Nearby tool reads. Its distance here is in
+ * a straight line; the route that follows gives the real one.
+ */
+async function nearestTarget(ctx: ToolContext): Promise<AgentAnchor["route"] | undefined> {
+  const wanted = ctx.options.nearest;
+  if (!wanted) return undefined;
+  const answer = await fetchNearby(ctx);
+  const items = answer.status === 200 && Array.isArray(answer.body?.items) ? answer.body!.items : null;
+  if (!items) {
+    ctx.book.add({ label: `Nearest ${wanted.label}`, value: "Unavailable", kind: "unavailable", source: "OpenStreetMap via Overpass", note: failureReason(answer) });
+    return undefined;
+  }
+  const match = items.filter((i) => i.category === wanted.category && Number.isFinite(i.lat) && Number.isFinite(i.lon)).sort((a, b) => a.distanceMeters - b.distanceMeters)[0];
+  if (!match) {
+    ctx.book.add({ label: `Nearest ${wanted.label}`, value: `None mapped within ${distanceLabel(answer.body!.radiusMeters || NEARBY_RADIUS_M)}`, kind: "retrieved", source: "OpenStreetMap via Overpass", retrievedAt: answer.body!.fetchedAt, note: "None may be mapped yet; that is not proof there is none." });
+    return undefined;
+  }
+  const name = match.name && match.name !== match.category ? match.name : `Unnamed ${wanted.label}`;
+  ctx.book.add({ label: `Nearest ${wanted.label}`, value: `${name}, ${distanceLabel(match.distanceMeters)} away in a straight line`, kind: "computed", source: "maNOWj, from OpenStreetMap via Overpass", retrievedAt: answer.body!.fetchedAt, note: "Closest mapped place of this kind within the nearby search." });
+  ctx.shared.routeTarget = { name, lat: match.lat, lon: match.lon, mode: "car" };
+  return { fromLat: ctx.anchor.lat, fromLon: ctx.anchor.lon, toLat: match.lat, toLon: match.lon, mode: "car" };
+}
+
+const route: Tool = async (ctx) => {
+  const { anchor, req, book } = ctx;
+  const r = anchor.route ?? (await nearestTarget(ctx));
+  if (!r && ctx.options.nearest) return { status: "failed", problem: `No ${ctx.options.nearest.label} was found to route to.` };
   if (!r) {
     book.add({ label: "Route", value: "No route planned", kind: "unavailable", source: "Directions panel", note: "Choose a start and an end in Directions first." });
     return { status: "failed", problem: "No route is planned yet." };
@@ -490,8 +527,8 @@ export function gatherForAgent(kind: AgentKind, anchor: AgentAnchor, req: ApiReq
   return gatherTools(AGENT_TOOLS[kind].tools, anchor, req);
 }
 
-/** Runs any set of sources in parallel; used by the agents and the Copilot. */
-export async function gatherTools(tools: ToolName[], anchor: AgentAnchor, req: ApiRequest): Promise<Gathered> {
+/** Runs any set of sources in parallel; used by the agents, the Copilot and the orchestrator. */
+export async function gatherTools(tools: ToolName[], anchor: AgentAnchor, req: ApiRequest, options: GatherOptions = {}): Promise<Gathered> {
   const shared: ToolContext["shared"] = {};
   const results = await Promise.all(
     tools.map(async (tool) => {
@@ -499,7 +536,7 @@ export async function gatherTools(tools: ToolName[], anchor: AgentAnchor, req: A
       const started = Date.now();
       let outcome: Omit<ToolOutcome, "tool">;
       try {
-        outcome = await TOOLS[tool]({ anchor, req, book, shared });
+        outcome = await TOOLS[tool]({ anchor, req, book, shared, options });
       } catch (error) {
         console.error(`[evidence] ${tool} failed`, error);
         book.add({ label: STEP_LABELS[tool], value: "Unavailable", kind: "unavailable", source: "maNOWj", note: "This step failed unexpectedly." });
@@ -517,5 +554,6 @@ export async function gatherTools(tools: ToolName[], anchor: AgentAnchor, req: A
     items,
     steps: results.map((r) => ({ step: STEP_LABELS[r.tool], status: r.outcome.status, ms: r.ms })),
     outcomes: results.map((r) => ({ tool: r.tool, ...r.outcome })),
+    routeTarget: shared.routeTarget,
   };
 }

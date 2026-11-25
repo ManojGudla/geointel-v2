@@ -1,7 +1,7 @@
 import { track } from "@/services/analytics";
 import { apiPost } from "@/services/apiClient";
 import { createRequestGate } from "@/services/aiRequestQueue";
-import type { AgentAnchor, AgentKind, AgentResult, EvidenceItem } from "@/types/ai";
+import type { AgentAnchor, AgentKind, AgentResult, EvidenceItem, TeamResult } from "@/types/ai";
 
 // AI completions (OpenRouter, often on free-tier/rate-limited models) run
 // meaningfully slower than the other data endpoints and take the apiClient
@@ -97,5 +97,25 @@ export async function runAgent(kind: AgentKind, anchor: AgentAnchor, signal?: Ab
       },
       { onStart }
     )
+  );
+}
+
+/**
+ * Several agents on one request ("evaluate this place for a family home and
+ * route to the nearest hospital"). One server request: it plans, fetches
+ * every source once, makes one model call and checks every number.
+ */
+export async function askAgentTeam(request: string, anchor: AgentAnchor, signal?: AbortSignal): Promise<TeamResult> {
+  return measured(
+    "agent:team",
+    () =>
+      aiGate.run(
+        async () => {
+          const { result } = await apiPost<{ result: TeamResult }>("/api/ai/ask", { request, anchor }, signal, AGENT_REQUEST_TIMEOUT_MS);
+          return result;
+        },
+        { priority: true }
+      ),
+    (value) => value.model
   );
 }

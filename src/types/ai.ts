@@ -148,3 +148,31 @@ export interface AgentResult {
   /** Sentences removed because they stated a number the evidence does not hold. */
   removedSentences?: number;
 }
+
+/** One agent's part of a team answer (the orchestrator, /api/ai/ask). */
+export interface TeamSection {
+  agent: AgentKind;
+  summary: string;
+  findings: AgentFinding[];
+  confidence: AgentConfidence;
+}
+
+/**
+ * Several agents answering one request together. Every step is a real
+ * server step with its time; every section says which agent wrote it.
+ */
+export interface TeamResult {
+  request: string;
+  /** What the planner understood the request to ask for. */
+  understood: string;
+  agents: AgentKind[];
+  sections: TeamSection[];
+  evidence: EvidenceItem[];
+  steps: AgentStep[];
+  /** For "route to the nearest X": where the route goes, to draw it on the map. */
+  route?: { name: string; lat: number; lon: number; mode: "car" | "walk" | "bike" };
+  sources: string[];
+  model: string;
+  generatedAt: string;
+  removedSentences: number;
+}

@@ -59,6 +59,7 @@ describe("API router", () => {
       "ai-intent",
       "ai/agent",
       "ai/copilot",
+      "ai/ask",
       "admin/maintenance",
       "admin/submissions",
     ];

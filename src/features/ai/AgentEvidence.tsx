@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import type { AgentResult, EvidenceItem } from "@/types/ai";
+import type { AgentFinding, AgentResult, EvidenceItem } from "@/types/ai";
 import { formatAiText } from "@/lib/formatAiText";
 import "./AgentEvidence.css";
 
@@ -49,6 +49,24 @@ export function EvidenceList({ items, highlight = null, id }: { items: EvidenceI
   );
 }
 
+/** Sentences with a chip per piece of evidence they cite; tapping a chip shows it. */
+export function Findings({ findings, onCite, listId }: { findings: AgentFinding[]; onCite: (id: string) => void; listId?: string }) {
+  return (
+    <p className="agent-card__result">
+      {findings.map((finding, i) => (
+        <span key={i}>
+          {formatAiText(finding.text)}
+          {finding.evidenceIds.map((id) => (
+            <button key={id} type="button" className="agent-evidence__chip" onClick={() => onCite(id)} aria-controls={listId} aria-label={`Show evidence ${id}`}>
+              {id}
+            </button>
+          ))}{" "}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 /** The notice for sentences the number check removed. */
 export function removedNotice(count: number | undefined): string | null {
   if (!count) return null;
@@ -89,25 +107,7 @@ export function AgentEvidence({ result }: { result: AgentResult }) {
 
       <p className="agent-evidence__caption">AI interpretation of the evidence</p>
       {findings.length > 0 ? (
-        <p className="agent-card__result">
-          {findings.map((finding, i) => (
-            <span key={i}>
-              {formatAiText(finding.text)}
-              {finding.evidenceIds.map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  className="agent-evidence__chip"
-                  onClick={() => show(id)}
-                  aria-controls={listId}
-                  aria-label={`Show evidence ${id}`}
-                >
-                  {id}
-                </button>
-              ))}{" "}
-            </span>
-          ))}
-        </p>
+        <Findings findings={findings} onCite={show} listId={listId} />
       ) : (
         <p className="agent-card__result">{formatAiText(result.summary)}</p>
       )}
