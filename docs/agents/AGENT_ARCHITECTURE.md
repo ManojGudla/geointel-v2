@@ -65,8 +65,27 @@ Answer: { summary, findings[{text, evidenceIds}], evidence[], confidence,
 - If every source an agent needs failed, the model is not called; the answer
   is the brief's sentence, "Insufficient verified data to provide a reliable
   conclusion.", plus the reason.
-- A model failure returns `502 AI_UNAVAILABLE`; the evidence is not shown as
-  an answer on its own.
+- A model failure (busy models, a used-up allowance, no key) returns the
+  checked evidence with `aiUnavailable` set to the reason, no findings, and
+  `model: "none: the AI could not answer this time"`. The screens say why
+  there is no written answer, never label anything as AI interpretation, and
+  open the evidence. Changed on 25 Nov 2026: the earlier `502 AI_UNAVAILABLE`
+  threw away facts that had already been fetched and checked, so a busy free
+  tier left every card showing only an error. The Copilot still answers
+  `502` when a question had no facts behind it.
+- OpenRouter's free-model limits belong to the account, not to a model: 20
+  requests a minute and 50 a day (1,000 a day once 10 dollars of credits
+  have been bought), shared by every free model, and failed attempts count
+  towards the day. A 429 from those limits ends the request at once (asking
+  another free model gets the same 429), and the server instance stops
+  asking free models until the reset time OpenRouter gives (at most about a
+  minute), or for 10 minutes after a used-up day, so bought credits are
+  noticed. A 429 from one busy provider still moves on to the next model.
+  See `rateLimitScope` in `api/_lib/ai.ts`.
+- Questions about the app itself (the four suggestions shown before a place
+  is picked, "what can you do", greetings, thanks, who built it) are answered
+  by `api/_lib/appHelp.ts` without a model, before the AI rate limit, so they
+  work whatever state the free AI is in and spend none of its allowance.
 - A page from before this change: the agents answer `400 ANCHOR_REQUIRED`
   ("Reload the page"); the Copilot still answers, without place facts.
 

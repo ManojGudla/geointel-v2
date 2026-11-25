@@ -1,5 +1,32 @@
 # Changelog
 
+## v3.5.1 (unreleased, branch ai-busy-fallback)
+
+Reported: "What can this app do?", the first suggestion in Ask maNOWj,
+answered "The free AI models are busy (rate limited) right now."
+
+### Fixed
+- Questions about the app itself are answered at once without the AI: the
+  four suggestions shown before a place is picked, "what can you do",
+  "hi", "thanks", and who built maNOWj. They no longer fail when the free AI
+  is busy, and no longer use up its daily allowance.
+- When the AI cannot write, the agent cards, Ask the agents together and
+  Ask maNOWj (for questions about the place) still show the facts they
+  checked, opened, with a plain note saying why there is no written answer.
+  The route to the nearest place still works.
+- A per-minute limit on the free AI used to be mistaken for one busy model,
+  so each question went on to ask three more models that refused for the
+  same reason, using up the day's allowance faster. It now stops at once,
+  pauses briefly, and says what happened.
+
+### Changed
+- Clearer messages: "too many questions in the last minute", "today's free
+  AI allowance is used up, it resets at midnight UTC (5:30 AM India time)",
+  or "the free AI models are busy right now".
+- Results written without a model now read "No AI model used: ..." instead
+  of "Written by none: ...".
+- Ask maNOWj names the real menu item, "Join Our Team".
+
 ## v3.5 (unreleased, branch agents-v2)
 
 The AI agents now check their facts. Details in docs/agents/.
