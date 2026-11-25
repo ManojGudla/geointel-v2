@@ -106,8 +106,11 @@ describe("what may be sent to the provider", () => {
    * nothing from the provider.
    */
   const ORIGINAL_ENV = { ...process.env };
-  beforeEach(() => {
+  beforeEach(async () => {
     process.env = { ...ORIGINAL_ENV, OPENROUTER_API_KEY: "test-key" };
+    // A used-up allowance is remembered for a while (see accountPause in
+    // api/_lib/ai.ts); each test starts without one.
+    (await import("../../api/_lib/ai")).resetAiPause();
   });
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -176,8 +179,11 @@ describe("a bad roll from the free model router", () => {
    * button themselves.
    */
   const ORIGINAL_ENV = { ...process.env };
-  beforeEach(() => {
+  beforeEach(async () => {
     process.env = { ...ORIGINAL_ENV, OPENROUTER_API_KEY: "test-key" };
+    // A used-up allowance is remembered for a while (see accountPause in
+    // api/_lib/ai.ts); each test starts without one.
+    (await import("../../api/_lib/ai")).resetAiPause();
   });
   afterEach(() => {
     vi.unstubAllGlobals();
