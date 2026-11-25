@@ -43,10 +43,22 @@ items need the owner: the admin key's strength and IP retention.
 | vitest 2.1.9, tinypool, @vitest/mocker, vite-node | GHSA-5xrq-8626-4rwp (critical, Vitest UI server), tinypool prototype-pollution gadgets (critical), mocker path traversal and mock injection (moderate) | No, tests only | NOT FIXED: needs vitest 5 (major). Do not run the Vitest UI on a shared network |
 | vite 5.4.21, esbuild 0.21 | Path traversal and `fs.deny` bypasses, Windows launch-editor issues (high and moderate), esbuild dev-server CORS (moderate) | No, dev server only | Mitigated by S-06. Full fix needs vite 8 (major): NOT FIXED, own branch |
 
+### Upgrade attempt, 25 November 2026
+
+`npm install -D vite@^7.3.8 vitest@^4.1.12 @vitejs/plugin-react@^5` was tried
+on a throwaway branch. npm 10 (with Node 22) crashed while resolving
+vitest 4's optional peer packages ("Cannot read properties of null (reading
+'edgesOut')" in its peer-set solver), before anything was installed, also
+from a clean `node_modules`. Nothing was changed: the attempt was discarded
+and `npm ci` restored the locked versions. The `--legacy-peer-deps` way
+around it was not used, because it would change how every later install
+resolves packages, Vercel's included. Status: NOT FIXED.
+
 ## Next steps
 
-1. Upgrade vite and vitest together on a branch, then run the whole suite
-   and the prerender build.
+1. Upgrade vite and vitest together on a branch (try a newer npm first:
+   `npx npm@11 install -D vite@^7.3.8 vitest@^4.1.12 @vitejs/plugin-react@^5`),
+   then run `npm test`, `npm run build` and `npm run e2e`.
 2. Upgrade maplibre-gl to 6.x on its own branch and re-check every map
    layer by hand.
 3. Decide on IP retention (S-04): for example, clear IPs after 30 days.
