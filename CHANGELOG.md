@@ -34,6 +34,19 @@ docs/audit/BUG_REPORT_2026-11-25.md.
 - Forecast days were labelled a day early in the Americas.
 - Two dialogs were cut off behind phone browser bars, and safe-area insets
   had no effect.
+- Population density could be computed from an area in the wrong unit
+  (square metres or miles read as km²); areas are now converted from their
+  Wikidata unit, and a Wikidata outage is reported as an outage.
+- Fly maNOWj shows an angry Manoj when you crash and on the game-over card.
+- The API refused nothing off the globe: `?lat=500` went on to the weather,
+  Overpass, address and routing providers, and a blank `?lat=` meant 0,0.
+  Every route now answers 400 first. Clicking a repeated copy of the world
+  (beyond 180°) sent longitudes like 286; the map now sends -74.
+
+### Security
+- `source-map-js` updated to 1.2.4 (high-severity advisory, build tooling).
+- The dev server listens only on this computer. Use `npm run dev:phone` to
+  test from a phone on the same Wi-Fi.
 
 ## v3.3 (11 November 2026)
 
