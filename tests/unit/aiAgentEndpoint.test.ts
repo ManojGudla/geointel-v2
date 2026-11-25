@@ -101,7 +101,8 @@ describe("api/ai/agent", () => {
     });
     expect(state.prompt).toBeDefined();
     expect(state.prompt).not.toContain("Forged Person");
-    expect(state.prompt).not.toContain("999");
+    // Whole number only: the prompt's random fence can contain these digits.
+    expect(state.prompt).not.toMatch(/\b999\b/);
     expect(state.prompt).toContain("Mapped shops within 250 m | 6 | retrieved | OpenStreetMap via Overpass | as of 25 Nov 2026, 07:30 UTC");
   });
 

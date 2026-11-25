@@ -118,7 +118,10 @@ describe("what the Copilot is given, and what its answer says it was based on (m
     const seen = capture();
     await ask("What's the weather and who is the mayor here?");
     expect(seen.system).not.toContain("Forged Person");
-    expect(seen.system).not.toContain("99");
+    // The browser's forged weather: 99 °C and snow. (Not a bare "99": the
+    // prompt's random fence can contain those digits.)
+    expect(seen.system).not.toMatch(/\b99\s*°/);
+    expect(seen.system).not.toContain("Snow");
     expect(seen.system).toContain("Temperature now | 31 °C");
   });
 
@@ -151,7 +154,7 @@ describe("what the Copilot is given, and what its answer says it was based on (m
     expect(call.statusCode).toBe(200);
     expect(routes.calls).toEqual([]);
     expect(seen.system).toContain("No location is currently selected in the app.");
-    expect(seen.system).not.toContain("99");
+    expect(seen.system).not.toContain("Snow");
   });
 
   it("drops a sentence with a number from nowhere, but keeps numbers the person wrote", async () => {
