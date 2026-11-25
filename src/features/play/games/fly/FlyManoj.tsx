@@ -209,8 +209,11 @@ function drawFlyer(ctx: CanvasRenderingContext2D, s: FlyState, face: HTMLImageEl
   ctx.translate(FLYER_X, s.y);
   ctx.rotate(tilt);
   if (img) {
-    // A touch bigger when angry, so the change reads at a glance.
-    const drawn = crashed ? size * 1.15 : size;
+    // A touch bigger when angry, so the change reads at a glance. The angry
+    // picture keeps a margin above the hair and below the beard (so the head
+    // is never cut flat by its own edge), hence 1.25 for a head about 15%
+    // taller than the flying one.
+    const drawn = crashed ? size * 1.25 : size;
     ctx.drawImage(img, -drawn / 2, -drawn / 2, drawn, drawn);
   } else {
     ctx.fillStyle = "#6d5bff";
