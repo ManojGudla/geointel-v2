@@ -20,6 +20,22 @@ Run with `npm test`. They check the agents' logic, not any provider's data.
 Whole suite on the last commit: **1,618 passed, 0 failed**; type check clean;
 production build and contrast check pass.
 
+## 1b. End-to-end journeys (MOCK API, real browser)
+
+`npm run e2e` (Playwright; `playwright.config.ts`, `tests/e2e/`). The built
+site runs in Chrome at phone size (390 x 844) and desktop size (1280 x 800),
+with every /api call answered by `tests/e2e/fixtures.ts`.
+
+| Journey | Phone | Desktop |
+|---|---|---|
+| Home page loads with no errors; search and All tools visible | pass | pass |
+| A shared link opens the place in the AI section; the agents answer together; a citation opens its evidence; the route button appears | pass | pass |
+| A provider outage (no fixture, 503) is reported by the trip builder, not hidden | pass | pass |
+| Fly maNOWj: a crash shows the angry face (360 px image loaded) on the game-over card | pass | pass |
+
+8 passed, 0 failed (Chrome for Testing 153, Playwright 1.62.1). CI now
+installs Playwright's Chromium and runs these on every push and pull request.
+
 ## 2. Local run of the real stack (providers unreachable)
 
 `scripts/agent-acceptance.mjs` was run against `vite` on this machine, with

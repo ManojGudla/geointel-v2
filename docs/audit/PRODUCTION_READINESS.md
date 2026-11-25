@@ -7,7 +7,7 @@ passing build or test suite alone does not make the product ready.
 |---|---|---|
 | Zero TypeScript errors | `tsc -b` clean | VERIFIED |
 | No failing unit or integration tests | 148 files, 1,530 tests pass | VERIFIED |
-| No failing critical end-to-end tests | There is no end-to-end suite yet | NOT FIXED |
+| No failing critical end-to-end tests | 4 journeys at phone and desktop size, API stubbed (`npm run e2e`), run in CI: 8 passed | FIXED, TESTED (mock). Journeys against live providers: NEEDS EXTERNAL ACCESS |
 | No known critical or high exploitable security defects | None in code that runs for visitors; dev-tooling advisories mitigated, upgrades pending | VERIFIED (SECURITY_REPORT.md) |
 | No known critical GIS calculation defects | Population units, self-crossing areas, off-globe coordinates and partial Overpass answers fixed | FIXED, TESTED. Real data: NEEDS EXTERNAL ACCESS |
 | No exposed credentials | None in git or in the browser bundle | VERIFIED. Vercel logs: NEEDS EXTERNAL ACCESS |
@@ -20,15 +20,13 @@ passing build or test suite alone does not make the product ready.
 | External dependencies and limits documented | Providers, AI quota, imagery limits documented in these reports | VERIFIED |
 
 **Verdict: not production-ready yet.** The blockers are the live agent
-acceptance run (`scripts/agent-acceptance.mjs` against a preview), no
-end-to-end tests, no real-phone check, and the AI quota (AI-02) if the site
-gets traffic.
+acceptance run (`scripts/agent-acceptance.mjs` against a preview), a check
+on a real phone, and the AI quota (AI-02) if the site gets traffic.
 
-## Setting up end-to-end tests
+## End-to-end tests
 
-Playwright works in this environment with the system Chrome
-(`playwright-core` and `executablePath: "/usr/bin/google-chrome"`), which is
-how the Fly maNOWj screenshots were taken. The plan: add `@playwright/test`,
-cover search, map tap, the AI tab, measuring and the game at 390×844 and
-1280×800, and run them in CI against `vite preview` with providers stubbed,
-labelled as mock tests. Separate live checks run against the Vercel preview.
+`npm run e2e` runs `tests/e2e/` against `vite preview` (build first) at
+390x844 and 1280x800, with the API stubbed and labelled as mock. Locally,
+`PW_CHROME=/path/to/chrome npm run e2e` uses an installed Chrome; CI installs
+Playwright's own Chromium. Not covered yet: search typing, map taps and
+measuring by touch, which need a map that renders tiles.

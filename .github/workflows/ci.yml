@@ -23,7 +23,7 @@ jobs:
   checks:
     name: checks
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -46,3 +46,12 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      # The built site in a real browser, phone and desktop sizes, with the
+      # API stubbed (tests/e2e/fixtures.ts). Live provider checks are
+      # scripts/agent-acceptance.mjs, run against a preview by hand.
+      - name: Install Playwright's Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end journeys
+        run: npm run e2e

@@ -26,7 +26,7 @@ Every issue carries one or more of these statuses:
 | 5 | Backend and AI reliability | Input validation done. AI grounding built on `agents-v2` (plan approved 25 Nov): server-fetched evidence, number check, citations, confidence. Live acceptance not run here. |
 | 6 | Frontend and mobile | Done in v3.4 (CHANGELOG). A check on a real phone is still needed. |
 | 7 | Performance | Bundle sizes measured. Web Vitals not measured yet: PERFORMANCE_REPORT.md. |
-| 8 | Tests | 1,530 unit and integration tests pass. No browser end-to-end suite in CI yet. |
+| 8 | Tests | 1,618 unit and integration tests and 8 end-to-end journeys (phone and desktop, API stubbed) pass; both run in CI. |
 | 9 | Re-run all checks | Type check, all tests, production build and contrast check pass on the last commit. |
 | 10 | Reports | This file and the five reports beside it. |
 
@@ -76,8 +76,6 @@ Server-only secrets: `OPENROUTER_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
   listener cleanup, many markers, drawing with touch on real devices.
 - Web Vitals (LCP, INP, CLS) on a real phone, and Lighthouse.
 - SEO review beyond the canonical-host checks.
-- A browser end-to-end suite in CI. Playwright runs here with the system
-  Chrome, which is how the game screenshots were checked.
 - Major-version dependency upgrades (vite, vitest, maplibre-gl), each on its
   own branch.
 - Re-checking provider terms for commercial use (S-01).
@@ -107,7 +105,8 @@ Server-only secrets: `OPENROUTER_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
 | 59ff517 | Copilot: fetches its own facts, looks up office holders itself |
 | 0c7e9e3 | Agents work together on one request, with a real timeline |
 | f70a6e5 | Make My Trip plan builder; route alternatives and turns |
-| (last) | Agent docs, acceptance script, reports updated |
+| f757ce4 | Agent docs, acceptance script, reports updated |
+| (this branch's last commit) | End-to-end journeys with Playwright, run in CI |
 
 ## Environment variables
 
