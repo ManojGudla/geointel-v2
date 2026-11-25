@@ -4,6 +4,7 @@ import { ok, err, getClientIp } from "../../_lib/http.js";
 import { checkDurableLimit } from "../../_lib/rateLimit.js";
 
 import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
+import { BUILT_IN_MODEL, builtInAnswer } from "../../_lib/appHelp.js";
 import { searchKnowledgeBase } from "../../_lib/kb.js";
 import { fenceRules, makeFence, sanitizeField } from "../../_lib/untrusted.js";
 import { GROUNDING_RULES, isAboutThePlace } from "../../_lib/aiGrounding.js";
@@ -63,13 +64,6 @@ function recentTurns(history: CopilotRequestBody["history"]): AiMessage[] {
 const handler: ApiHandler = async (req, res) => {
   if (req.method !== "POST") return err(res, 405, "Use POST.");
 
-  // Durable: every call here spends real credit on OpenRouter, and an
-  // in-memory counter that resets on each cold start does not bound a bill.
-  // The added round trip is irrelevant next to the AI call that follows it.
-  const ip = getClientIp(req);
-  const rate = await checkDurableLimit("ai", ip, 60_000, 15);
-  if (!rate.allowed) return err(res, 429, "Too many requests. Please slow down.", "RATE_LIMITED");
-
   const body = (req.body ?? {}) as CopilotRequestBody;
   const question = (body.question || "").trim();
   if (!question) return err(res, 400, "A question is required.");
@@ -97,6 +91,40 @@ const handler: ApiHandler = async (req, res) => {
   if (JSON.stringify(body.history ?? []).length > 10_000) {
     return err(res, 413, "Too much conversation history sent with this question.");
   }
+
+  const anchor = parseAnchor(body.anchor);
+
+  /*
+    Questions about the app itself, greetings and thanks: answered here,
+    from the app's own help, without a model. They used to go to the free
+    model like everything else and fail with "busy" whenever it was, which
+    made "What can this app do?", the first suggestion on offer, the first
+    thing to break. See api/_lib/appHelp.ts.
+
+    Before the rate limit on purpose: these cost nothing upstream, so they
+    should not use up a visitor's AI allowance for the minute either.
+  */
+  const builtIn = builtInAnswer(question, !!anchor);
+  if (builtIn) {
+    return ok(res, {
+      answer: builtIn.answer,
+      sources: [],
+      evidence: [],
+      findings: [],
+      steps: [{ step: "Answered from the app's built-in help (no AI model needed)", status: "ok", ms: 0 } satisfies AgentStep],
+      removedSentences: 0,
+      model: BUILT_IN_MODEL,
+      generatedAt: new Date().toISOString(),
+    });
+  }
+
+  // Durable: every call past here spends real credit on OpenRouter, and an
+  // in-memory counter that resets on each cold start does not bound a bill.
+  // The added round trip is irrelevant next to the AI call that follows it.
+  const ip = getClientIp(req);
+  const rate = await checkDurableLimit("ai", ip, 60_000, 15);
+  if (!rate.allowed) return err(res, 429, "Too many requests. Please slow down.", "RATE_LIMITED");
+
   /*
     The facts. The browser used to send them ("context") and the answer
     repeated them as verified, officials included. Now it sends only where
@@ -105,7 +133,6 @@ const handler: ApiHandler = async (req, res) => {
     no anchor: it still gets an answer, just without place facts.
   */
   const started = Date.now();
-  const anchor = parseAnchor(body.anchor);
   const aboutPlace = isAboutThePlace(question);
   const gathered = anchor && aboutPlace ? await gatherTools(toolsFor(question, !!anchor.route), anchor, req) : null;
   const evidence: EvidenceItem[] = gathered?.items ?? [];
@@ -147,9 +174,9 @@ const handler: ApiHandler = async (req, res) => {
         `${GROUNDING_RULES}\n\n` +
        "If asked who built, developed, or created maNOWj GeoIntel (or who your developer is), answer that it was built by Manoj Kumar Gudla. " +
 
-"If asked who the co-founder of maNOWj is, answer that there is currently no co-founder. If the user is interested in joining the team, tell them they can use the 'Join My Team' option in the app. " +
+"If asked who the co-founder of maNOWj is, answer that there is currently no co-founder. If the user is interested in joining the team, tell them they can use the 'Join Our Team' option (under More at the top of the app). " +
 
-"If asked who Manoj Kumar Gudla is, answer that he is the founder and developer of maNOWj GeoIntel, and that people can reach him through the app's feedback and Join My Team options. " +
+"If asked who Manoj Kumar Gudla is, answer that he is the founder and developer of maNOWj GeoIntel, and that people can reach him through the app's Feedback and Join Our Team options (both under More). " +
 
 "When answering a question about Manoj Kumar Gudla himself, answer from these instructions alone and do not mention the location data, 'the data', or the selected place. " +
 

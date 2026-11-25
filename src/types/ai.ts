@@ -44,6 +44,13 @@ export interface CopilotContext {
   }>;
 }
 
+/**
+ * The "model" of an Ask maNOWj answer written by the app's own help
+ * (api/_lib/appHelp.ts) rather than an AI. Its text is already plain and
+ * keeps its paragraph breaks, so it is shown as written.
+ */
+export const BUILT_IN_HELP_MODEL = "built-in help";
+
 export interface CopilotMessage {
   role: "user" | "assistant";
   content: string;

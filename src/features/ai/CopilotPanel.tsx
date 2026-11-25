@@ -13,6 +13,7 @@ import { useGisUiStore } from "@/stores/gisUiStore";
 import { useMapStore } from "@/stores/mapStore";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import type { GISLayerId } from "@/types/gis";
+import { BUILT_IN_HELP_MODEL } from "@/types/ai";
 import "./CopilotPanel.css";
 import { describeAiFailure } from "./aiErrors";
 
@@ -131,7 +132,9 @@ export function CopilotPanel() {
             // whole thread when the panel reopens) appear complete.
             <ChatAnswer
               key={i}
-              text={formatAiText(m.content)}
+              // The app's own help text is already clean, and formatAiText
+              // would join its paragraphs into one block.
+              text={m.model === BUILT_IN_HELP_MODEL ? m.content : formatAiText(m.content)}
               sources={m.sources}
               evidence={m.evidence}
               removedSentences={m.removedSentences}
