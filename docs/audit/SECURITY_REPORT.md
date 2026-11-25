@@ -40,10 +40,23 @@ items need the owner: the admin key's strength and IP retention.
 |---|---|---|---|
 | source-map-js 1.2.1 | GHSA-68fv-2mgg-jv7q (high): denial of service from crafted source maps | No, build tool | FIXED: 1.2.4 via `npm audit fix` (no major upgrades) |
 | maplibre-gl 4.7.1 | GHSA-jrc7-96c5-q579 (critical): bypass in `DOM.sanitize()` | Yes, but not reachable | VERIFIED not reachable: 4.7.1 has no `DOM.sanitize`, and every attribution string is a constant in our code (no external styles or TileJSON). Upgrade to 6.x: NOT FIXED, own branch |
-| vitest 2.1.9, tinypool, @vitest/mocker, vite-node | GHSA-5xrq-8626-4rwp (critical, Vitest UI server), tinypool prototype-pollution gadgets (critical), mocker path traversal and mock injection (moderate) | No, tests only | NOT FIXED: needs vitest 5 (major). Do not run the Vitest UI on a shared network |
-| vite 5.4.21, esbuild 0.21 | Path traversal and `fs.deny` bypasses, Windows launch-editor issues (high and moderate), esbuild dev-server CORS (moderate) | No, dev server only | Mitigated by S-06. Full fix needs vite 8 (major): NOT FIXED, own branch |
+| vitest 2.1.9, tinypool, @vitest/mocker, vite-node | GHSA-5xrq-8626-4rwp (critical, Vitest UI server), tinypool prototype-pollution gadgets (critical), mocker path traversal and mock injection (moderate) | No, tests only | FIXED on the `deps-upgrade` branch: vitest 4.1.12 |
+| vite 5.4.21, esbuild 0.21 | Path traversal and `fs.deny` bypasses, Windows launch-editor issues (high and moderate), esbuild dev-server CORS (moderate) | No, dev server only | FIXED on the `deps-upgrade` branch: vite 7.3.8, @vitejs/plugin-react 5 |
 
-### Upgrade attempt, 25 November 2026
+### The `deps-upgrade` branch
+
+With npm 11 (`npx npm@11 install -D vite@^7.3.8 vitest@^4.1.12
+@vitejs/plugin-react@^5`) the upgrade installed. On that branch: type check
+clean, 1,618 unit tests pass, production build and prerender pass, contrast
+check passes, the 8 end-to-end journeys pass, and `npm audit` reports one
+remaining advisory: maplibre-gl, not reachable (above). `npm ci` with npm 10
+installs from the new lockfile without error, so CI and Vercel are not
+affected by the npm 10 bug. Two things to know: Vite 7 needs Node 20.19+ or
+22.12+ on your computer, and its default browser target is newer, so the
+old one (Safari 14, Chrome 87) is now written in `vite.config.ts` to keep
+supporting the same phones.
+
+### First upgrade attempt, 25 November 2026
 
 `npm install -D vite@^7.3.8 vitest@^4.1.12 @vitejs/plugin-react@^5` was tried
 on a throwaway branch. npm 10 (with Node 22) crashed while resolving
@@ -56,9 +69,8 @@ resolves packages, Vercel's included. Status: NOT FIXED.
 
 ## Next steps
 
-1. Upgrade vite and vitest together on a branch (try a newer npm first:
-   `npx npm@11 install -D vite@^7.3.8 vitest@^4.1.12 @vitejs/plugin-react@^5`),
-   then run `npm test`, `npm run build` and `npm run e2e`.
+1. Merge `deps-upgrade` after its Vercel preview checks out (it needs Node
+   20.19+ or 22.12+ locally).
 2. Upgrade maplibre-gl to 6.x on its own branch and re-check every map
    layer by hand.
 3. Decide on IP retention (S-04): for example, clear IPs after 30 days.

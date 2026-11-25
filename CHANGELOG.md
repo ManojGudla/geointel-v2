@@ -29,6 +29,12 @@ The AI agents now check their facts. Details in docs/agents/.
 - AI answers may take up to 40 seconds (was 35), since the evidence is
   fetched first.
 
+### Security (branch deps-upgrade, on top of agents-v2)
+- Vite 7.3.8, Vitest 4.1.12 and @vitejs/plugin-react 5 replace Vite 5 and
+  Vitest 2, which had critical and high advisories in the dev server and the
+  test runner. The site's browser support is unchanged (now written in
+  vite.config.ts). Local development needs Node 20.19+ or 22.12+.
+
 ## v3.4 (unreleased)
 
 Easier to find your way around, ready for visitors outside India, and a bug

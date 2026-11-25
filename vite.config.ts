@@ -41,6 +41,15 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       /**
+       * The browsers this site has always supported, written out.
+       *
+       * Vite 7 raised its default target to "baseline-widely-available"
+       * (Safari 16, Chrome 107). Vite 5's default reached Safari 14 and
+       * Chrome 87, and many phones in India still run those. Pinning the old
+       * list keeps the tool upgrade from quietly dropping them.
+       */
+      target: ["es2020", "edge88", "firefox78", "chrome87", "safari14"],
+      /**
        * Source maps in development, not in the deployed site.
        *
        * This was `true`, which shipped a complete map of every source file to

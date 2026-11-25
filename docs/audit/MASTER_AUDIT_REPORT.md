@@ -62,7 +62,7 @@ Server-only secrets: `OPENROUTER_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
 | A-01 | Population | Density divided by an area whose unit was ignored (m² or mi² read as km²); a Wikidata outage looked like "no data" | FIXED, TESTED with mocked Wikidata. Real figures: NEEDS EXTERNAL ACCESS | GIS_DATA_ACCURACY_REPORT.md |
 | A-02 | API | Five routes sent coordinates off the globe on to providers; every route read a blank value as 0 | FIXED, TESTED (19 cases failed before the fix) | GIS_DATA_ACCURACY_REPORT.md |
 | A-03 | Map | A click on a repeated copy of the world sent longitudes such as 286 | FIXED, TESTED (unit). NEEDS MANUAL VALIDATION near 180° | GIS_DATA_ACCURACY_REPORT.md |
-| D-01 | Dependencies | 8 npm advisories (3 critical, 2 high, 3 moderate) | 1 FIXED; maplibre-gl VERIFIED not reachable; dev tooling mitigated, upgrades NOT FIXED | SECURITY_REPORT.md |
+| D-01 | Dependencies | 8 npm advisories (3 critical, 2 high, 3 moderate) | source-map-js FIXED (v3.4); vite and vitest FIXED and TESTED on `deps-upgrade`; maplibre-gl VERIFIED not reachable, upgrade NOT FIXED | SECURITY_REPORT.md |
 | S-06 | Dev server | Listened on the whole Wi-Fi | FIXED | SECURITY_REPORT.md |
 | S-04 | Privacy | Client IPs kept with submissions with no retention limit | NOT FIXED: deleting data needs the owner's approval | SECURITY_REPORT.md |
 | AI-01 | AI | Agents state browser-sent data as facts, including officials marked "verified" by the browser | FIXED, TESTED (mock) on `agents-v2`. Live: NEEDS EXTERNAL ACCESS | AI_RELIABILITY_REPORT.md |
@@ -76,8 +76,8 @@ Server-only secrets: `OPENROUTER_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
   listener cleanup, many markers, drawing with touch on real devices.
 - Web Vitals (LCP, INP, CLS) on a real phone, and Lighthouse.
 - SEO review beyond the canonical-host checks.
-- Major-version dependency upgrades (vite, vitest, maplibre-gl), each on its
-  own branch.
+- The maplibre-gl 4 to 6 upgrade, on its own branch, with every map layer
+  checked by hand.
 - Re-checking provider terms for commercial use (S-01).
 - The six agents' live acceptance tests: `scripts/agent-acceptance.mjs` is
   ready; it needs a deployment that can reach the providers

@@ -23,6 +23,20 @@ there are no other preloaded scripts.
 v3.4 does not change these sizes in any meaningful way: it adds small
 functions and a 13.6 kB face image that loads only in the game.
 
+## Measured: after the agent work and the tool upgrade
+
+Same build command, three points in time. Sizes from Vite's output.
+
+| Build | Entry script (raw / gzip) | MapLibre chunk (gzip) | All JS and CSS (gzip) |
+|---|---|---|---|
+| v3.4, Vite 5.4.21 | 599.8 / 192.6 kB | 217.8 kB | 747 kB |
+| `agents-v2`, Vite 5.4.21 | 614.4 / 196.6 kB | 217.8 kB | 752 kB |
+| `deps-upgrade`, Vite 7.3.8 (old browser target kept) | 615.8 / 197.5 kB | 218.0 kB | 753 kB |
+
+The agent screens (team box, trip builder, evidence views) add 4.0 kB gzip
+to the entry script; the tool upgrade adds 0.9 kB. Lazy-loading the AI tab
+would take the agent screens out of the first load: not done yet.
+
 ## Not measured yet
 
 | Metric | How to measure |
