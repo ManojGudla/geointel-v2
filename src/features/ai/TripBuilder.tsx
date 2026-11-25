@@ -170,6 +170,12 @@ export function TripBuilder() {
             {plan.order === "yours" ? "Your order of stops, re-measured." : "Stops in nearest-next order from the selected place."} Each day starts at the selected place, {MODE_LABEL[plan.mode]}.
           </p>
 
+          {plan.days.length === 0 && (
+            <p className="trip-builder__error" role="alert">
+              No stops could be planned: none of the kinds of place asked for were found nearby, or the map data search did not answer. The evidence below says which.
+            </p>
+          )}
+
           {edited ? (
             <ol className="trip-builder__edit">
               {stops.map((s, i) => (
@@ -246,7 +252,7 @@ export function TripBuilder() {
             ))}
           </ul>
           {plan.evidence.length > 0 && (
-            <details className="agent-evidence__details">
+            <details className="agent-evidence__details" open={plan.days.length === 0}>
               <summary>Evidence ({plan.evidence.length})</summary>
               <EvidenceList items={plan.evidence} />
             </details>

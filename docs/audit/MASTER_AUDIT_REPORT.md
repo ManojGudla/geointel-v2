@@ -23,7 +23,7 @@ Every issue carries one or more of these statuses:
 | 2 | Map the system | Done (next section). |
 | 3 | Reproduce failures | Done for every item in the issue table. |
 | 4 | Security and data accuracy | Done for what can be checked from here: SECURITY_REPORT.md, GIS_DATA_ACCURACY_REPORT.md. |
-| 5 | Backend and AI reliability | Input validation done. AI grounding has a plan waiting for approval: `docs/agents/IMPLEMENTATION_PLAN.md`. |
+| 5 | Backend and AI reliability | Input validation done. AI grounding built on `agents-v2` (plan approved 25 Nov): server-fetched evidence, number check, citations, confidence. Live acceptance not run here. |
 | 6 | Frontend and mobile | Done in v3.4 (CHANGELOG). A check on a real phone is still needed. |
 | 7 | Performance | Bundle sizes measured. Web Vitals not measured yet: PERFORMANCE_REPORT.md. |
 | 8 | Tests | 1,530 unit and integration tests pass. No browser end-to-end suite in CI yet. |
@@ -65,9 +65,9 @@ Server-only secrets: `OPENROUTER_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
 | D-01 | Dependencies | 8 npm advisories (3 critical, 2 high, 3 moderate) | 1 FIXED; maplibre-gl VERIFIED not reachable; dev tooling mitigated, upgrades NOT FIXED | SECURITY_REPORT.md |
 | S-06 | Dev server | Listened on the whole Wi-Fi | FIXED | SECURITY_REPORT.md |
 | S-04 | Privacy | Client IPs kept with submissions with no retention limit | NOT FIXED: deleting data needs the owner's approval | SECURITY_REPORT.md |
-| AI-01 | AI | Agents state browser-sent data as facts, including officials marked "verified" by the browser | VERIFIED, NOT FIXED: needs the approved plan | AI_RELIABILITY_REPORT.md |
+| AI-01 | AI | Agents state browser-sent data as facts, including officials marked "verified" by the browser | FIXED, TESTED (mock) on `agents-v2`. Live: NEEDS EXTERNAL ACCESS | AI_RELIABILITY_REPORT.md |
 | AI-02 | AI | One free OpenRouter key: 50 model requests a day for all visitors together | VERIFIED from OpenRouter's documentation. The account's tier: NEEDS MANUAL VALIDATION | AI_RELIABILITY_REPORT.md |
-| AI-03 | AI | Nothing checks that numbers in an AI answer exist in the data | VERIFIED, NOT FIXED: in the plan | AI_RELIABILITY_REPORT.md |
+| AI-03 | AI | Nothing checks that numbers in an AI answer exist in the data | FIXED, TESTED on `agents-v2` | AI_RELIABILITY_REPORT.md |
 | G-01 | Game | Angry face on crash and game over, whole head visible | FIXED, TESTED (3 tests, screenshots at 390×844) | CHANGELOG.md |
 
 ## Not started yet
@@ -81,8 +81,9 @@ Server-only secrets: `OPENROUTER_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
 - Major-version dependency upgrades (vite, vitest, maplibre-gl), each on its
   own branch.
 - Re-checking provider terms for commercial use (S-01).
-- The six agents' live acceptance tests: they belong to the agent work, after
-  the plan is approved.
+- The six agents' live acceptance tests: `scripts/agent-acceptance.mjs` is
+  ready; it needs a deployment that can reach the providers
+  (docs/agents/TEST_RESULTS.md).
 
 ## Commits in the v3.4 patch
 
@@ -96,7 +97,17 @@ Server-only secrets: `OPENROUTER_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
 | 8f83b7e | source-map-js patched; dev server on this computer only (D-01, S-06) |
 | cc5693d | Coordinates off the globe refused before any provider call (A-02, A-03) |
 | 137d981 | Angry face: whole head with room above the hair (G-01) |
-| (this commit) | These reports, the agent plan and the changelog |
+| 56832d5 | These reports, the agent plan and the changelog |
+
+## Commits on `agents-v2` (on top of v3.4)
+
+| Commit | What it does |
+|---|---|
+| 536aafb | Agents: the server fetches every fact; every number is checked |
+| 59ff517 | Copilot: fetches its own facts, looks up office holders itself |
+| 0c7e9e3 | Agents work together on one request, with a real timeline |
+| f70a6e5 | Make My Trip plan builder; route alternatives and turns |
+| (last) | Agent docs, acceptance script, reports updated |
 
 ## Environment variables
 

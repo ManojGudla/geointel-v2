@@ -1,5 +1,34 @@
 # Changelog
 
+## v3.5 (unreleased, branch agents-v2)
+
+The AI agents now check their facts. Details in docs/agents/.
+
+### New
+- Ask the agents together: one request ("Is this good for a family home?
+  Route to the nearest hospital") runs several agents, shows what they
+  understood, the steps they really took with their times, a section per
+  agent with its confidence, and a button that draws the found route.
+- Make My Trip builds a 1-3 day plan from real mapped places near you, with
+  every hop measured by the routing service. Reorder or remove stops,
+  re-measure, and show the plan on the map.
+- Every agent and Copilot answer comes with its evidence: each fact with its
+  source and time, marked verified data, computed or unavailable. Tap a
+  citation to see the fact behind a sentence.
+- Navigation lists the routing service's alternative routes and first turns.
+
+### Changed
+- The agents and the Copilot no longer take facts from the page. The server
+  fetches them, so nothing the browser sends can be stated as verified, and
+  officials are looked up by the server only when you ask about them.
+- Any sentence with a number that is not in the evidence is removed before
+  you see it, and the answer says so.
+- Confidence comes from which sources answered, not from the AI.
+- With too little evidence, agents say "Insufficient verified data to provide
+  a reliable conclusion." without asking the AI, which saves the daily quota.
+- AI answers may take up to 40 seconds (was 35), since the evidence is
+  fetched first.
+
 ## v3.4 (unreleased)
 
 Easier to find your way around, ready for visitors outside India, and a bug

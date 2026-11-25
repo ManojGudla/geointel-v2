@@ -14,13 +14,14 @@ passing build or test suite alone does not make the product ready.
 | No broken primary user journeys | Search, map tap, panels, measuring, game: unit tests and headless checks pass | NEEDS MANUAL VALIDATION on a real phone |
 | No broken mobile layouts | 100dvh, safe areas, sheet heights, touch targets fixed | FIXED. Real phones: NEEDS MANUAL VALIDATION |
 | No unhandled critical API failures | Providers fail with a clear 502, mirrors and fallbacks, no failure cached as a fact | VERIFIED |
-| AI responses grounded in available evidence | Browser-sent data is treated as fact (AI-01) | NOT FIXED: plan awaiting approval |
+| AI responses grounded in available evidence | On `agents-v2`: server-fetched evidence, citations, number check, confidence from sources (AI-01, AI-03, AI-04) | FIXED, TESTED with mock providers. Live: NEEDS EXTERNAL ACCESS |
 | Map rendering and recovery validated | Not stress-tested | NOT FIXED |
 | SEO and deployment configuration validated | The canonical `www` host and the apex redirect were checked live; canonical tags and the sitemap are guarded by a test; a full SEO review is not done | Partly VERIFIED |
 | External dependencies and limits documented | Providers, AI quota, imagery limits documented in these reports | VERIFIED |
 
-**Verdict: not production-ready yet.** The blockers are AI grounding (AI-01),
-no end-to-end tests, no real-phone check, and the AI quota (AI-02) if the site
+**Verdict: not production-ready yet.** The blockers are the live agent
+acceptance run (`scripts/agent-acceptance.mjs` against a preview), no
+end-to-end tests, no real-phone check, and the AI quota (AI-02) if the site
 gets traffic.
 
 ## Setting up end-to-end tests

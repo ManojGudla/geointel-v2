@@ -92,3 +92,23 @@ describe("Make My Trip, the planner", () => {
     expect(drawn.paths).toEqual([[[78.4747, 17.3616], [78.4736, 17.3606], [78.4716, 17.3611]]]);
   });
 });
+
+describe("Make My Trip with nothing to plan", () => {
+  afterEach(() => {
+    cleanup();
+    vi.resetModules();
+    vi.doUnmock("../../src/services/ai");
+    vi.doUnmock("../../src/stores/locationStore");
+    vi.doUnmock("../../src/stores/analysisStore");
+  });
+
+  it("says no stops could be planned and opens the evidence that says why", async () => {
+    const empty: TripPlan = { ...PLAN, days: [], evidence: [{ id: "E1", label: "Nearby places", value: "Unavailable", kind: "unavailable", source: "OpenStreetMap via Overpass", note: "The nearby search did not answer." }] };
+    const { container } = await renderBuilder(async () => empty);
+    fireEvent.click(screen.getByRole("button", { name: "Build plan" }));
+    expect((await screen.findByRole("alert")).textContent).toMatch(/^No stops could be planned/);
+    expect((container.querySelector(".agent-evidence__details") as HTMLDetailsElement).open).toBe(true);
+    expect(screen.queryByRole("button", { name: "Show on the map" })).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Show on the map" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+});

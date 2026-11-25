@@ -1,8 +1,15 @@
 # maNOWj GeoIntel Intelligence Suite: implementation plan
 
-Status: **proposal, waiting for approval.** Nothing in this plan is built yet.
-It will be built on its own branch (`agents-v2`), in phases, each checked on a
-Vercel preview before the next starts.
+Status: **approved 25 November 2026 and built on `agents-v2`**, except where
+marked below. Check each phase on a Vercel preview before merging.
+
+| Phase | State |
+|---|---|
+| P1 Evidence layer and trust boundary | Built (agents and Copilot) |
+| P2 Structured answers, number check, chips | Built |
+| P3 Orchestrator and timeline | Built (`/api/ai/ask`, team box in the AI tab) |
+| P4 Agent upgrades | Route alternatives and turns, Make My Trip builder: built. Destination comparison: not built |
+| P5 Workspace, docs, live tests | Docs and the acceptance script: built. Live run: needs a deployment. Full-screen workspace: not built (the new views live in the AI tab) |
 
 ## What exists today (inspected 25 November 2026)
 
