@@ -1,6 +1,6 @@
 import type { ApiRequest } from "../http.js";
 import type { AgentAnchor, AgentKind, AgentStep, EvidenceItem } from "../../../src/types/ai.js";
-import type { GISEvidence } from "../../../src/types/gis.js";
+import type { GISEvidence, PropertySite } from "../../../src/types/gis.js";
 import { analyzeProperty } from "../../../src/features/property/propertyAnalyzer.js";
 import { sanitizeField } from "../untrusted.js";
 import { callRoute, type RouteAnswer } from "./internalCall.js";
@@ -12,6 +12,7 @@ import routeRoute from "../../_routes/route.js";
 import geocodeRoute from "../../_routes/geocode.js";
 import populationRoute from "../../_routes/population.js";
 import officialsRoute from "../../_routes/officials.js";
+import propertyRoute from "../../_routes/property.js";
 
 /**
  * Evidence for the six agents, fetched by the server itself.
@@ -153,7 +154,13 @@ interface ToolContext {
    * Shared by one run's tools, so a provider is asked once: the GIS answer
    * (GIS and Property) and the place answer (Place and Officials).
    */
-  shared: { gis?: Promise<GisAnswer>; place?: Promise<PlaceAnswer>; nearby?: Promise<NearbyAnswer>; routeTarget?: Gathered["routeTarget"] };
+  shared: {
+    gis?: Promise<GisAnswer>;
+    place?: Promise<PlaceAnswer>;
+    nearby?: Promise<NearbyAnswer>;
+    site?: Promise<RouteAnswer<{ site: PropertySite }>>;
+    routeTarget?: Gathered["routeTarget"];
+  };
   options: GatherOptions;
 }
 
@@ -223,38 +230,71 @@ const gis: Tool = async (ctx) => {
       note: "Each mapped feature counts more the closer it is to the point; higher means stronger evidence for that use.",
     });
   }
-  if (evidence.subject) {
-    const s = evidence.subject;
-    ctx.book.add({
-      label: "Mapped feature at the point",
-      value: `${s.name ? `${s.name}, ` : ""}${s.kind} (${s.category}), ${distanceLabel(s.distanceMeters)} away`,
-      kind: "retrieved",
-      source: "OpenStreetMap via Overpass",
-      retrievedAt: evidence.fetchedAt,
-    });
-  }
+  /*
+    No "Mapped feature at the point" here any more. It came from the area
+    lookup, which snaps the point by up to about 55 m and takes the nearest
+    classified CENTRE, and it once named a house for an office tower. The
+    building at the exact point is the Property tool's, checked by footprint.
+  */
   return evidence.incomplete ? { status: "partial", problem: "Overpass stopped part-way, so counts may be low." } : { status: "ok" };
 };
 
+function fetchSite(ctx: ToolContext): Promise<RouteAnswer<{ site: PropertySite }>> {
+  ctx.shared.site ??= callRoute<{ site: PropertySite }>(propertyRoute, { lat: ctx.anchor.lat, lon: ctx.anchor.lon }, ctx.req, SOURCE_TIMEOUT_MS);
+  return ctx.shared.site;
+}
+
 const property: Tool = async (ctx) => {
-  const answer = await fetchGis(ctx);
-  const evidence = answer.status === 200 ? answer.body?.evidence : undefined;
-  if (!evidence) {
-    ctx.book.add({ label: "Property classification", value: "Unavailable", kind: "unavailable", source: "maNOWj property analyzer", note: failureReason(answer) });
+  const [gisAnswer, siteAnswer] = await Promise.all([fetchGis(ctx), fetchSite(ctx)]);
+  const evidence = gisAnswer.status === 200 ? gisAnswer.body?.evidence : undefined;
+  const site = siteAnswer.status === 200 ? siteAnswer.body?.site : undefined;
+  if (!evidence && !site) {
+    ctx.book.add({ label: "Property classification", value: "Unavailable", kind: "unavailable", source: "maNOWj property analyzer", note: failureReason(siteAnswer) });
     return { status: "failed", problem: "There is no mapped evidence to classify from." };
   }
-  const analysis = analyzeProperty(evidence);
-  const method = "From the share of distance-weighted OpenStreetMap features around the point. Not a land record, zoning or ownership check.";
+  const analysis = analyzeProperty(evidence ?? null, site ?? null);
+  const at = site?.fetchedAt ?? evidence!.fetchedAt;
+  const osm = "OpenStreetMap via Overpass";
+
+  // The building at the exact point: what it is, how tall, and where to check it.
+  const b = analysis.building;
+  if (site && b) {
+    ctx.book.add({
+      label: "Building at the point",
+      value: `${b.name ? `${b.name}, ` : ""}${b.kind}${b.containsPoint ? "" : `, ${distanceLabel(b.distanceMeters)} from the point`}`,
+      kind: "retrieved",
+      source: osm,
+      retrievedAt: at,
+      note: `Check it: ${b.osmUrl}`,
+    });
+    if (b.heightMeters !== null) {
+      ctx.book.add({
+        label: "Building height",
+        value: `${b.heightMeters} m`,
+        kind: b.heightSource === "mapped" ? "retrieved" : "computed",
+        source: osm,
+        retrievedAt: at,
+        note: b.heightSource === "floors" ? `Worked out from ${b.levels} mapped floors at 3.2 m each; the height itself is not mapped.` : undefined,
+      });
+    }
+    if (b.levels !== null) ctx.book.add({ label: "Floors", value: String(b.levels), kind: "retrieved", source: osm, retrievedAt: at });
+  } else if (site) {
+    ctx.book.add({ label: "Building at the point", value: "None mapped at this exact point", kind: "retrieved", source: osm, retrievedAt: at });
+  }
+
+  const method = site
+    ? "From the OpenStreetMap tags of the building at the exact point: its type, any business mapped in it, and the land it stands on. Not a land record, zoning or ownership check."
+    : "From the share of distance-weighted OpenStreetMap features around the point, because the building at the point could not be checked. Not a land record, zoning or ownership check.";
   if (analysis.trust === "unavailable") {
-    ctx.book.add({ label: "Property classification", value: "Not enough mapped evidence to classify", kind: "unavailable", source: "maNOWj property analyzer", retrievedAt: evidence.fetchedAt, note: analysis.limitations.join(" ") });
-    return { status: "failed", problem: "Too little is mapped here to classify the property." };
+    ctx.book.add({ label: "Property classification", value: "Not enough mapped evidence to classify", kind: "unavailable", source: "maNOWj property analyzer", retrievedAt: at, note: `${method} ${sanitizeField(analysis.reasoning, 300)}`.trim() });
+    return { status: "failed", problem: "Nothing mapped here says what this property is used for." };
   }
   ctx.book.add({
     label: "Property classification",
     value: analysis.classification,
     kind: "computed",
     source: "maNOWj property analyzer",
-    retrievedAt: evidence.fetchedAt,
+    retrievedAt: at,
     note: `${method} ${sanitizeField(analysis.reasoning, 400)}`.trim(),
   });
   ctx.book.add({
@@ -262,10 +302,11 @@ const property: Tool = async (ctx) => {
     value: `${Math.round(analysis.confidence)}%`,
     kind: "computed",
     source: "maNOWj property analyzer",
-    retrievedAt: evidence.fetchedAt,
+    retrievedAt: at,
     note: analysis.limitations.join(" "),
   });
-  return evidence.incomplete ? { status: "partial", problem: "Overpass stopped part-way, so the classification rests on partial counts." } : { status: "ok" };
+  if (!site) return { status: "partial", problem: "The building at the point could not be checked, so this reads the area." };
+  return evidence?.incomplete ? { status: "partial", problem: "Overpass stopped part-way, so the surrounding counts may be low." } : { status: "ok" };
 };
 
 const population: Tool = async ({ anchor, req, book }) => {

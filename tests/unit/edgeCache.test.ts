@@ -95,6 +95,7 @@ const MUST_CACHE = [
 const MUST_BE_PRIVATE: Record<string, string> = {
   "reverse-geocode.ts": "the URL is the visitor's exact position",
   "route.ts": "the URL is where the visitor is and where they are going",
+  "property.ts": "the URL is the exact point chosen, which can be the visitor's own position",
 };
 
 describe("which routes may be cached at the edge", () => {

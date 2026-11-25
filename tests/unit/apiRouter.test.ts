@@ -50,6 +50,7 @@ describe("API router", () => {
       "news",
       "officials",
       "population",
+      "property",
       "reverse-geocode",
       "route",
       "site",

@@ -52,7 +52,13 @@ describe("analyzeProperty", () => {
     expect(result.trust).toBe("inferred");
   });
 
-  it("earns 'verified' only when a mapped feature sits on the point", () => {
+  it("does not call a feature near the spot 'verified' without checking the building at the exact point", () => {
+    /*
+      Changed 25 November 2026. The area lookup snaps the point by up to
+      about 55 m, and its "subject" is the classified feature whose centre is
+      nearest, so it once called an office tower a house, VERIFIED, 95%.
+      VERIFIED now needs the building at the exact point (propertySite.test.ts).
+    */
     const result = analyzeProperty(
       evidence({
         counts: { buildings: 40, shops: 30, offices: 15, residential: 2, industrial: 0, institutional: 1, amenities: 10, tourism: 0, transport: 0 },
@@ -60,8 +66,9 @@ describe("analyzeProperty", () => {
         subject: { name: "Wave Rock Tower 2.3", kind: "office building", category: "commercial", distanceMeters: 3 },
       })
     );
-    expect(result.trust).toBe("verified");
-    // And the badge is backed by something the reader can go and check.
+    expect(result.trust).toBe("inferred");
+    expect(result.confidence).toBeLessThanOrEqual(60);
+    // Still names what it read, so the reader can check it.
     expect(result.reasoning).toContain("Wave Rock Tower 2.3");
   });
 

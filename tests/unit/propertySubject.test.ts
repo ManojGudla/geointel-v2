@@ -110,7 +110,7 @@ describe("a commercial building surrounded by housing", () => {
 });
 
 describe("what the VERIFIED badge is allowed to mean", () => {
-  it("is earned only when there is a mapped feature at the point", () => {
+  it("is not earned by the area lookup alone, with or without a feature near the point", () => {
     /*
       It used to be awarded for totalEvidence >= 3 - "Overpass returned at
       least three things nearby" - which says nothing about whether the
@@ -118,8 +118,11 @@ describe("what the VERIFIED badge is allowed to mean", () => {
       attached to the weakest claim, and it is what turned a wrong answer
       into a confidently wrong one.
     */
+    // Changed 25 November 2026: a feature near the spot, read from the
+    // area lookup, is an inference. VERIFIED now needs the building at the
+    // exact point, checked by footprint (see propertySite.test.ts).
     const onABuilding = analyzeProperty(asEvidence(classifyFeatures(waverock(), PIN, 250)));
-    expect(onABuilding.trust).toBe("verified");
+    expect(onABuilding.trust).toBe("inferred");
 
     // The same neighbourhood, but the pin is on open ground between things.
     const emptySpot = analyzeProperty(
