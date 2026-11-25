@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
-import { useAnalysisStore } from "@/stores/analysisStore";
+import { useAnalysisStore, type AnalysisPoint } from "@/stores/analysisStore";
+import { useLocationStore } from "@/stores/locationStore";
+import { useRouteStore } from "@/stores/routeStore";
 import { formatDistance } from "@/features/map/geo";
 import { useUiStore } from "@/stores/uiStore";
 import "./SpatialAnalysisPanel.css";
@@ -17,7 +19,29 @@ import { ExportButtons } from "@/features/export/ExportButtons";
 export function AnalysisResultView() {
   const units = useUiStore((s) => s.units);
   const result = useAnalysisStore((s) => s.result);
+  const selected = useLocationStore((s) => s.selectedLocation);
+  const setFrom = useRouteStore((s) => s.setFrom);
+  const openDirections = useRouteStore((s) => s.openPanel);
   const ref = useRef<HTMLDivElement>(null);
+
+  /*
+    Reported (25 November 2026): "directions not coming". After the ATM chip
+    found four ATMs, tapping one did nothing: these rows were plain text,
+    while the same rows in Nearby open the route. Now they match Nearby. The
+    route starts where the distances were measured from (the analysis
+    origin), so the time it shows agrees with the distance printed here.
+  */
+  const directionsTo = (point: AnalysisPoint) => {
+    if (!result) return;
+    const { origin } = result;
+    const sameAsSelected = selected && Math.abs(selected.lat - origin.lat) < 1e-6 && Math.abs(selected.lon - origin.lon) < 1e-6;
+    setFrom(
+      sameAsSelected
+        ? selected
+        : { lat: origin.lat, lon: origin.lon, name: "Analysis centre", displayName: `${origin.lat.toFixed(5)}, ${origin.lon.toFixed(5)}` }
+    );
+    openDirections({ lat: point.lat, lon: point.lon, name: point.label, displayName: point.label });
+  };
 
   // With the controls above it, a result on a short panel can land entirely
   // below the fold - the analysis runs, the map updates, and the numbers
@@ -82,8 +106,13 @@ export function AnalysisResultView() {
         <ol className="analysis__list">
           {result.points.slice(0, 25).map((point) => (
             <li key={point.id}>
-              <span>{point.label}</span>
-              <strong>{formatDistance(point.distanceMeters, units)}</strong>
+              <button type="button" className="analysis__list-row" onClick={() => directionsTo(point)} aria-label={`Directions to ${point.label}, ${formatDistance(point.distanceMeters, units)}`}>
+                <span>{point.label}</span>
+                <strong>{formatDistance(point.distanceMeters, units)}</strong>
+                <span className="analysis__list-go" aria-hidden="true">
+                  Directions ›
+                </span>
+              </button>
             </li>
           ))}
         </ol>

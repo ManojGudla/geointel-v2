@@ -9,6 +9,7 @@ import { useUiStore } from "@/stores/uiStore";
 import type { NearbyCategory } from "@/types/intel";
 import "./NearbyPanel.css";
 import { ExportButtons } from "@/features/export/ExportButtons";
+import { placeLabel } from "@/features/analysis/categories";
 
 const CATEGORIES: Array<{ id: NearbyCategory; label: string; icon: string }> = [
   { id: "restaurants", label: "Restaurants", icon: "🍽️" },
@@ -92,8 +93,8 @@ export function NearbyPanel() {
               <li key={item.id}>
                 {/* The whole row is the target, not a small icon beside it:
                     these are read and tapped on a phone. */}
-                <button type="button" onClick={() => directionsTo(item)} aria-label={`Directions to ${item.name}`}>
-                  <span className="nearby-panel__name">{item.name}</span>
+                <button type="button" onClick={() => directionsTo({ ...item, name: placeLabel(item) })} aria-label={`Directions to ${placeLabel(item)}`}>
+                  <span className="nearby-panel__name">{placeLabel(item)}</span>
                   <strong>{formatDistance(item.distanceMeters, units)}</strong>
                   <span className="nearby-panel__go" aria-hidden="true">
                     Directions
@@ -105,7 +106,7 @@ export function NearbyPanel() {
             <ExportButtons
               places={result.items.map((item) => ({
                 id: item.id,
-                name: item.name,
+                name: placeLabel(item),
                 category: item.category,
                 lat: item.lat,
                 lon: item.lon,
