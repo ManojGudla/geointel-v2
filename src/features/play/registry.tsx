@@ -145,7 +145,7 @@ export const GAMES: GameEntry[] = [
   {
     id: "cricket",
     title: "Cricket: Super Chase",
-    tagline: "Broadcast-view batting. Read the pitch marker, swipe your shot, loft it for six. Three overs to chase.",
+    tagline: "Broadcast-view batting with a timing ring: swing as the rings meet, swipe your shot, loft it for six. Free hits, streaks and DRS. Three overs to chase.",
     icon: "🏏",
     categories: ["trending", "sports"],
     duration: "3 min",

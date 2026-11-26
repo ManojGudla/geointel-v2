@@ -604,9 +604,89 @@
   }
 }
 
+/* The tip under the prompt: how to time a shot, in one line. */
+.cp-prompt__tip {
+  margin: 6px 0 0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(10, 14, 40, 0.7);
+  color: #ffe14d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* A free hit is announced the way television does it: a banner that stays until the ball is bowled. */
+.cp-freehit {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 14px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #e11d48, #f97316);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.45);
+  pointer-events: none;
+  animation: cp-pulse 0.9s ease-in-out infinite alternate;
+}
+
+/* Boundaries in a row. */
+.cp-streak {
+  position: absolute;
+  top: 12px;
+  right: 58px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(10, 14, 40, 0.85);
+  color: #ffb347;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@keyframes cp-pulse {
+  from {
+    transform: translateX(-50%) scale(1);
+  }
+  to {
+    transform: translateX(-50%) scale(1.06);
+  }
+}
+
+/* The smallest phones: the six balls of the over have to fit beside the score. */
+@media (max-width: 420px) {
+  .cp-tv > div {
+    padding: 5px 6px;
+  }
+
+  .cp-tv__over {
+    gap: 3px !important;
+  }
+
+  .cp-ball {
+    width: 15px;
+    height: 15px;
+    font-size: 9px;
+  }
+
+  .cp-streak {
+    top: 50px;
+    right: 8px;
+  }
+
+  .cp-freehit {
+    top: 46px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cp-splash,
-  .cp-prompt__sub {
+  .cp-prompt__sub,
+  .cp-freehit {
     animation: none;
   }
 }
