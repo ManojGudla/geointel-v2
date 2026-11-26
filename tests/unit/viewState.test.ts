@@ -155,6 +155,26 @@ describe("decoding a link somebody sent", () => {
     expect(decodeViewState("?lat=1&lon=1&q=%20%20")?.question).toBeUndefined();
   });
 
+  it("reads lng and layer, the names most map links use, as lon and map", () => {
+    // A hand-written ?lat=..&lng=.. link used to be ignored outright: no
+    // "lon", so no position, so the app opened on its default view.
+    expect(decodeViewState("lat=17.4401&lng=78.3489&z=15&layer=satellite")).toEqual({
+      lat: 17.4401,
+      lon: 78.3489,
+      zoom: 15,
+      basemap: "satellite",
+    });
+    // The app's own names win when a link somehow has both.
+    expect(decodeViewState("lat=1&lon=2&lng=3&map=dark&layer=satellite")).toMatchObject({ lon: 2, basemap: "dark" });
+    // And the app still writes its own names, which every shared link uses.
+    expect(encodeViewState({ lat: 1, lon: 2, basemap: "satellite" })).toBe("lat=1&lon=2&map=satellite");
+  });
+
+  it("strips the alias names on restore too, so they do not linger in the address bar", () => {
+    expect(VIEW_PARAMS).toContain("lng");
+    expect(VIEW_PARAMS).toContain("layer");
+  });
+
   it("does not choke on a query string full of unrelated parameters", () => {
     // Links get utm tags stapled to them the moment they touch anything social.
     const v = decodeViewState("?utm_source=whatsapp&lat=17.385&lon=78.487&fbclid=abc&map=satellite");
