@@ -195,11 +195,36 @@ export function readArea(tags: Record<string, string>): (UseReading & { campus: 
       return { use: "Institutional", kind: `${tags.landuse} land`, tag: `landuse=${tags.landuse}`, campus: false };
     case "railway":
       return { use: "Transport", kind: "railway land", tag: "landuse=railway", campus: false };
+    case "cemetery":
+      return { use: "Institutional", kind: "cemetery", tag: "landuse=cemetery", campus: false };
+  }
+  if (tags.landuse && AGRICULTURAL_LANDUSE.has(tags.landuse)) {
+    return { use: "Agricultural", kind: words(tags.landuse), tag: `landuse=${tags.landuse}`, campus: false };
+  }
+  if (tags.landuse && OPEN_LANDUSE.has(tags.landuse)) {
+    return { use: "Open Space", kind: tags.landuse === "grass" ? "grass" : `${words(tags.landuse)} land`, tag: `landuse=${tags.landuse}`, campus: false };
+  }
+  if (tags.leisure && OPEN_LEISURE.has(tags.leisure)) {
+    return { use: "Open Space", kind: words(tags.leisure), tag: `leisure=${tags.leisure}`, campus: false };
   }
   if (tags.aeroway === "aerodrome") return { use: "Transport", kind: "airport", tag: "aeroway=aerodrome", campus: true };
   if (tags.military) return { use: "Institutional", kind: "military area", tag: `military=${tags.military}`, campus: true };
   return null;
 }
+
+/*
+  Land with no buildings to speak of. Without these, a tap on a park or a
+  field read "Unknown" even where the map says plainly what the land is; the
+  tap near Malakpet on 26 November 2026 was inside landuse=farmland.
+  Tracks and stadiums are left out: they are facilities, not open land.
+*/
+const AGRICULTURAL_LANDUSE = new Set([
+  "farmland", "farmyard", "orchard", "vineyard", "meadow", "plant_nursery", "greenhouse_horticulture", "aquaculture", "animal_keeping",
+]);
+const OPEN_LANDUSE = new Set(["recreation_ground", "village_green", "grass", "forest"]);
+const OPEN_LEISURE = new Set([
+  "park", "garden", "playground", "pitch", "recreation_ground", "nature_reserve", "common", "dog_park", "golf_course",
+]);
 
 /*
   Names, as the weakest reading. Only words that are rarely ambiguous, and no

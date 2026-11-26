@@ -173,9 +173,11 @@ export function PropertyResult({ analysis, dataAsOf }: { analysis: PropertyAnaly
         </p>
         <p>
           Strongest first: the building's own type (for example an office building or an apartment building) and any
-          business tagged on it, 90%; businesses mapped inside it, 80%; the land or campus it stands on, 60 to 70%; a
-          telling word in its name, 45%. Homes with shops or offices mapped inside are Mixed Use. A tap next to a wall
-          rather than inside it counts 15 points less.
+          business tagged on it, 90%; businesses mapped inside it, 80%; the land or campus it stands on, 60 to 70%, or
+          50% when that land is drawn as one large zone over a whole neighbourhood; a telling word in its name, 45%.
+          Homes with shops or offices mapped inside are Mixed Use. A tap next to a wall rather than inside it counts 15
+          points less. Where there is no building, the land itself is read: a park or a sports ground is Open Space,
+          farmland is Agricultural.
         </p>
         <p>
           Verified means OpenStreetMap says it about this building. Inferred means it was worked out from the land or

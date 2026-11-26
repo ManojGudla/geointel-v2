@@ -34,15 +34,34 @@ export const NEXT_TO_M = 10;
 const BUSINESS_KEYS = "shop|office|amenity|craft|healthcare|tourism|leisure|historic";
 /** Keys of areas that can say what land is used for. */
 const AREA_KEYS = "landuse|amenity|leisure|tourism|office|shop|healthcare|aeroway|military|building|industrial|historic|railway";
+/** Keys of a site drawn as its own outline: a school's grounds, a park, a hospital campus. */
+const SITE_KEYS = "amenity|leisure|tourism|office|shop|healthcare|aeroway|military|industrial|historic";
+
+/*
+  How far land outlines are fetched, so the one the point is inside can be
+  found by geometry. A land-use zone is usually a block or a neighbourhood:
+  the residential zone around Abids that prompted this is 0.8 x 0.9 km, and
+  its edge is within 500 m of anywhere inside it. Sites (a school, a park)
+  are smaller. Larger zones are found by the area index when they are named.
+*/
+export const LANDUSE_SEARCH_RADIUS_M = 500;
+export const SITE_AREA_SEARCH_RADIUS_M = 200;
 
 export function buildPropertySiteQuery(lat: number, lon: number, radius = SITE_SEARCH_RADIUS_M): string {
   const at = `${lat},${lon}`;
   /*
     Buildings with their full geometry (`out geom`; relations need the body
-    verbosity so their members come back), businesses as plain nodes, and the
-    areas that contain the point. `is_in` depends on the server's area index;
-    where a mirror has none it simply returns nothing, and the building
-    reading above it still stands.
+    verbosity so their members come back), businesses as plain nodes, the
+    land outlines around the point with their geometry, and the areas the
+    server's area index says contain the point.
+
+    Why both. The area index (`is_in`) only holds named land, and most land
+    is not named: on 26 November 2026 two untagged buildings in Abids sat
+    inside an unnamed landuse=residential outline and a tap near Malakpet sat
+    inside an unnamed landuse=farmland one, and `is_in` returned neither, so
+    both read "no land use". The outlines are now fetched and tested here,
+    like the buildings. Named zones too large for that reach still come from
+    the index.
   */
   return `
     [out:json][timeout:20];
@@ -52,6 +71,10 @@ export function buildPropertySiteQuery(lat: number, lon: number, radius = SITE_S
     out geom;
     node(around:${radius},${at})[~"^(${BUSINESS_KEYS})$"~"."];
     out tags;
+    way(around:${LANDUSE_SEARCH_RADIUS_M},${at})[landuse][!building];
+    out geom;
+    way(around:${SITE_AREA_SEARCH_RADIUS_M},${at})[~"^(${SITE_KEYS})$"~"."][!building];
+    out geom;
     is_in(${at})->.a;
     area.a[~"^(${AREA_KEYS})$"~"."];
     out tags;
@@ -99,6 +122,20 @@ function areaRank(tags: Record<string, string>): number {
   if (tags.landuse) return 3;
   return 4;
 }
+
+/** A way drawn as a closed outline. An unclosed one is a line (or broken data), never an area. */
+function isClosedWay(el: OverpassElement): boolean {
+  const g = el.geometry;
+  if (!g || g.length < 4) return false;
+  const a = g[0]!;
+  const b = g[g.length - 1]!;
+  return a.lat === b.lat && a.lon === b.lon;
+}
+
+const LAND_KEY = new RegExp(`^(landuse|${SITE_KEYS})$`);
+const sizeForSort = (areaM2: number | undefined) => areaM2 ?? Number.MAX_SAFE_INTEGER;
+const isLandWay = (el: OverpassElement) =>
+  el.type === "way" && !el.tags?.building && Object.keys(el.tags ?? {}).some((key) => LAND_KEY.test(key)) && isClosedWay(el);
 
 export function extractSite(
   elements: OverpassElement[],
@@ -174,10 +211,36 @@ export function extractSite(
     }
   }
 
-  const areas: SiteFeature[] = areaElements
-    .filter((a) => !a.el.tags?.building)
-    .sort((a, b) => areaRank(a.el.tags ?? {}) - areaRank(b.el.tags ?? {}))
-    .map((a) => ({ osmType: a.ref.osmType, id: a.ref.id, url: osmUrl(a.ref.osmType, a.ref.id), tags: keep(a.el.tags, KEEP_FEATURE_TAG) }));
+  /*
+    Land the point is inside, by geometry: unnamed outlines included, with
+    their size, since a 0.8 km² zone says less about one building than a
+    plot-sized one does. Then whatever the area index adds that the outlines
+    did not already cover (named zones too big to fetch), size unknown.
+  */
+  const outlined = elements
+    .filter(isLandWay)
+    .map((el) => ({ el, polygons: footprintOf(el) }))
+    .filter((c) => c.polygons.some((p) => pointInPolygon(pt, p)))
+    .map((c) => ({
+      ref: { osmType: "way" as const, id: c.el.id },
+      tags: c.el.tags ?? {},
+      areaM2: Math.round(footprintArea(c.polygons)),
+    }));
+  const seen = new Set(outlined.map((a) => `way/${a.ref.id}`));
+  const indexed = areaElements
+    .filter((a) => !a.el.tags?.building && !seen.has(`${a.ref.osmType}/${a.ref.id}`))
+    .map((a) => ({ ref: a.ref, tags: a.el.tags ?? {}, areaM2: undefined as number | undefined }));
+
+  const areas: SiteFeature[] = [...outlined, ...indexed]
+    // Most specific kind first; within a kind, the smaller (closer-fitting) area first, unknown sizes last.
+    .sort((a, b) => areaRank(a.tags) - areaRank(b.tags) || sizeForSort(a.areaM2) - sizeForSort(b.areaM2))
+    .map((a) => ({
+      osmType: a.ref.osmType,
+      id: a.ref.id,
+      url: osmUrl(a.ref.osmType, a.ref.id),
+      tags: keep(a.tags, KEEP_FEATURE_TAG),
+      ...(a.areaM2 !== undefined ? { areaM2: a.areaM2 } : {}),
+    }));
 
   return {
     lat: point.lat,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractSite } from "../../api/_lib/propertySite";
+import { buildPropertySiteQuery, extractSite } from "../../api/_lib/propertySite";
 import { assembleRings, pointInPolygon, relationPolygons } from "../../api/_lib/geometry";
 import type { OverpassElement } from "../../api/_lib/overpass";
 import { analyzeProperty } from "../../src/features/property/propertyAnalyzer";
@@ -174,6 +174,121 @@ describe("what a building's type cannot settle", () => {
     expect(a.classification).toBe("Residential");
     expect(a.basis).toBe("land");
     expect(a.confidence).toBe(50);
+  });
+});
+
+/**
+ * Land read from its outline.
+ *
+ * Reported 26 November 2026 with screenshots from the live site: two untagged
+ * buildings in Abids, Hyderabad, read "Unknown ... no land use around it",
+ * and a tap near Malakpet read "Nothing is mapped at this exact point". Both
+ * places are inside land-use outlines on OpenStreetMap, but unnamed ones, and
+ * the area index the lookup relied on (Overpass `is_in`) only holds named
+ * land. The outlines and the building below are the real ones (ways
+ * 436472873, 1124088497 and 358752595, read from the OpenStreetMap API that
+ * day); the points are the reporter's.
+ */
+const ABIDS = { lat: 17.38342, lon: 78.46975 };
+const MALAKPET = { lat: 17.38216, lon: 78.50894 };
+const ABIDS_BUILDING: Array<[number, number]> = [
+  [78.4697252, 17.3834693], [78.4698082, 17.3834574], [78.4697947, 17.3833721], [78.4697117, 17.3833841], [78.4697252, 17.3834693],
+];
+const ABIDS_RESIDENTIAL: Array<[number, number]> = [
+  [78.4724396, 17.3821103], [78.4726113, 17.3826146], [78.4728125, 17.382932], [78.4731826, 17.3832724], [78.4729814, 17.3836948],
+  [78.4725979, 17.3843168], [78.472453, 17.3842605], [78.4717798, 17.3855403], [78.4711307, 17.3866819], [78.4710261, 17.3869712],
+  [78.4708115, 17.3872143], [78.4704923, 17.3874344], [78.4703234, 17.3876392], [78.4699291, 17.3884148], [78.4704092, 17.3887629],
+  [78.4706828, 17.389175], [78.4701624, 17.3898661], [78.4699183, 17.3899992], [78.4693551, 17.3901016], [78.468699, 17.3902899],
+  [78.467707, 17.3904479], [78.4676546, 17.3900018], [78.4675205, 17.3893465], [78.4673166, 17.3888397], [78.4671396, 17.3877186],
+  [78.466866, 17.3868636], [78.466689, 17.3861725], [78.4664851, 17.3849132], [78.4662759, 17.3840173], [78.4659648, 17.383147],
+  [78.4699023, 17.3825992], [78.4724396, 17.3821103],
+];
+const MALAKPET_FARMLAND: Array<[number, number]> = [
+  [78.5087662, 17.3822851], [78.5090024, 17.3823931], [78.5091594, 17.3820571], [78.5089205, 17.3819574], [78.5087662, 17.3822851],
+];
+
+describe("land read from its outline", () => {
+  const abids = () => [way(358752595, { building: "yes" }, ABIDS_BUILDING), way(436472873, { landuse: "residential" }, ABIDS_RESIDENTIAL)];
+
+  it("finds the unnamed residential zone the untagged building stands in, with its size", () => {
+    const s = site(abids(), ABIDS);
+    expect(s.building?.id).toBe(358752595);
+    expect(s.building?.footprintM2).toBe(86);
+    expect(s.areas.map((a) => a.id)).toEqual([436472873]);
+    expect(s.areas[0]!.url).toBe("https://www.openstreetmap.org/way/436472873");
+    expect(s.areas[0]!.areaM2).toBeGreaterThan(400_000);
+    expect(s.areas[0]!.areaM2).toBeLessThan(420_000);
+  });
+
+  it("reads that building as Residential, inferred, at the lower figure a neighbourhood-sized zone earns", () => {
+    const a = analyzeProperty(AREA_EVIDENCE, site(abids(), ABIDS));
+    expect(a.classification).toBe("Residential");
+    expect(a.trust).toBe("inferred");
+    expect(a.basis).toBe("land");
+    expect(a.confidence).toBe(50);
+    expect(a.reasoning).toContain("It stands on residential land (one area of 0.41 km² on the map), so it is most likely residential.");
+    expect(a.reasoning).toContain("describes the area this building is in more than the building itself");
+    expect(a.evidence).toContain("Land: residential land, 0.41 km² (OpenStreetMap way 436472873, landuse=residential)");
+    expect(a.links?.map((l) => l.url)).toContain("https://www.openstreetmap.org/way/436472873");
+    // Still not verified: nothing on the map is about this building's use.
+    expect(a.limitations.join(" ")).toMatch(/inferred and not checked against the building/);
+  });
+
+  it("keeps the usual 60% for land drawn plot by plot", () => {
+    const plot = square(ABIDS.lat, ABIDS.lon, 40); // 80 m x 80 m
+    const a = analyzeProperty(null, site([way(358752595, { building: "yes" }, ABIDS_BUILDING), way(77, { landuse: "residential" }, plot)], ABIDS));
+    expect(a.classification).toBe("Residential");
+    expect(a.confidence).toBe(60);
+    expect(a.reasoning).not.toContain("whole neighbourhood");
+  });
+
+  it("reads the tap near Malakpet as farmland: Agricultural, inferred", () => {
+    const s = site([way(1124088497, { landuse: "farmland" }, MALAKPET_FARMLAND)], MALAKPET);
+    expect(s.building).toBeNull();
+    expect(s.areas.map((a) => a.id)).toEqual([1124088497]);
+    const a = analyzeProperty(null, s);
+    expect(a.classification).toBe("Agricultural");
+    expect(a.trust).toBe("inferred");
+    expect(a.confidence).toBe(50);
+    expect(a.reasoning).toBe("No building is mapped at this exact point. The land here is mapped as farmland (one area of 1,120 m²).");
+  });
+
+  it("reads a park as Open Space", () => {
+    const a = analyzeProperty(null, site([way(281519628, { leisure: "park" }, square(ABIDS.lat, ABIDS.lon, 20))], ABIDS));
+    expect(a.classification).toBe("Open Space");
+    expect(a.basis).toBe("land");
+  });
+
+  it("ignores land the point is not inside, and lines that never close", () => {
+    const elsewhere = square(ABIDS.lat + 0.003, ABIDS.lon, 30); // about 330 m north
+    const line: Array<[number, number]> = ABIDS_RESIDENTIAL.slice(0, -1); // the same outline, not closed
+    const s = site([way(78, { landuse: "commercial" }, elsewhere), way(79, { landuse: "industrial" }, line)], ABIDS);
+    expect(s.areas).toEqual([]);
+  });
+
+  it("puts the closest-fitting land first, so a shop's own outline beats the zone around it", () => {
+    const shop = square(ABIDS.lat, ABIDS.lon, 12);
+    const s = site([way(358752595, { building: "yes" }, ABIDS_BUILDING), way(436472873, { landuse: "residential" }, ABIDS_RESIDENTIAL), way(80, { landuse: "retail", name: "Cut Works" }, shop)], ABIDS);
+    expect(s.areas.map((a) => a.id)).toEqual([80, 436472873]);
+    const a = analyzeProperty(null, s);
+    expect(a.classification).toBe("Commercial");
+    expect(a.confidence).toBe(60);
+    expect(a.reasoning).toContain("retail land (Cut Works)");
+  });
+
+  it("does not list the same land twice when the area index also has it", () => {
+    const s = site([way(436472873, { landuse: "residential" }, ABIDS_RESIDENTIAL), area(436472873, { landuse: "residential" }), area(905, { landuse: "residential", name: "Agapura" })], ABIDS);
+    expect(s.areas.map((a) => a.id)).toEqual([436472873, 905]);
+    // Read from the outline, so it has a size; the index-only one has none.
+    expect(s.areas[0]!.areaM2).toBeGreaterThan(0);
+    expect(s.areas[1]!.areaM2).toBeUndefined();
+  });
+
+  it("asks the server for land outlines with their geometry, not only the area index", () => {
+    const q = buildPropertySiteQuery(ABIDS.lat, ABIDS.lon);
+    expect(q).toMatch(/way\(around:500,17\.38342,78\.46975\)\[landuse\]\[!building\];\s*out geom;/);
+    expect(q).toMatch(/way\(around:200,17\.38342,78\.46975\)\[~"\^\(amenity\|leisure\|[^"]*\)\$"~"\."\]\[!building\];\s*out geom;/);
+    expect(q).toContain("is_in(17.38342,78.46975)->.a;");
   });
 });
 

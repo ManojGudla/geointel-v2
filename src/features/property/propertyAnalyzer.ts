@@ -132,6 +132,17 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
 
   const landReading = site.areas.map((area) => ({ area, reading: readArea(area.tags) })).find((a) => a.reading !== null) ?? null;
   const landText = (r: NonNullable<typeof landReading>) => `${r.reading!.kind}${r.area.tags.name ? ` (${r.area.tags.name})` : ""}`;
+  /*
+    A zone drawn over a whole neighbourhood says less about one building than
+    a plot-sized outline does, so a large one costs ten points. The Abids zone
+    that prompted this is 0.6 km². Size is known only for land read from its
+    outline; the area index gives none, and those keep the plain figure.
+  */
+  const LARGE_ZONE_M2 = 250_000;
+  const isLargeZone = (r: NonNullable<typeof landReading>) => !r.reading!.campus && (r.area.areaM2 ?? 0) > LARGE_ZONE_M2;
+  const landSize = (r: NonNullable<typeof landReading>) => (r.area.areaM2 ? formatArea(r.area.areaM2) : null);
+  const landLine = (r: NonNullable<typeof landReading>) =>
+    `${landText(r)}${landSize(r) ? `, ${landSize(r)}` : ""} (OpenStreetMap ${r.area.osmType} ${r.area.id}, ${r.reading!.tag})`;
 
   if (b && facts) {
     const name = facts.name ? `"${facts.name}"` : "The building here";
@@ -159,8 +170,8 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
       for (const { feature } of inside.slice(0, 3)) links.push({ label: `${feature.tags.name ?? readBusiness(feature.tags)!.kind} on OpenStreetMap`, url: feature.url });
     }
     if (landReading) {
-      lines.push(`Land: ${landText(landReading)}`);
-      links.push({ label: `${landReading.area.tags.name ?? landReading.reading!.kind} on OpenStreetMap`, url: landReading.area.url });
+      lines.push(`Land: ${landLine(landReading)}`);
+      links.push({ label: `${landReading.area.tags.name ?? capitalise(landReading.reading!.kind)} on OpenStreetMap`, url: landReading.area.url });
     }
 
     const businessUses = [...(own ? [own] : []), ...inside.map((x) => x.reading)];
@@ -213,11 +224,12 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
     limitations.push("This building's own use is not mapped, so the answer is inferred and not checked against the building.");
     if (landReading) {
       const { reading } = landReading;
+      const large = isLargeZone(landReading);
       return done(
         reading!.use,
         "inferred",
-        (landReading.reading!.campus ? 70 : 60) - nextToPenalty,
-        `${name} is mapped, but not what it is used for. It stands on ${landText(landReading)}, so it is most likely ${reading!.use.toLowerCase()}. ${capitalise(where)}.`,
+        (landReading.reading!.campus ? 70 : large ? 50 : 60) - nextToPenalty,
+        `${name} is mapped, but not what it is used for. It stands on ${landText(landReading)}${landSize(landReading) ? ` (one area of ${landSize(landReading)} on the map)` : ""}, so it is most likely ${reading!.use.toLowerCase()}.${large ? " That area covers a whole neighbourhood, so it describes the area this building is in more than the building itself." : ""} ${capitalise(where)}.`,
         "land"
       );
     }
@@ -247,13 +259,14 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
   // No building at or next to the point.
   limitations.push("No building is mapped at this exact point, so this is not a reading of a building.");
   if (landReading) {
-    lines.push(`No building is mapped at this point. Land: ${landText(landReading)}`);
-    links.push({ label: `${landReading.area.tags.name ?? landReading.reading!.kind} on OpenStreetMap`, url: landReading.area.url });
+    lines.push(`No building is mapped at this point. Land: ${landLine(landReading)}`);
+    links.push({ label: `${landReading.area.tags.name ?? capitalise(landReading.reading!.kind)} on OpenStreetMap`, url: landReading.area.url });
+    const open = landReading.reading!.use === "Agricultural" || landReading.reading!.use === "Open Space";
     return done(
       landReading.reading!.use,
       "inferred",
-      50,
-      `No building is mapped at this exact point. The land here is mapped as ${landText(landReading)}. Tap directly on a building to read that building.`,
+      isLargeZone(landReading) ? 40 : 50,
+      `No building is mapped at this exact point. The land here is mapped as ${landText(landReading)}${landSize(landReading) ? ` (one area of ${landSize(landReading)})` : ""}.${open ? "" : " Tap directly on a building to read that building."}`,
       "land"
     );
   }
@@ -285,6 +298,12 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
 }
 
 const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** "2,400 m²" for a plot, "0.62 km²" for a zone. */
+function formatArea(m2: number): string {
+  if (m2 < 100_000) return `${(Math.round(m2 / 10) * 10).toLocaleString("en-US")} m²`;
+  return `${(m2 / 1_000_000).toFixed(2)} km²`;
+}
 
 /* ---------------------------------------------------------------- the area (fallback) */
 
