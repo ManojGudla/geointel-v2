@@ -478,10 +478,19 @@ export interface Bbox {
  * size-checked viewport (see api/buildings.ts).
  */
 export function buildBuildingGeometryQuery(bbox: Bbox): string {
+  const box = `${bbox.south},${bbox.west},${bbox.north},${bbox.east}`;
+  /*
+    Relations too. A building with a courtyard, or a large complex drawn as
+    several outlines, is a multipolygon relation, and those were never asked
+    for: reported (25 November 2026) as "some buildings are showing 3D and
+    some are not". `out geom` on a relation returns its member ways with their
+    geometry, which api/_routes/buildings.ts joins into rings.
+  */
   return `
     [out:json][timeout:25];
     (
-      way[building](${bbox.south},${bbox.west},${bbox.north},${bbox.east});
+      way[building](${box});
+      relation[building](${box});
     );
     out geom;
   `;

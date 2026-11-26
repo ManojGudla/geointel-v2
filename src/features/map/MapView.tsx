@@ -13,7 +13,7 @@ import { useRouteStore } from "@/stores/routeStore";
 import { useNavigationStore } from "@/features/routing/navigation/navStore";
 import { selectMapPoint } from "@/features/location/selectPoint";
 import { useBuildings3D } from "./useBuildings3D";
-import { buildingColorExpression, buildingsToGeoJSON } from "./buildings3d";
+import { buildingColorExpression, buildingsToGeoJSON, pointInsideFootprint } from "./buildings3d";
 import { useMeasureStore } from "@/stores/measureStore";
 import { buildMeasureGeoJSON } from "@/features/measure/measureGeo";
 import { useAnalysisStore } from "@/stores/analysisStore";
@@ -885,6 +885,14 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
       }
       const hits = map.queryRenderedFeatures(e.point, { layers: [GIS_LAYER_POINTS] });
       if (hits.length > 0) return; // handled by the dedicated layer listener above
+      // A click on a 3D building selects that building, not the ground behind
+      // it (see pointInsideFootprint).
+      const building = map.getLayer(BUILDINGS_LAYER) ? map.queryRenderedFeatures(e.point, { layers: [BUILDINGS_LAYER] })[0] : undefined;
+      if (building?.geometry.type === "Polygon") {
+        const [lon, lat] = pointInsideFootprint(building.geometry.coordinates[0] as Array<[number, number]>, [e.lngLat.lng, e.lngLat.lat]);
+        clickAt(lat, lon);
+        return;
+      }
       clickAt(e.lngLat.lat, e.lngLat.lng);
     });
     map.on("mouseenter", GIS_LAYER_POINTS, () => {
