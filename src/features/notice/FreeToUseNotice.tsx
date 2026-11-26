@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useDialog } from "@/hooks/useDialog";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
@@ -7,9 +6,6 @@ import { useFreeNoticeStore } from "./freeNoticeStore";
 import { useTourStore } from "@/features/tour/tourStore";
 import "./FreeToUseNotice.css";
 
-/** How long the notice stays up on its own before closing. */
-export const AUTO_CLOSE_MS = 6_000;
-
 /**
  * Every line here has to be true and checkable, because the point of this
  * notice is to answer "is this site legitimate?" - and an overclaim would
@@ -17,8 +13,14 @@ export const AUTO_CLOSE_MS = 6_000;
  * and does not claim to grant anyone's employer's permission, which no
  * website can do.
  *
- * Short on purpose: it closes itself after six seconds, so each point is a
- * few words a visitor can take in at a glance.
+ * Short on purpose: each point is a few words a visitor can take in at a
+ * glance.
+ *
+ * No timer. It used to close itself after six seconds, with a bar counting
+ * down along the bottom; the owner asked on 26 November 2026 for it to stay
+ * until the visitor closes it, since a notice that vanishes while being read
+ * is worse than one that waits. It closes with the X, Cancel, "Got it",
+ * Escape or a click outside it, and opens again from More > Free to use.
  */
 const POINTS: Array<{ icon: string; title: string; text: string }> = [
   { icon: "✅", title: "100% free", text: "No sign-up, no payment, nothing to install." },
@@ -33,29 +35,6 @@ export function FreeToUseNotice() {
   const startTour = useTourStore((s) => s.start);
   const dialogRef = useDialog({ open: isOpen, onClose: close });
   const motionEnabled = useMotionPreference();
-
-  /*
-    Auto-close after six seconds. Always.
-
-    It used to pause while the pointer was over the card, so somebody reading
-    could keep it. But the card sits in the middle of the screen, which is
-    where the pointer already is on most computers, so for most people it
-    paused the moment it appeared and never closed: it was reported as stuck,
-    needing a manual close every time. A notice that says "this closes by
-    itself" has to close by itself. The time is a little longer instead, the
-    bar along the bottom shows what is left, and the whole text stays
-    available under More > Free to use.
-  */
-  const [progressKey, setProgressKey] = useState(0);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setProgressKey((k) => k + 1);
-      return;
-    }
-    const timer = setTimeout(close, AUTO_CLOSE_MS);
-    return () => clearTimeout(timer);
-  }, [isOpen, close]);
 
   const body = (
     <>
@@ -119,14 +98,6 @@ export function FreeToUseNotice() {
         <button type="button" className="free-notice__secondary" onClick={close}>
           Cancel
         </button>
-      </div>
-
-      <div className="free-notice__timer" aria-hidden="true">
-        <span
-          key={progressKey}
-          className="free-notice__timer-bar"
-          style={{ animationDuration: `${AUTO_CLOSE_MS}ms` }}
-        />
       </div>
     </>
   );

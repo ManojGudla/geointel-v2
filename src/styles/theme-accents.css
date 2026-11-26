@@ -103,7 +103,6 @@
 }
 
 /* ---- Small accent touches ---------------------------------------------- */
-:root .free-notice__timer-bar,
 :root .analysis__bar span {
   background: var(--gradient-primary);
 }
