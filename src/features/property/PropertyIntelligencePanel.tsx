@@ -66,6 +66,14 @@ export function PropertyIntelligencePanel() {
           </button>
         </p>
       )}
+      {!siteFailed && site.data?.incomplete && (
+        <p className="property-panel__notice" role="status">
+          The map server's answer was cut short, so something mapped here may be missing.{" "}
+          <button type="button" className="property-panel__link-button" onClick={() => void site.refetch()}>
+            Try again
+          </button>
+        </p>
+      )}
       <PropertyResult analysis={analysis} dataAsOf={site.data?.dataAsOf ?? null} point={{ lat: location.lat, lon: location.lon }} />
     </div>
   );
@@ -224,7 +232,8 @@ export function PropertyResult({
           50% when that land is drawn as one large zone over a whole neighbourhood; a telling word in its name, 45%.
           Homes with shops or offices mapped inside are Mixed Use. A tap next to a wall rather than inside it counts 15
           points less. Where there is no building, the land itself is read: a park or a sports ground is Open Space,
-          farmland is Agricultural.
+          farmland is Agricultural. When nothing on the map is about the building at all, it says what the
+          neighbourhood suggests, as a guess held at 35% at most, and lists the nearest mapped places.
         </p>
         <p>
           Verified means OpenStreetMap says it about this building. Inferred means it was worked out from the land or

@@ -6,9 +6,18 @@ export async function fetchWeather(lat: number, lon: number, signal?: AbortSigna
   return weather;
 }
 
-export async function fetchNews(place: string, signal?: AbortSignal): Promise<NewsItem[]> {
-  const { articles } = await apiGet<{ articles: NewsItem[] }>("/api/news", { place }, signal);
-  return articles;
+export interface NewsResult {
+  articles: NewsItem[];
+  /** Nothing recent was found, so the list includes older stories. */
+  widened?: boolean;
+}
+
+/** News for a city, with an area inside it (a suburb, a neighbourhood) asked about first when given. */
+export async function fetchNews(place: string, area?: string, signal?: AbortSignal): Promise<NewsResult> {
+  const params: Record<string, string> = { place };
+  if (area) params.area = area;
+  const { articles, widened } = await apiGet<NewsResult>("/api/news", params, signal);
+  return { articles, widened };
 }
 
 /**

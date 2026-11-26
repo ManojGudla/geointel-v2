@@ -2,7 +2,7 @@ import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
 import { ok, err, getQueryParam, getClientIp, withEdgeCache, readLatLon } from "../_lib/http.js";
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
-import { runOverpassQuery, type OverpassElement } from "../_lib/overpass.js";
+import { runOverpassQueryDetailed, type OverpassElement } from "../_lib/overpass.js";
 
 /**
  * What is on the ground here, and what is being built.
@@ -71,7 +71,7 @@ interface RoadGroup {
 }
 
 interface SiteFeature {
-  kind: "road-works" | "road-proposed" | "building-site" | "construction-area" | "brownfield" | "greenfield";
+  kind: "road-works" | "rail-works" | "road-proposed" | "building-site" | "construction-area" | "brownfield" | "greenfield";
   name: string | null;
   /** What it is becoming, where OSM records it (construction=motorway etc). */
   becoming?: string;
@@ -83,16 +83,28 @@ interface SiteFeature {
   osm: string;
   /** When this record was last edited in OpenStreetMap. How fresh the claim is. */
   updatedAt?: string;
+  /**
+   * Set when the record itself suggests the work may already be finished:
+   * its planned end date has passed, or nobody has touched it for years. The
+   * reason is shown with it. OpenStreetMap keeps a site "under construction"
+   * until a mapper changes it, so an old record is the commonest way this
+   * panel could be wrong, and it says so instead of counting it as current.
+   */
+  mayBeFinished?: string;
 }
 
 interface SiteResult {
   roads: RoadGroup[];
   features: SiteFeature[];
   /** Straight counts, so the panel can lead with a number before the lists. */
-  counts: { roads: number; underConstruction: number; awaitingDevelopment: number };
+  counts: { roads: number; underConstruction: number; awaitingDevelopment: number; mayBeFinished: number };
   radiusMeters: number;
   /** When this answer was fetched from OpenStreetMap. Kept with a cached answer, so it never claims to be newer than it is. */
   fetchedAt: string;
+  /** How current the map server's copy of OpenStreetMap was, when it said. */
+  dataAsOf?: string | null;
+  /** The map server flagged its answer as cut short: something may be missing, and it is not cached. */
+  incomplete?: boolean;
 }
 
 /**
@@ -119,6 +131,7 @@ interface SiteResult {
  * for geometry would multiply the payload for nothing.
  */
 const DEVELOPMENT_CLAUSES = (a: string) => `  way["highway"="construction"]${a};
+  way["railway"="construction"]${a};
   way["proposed:highway"]${a};
   way["building"="construction"]${a};
   relation["building"="construction"]${a};
@@ -153,6 +166,7 @@ export function buildConstructionQuery(lat: number, lon: number, radius: number)
   return `[out:json][timeout:25];
 (
   way["highway"="construction"]${a};
+  way["railway"="construction"]${a};
   way["building"="construction"]${a};
   way["landuse"="construction"]${a};
   way["landuse"="brownfield"]${a};
@@ -188,6 +202,41 @@ const ROAD_LABEL: Record<string, string> = {
   road: "Road",
 };
 
+/** Reads an OSM date ("2025", "2025-06", "2025-06-30", "~2025") as the last day it can mean. */
+export function latestDateIn(value: string | undefined): Date | null {
+  if (!value) return null;
+  const m = /(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/.exec(value);
+  if (!m) return null;
+  const year = Number(m[1]);
+  if (year < 1800 || year > 2200) return null;
+  const month = m[2] ? Number(m[2]) : 12;
+  const day = m[3] ? Number(m[3]) : new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return new Date(Date.UTC(year, month - 1, day, 23, 59, 59));
+}
+
+/** Untouched for this long, a "being built" record is more likely forgotten than current. */
+export const STALE_AFTER_YEARS = 3;
+
+/**
+ * Whether a construction record may describe work that has already ended,
+ * and why. Only for things being built: brownfield and proposed land are
+ * statuses that can genuinely last for years.
+ */
+export function mayBeFinished(f: Pick<SiteFeature, "kind" | "endDate" | "updatedAt">, now = new Date()): string | undefined {
+  if (!(f.kind === "road-works" || f.kind === "rail-works" || f.kind === "building-site" || f.kind === "construction-area")) return undefined;
+  const due = latestDateIn(f.endDate);
+  if (due && due.getTime() < now.getTime()) return `Due to finish by ${f.endDate}, which has passed. It may be complete.`;
+  if (due) return undefined; // a future end date means someone thought about it recently enough
+  if (f.updatedAt) {
+    const edited = new Date(f.updatedAt);
+    if (!Number.isNaN(edited.getTime())) {
+      const years = (now.getTime() - edited.getTime()) / (365.25 * 24 * 3600 * 1000);
+      if (years >= STALE_AFTER_YEARS) return `Not updated on the map since ${edited.getUTCFullYear()}. It may be complete.`;
+    }
+  }
+  return undefined;
+}
+
 export function classify(el: OverpassElement): SiteFeature | null {
   const tags = (el.tags ?? {}) as Record<string, string>;
   const osm = `${el.type}/${el.id}`;
@@ -207,6 +256,11 @@ export function classify(el: OverpassElement): SiteFeature | null {
     // the difference between "a road is being built" and "a motorway is being
     // built", and it is the single most useful tag in this whole set.
     return { ...base, kind: "road-works", becoming: tags.construction ?? undefined };
+  }
+  if (tags.railway === "construction") {
+    // Metro and rail lines being built (in Hyderabad, the metro's second
+    // phase). `construction=subway` or `light_rail` says which.
+    return { ...base, kind: "rail-works", becoming: tags.construction ?? undefined };
   }
   if (tags["proposed:highway"]) {
     return { ...base, kind: "road-proposed", becoming: tags["proposed:highway"] };
@@ -295,10 +349,15 @@ const handler: ApiHandler = async (req, res) => {
   if (cached) return ok(res, cached);
 
   let elements: OverpassElement[];
+  let dataAsOf: string | null = null;
+  let incomplete = false;
   try {
-    elements = await runOverpassQuery(
+    const answer = await runOverpassQueryDetailed(
       constructionOnly ? buildConstructionQuery(lat, lon, radius) : buildSiteQuery(lat, lon, radius)
     );
+    elements = answer.elements;
+    dataAsOf = answer.dataAsOf ?? null;
+    incomplete = Boolean(answer.incomplete);
   } catch {
     // Honest failure. The free Overpass mirrors go through rough patches and
     // the panel says "couldn't reach OpenStreetMap" rather than "nothing here",
@@ -308,11 +367,22 @@ const handler: ApiHandler = async (req, res) => {
   }
 
   const roads = groupRoads(elements);
-  const features = elements.map(classify).filter((f): f is SiteFeature => f !== null);
+  const now = new Date();
+  const seen = new Set<string>();
+  const features = elements
+    .map(classify)
+    .filter((f): f is SiteFeature => f !== null)
+    // A way can come back from two clauses (a building site that is also
+    // tagged as a construction area); it is one record.
+    .filter((f) => (seen.has(f.osm) ? false : (seen.add(f.osm), true)))
+    .map((f) => {
+      const reason = mayBeFinished(f, now);
+      return reason ? { ...f, mayBeFinished: reason } : f;
+    });
 
-  const underConstruction = features.filter(
-    (f) => f.kind === "road-works" || f.kind === "building-site" || f.kind === "construction-area"
-  ).length;
+  const building = features.filter(
+    (f) => f.kind === "road-works" || f.kind === "rail-works" || f.kind === "building-site" || f.kind === "construction-area"
+  );
   const awaitingDevelopment = features.filter(
     (f) => f.kind === "brownfield" || f.kind === "greenfield" || f.kind === "road-proposed"
   ).length;
@@ -320,11 +390,27 @@ const handler: ApiHandler = async (req, res) => {
   const result: SiteResult = {
     roads,
     features,
-    counts: { roads: roads.length, underConstruction, awaitingDevelopment },
+    counts: {
+      roads: roads.length,
+      // Counted as current only when nothing in the record suggests it ended.
+      underConstruction: building.filter((f) => !f.mayBeFinished).length,
+      awaitingDevelopment,
+      mayBeFinished: building.filter((f) => f.mayBeFinished).length,
+    },
     radiusMeters: radius,
-    fetchedAt: new Date().toISOString(),
+    fetchedAt: now.toISOString(),
+    dataAsOf,
+    ...(incomplete ? { incomplete: true } : {}),
   };
 
+  // A cut-short answer is never kept: the next person asking should get the
+  // whole one, not the same gap for six hours. It used to be cached like any
+  // other, which is how the same place could show different sites from one
+  // visit to the next.
+  if (incomplete) {
+    res.setHeader("Cache-Control", "no-store");
+    return ok(res, result);
+  }
   cache.set(key, result);
   return ok(res, result);
 };

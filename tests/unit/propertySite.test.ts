@@ -144,13 +144,41 @@ describe("what a building's type cannot settle", () => {
     expect(a.confidence).toBe(45);
   });
 
-  it("says Unknown, not a guess, when nothing says what the building is for", () => {
+  /*
+    This used to say Unknown whatever surrounded the building. Changed at the
+    owner's request on 26 November 2026: a tap on open ground beside a
+    building read the surroundings, and a tap on the building itself said
+    Unknown, so the more precise tap said less. The building now gets the
+    same reading, held lower and called a guess.
+  */
+  it("when nothing says what the building is for, gives the neighbourhood's reading as a guess, at 35% at most", () => {
     const a = analyzeProperty(AREA_EVIDENCE, site([way(6, { building: "yes" }, FOOT)], CENTRE));
-    expect(a.classification).toBe("Unknown");
-    expect(a.trust).toBe("unavailable");
-    expect(a.confidence).toBe(0);
-    // The surroundings are still shown, as context.
+    expect(a.classification).toBe("Residential");
+    expect(a.trust).toBe("inferred");
+    expect(a.basis).toBe("area");
+    expect(a.confidence).toBeGreaterThan(0);
+    expect(a.confidence).toBeLessThanOrEqual(35);
+    expect(a.reasoning).toMatch(/^A building is mapped here, but nothing on the map says what it is used for/);
+    expect(a.reasoning).toContain("Going only by what is mapped within 2000 m (374 residential buildings, 82 shops, 57 offices");
+    expect(a.reasoning).toContain("it is probably residential. That is a guess from the neighbourhood, not a reading of this building.");
     expect(a.surroundings).toContain("374 residential buildings");
+    // Never more than a guess: the empty-ground reading of the same place is allowed 40%.
+    const open = analyzeProperty(AREA_EVIDENCE, site([], CENTRE));
+    expect(a.confidence).toBeLessThanOrEqual(Math.min(open.confidence, 35));
+  });
+
+  it("still says Unknown when the surroundings say nothing either", () => {
+    const bare = analyzeProperty(null, site([way(6, { building: "yes" }, FOOT)], CENTRE));
+    expect(bare.classification).toBe("Unknown");
+    expect(bare.trust).toBe("unavailable");
+    expect(bare.confidence).toBe(0);
+    const untyped: GISEvidence = {
+      ...AREA_EVIDENCE,
+      counts: { buildings: 227, shops: 0, offices: 0, residential: 0, industrial: 0, institutional: 0, amenities: 0, tourism: 0, transport: 0 },
+      scores: { commercial: 0, residential: 0, industrial: 0, institutional: 0, landmark: 0, transport: 0 },
+      subject: null,
+    };
+    expect(analyzeProperty(untyped, site([way(6, { building: "yes" }, FOOT)], CENTRE)).classification).toBe("Unknown");
   });
 
   it("a tap just outside a wall still reads that building, and says it was next to it", () => {
@@ -286,9 +314,95 @@ describe("land read from its outline", () => {
 
   it("asks the server for land outlines with their geometry, not only the area index", () => {
     const q = buildPropertySiteQuery(ABIDS.lat, ABIDS.lon);
-    expect(q).toMatch(/way\(around:500,17\.38342,78\.46975\)\[landuse\]\[!building\];\s*out geom;/);
-    expect(q).toMatch(/way\(around:200,17\.38342,78\.46975\)\[~"\^\(amenity\|leisure\|[^"]*\)\$"~"\."\]\[!building\];\s*out geom;/);
+    expect(q).toMatch(/way\(around:300,17\.38342,78\.46975\)\[landuse\]\[!building\];\s*out geom;/);
+    expect(q).toMatch(/way\(around:150,17\.38342,78\.46975\)\[~"\^\(amenity\|leisure\|[^"]*\)\$"~"\."\]\[!building\];\s*out geom;/);
     expect(q).toContain("is_in(17.38342,78.46975)->.a;");
+    // And the closed ways the area index finds, unnamed ones included, on servers that return them.
+    expect(q).toMatch(/way\.a\[~"\^\(landuse\|amenity\|[^"]*\)\$"~"\."\]\[!building\];\s*out geom;/);
+  });
+});
+
+/**
+ * Found 26 November 2026 while checking a building near NH163, Hyderabad,
+ * that read Unknown on the live site: the businesses query printed nodes
+ * with `out tags`, which carries no coordinates, so no business could ever
+ * be placed inside a building. The fixtures elsewhere in this file give
+ * nodes a position, which is why every test passed while the live site
+ * never found one. This checks the query itself, and what a node without a
+ * position does to the reading.
+ */
+describe("businesses come back with a position", () => {
+  const CENTRE = { lat: 17.38843, lon: 78.42341 };
+  const FOOT = square(CENTRE.lat, CENTRE.lon, 15);
+
+  it("asks for businesses with their coordinates, not just their tags", () => {
+    const q = buildPropertySiteQuery(17.38843, 78.42341);
+    expect(q).toMatch(/node\(around:100,17\.38843,78\.42341\)\[~"\^\(shop\|[^"]*\)\$"~"\."\];\s*out;/);
+    // The Overpass manual: "All output modes except out ids and out tags include the coordinates of the nodes".
+    expect(q).not.toMatch(/node\([^)]*\)\[[^\]]*\];\s*out tags;/);
+  });
+
+  it("a business without a position cannot be placed inside anything, which is what the old query caused", () => {
+    const shopNoPosition: OverpassElement = { type: "node", id: 31, tags: { shop: "supermarket", name: "Ratnadeep" } };
+    const withPosition = node(31, CENTRE.lat, CENTRE.lon, { shop: "supermarket", name: "Ratnadeep" });
+    expect(site([way(30, { building: "yes" }, FOOT), shopNoPosition], CENTRE).inside).toEqual([]);
+    const fixed = analyzeProperty(null, site([way(30, { building: "yes" }, FOOT), withPosition], CENTRE));
+    expect(fixed.classification).toBe("Commercial");
+    expect(fixed.basis).toBe("inside");
+  });
+});
+
+/**
+ * The nearest mapped places, as context for a building that says nothing
+ * itself. The two places are the ones mapped near the NH163 building that
+ * prompted this (a Nayara fuel station 47 m away, a Ratnadeep supermarket
+ * 90 m away, on 26 November 2026); their positions here are placed at those
+ * distances, not copied.
+ */
+describe("the nearest mapped places", () => {
+  const NH163 = { lat: 17.38843, lon: 78.42341 };
+  const north = (m: number) => NH163.lat + m / 111_320;
+  const elements = () => [
+    way(1300, { building: "yes" }, square(NH163.lat, NH163.lon, 6)),
+    node(13227600337, north(47), NH163.lon, { amenity: "fuel", brand: "Nayara", name: "Nayara" }),
+    node(13227600336, north(90), NH163.lon, { shop: "supermarket", name: "Ratnadeep" }),
+    node(1, north(20), NH163.lon, { amenity: "bench" }), // not a place anyone means
+    node(2, north(60), NH163.lon, { amenity: "waste_basket" }),
+  ];
+
+  it("lists the nearest named places and businesses with their distances, not benches or bins", () => {
+    const s = site(elements(), NH163);
+    expect(s.nearby?.map((p) => [p.id, p.distanceMeters])).toEqual([
+      [13227600337, 47],
+      [13227600336, 90],
+    ]);
+  });
+
+  it("shows them when the building says nothing itself, and not when it does", () => {
+    const unknown = analyzeProperty(null, site(elements(), NH163));
+    expect(unknown.classification).toBe("Unknown");
+    expect(unknown.evidence).toContain("Nearest mapped places: Nayara (fuel station), 47 m; Ratnadeep (supermarket shop), 90 m.");
+    expect(unknown.reasoning).toContain("What is mapped nearby is listed below as context only.");
+
+    const typed = [way(1300, { building: "house" }, square(NH163.lat, NH163.lon, 6)), ...elements().slice(1)];
+    const known = analyzeProperty(null, site(typed, NH163));
+    expect(known.classification).toBe("Residential");
+    expect(known.evidence.join(" ")).not.toContain("Nearest mapped places");
+  });
+});
+
+describe("an answer the map server cut short", () => {
+  const CENTRE = { lat: 17.38843, lon: 78.42341 };
+  const FOOT = square(CENTRE.lat, CENTRE.lon, 15);
+
+  it("does not treat what is missing from it as absent", () => {
+    const partial = { ...site([way(6, { building: "yes" }, FOOT)], CENTRE), incomplete: true };
+    const a = analyzeProperty(null, partial);
+    expect(a.classification).toBe("Unknown");
+    expect(a.reasoning).toContain("The map server's answer was cut short just now, so something mapped here may be missing: try again.");
+    expect(a.limitations.join(" ")).toContain("cut short");
+    const complete = analyzeProperty(null, site([way(6, { building: "yes" }, FOOT)], CENTRE));
+    expect(complete.reasoning).not.toContain("cut short");
   });
 });
 

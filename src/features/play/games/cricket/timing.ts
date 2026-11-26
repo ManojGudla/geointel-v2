@@ -99,6 +99,21 @@ export const CONTACT_WINDOWS = WINDOWS;
 
 export type Contact = "perfect" | "great" | "good" | "ok" | "edge" | "miss";
 
+/**
+ * How late, on average, a well-timed swing is reported, by input device.
+ *
+ * A player swings when they SEE the ball reach the bat. The screen shows
+ * each frame a frame or two after the game computes it, and a touch reaches
+ * the page some tens of milliseconds after the finger lands, so a perfectly
+ * judged swing arrives late by the sum of the two: typically 40 to 90 ms on
+ * a phone, less with a keyboard or mouse. Scoring against the raw moment
+ * marked every honest swing as late, which players read as "impossible".
+ * The perfect moment is moved later by this much instead. The windows stay
+ * symmetrical around it.
+ */
+export const INPUT_ALLOWANCE_MS = { touch: 60, pen: 45, mouse: 35, key: 30 } as const;
+export type InputKind = keyof typeof INPUT_ALLOWANCE_MS;
+
 export function contactFor(offsetMs: number, delivery: Delivery): Contact {
   const off = Math.abs(offsetMs) / delivery.forgiveness;
   if (off <= WINDOWS.perfect) return "perfect";
@@ -218,7 +233,16 @@ const SPEED_RANGE: Record<Difficulty, [number, number]> = {
   hard: [750, 1150],
 };
 
-const FORGIVENESS: Record<Difficulty, number> = { easy: 1.6, normal: 1.0, hard: 0.72 };
+/*
+  Easy and Normal were widened on 26 November 2026, after the owner reported
+  the game as very hard to play. Most of the difficulty turned out to be the
+  screen rather than these numbers (a ball too small to see at the bat, and a
+  tap timed from when the finger lifted), and those are fixed in the
+  component; the extra width here is margin for the delay between a finger
+  landing and the phone reporting it, which differs from phone to phone.
+  Hard is unchanged.
+*/
+const FORGIVENESS: Record<Difficulty, number> = { easy: 1.8, normal: 1.1, hard: 0.72 };
 
 /** How much each length stretches or squeezes the timing window. */
 const LENGTH_FORGIVENESS: Record<Length, number> = {
@@ -273,6 +297,10 @@ export interface MatchState {
   superOver?: boolean;
   /** Runs from the innings that ended level, kept for the result screen. */
   previousRuns?: number;
+  /** Wides and no-ball penalty runs, already counted in `runs`. */
+  extras?: number;
+  /** The next legal ball is a free hit: the batter cannot be out to it. */
+  freeHit?: boolean;
 }
 
 export function createMatch(seed: number | string, difficulty: Difficulty): { state: MatchState; rng: Rng } {
@@ -304,6 +332,8 @@ export function applyBall(state: MatchState, delivery: Delivery, aim: Aim, resul
   if (isOver(state)) return state;
   return {
     ...state,
+    // A legal ball uses up a free hit that was due.
+    ...(state.freeHit ? { freeHit: false } : {}),
     runs: state.runs + (result.outcome === "out" ? 0 : result.outcome),
     wickets: state.wickets + (result.outcome === "out" ? 1 : 0),
     ballsBowled: state.ballsBowled + 1,
@@ -523,7 +553,29 @@ export function nextPlannedDelivery(
   };
 }
 
+// ── Streaks ───────────────────────────────────────────────────────────────
+
+/**
+ * Boundaries in a row, counted back from the latest ball. The crowd, the
+ * commentary and the "on fire" badge all key off it: hitting three in a row
+ * is the moment people remember, and the game should notice it too.
+ */
+export function boundaryStreak(history: BallRecord[]): number {
+  let n = 0;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const o = history[i]!.outcome;
+    if (o === 4 || o === 6) n++;
+    else break;
+  }
+  return n;
+}
+
 // ── Commentary ────────────────────────────────────────────────────────────
+
+/** First line without a random source (so tests read one exact line), any line with one. */
+function say(lines: readonly string[], rng?: Rng): string {
+  return rng ? rng.pick(lines) : lines[0]!;
+}
 
 /**
  * One line about what just happened, in the register of a commentator.
@@ -532,7 +584,7 @@ export function nextPlannedDelivery(
  * saying "needs 14 off 6, and that was a dot" tells you what the fact MEANS,
  * which is the difference between watching a scoreboard and being in a match.
  */
-export function commentary(before: MatchState, after: MatchState, result: BallResult): string {
+export function commentary(before: MatchState, after: MatchState, result: BallResult, rng?: Rng): string {
   const chase = chaseState(after);
 
   if (after.runs >= after.target) {
@@ -548,16 +600,24 @@ export function commentary(before: MatchState, after: MatchState, result: BallRe
   const crossedFifty = before.runs < 50 && after.runs >= 50;
   if (crossedFifty) return "FIFTY! Raise the bat.";
 
-  if (result.outcome === 6) return chase.death ? "SIX! Right when it was needed." : "Six! That has gone all the way.";
-  if (result.outcome === 4) return "Four. Beautifully timed.";
+  const streak = result.outcome === 4 || result.outcome === 6 ? boundaryStreak(after.history) : 0;
+  if (streak >= 3) return say([`${streak} boundaries in a row! The crowd is on its feet.`, `That is ${streak} on the trot. The bowler has no answer.`, `${streak} in a row! ${chaseLine(after)}.`], rng);
+  if (streak === 2) return say(["Back-to-back boundaries!", "Two in two. The bowler is under pressure now.", `Another one! ${chaseLine(after)}.`], rng);
+
+  if (result.outcome === 6)
+    return chase.death
+      ? say(["SIX! Right when it was needed.", "SIX! Into the stands, at the death.", `SIX! ${chaseLine(after)}.`], rng)
+      : say(["Six! That has gone all the way.", "Six! Out of the ground.", "Huge hit. Six more.", "That is massive. Six!"], rng);
+  if (result.outcome === 4)
+    return say(["Four. Beautifully timed.", "Four! Raced away to the rope.", "Four. Nobody was going to stop that.", "Pierced the gap. Four."], rng);
 
   if (chase.death) {
-    if (result.outcome === 0) return `Dot ball. ${chaseLine(after)}. The pressure is on.`;
-    return `${chaseLine(after)}. Every run counts now.`;
+    if (result.outcome === 0) return say([`Dot ball. ${chaseLine(after)}. The pressure is on.`, `Dot ball, and the pressure is on. ${chaseLine(after)}.`], rng);
+    return say([`${chaseLine(after)}. Every run counts now.`, `Good running. ${chaseLine(after)}.`], rng);
   }
 
   if (chase.requiredRate > 12) return `${chaseLine(after)}. That is asking a lot.`;
-  if (result.outcome === 0) return "No run. The rate is creeping up.";
+  if (result.outcome === 0) return say(["No run. The rate is creeping up.", "Dot ball. Tight from the bowler.", "Nothing off that one."], rng);
   return chaseLine(after);
 }
 

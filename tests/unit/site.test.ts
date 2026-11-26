@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildSiteQuery, classify, groupRoads } from "../../api/_routes/site";
+import { buildSiteQuery, classify, groupRoads, latestDateIn, mayBeFinished } from "../../api/_routes/site";
 import type { OverpassElement } from "../../api/_lib/overpass";
 import { bhuvanUrl, globalPortals, portalGroups, statePortals } from "../../src/features/site/portals";
 
@@ -41,9 +41,10 @@ describe("the Overpass query", () => {
 
   it("anchors every clause to the same point and radius", () => {
     const around = q.match(/\(around:600,17\.385,78\.4867\)/g) ?? [];
-    // Seven clauses, one `around` each. If a future edit adds a clause without
-    // the anchor, Overpass would happily query the whole planet.
-    expect(around.length).toBe(7);
+    // Eight clauses (railways under construction joined in November 2026),
+    // one `around` each. If a future edit adds a clause without the anchor,
+    // Overpass would happily query the whole planet.
+    expect(around.length).toBe(8);
   });
 
   it("asks for tags and a centre point, not full geometry", () => {
@@ -234,3 +235,44 @@ describe("the portal directory", () => {
     }
   });
 });
+
+describe("records that may describe finished work", () => {
+  const now = new Date("2026-11-26T12:00:00Z");
+
+  it("reads OSM dates as the last day they can mean", () => {
+    expect(latestDateIn("2025")?.toISOString().slice(0, 10)).toBe("2025-12-31");
+    expect(latestDateIn("2025-02")?.toISOString().slice(0, 10)).toBe("2025-02-28");
+    expect(latestDateIn("~2027-06-15")?.toISOString().slice(0, 10)).toBe("2027-06-15");
+    expect(latestDateIn("soon")).toBeNull();
+  });
+
+  it("flags work whose end date has passed, or that nobody has updated for three years", () => {
+    expect(mayBeFinished({ kind: "road-works", endDate: "2024-03" }, now)).toContain("2024-03");
+    expect(mayBeFinished({ kind: "building-site", updatedAt: "2021-01-01T00:00:00Z" }, now)).toContain("2021");
+    expect(mayBeFinished({ kind: "building-site", updatedAt: "2025-01-01T00:00:00Z" }, now)).toBeUndefined();
+    // A future end date means someone has looked at it recently enough.
+    expect(mayBeFinished({ kind: "rail-works", endDate: "2028", updatedAt: "2019-01-01T00:00:00Z" }, now)).toBeUndefined();
+  });
+
+  it("never flags land statuses that can genuinely last for years", () => {
+    expect(mayBeFinished({ kind: "brownfield", updatedAt: "2010-01-01T00:00:00Z" }, now)).toBeUndefined();
+    expect(mayBeFinished({ kind: "road-proposed", endDate: "2012" }, now)).toBeUndefined();
+  });
+
+  it("asks for railways and metro lines under construction, in both searches", async () => {
+    const { buildConstructionQuery } = await import("../../api/_routes/site");
+    expect(buildSiteQuery(17.385, 78.4867, 600)).toContain('way["railway"="construction"](around:600,17.385,78.4867)');
+    expect(buildConstructionQuery(17.385, 78.4867, 2000)).toContain('way["railway"="construction"](around:2000,17.385,78.4867)');
+    expect(classify(way(8, { railway: "construction", construction: "light_rail" }))?.kind).toBe("rail-works");
+  });
+});
+
+describe("Telangana approvals", () => {
+  it("links the current building permission system and the RERA register", async () => {
+    const { constructionPortals } = await import("../../src/features/site/portals");
+    const urls = constructionPortals("Telangana").map((p) => p.url);
+    expect(urls).toContain("https://buildnow.telangana.gov.in/");
+    expect(urls).toContain("https://rera.telangana.gov.in/");
+  });
+});
+

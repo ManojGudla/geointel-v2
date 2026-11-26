@@ -42,6 +42,7 @@ import { track } from "@/services/analytics";
 
 const FEATURE_META: Record<SiteFeatureKind, { icon: string; label: string; tone: string }> = {
   "road-works": { icon: "🚧", label: "Road under construction", tone: "build" },
+  "rail-works": { icon: "🚇", label: "Railway or metro under construction", tone: "build" },
   "road-proposed": { icon: "📐", label: "Road proposed", tone: "plan" },
   "building-site": { icon: "🏗️", label: "Building under construction", tone: "build" },
   "construction-area": { icon: "🧱", label: "Construction site", tone: "build" },
@@ -124,8 +125,10 @@ function FeatureRow({ f, distance }: { f: SiteFeature; distance: number | null }
         </span>
         <span className="site__feature-meta">
           {distance !== null ? `${formatDistance(distance, units)} away` : "Position not recorded"}
+          {f.startDate ? ` · started ${f.startDate}` : ""}
           {updated ? ` · updated on the map ${updated}` : ""}
         </span>
+        {f.mayBeFinished && <span className="site__feature-stale">{f.mayBeFinished}</span>}
       </span>
     </>
   );
@@ -246,7 +249,8 @@ export function SitePanel() {
     queryKey: ["site", location?.lat, location?.lon, radius],
     queryFn: ({ signal }) => fetchSite(location!.lat, location!.lon, radius, signal),
     enabled: !!location,
-    staleTime: 10 * 60 * 1000,
+    // A cut-short answer is not kept even here: asking again is how it gets completed.
+    staleTime: (q) => (q.state.data?.incomplete ? 0 : 10 * 60 * 1000),
   });
 
   // The links half does not depend on the query at all, so it renders even
@@ -299,10 +303,24 @@ export function SitePanel() {
                   <span>
                     <strong>{data.counts.underConstruction}</strong> under construction
                   </span>
+                  {data.counts.mayBeFinished ? (
+                    <span title="Records still marked as being built whose end date has passed or that nobody has updated for years">
+                      <strong>{data.counts.mayBeFinished}</strong> may be finished
+                    </span>
+                  ) : null}
                   <span>
                     <strong>{data.counts.awaitingDevelopment}</strong> awaiting development
                   </span>
                 </div>
+
+                {data.incomplete && (
+                  <p className="site__notice" role="status">
+                    The map server&apos;s answer was cut short, so something mapped here may be missing.{" "}
+                    <button type="button" className="site__more" onClick={() => void query.refetch()}>
+                      Try again
+                    </button>
+                  </p>
+                )}
 
                 {data.features.length > 0 ? (
                   <ul className="site__features">
@@ -343,9 +361,12 @@ export function SitePanel() {
                     OpenStreetMap contributors
                   </a>
                   , within {data.radiusMeters} m of this point
-                  {fetchedLabel(data.fetchedAt) ? `, fetched ${fetchedLabel(data.fetchedAt)}` : ""}. It shows what volunteers
-                  have mapped, with the date each record was last updated. It is not an official construction status: use the
-                  approval portals below for that.
+                  {fetchedLabel(data.fetchedAt) ? `, fetched ${fetchedLabel(data.fetchedAt)}` : ""}
+                  {data.dataAsOf && fetchedLabel(data.dataAsOf) ? ` (map data as of ${fetchedLabel(data.dataAsOf)})` : ""}. Nearest
+                  first. It shows what volunteers have mapped, with the date each record was last updated; a site still marked as
+                  being built after its end date, or untouched for three years or more, is flagged as possibly finished rather than
+                  counted. It is not an official construction status: for that, use the building permission and RERA portals
+                  below.
                 </p>
               </>
             );
@@ -402,7 +423,7 @@ export function SitePanel() {
           ))}
 
           <p className="site__source">
-            Government portals were checked in September 2026. Several of them refuse connections from outside India, so
+            Government portals were checked in September 2026, and the Telangana building permission and RERA links in November 2026. Several of them refuse connections from outside India, so
             a link that fails abroad may work perfectly on an Indian connection.
           </p>
         </section>

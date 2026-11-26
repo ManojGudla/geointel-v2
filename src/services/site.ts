@@ -19,6 +19,7 @@ export interface RoadGroup {
 
 export type SiteFeatureKind =
   | "road-works"
+  | "rail-works"
   | "road-proposed"
   | "building-site"
   | "construction-area"
@@ -37,15 +38,22 @@ export interface SiteFeature {
   osm: string;
   /** When this record was last edited in OpenStreetMap. */
   updatedAt?: string;
+  /** Why the work may already be finished (end date passed, or not updated for years). */
+  mayBeFinished?: string;
 }
 
 export interface SiteResult {
   roads: RoadGroup[];
   features: SiteFeature[];
-  counts: { roads: number; underConstruction: number; awaitingDevelopment: number };
+  /** `mayBeFinished` is absent on answers cached before it existed. */
+  counts: { roads: number; underConstruction: number; awaitingDevelopment: number; mayBeFinished?: number };
   radiusMeters: number;
   /** When the server fetched this from OpenStreetMap. Absent on answers cached before this field existed. */
   fetchedAt?: string;
+  /** How current the map server's copy of OpenStreetMap was. */
+  dataAsOf?: string | null;
+  /** The map server's answer was cut short, so something may be missing. */
+  incomplete?: boolean;
 }
 
 export async function fetchSite(

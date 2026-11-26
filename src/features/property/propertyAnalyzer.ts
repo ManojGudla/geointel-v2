@@ -86,7 +86,13 @@ function listInside(inside: Array<{ feature: SiteFeature; reading: UseReading }>
 }
 
 function surroundingsLine(evidence: GISEvidence | null): string | undefined {
-  if (!evidence) return undefined;
+  const parts = surroundingsParts(evidence);
+  if (!evidence || !parts.length) return undefined;
+  return `Around it, within ${evidence.radiusMeters} m: ${parts.join(", ")}. That describes the area, not this property.`;
+}
+
+function surroundingsParts(evidence: GISEvidence | null): string[] {
+  if (!evidence) return [];
   const c = evidence.counts;
   const parts: string[] = [];
   if (c.residential) parts.push(`${c.residential} residential building${c.residential === 1 ? "" : "s"}`);
@@ -94,8 +100,19 @@ function surroundingsLine(evidence: GISEvidence | null): string | undefined {
   if (c.offices) parts.push(`${c.offices} office${c.offices === 1 ? "" : "s"}`);
   if (c.industrial) parts.push(`${c.industrial} industrial feature${c.industrial === 1 ? "" : "s"}`);
   if (c.institutional) parts.push(`${c.institutional} public or institutional feature${c.institutional === 1 ? "" : "s"}`);
-  if (!parts.length) return undefined;
-  return `Around it, within ${evidence.radiusMeters} m: ${parts.join(", ")}. That describes the area, not this property.`;
+  return parts;
+}
+
+/** "Nearest mapped places: Nayara (fuel station), 47 m; Ratnadeep (supermarket shop), 90 m." */
+function nearbyLine(site: PropertySite): string | undefined {
+  const places = site.nearby ?? [];
+  if (!places.length) return undefined;
+  const label = (tags: Record<string, string>) => {
+    const kind = readBusiness(tags)?.kind ?? Object.entries(tags).find(([k]) => /^(shop|office|amenity|craft|healthcare|tourism|leisure|historic)$/.test(k))?.[1]?.replace(/_/g, " ");
+    const shown = kind === "fuel" ? "fuel station" : kind;
+    return tags.name ? `${tags.name}${shown ? ` (${shown})` : ""}` : (shown ?? "a mapped place");
+  };
+  return `Nearest mapped places: ${places.map((p) => `${label(p.tags)}, ${p.distanceMeters} m`).join("; ")}.`;
 }
 
 function analyzeSite(site: PropertySite, evidence: GISEvidence | null): PropertyAnalysis {
@@ -106,7 +123,14 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
   const limitations = [OSM_IS_NOT_LEGAL_USE];
   const sources = ["OpenStreetMap / Overpass"];
   const surroundings = surroundingsLine(evidence);
+  const nearby = nearbyLine(site);
   const retrievedAt = site.fetchedAt;
+  /*
+    A cut-short answer can be missing anything, so an absence in it is not
+    evidence: every reading that rests on "nothing is mapped" says so.
+  */
+  const cutShort = site.incomplete ? " The map server's answer was cut short just now, so something mapped here may be missing: try again." : "";
+  if (site.incomplete) limitations.push("The map server's answer was cut short, so something mapped here may be missing from it.");
 
   const done = (
     classification: PropertyClassification,
@@ -118,7 +142,8 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
     classification,
     confidence: classification === "Unknown" ? 0 : confidence,
     trust: classification === "Unknown" ? "unavailable" : trust,
-    evidence: surroundings ? [...lines, surroundings] : lines,
+    // The nearest places are context for a building that says nothing itself, noise for one that does.
+    evidence: [...lines, ...(nearby && basis !== "building" && basis !== "inside" ? [nearby] : []), ...(surroundings ? [surroundings] : [])],
     reasoning,
     scores: evidence?.scores ?? EMPTY_SCORES,
     sources,
@@ -246,12 +271,36 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
       );
     }
 
-    // 5. Honest Unknown.
+    const nothingOnIt = `${facts.kind === "building (its use is not mapped)" ? "A building" : capitalise(article(facts.kind))} is mapped here, but nothing on the map says what it is used for: no type, no businesses inside it and no land use around it.`;
+
+    /*
+      5. The neighbourhood, as a guess. Reported 26 November 2026: a tap on
+      open ground beside a building gave a reading from the surroundings,
+      and a tap on the building itself gave "Unknown", so the more precise
+      tap said less. Now both give it, and on a building it is held lower
+      (35% at most, against 40%) and called what it is: a guess from what is
+      mapped around it, never a reading of the building.
+    */
+    if (evidence && totalEvidenceCount(evidence.counts) > 0) {
+      const area = analyzeArea({ ...evidence, subject: null });
+      if (area.classification !== "Unknown") {
+        const parts = surroundingsParts(evidence);
+        return done(
+          area.classification,
+          "inferred",
+          Math.max(5, Math.min(area.confidence, 35)),
+          `${nothingOnIt} Going only by what is mapped within ${evidence.radiusMeters} m${parts.length ? ` (${parts.join(", ")})` : ""}, it is probably ${area.classification === "Mixed Use" ? "mixed use" : area.classification.toLowerCase()}. That is a guess from the neighbourhood, not a reading of this building.${cutShort}`,
+          "area"
+        );
+      }
+    }
+
+    // 6. Honest Unknown.
     return done(
       "Unknown",
       "unavailable",
       0,
-      `A ${facts.kind === "building (its use is not mapped)" ? "building" : facts.kind} is mapped here, but nothing on the map says what it is used for: no type, no businesses inside it and no land use around it.${surroundings ? " The surroundings are listed below as context only." : ""} If you know it, it can be added on OpenStreetMap.`,
+      `${nothingOnIt}${surroundings || nearby ? " What is mapped nearby is listed below as context only." : ""} If you know it, it can be added on OpenStreetMap.${cutShort}`,
       "none"
     );
   }
@@ -292,7 +341,7 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
     "Unknown",
     "unavailable",
     0,
-    "Nothing is mapped at this exact point: no building, no business and no land use. This does not mean it is empty, only that it is not mapped in detail. Tap directly on a building to read that building.",
+    `Nothing is mapped at this exact point: no building, no business and no land use. This does not mean it is empty, only that it is not mapped in detail. Tap directly on a building to read that building.${cutShort}`,
     "none"
   );
 }

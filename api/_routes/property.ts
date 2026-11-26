@@ -41,8 +41,18 @@ const handler: ApiHandler = async (req, res) => {
   try {
     const answer = await runOverpassQueryDetailed(buildPropertySiteQuery(lat, lon));
     const site = extractSite(answer.elements, { lat, lon }, { dataAsOf: answer.dataAsOf, fetchedAt: new Date().toISOString() });
-    // A cut-short answer can be missing the building; it is not kept.
-    if (!answer.incomplete) cache.set(key, site);
+    if (answer.incomplete) {
+      /*
+        Cut short by the map server, so it can be missing the building or the
+        land: said so in the answer, and kept by nobody. It used to go out
+        with the hour-long private cache like any other answer, so a building
+        read from a partial answer ("no land use around it") stayed that way
+        in the visitor's browser for an hour, however often they tapped it.
+      */
+      res.setHeader("Cache-Control", "no-store");
+      return ok(res, { site: { ...site, incomplete: true } });
+    }
+    cache.set(key, site);
     return ok(res, { site });
   } catch (error) {
     console.error("[api/property]", error);

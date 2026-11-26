@@ -42,7 +42,10 @@ export interface NewsItem {
   source: string;
   category: string;
   url: string;
+  /** For display, e.g. "26 Nov 2026"; "Recent" when the feed gave no date. */
   publishedAt: string;
+  /** ISO time, for "3 hours ago". Absent when the feed gave no date. */
+  publishedIso?: string;
 }
 
 export type RouteMode = "car" | "walk" | "bike";

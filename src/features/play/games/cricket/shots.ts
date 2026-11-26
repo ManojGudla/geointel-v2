@@ -132,11 +132,21 @@ function angleFor(dir: ShotDir, rng: Rng, edge = false): number {
 
 const BOWLED_CHANCE: Record<Length, number> = { yorker: 0.92, full: 0.8, good: 0.6, short: 0.2, bouncer: 0.05 };
 
+export interface ResolveOptions {
+  /**
+   * Easy mode: any direction is allowed to meet the ball cleanly. Picking the
+   * line as well as the moment is two decisions inside one second, and it is
+   * what made the game feel impossible to first-time players; on Easy only
+   * the moment counts, and the direction just decides where the ball goes.
+   */
+  anyDirection?: boolean;
+}
+
 /**
  * One ball. `offsetMs` is how far from the perfect moment the shot was played
  * (negative early, positive late), or null if no shot was played.
  */
-export function resolveShot(offsetMs: number | null, delivery: Delivery, shot: Shot | null, lineX: number, rng: Rng): ShotResult {
+export function resolveShot(offsetMs: number | null, delivery: Delivery, shot: Shot | null, lineX: number, rng: Rng, options: ResolveOptions = {}): ShotResult {
   const base = { offsetMs: offsetMs ?? 0 };
 
   if (offsetMs === null || shot === null) {
@@ -148,7 +158,7 @@ export function resolveShot(offsetMs: number | null, delivery: Delivery, shot: S
 
   const suited = suitedDirections(delivery.length, lineX).includes(shot.dir);
   let contact = contactFor(offsetMs, delivery);
-  if (!suited) contact = DOWNGRADE[contact];
+  if (!suited && !options.anyDirection) contact = DOWNGRADE[contact];
   const name = shotName(shot, delivery.length);
   const timing = contact === "perfect" || contact === "great" ? "" : offsetMs < 0 ? " (early)" : " (late)";
   const r = (outcome: Outcome, detail: string, landing: ShotResult["landing"], howOut?: HowOut): ShotResult => ({
@@ -227,12 +237,61 @@ export function aimForShot(shot: Shot | null): Aim {
   return shot?.dir ?? "straight";
 }
 
-/** A wide: one run, and the ball is bowled again. */
+/**
+ * A wide: one run, and the ball is bowled again. A free hit that was due
+ * stays due, as in the Laws: it carries over to the next legal ball.
+ */
 export function applyWide(state: MatchState): MatchState {
-  return { ...state, runs: state.runs + 1 };
+  return { ...state, runs: state.runs + 1, extras: (state.extras ?? 0) + 1 };
 }
 
 /** Roughly one ball in thirty is a wide, slightly more from the quick bowlers. */
 export function isWide(delivery: Delivery, rng: Rng): boolean {
   return rng.next() < (delivery.bowler === "pace" ? 0.045 : 0.03);
+}
+
+// ── No-balls and free hits ────────────────────────────────────────────────
+
+/**
+ * How often the bowler oversteps. Quick bowlers, running in hardest, do it
+ * most; a spinner barely ever. About one in thirty overall, which is roughly
+ * one a match: rare enough to be an event when it happens.
+ */
+export const NO_BALL_CHANCE: Record<Delivery["bowler"], number> = { pace: 0.05, medium: 0.035, spin: 0.015 };
+
+export function isNoBall(delivery: Delivery, rng: Rng): boolean {
+  return rng.next() < NO_BALL_CHANCE[delivery.bowler];
+}
+
+/**
+ * On a no-ball, and on the free hit that follows it, the batter cannot be
+ * out bowled, caught or LBW (Law 21.18 and the playing conditions for
+ * limited-overs cricket). A catch still lets the batters cross, so it is
+ * worth a run; a ball that would have bowled you is just a dot.
+ */
+export function protectFromDismissal(r: ShotResult, why: "no-ball" | "free-hit"): ShotResult {
+  if (r.outcome !== "out") return r;
+  const crossed = r.howOut === "caught";
+  const label = why === "no-ball" ? "No-ball" : "Free hit";
+  const detail =
+    r.howOut === "caught"
+      ? `Caught, but it is a ${label.toLowerCase()}. Not out, and they ran one`
+      : r.howOut === "caught-behind"
+        ? `Edged behind, but it is a ${label.toLowerCase()}. Not out`
+        : `Would have been out, but it is a ${label.toLowerCase()}. Not out`;
+  return { ...r, outcome: crossed ? 1 : 0, howOut: undefined, detail };
+}
+
+/**
+ * A no-ball: one run to the batting side, whatever came off the bat on top,
+ * the ball does not count, and the next ball is a free hit.
+ */
+export function applyNoBall(state: MatchState, result: ShotResult): MatchState {
+  const batRuns = typeof result.outcome === "number" ? result.outcome : 0;
+  return {
+    ...state,
+    runs: state.runs + 1 + batRuns,
+    extras: (state.extras ?? 0) + 1,
+    freeHit: true,
+  };
 }

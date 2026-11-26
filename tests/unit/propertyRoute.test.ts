@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeReqRes } from "./testUtils";
 
 /** GET /api/property, with Overpass replaced (MOCK: proves the wiring, not the data). */
-const state = vi.hoisted(() => ({ calls: [] as string[], fail: false }));
+const state = vi.hoisted(() => ({ calls: [] as string[], fail: false, incomplete: false }));
 
 vi.mock("../../api/_lib/overpass", async (importOriginal) => {
   const real = await importOriginal<typeof import("../../api/_lib/overpass")>();
@@ -12,6 +12,7 @@ vi.mock("../../api/_lib/overpass", async (importOriginal) => {
       state.calls.push(query);
       if (state.fail) throw new real.OverpassUnavailableError([]);
       return {
+        incomplete: state.incomplete,
         dataAsOf: "2026-11-25T16:00:00Z",
         elements: [
           {
@@ -42,6 +43,7 @@ async function get(query: Record<string, string>) {
 beforeEach(() => {
   state.calls = [];
   state.fail = false;
+  state.incomplete = false;
 });
 
 describe("GET /api/property", () => {
@@ -69,6 +71,17 @@ describe("GET /api/property", () => {
   it("refuses coordinates that are missing or off the globe", async () => {
     expect((await get({ lat: "17.4" })).statusCode).toBe(400);
     expect((await get({ lat: "95", lon: "78" })).statusCode).toBe(400);
+  });
+
+  it("marks an answer the map server cut short, and lets no browser keep it", async () => {
+    state.incomplete = true;
+    const r = await get({ lat: "17.38843", lon: "78.42341" });
+    expect(r.statusCode).toBe(200);
+    expect((r.body as { site: { incomplete?: boolean } }).site.incomplete).toBe(true);
+    expect(r.header("cache-control")).toBe("no-store");
+    // Nor this server: the same point asked again goes back to the map servers.
+    await get({ lat: "17.38843", lon: "78.42341" });
+    expect(state.calls).toHaveLength(2);
   });
 
   it("says plainly when the map servers are overloaded", async () => {

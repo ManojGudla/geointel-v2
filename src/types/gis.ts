@@ -144,6 +144,14 @@ export interface PropertySite {
   inside: SiteFeature[];
   /** Areas containing the point, most specific first. Empty when the data server had none or could not say. */
   areas: SiteFeature[];
+  /** The nearest mapped places outside the building (up to three), as context only. */
+  nearby?: Array<SiteFeature & { distanceMeters: number }>;
+  /**
+   * The map server flagged its answer as cut short (an Overpass "remark"),
+   * so something mapped here may be missing from it. An absence is then not
+   * evidence of anything.
+   */
+  incomplete?: boolean;
   source: string;
   /** How current the OpenStreetMap data was (the mirror's replica time), when known. */
   dataAsOf: string | null;

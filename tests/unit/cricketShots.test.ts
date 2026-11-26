@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "@/features/play/lib/random";
-import { resolveShot, shotFromKey, shotFromSwipe, suitedDirections, applyWide } from "@/features/play/games/cricket/shots";
+import { resolveShot, shotFromKey, shotFromSwipe, suitedDirections, applyWide, applyNoBall, isNoBall, protectFromDismissal, NO_BALL_CHANCE } from "@/features/play/games/cricket/shots";
 import type { Delivery } from "@/features/play/games/cricket/timing";
 
 const ball = (length: Delivery["length"], forgiveness = 1): Delivery => ({ bowler: "medium", length, travelMs: 1200, forgiveness, speedKph: 60 });
@@ -69,3 +69,60 @@ describe("shot outcomes", () => {
     expect(w.ballsBowled).toBe(4);
   });
 });
+
+/*
+  Added 26 November 2026, when the owner reported the game as very hard to
+  play and asked for it to be more interesting.
+*/
+describe("Easy: only the moment counts", () => {
+  it("lets any direction meet the ball cleanly on Easy, while Normal still charges for going across the line", () => {
+    const easy = resolveShot(0, ball("short"), { dir: "off", kind: "ground" }, 0, createRng("e"), { anyDirection: true });
+    const normal = resolveShot(0, ball("short"), { dir: "off", kind: "ground" }, 0, createRng("e"));
+    expect(easy.contact).toBe("perfect");
+    expect(normal.contact).toBe("great");
+  });
+});
+
+describe("no-balls and free hits", () => {
+  const state = { runs: 10, wickets: 1, ballsBowled: 7, totalBalls: 18, maxWickets: 3, target: 30, history: [] };
+
+  it("cannot get you out: a catch becomes a run, anything else a dot", () => {
+    const caught = resolveShot(140, ball("good"), { dir: "straight", kind: "loft" }, 0, createRng("c"));
+    const forced = { ...caught, outcome: "out" as const, howOut: "caught" as const };
+    const saved = protectFromDismissal(forced, "free-hit");
+    expect(saved.outcome).toBe(1);
+    expect(saved.howOut).toBeUndefined();
+    expect(saved.detail).toContain("free hit");
+    const bowled = { ...forced, howOut: "bowled" as const };
+    expect(protectFromDismissal(bowled, "no-ball").outcome).toBe(0);
+  });
+
+  it("leaves a ball that was not out exactly as it was", () => {
+    const four = resolveShot(0, ball("good"), { dir: "straight", kind: "ground" }, 0, createRng("4"));
+    expect(protectFromDismissal(four, "no-ball")).toBe(four);
+  });
+
+  it("adds one for the no-ball plus whatever came off the bat, uses no ball, and makes the next one a free hit", () => {
+    const four = resolveShot(0, ball("good"), { dir: "straight", kind: "ground" }, 0, createRng("4"));
+    const next = applyNoBall(state, four);
+    expect(next.runs).toBe(15);
+    expect(next.ballsBowled).toBe(7);
+    expect(next.wickets).toBe(1);
+    expect(next.freeHit).toBe(true);
+    expect(next.extras).toBe(1);
+  });
+
+  it("keeps a free hit due through a wide, as the Laws do", () => {
+    expect(applyWide({ ...state, freeHit: true }).freeHit).toBe(true);
+  });
+
+  it("happens about as often as in a real match: rare, and rarest from spin", () => {
+    expect(NO_BALL_CHANCE.spin).toBeLessThan(NO_BALL_CHANCE.pace);
+    const rng = createRng("nb");
+    let n = 0;
+    for (let i = 0; i < 20000; i++) if (isNoBall({ ...ball("good"), bowler: "pace" }, rng)) n++;
+    expect(n / 20000).toBeGreaterThan(0.04);
+    expect(n / 20000).toBeLessThan(0.06);
+  });
+});
+

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AIMS, BALLS_PER_OVER, BOWLER_FORGIVENESS, BOWLER_LABEL, BOWLER_SPEED, LENGTHS, LENGTH_LABEL, OVERS, READS_PER_MATCH, applyBall, averageTimingError, contactFor, createMatch, formatOvers, isOver, nextDelivery, playBall, readTheBowler, resultOf, suggestedAim, type Delivery, type BallRecord, chaseLine, chaseState, outcomeOf, createSuperOver, SUPER_OVER_BALLS, bowlerPlan, nextPlannedDelivery, commentary } from "@/features/play/games/cricket/timing";
+import { AIMS, BALLS_PER_OVER, BOWLER_FORGIVENESS, BOWLER_LABEL, BOWLER_SPEED, LENGTHS, LENGTH_LABEL, OVERS, READS_PER_MATCH, applyBall, averageTimingError, contactFor, createMatch, formatOvers, isOver, nextDelivery, playBall, readTheBowler, resultOf, suggestedAim, type Delivery, type BallRecord, chaseLine, chaseState, outcomeOf, createSuperOver, SUPER_OVER_BALLS, bowlerPlan, nextPlannedDelivery, commentary, boundaryStreak, INPUT_ALLOWANCE_MS } from "@/features/play/games/cricket/timing";
 import { createRng } from "@/features/play/lib/random";
 
 const normalBall: Delivery = { length: "good", travelMs: 1200, forgiveness: 1, speedKph: 60 };
@@ -385,3 +385,70 @@ describe("commentary", () => {
     expect(line).toContain("pressure");
   });
 });
+
+/*
+  Added 26 November 2026, when the owner reported the game as very hard to
+  play and asked for it to be more interesting.
+*/
+describe("playability", () => {
+  it("moves the perfect moment later by the usual input delay, most for touch, and never by much", () => {
+    // A phone reports a touch later than a keyboard reports a key.
+    expect(INPUT_ALLOWANCE_MS.touch).toBeGreaterThanOrEqual(INPUT_ALLOWANCE_MS.mouse);
+    expect(INPUT_ALLOWANCE_MS.mouse).toBeGreaterThanOrEqual(INPUT_ALLOWANCE_MS.key);
+    for (const ms of Object.values(INPUT_ALLOWANCE_MS)) {
+      expect(ms).toBeGreaterThan(0);
+      // More than this would start scoring genuinely late swings as perfect.
+      expect(ms).toBeLessThan(100);
+    }
+  });
+
+  it("orders the difficulties: Easy is the most forgiving, Hard the least", () => {
+    const avg = (d: "easy" | "normal" | "hard") => {
+      const rng = createRng(21);
+      let total = 0;
+      for (let i = 0; i < 200; i++) total += nextDelivery(d, rng).forgiveness;
+      return total / 200;
+    };
+    expect(avg("easy")).toBeGreaterThan(avg("normal"));
+    expect(avg("normal")).toBeGreaterThan(avg("hard"));
+  });
+
+  it("uses up a free hit on the next legal ball", () => {
+    const { state } = createMatch("fh", "normal");
+    const after = applyBall({ ...state, freeHit: true }, normalBall, "straight", { outcome: 1, contact: "good", offsetMs: 90, detail: "1 run" });
+    expect(after.freeHit).toBe(false);
+  });
+});
+
+describe("streaks", () => {
+  const ball = (outcome: BallRecord["outcome"]): BallRecord => ({ ball: 1, length: "good", aim: "straight", outcome, contact: "great", offsetMs: 10 });
+
+  it("counts boundaries in a row back from the latest ball", () => {
+    expect(boundaryStreak([])).toBe(0);
+    expect(boundaryStreak([ball(4), ball(1), ball(6), ball(4)])).toBe(2);
+    expect(boundaryStreak([ball(6), ball(6), ball(4)])).toBe(3);
+    expect(boundaryStreak([ball(4), ball("out")])).toBe(0);
+  });
+
+  it("calls back-to-back boundaries", () => {
+    const base = createMatch("streak", "normal").state;
+    const before = { ...base, runs: 4, ballsBowled: 1, history: [ball(4)] };
+    const after = { ...before, runs: 10, ballsBowled: 2, history: [ball(4), ball(6)] };
+    expect(commentary(before, after, { outcome: 6, contact: "perfect", offsetMs: 0, detail: "Six!" })).toBe("Back-to-back boundaries!");
+  });
+
+  it("varies its lines when given a random source, without ever losing the point", () => {
+    const base = createMatch("vary", "normal").state;
+    const before = { ...base, runs: 0, ballsBowled: 2, history: [ball(1), ball(0)] };
+    const after = { ...before, runs: 6, ballsBowled: 3, history: [ball(1), ball(0), ball(6)] };
+    const rng = createRng("lines");
+    const seen = new Set<string>();
+    for (let i = 0; i < 40; i++) {
+      const line = commentary(before, after, { outcome: 6, contact: "perfect", offsetMs: 0, detail: "Six!" }, rng);
+      expect(line.toLowerCase()).toContain("six");
+      seen.add(line);
+    }
+    expect(seen.size).toBeGreaterThan(1);
+  });
+});
+

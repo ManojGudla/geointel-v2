@@ -41,12 +41,17 @@ export function makeCamera(W: number, H: number): Cam {
   // stands just above the middle of the picture, the ball is released low in
   // the frame and the bowler runs in from below the bottom edge. Phones held
   // upright get the same framing because the focal length follows height.
+  //
+  // A little tighter than before (the lens was H x 3.45): on a phone the
+  // batter was about 60 pixels tall and the ball at the bat a few pixels
+  // across, which is the first thing that made the game hard to play.
+  // Aimed a little nearer the batter so the extra zoom lands on him.
   const pos: [number, number, number] = [0, 6.5, 35];
-  const target: [number, number, number] = [0, 1.15, 8];
+  const target: [number, number, number] = [0, 1.1, 6.5];
   const fw = norm([target[0] - pos[0], target[1] - pos[1], target[2] - pos[2]]);
   const r = norm(cross(fw, [0, 1, 0]));
   const u = cross(r, fw);
-  const f = Math.min(H * 3.45, W * 3.9);
+  const f = Math.min(H * 4.1, W * 4.6);
   return { W, H, f, px: pos[0], py: pos[1], pz: pos[2], r, u, fw };
 }
 
@@ -409,6 +414,8 @@ export interface SceneFrame {
   /** 0..1 through the bowler's run-up; above 1 is the follow-through. */
   runup: number;
   ball: BallDraw | null;
+  /** Where the ball was over the last few frames, oldest first: drawn as a fading tail. */
+  trail?: BallDraw[];
   marker: { x: number; z: number; alpha: number } | null;
   batAngle: number;
   batLean: number;
@@ -450,7 +457,7 @@ export function drawBroadcast(ctx: CanvasRenderingContext2D, c: Cam, f: SceneFra
   }
 
   const ballBehindBatter = f.ball && f.ball.z < 0.45;
-  if (f.ball && ballBehindBatter) drawBall(ctx, c, f.ball);
+  if (f.ball && ballBehindBatter) drawBall(ctx, c, f.ball, f.trail);
   drawStumps(ctx, c, 0, f.stumpsBrokenFor);
 
   // Pitch marker: where this ball will land.
@@ -478,7 +485,7 @@ export function drawBroadcast(ctx: CanvasRenderingContext2D, c: Cam, f: SceneFra
   const bat = project(c, 0.32, 0, 0.95);
   if (bat) drawBatter(ctx, bat, f.batAngle, f.batLean);
 
-  if (f.ball && !ballBehindBatter) drawBall(ctx, c, f.ball);
+  if (f.ball && !ballBehindBatter) drawBall(ctx, c, f.ball, f.trail);
 
   // Bowler's end: stumps, non-striker, umpire, bowler (nearest last).
   drawStumps(ctx, c, PITCH_LENGTH, null);
@@ -555,28 +562,110 @@ export function drawRadar(ctx: CanvasRenderingContext2D, x: number, y: number, r
   ctx.restore();
 }
 
-function drawBall(ctx: CanvasRenderingContext2D, c: Cam, b: BallDraw) {
+/**
+ * The ball, drawn to be SEEN rather than to scale.
+ *
+ * At true size a cricket ball 20 metres away is two or three pixels on a
+ * phone, and white on the batter's white pads at the very moment you have
+ * to hit it: the owner reported the game as very hard to play, and on a
+ * phone-sized screenshot the ball at the bat could not be found. It is now
+ * about twice true size with a dark rim, so it reads against the pads, the
+ * pitch and the grass alike, and it leaves a short tail so its speed and
+ * direction show at a glance, the way television graphics do.
+ */
+export function ballRadius(pixelsPerMetre: number): number {
+  return Math.max(4.5, pixelsPerMetre * 0.085);
+}
+
+function drawBall(ctx: CanvasRenderingContext2D, c: Cam, b: BallDraw, trail?: BallDraw[]) {
   const shadow = project(c, b.x, 0, b.z);
   const p = project(c, b.x, b.y, b.z);
   if (!p) return;
   if (shadow) {
-    ctx.fillStyle = `rgba(0,0,0,${Math.max(0.12, 0.4 - b.y * 0.08)})`;
+    ctx.fillStyle = `rgba(0,0,0,${Math.max(0.15, 0.45 - b.y * 0.08)})`;
     ctx.beginPath();
-    ctx.ellipse(shadow.x, shadow.y, Math.max(1.6, shadow.s * 0.05), Math.max(0.8, shadow.s * 0.02), 0, 0, Math.PI * 2);
+    ctx.ellipse(shadow.x, shadow.y, Math.max(3, shadow.s * 0.08), Math.max(1.4, shadow.s * 0.03), 0, 0, Math.PI * 2);
     ctx.fill();
   }
-  const r = Math.max(2.2, p.s * 0.045);
-  // A faint trail makes a fast ball readable at 60 frames a second.
+  const r = ballRadius(p.s);
+  if (trail && trail.length > 1) {
+    ctx.save();
+    ctx.lineCap = "round";
+    for (let i = 1; i < trail.length; i++) {
+      const a = project(c, trail[i - 1]!.x, trail[i - 1]!.y, trail[i - 1]!.z);
+      const z = project(c, trail[i]!.x, trail[i]!.y, trail[i]!.z);
+      if (!a || !z) continue;
+      const k = i / trail.length;
+      ctx.strokeStyle = `rgba(255,236,150,${0.12 + 0.45 * k})`;
+      ctx.lineWidth = r * (0.5 + 1.1 * k);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(z.x, z.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
   const g = ctx.createRadialGradient(p.x - r * 0.3, p.y - r * 0.3, r * 0.2, p.x, p.y, r);
   g.addColorStop(0, "#ffffff");
-  g.addColorStop(1, "#d7d9e0");
+  g.addColorStop(1, "#e4e6ee");
   ctx.fillStyle = g;
-  ctx.shadowColor = "rgba(255,255,255,0.8)";
-  ctx.shadowBlur = r * 1.5;
+  ctx.shadowColor = "rgba(255,240,170,0.95)";
+  ctx.shadowBlur = r * 1.6;
   ctx.beginPath();
   ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
   ctx.fill();
   ctx.shadowBlur = 0;
+  ctx.lineWidth = Math.max(1.4, r * 0.28);
+  ctx.strokeStyle = "rgba(18,22,38,0.9)";
+  ctx.stroke();
+}
+
+/**
+ * The timing ring: a circle around the spot where bat meets ball, with a
+ * second ring closing in on it that lands exactly at the moment of contact.
+ * "Swing when the rings meet" is a cue anyone can follow at any speed, and
+ * it is drawn from the same clock the swing is scored against, so it cannot
+ * disagree with the result. Shown on Easy and Normal; Hard is played by eye.
+ */
+export interface TimingRing {
+  x: number;
+  y: number;
+  z: number;
+  /** Milliseconds until the perfect moment; negative once it has passed. */
+  msToContact: number;
+  /** How many milliseconds the ring takes to close: it appears this long before contact. */
+  leadMs: number;
+  /** Half-width of the "great" window for this ball, in milliseconds: the ring turns green inside it. */
+  greatMs: number;
+}
+
+export function drawTimingRing(ctx: CanvasRenderingContext2D, c: Cam, ring: TimingRing) {
+  const p = project(c, ring.x, ring.y, ring.z);
+  if (!p) return;
+  if (ring.msToContact > ring.leadMs || ring.msToContact < -ring.greatMs * 2) return;
+  const base = Math.max(16, p.s * 0.42);
+  const fade = ring.msToContact < 0 ? Math.max(0, 1 + ring.msToContact / (ring.greatMs * 2)) : Math.min(1, (ring.leadMs - ring.msToContact) / 120);
+  const inWindow = Math.abs(ring.msToContact) <= ring.greatMs;
+  ctx.save();
+  ctx.globalAlpha = fade;
+  // The target: where, and how big, the closing ring has to get.
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = inWindow ? "rgba(70,230,140,0.95)" : "rgba(255,255,255,0.85)";
+  ctx.fillStyle = inWindow ? "rgba(70,230,140,0.18)" : "rgba(255,255,255,0.08)";
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, base, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  // The closing ring.
+  if (ring.msToContact > 0) {
+    const k = ring.msToContact / ring.leadMs;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = inWindow ? "rgba(70,230,140,1)" : "rgba(255,214,64,0.95)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, base * (1 + 2.6 * k), 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 /* ------------------------------------------------------------------ *

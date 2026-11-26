@@ -4,10 +4,13 @@ import {
   BALLS_PER_OVER,
   BOWLER_LABEL,
   CONTACT_LABEL,
+  CONTACT_WINDOWS,
+  INPUT_ALLOWANCE_MS,
   LENGTH_LABEL,
   REVIEWS_PER_INNINGS,
   applyBall,
   averageTimingError,
+  boundaryStreak,
   chaseState,
   commentary,
   createMatch,
@@ -19,12 +22,13 @@ import {
   resultOf,
   type Delivery,
   type Difficulty,
+  type InputKind,
   type MatchState,
 } from "./timing";
 import { PAD_Z, computeTrajectory, reviewLbw, settleReview, umpireDecision, wicketsVerdict, type Decision, type ReviewOutcome, type ReviewResult, type Trajectory } from "./drs";
 import { DrsReview } from "./DrsReview";
-import { aimForShot, applyWide, isWide, resolveShot, shotFromKey, shotFromSwipe, type Shot, type ShotDir, type ShotKind, type ShotResult } from "./shots";
-import { PITCH_LENGTH, batAngleFor, drawAerial, drawBroadcast, drawRadar, makeCamera, type Flight, type SceneFrame } from "./broadcast";
+import { aimForShot, applyNoBall, applyWide, isNoBall, isWide, protectFromDismissal, resolveShot, shotFromKey, shotFromSwipe, type Shot, type ShotDir, type ShotKind, type ShotResult } from "./shots";
+import { PITCH_LENGTH, batAngleFor, drawAerial, drawBroadcast, drawRadar, drawTimingRing, makeCamera, type BallDraw, type Flight, type SceneFrame } from "./broadcast";
 import type { Rng } from "../../lib/random";
 import { RoundSummary } from "../../components/RoundSummary";
 import { usePlayStore } from "../../progress/playStore";
@@ -34,6 +38,48 @@ import "./CricketPro.css";
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = { easy: "Easy", normal: "Normal", hard: "Hard" };
 const RUNUP_MS = 1500;
+/** Pause before the next ball bowls itself. A tap bowls it sooner. */
+const NEXT_BALL_MS = 2000;
+/** Frames of the ball's tail. */
+const TRAIL_FRAMES = 7;
+/**
+ * How long the ball waits at the bat while a touch is still being read as a
+ * tap or a swipe. The shot is timed from the moment the finger landed, so
+ * the wait changes nothing about the result; it only keeps the picture
+ * honest, with the bat meeting the ball instead of the ball slipping past
+ * and jumping back.
+ */
+const GESTURE_HOLD_MS = 250;
+
+/**
+ * When an input actually happened, on the same clock as performance.now().
+ *
+ * The shot used to be timed when the handler ran, and a tap on the pitch
+ * only when the finger LIFTED, typically 80 to 150 ms after it landed. Every
+ * tap was scored late by that much, and no amount of practice could fix it
+ * because the delay was in the game, not the player. Every current browser
+ * stamps events on the page's own clock; anything that does not look like
+ * that clock falls back to "now".
+ */
+function eventTime(e: { timeStamp: number }): number {
+  const now = performance.now();
+  const t = e.timeStamp;
+  return Number.isFinite(t) && t > 0 && t <= now + 5 && now - t < 1000 ? t : now;
+}
+
+function inputKindOf(pointerType: string): InputKind {
+  return pointerType === "touch" ? "touch" : pointerType === "pen" ? "pen" : "mouse";
+}
+
+/** A short buzz on phones that support it, with the game's sound switch as the off switch. */
+function buzz(pattern: number | number[]) {
+  try {
+    if (!usePlayStore.getState().soundEnabled) return;
+    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") navigator.vibrate(pattern);
+  } catch {
+    /* vibration is a nicety; never let it interrupt the game */
+  }
+}
 const RELEASE = { x: -0.25, y: 2.25, z: PITCH_LENGTH - 0.6 };
 
 type Phase = "idle" | "runup" | "delivery" | "after" | "flight" | "result" | "done";
@@ -56,6 +102,16 @@ interface Live {
   excite: number;
   /** What happens if no shot is played - decided as the ball is bowled so the ball can be drawn going there. */
   noShot: ShotResult | null;
+  /** The bowler overstepped: this ball cannot get you out and the next is a free hit. */
+  noBall: boolean;
+  /** This ball is a free hit. */
+  freeHit: boolean;
+  /** The ball's last few positions, for its tail. */
+  trail: BallDraw[];
+  /** A finger is down and not yet read as a tap or a swipe: when it landed. */
+  gestureAt: number | null;
+  /** How the shot was played, for the haptic buzz. */
+  input: InputKind | null;
 }
 
 interface Shout {
@@ -75,6 +131,16 @@ interface Splash {
   timing: string;
   big: string;
   tone: "six" | "four" | "out" | "runs" | "dot" | "wide";
+}
+
+interface Swipe {
+  x: number;
+  y: number;
+  id: number;
+  done: boolean;
+  /** When the finger landed: the moment the shot is timed from. */
+  at: number;
+  input: InputKind;
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -171,7 +237,7 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
   dirRef.current = dir;
   const recordedRef = useRef(false);
   const ambienceStop = useRef<(() => void) | null>(null);
-  const swipeRef = useRef<{ x: number; y: number; id: number; done: boolean } | null>(null);
+  const swipeRef = useRef<Swipe | null>(null);
   const autoNext = useRef<number | null>(null);
   const live = useRef<Live>({
     phase: "idle",
@@ -190,6 +256,11 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
     flight: null,
     excite: 0,
     noShot: null,
+    noBall: false,
+    freeHit: false,
+    trail: [],
+    gestureAt: null,
+    input: null,
   });
 
   // Test hook, development builds only: lets an automated check play a
@@ -251,11 +322,15 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
     const lineAim = rng.pick(AIMS);
     const traj = computeTrajectory(delivery, lineAim, rng);
     const wide = isWide(delivery, rng);
+    const noBall = !wide && isNoBall(delivery, rng);
+    const freeHit = Boolean(current.freeHit);
     let noShot = resolveShot(null, delivery, null, traj.pitch.x, rng);
     if (noShot.outcome === "out") {
       const outright = wicketsVerdict(traj) === "hitting" && traj.impact.y < 0.25;
       noShot = outright ? { ...noShot, howOut: "bowled" } : { ...noShot, howOut: "lbw", detail: "No shot, struck on the pad. LBW" };
     }
+    if (noBall) noShot = protectFromDismissal(noShot, "no-ball");
+    else if (freeHit) noShot = protectFromDismissal(noShot, "free-hit");
     const now = performance.now();
     live.current = {
       ...L,
@@ -273,6 +348,11 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
       flight: null,
       excite: 0,
       noShot,
+      noBall,
+      freeHit,
+      trail: [],
+      gestureAt: null,
+      input: null,
     };
     setHudDelivery(delivery);
     setSplash(null);
@@ -287,10 +367,19 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
     const current = stateRef.current;
     const L = live.current;
     if (!rng || !current || !L.delivery) return;
-    const next = applyBall(current, L.delivery, aimForShot(L.shot), r);
+    const next = L.noBall ? applyNoBall(current, r) : applyBall(current, L.delivery, aimForShot(L.shot), r);
     stateRef.current = next;
     setState(next);
-    setCallOut(commentary(current, next, r));
+    if (L.noBall) {
+      const runs = typeof r.outcome === "number" ? r.outcome : 0;
+      setCallOut(
+        next.runs >= next.target
+          ? "No-ball, and that wins it!"
+          : `No-ball! ${runs > 0 ? `${runs} off the bat and one for the no-ball. ` : "A run for the no-ball. "}The next ball is a FREE HIT.`
+      );
+    } else if (L.freeHit && r.outcome !== "out" && typeof r.outcome === "number" && r.outcome >= 4) {
+      setCallOut(r.outcome === 6 ? "Free hit, and it goes all the way. SIX!" : "Free hit, cashed in. Four!");
+    } else setCallOut(commentary(current, next, r, rng));
 
     // LBW shouts can be reviewed; a clean bowled cannot.
     if (r.outcome === "out" && r.howOut === "lbw" && L.traj) {
@@ -326,37 +415,54 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
               : r.offsetMs < 0
                 ? "EARLY"
                 : "LATE";
-    setSplash({ timing: `${timing}${r.shot ? ` · ${r.shotName}` : ""}`, big, tone });
+    setSplash({
+      timing: L.noBall ? `NO-BALL · FREE HIT NEXT${r.shot ? ` · ${timing}` : ""}` : `${timing}${r.shot ? ` · ${r.shotName}` : ""}`,
+      big: L.noBall && typeof r.outcome === "number" && r.outcome < 4 ? "NO BALL" : big,
+      tone: L.noBall && tone === "dot" ? "wide" : tone,
+    });
 
-    if (r.outcome === "out") sfx("crowd-groan");
+    if (r.outcome === "out") {
+      buzz([70, 50, 70]);
+      sfx("crowd-groan");
+    } else if (L.noBall) sfx("crowd-cheer");
     else if (r.outcome === 6) sfx("crowd-roar");
-    else if (r.outcome === 4) sfx("crowd-cheer");
+    else if (r.outcome === 4) sfx(boundaryStreak(next.history) >= 2 ? "crowd-roar" : "crowd-cheer");
 
     const over = isOver(next);
     goPhase(over ? "done" : "result");
   }, []);
 
-  const playShot = useCallback(
-    (shot: Shot) => {
-      const L = live.current;
-      if (L.phase !== "delivery" || L.shotAt !== null || !L.delivery || !L.traj || !rngRef.current) return;
-      const now = performance.now();
-      L.shot = shot;
-      L.shotAt = now;
-      if (L.wide) return; // you can swing at a wide; it is still a wide.
-      const offset = now - L.contactAt;
-      let r = resolveShot(offset, L.delivery, shot, L.traj.pitch.x, rngRef.current);
-      // Beaten and out: bowled if it would have hit low and straight, otherwise it hit the pad - an LBW shout.
-      if (r.outcome === "out" && r.contact === "miss") {
-        const outright = wicketsVerdict(L.traj) === "hitting" && L.traj.impact.y < 0.25;
-        r = outright ? { ...r, howOut: "bowled", detail: "Beaten. Bowled" } : { ...r, howOut: "lbw", detail: "Struck on the pad. LBW" };
-      }
-      L.result = r;
-      setTimingMeter(Math.max(-320, Math.min(320, offset)));
-      if (shot.kind === "loft" && r.contact !== "miss") window.setTimeout(() => sfx("whoosh"), 60);
-    },
-    []
-  );
+  const difficultyRef = useRef(difficulty);
+  difficultyRef.current = difficulty;
+
+  /**
+   * Plays a shot. `at` is when the input happened (the finger landing, the
+   * key going down), not when this ran, and the result is scored against
+   * the perfect moment moved later by the input device's usual delay.
+   */
+  const playShot = useCallback((shot: Shot, at: number, input: InputKind) => {
+    const L = live.current;
+    if (L.phase !== "delivery" || L.shotAt !== null || !L.delivery || !L.traj || !rngRef.current) return;
+    // A press that began before the ball left the hand is not a shot at it.
+    if (at < L.releaseAt) return;
+    L.shot = shot;
+    L.shotAt = at;
+    L.gestureAt = null;
+    L.input = input;
+    if (L.wide) return; // you can swing at a wide; it is still a wide.
+    const offset = at - L.contactAt - INPUT_ALLOWANCE_MS[input];
+    let r = resolveShot(offset, L.delivery, shot, L.traj.pitch.x, rngRef.current, { anyDirection: difficultyRef.current === "easy" });
+    // Beaten and out: bowled if it would have hit low and straight, otherwise it hit the pad - an LBW shout.
+    if (r.outcome === "out" && r.contact === "miss") {
+      const outright = wicketsVerdict(L.traj) === "hitting" && L.traj.impact.y < 0.25;
+      r = outright ? { ...r, howOut: "bowled", detail: "Beaten. Bowled" } : { ...r, howOut: "lbw", detail: "Struck on the pad. LBW" };
+    }
+    if (L.noBall) r = protectFromDismissal(r, "no-ball");
+    else if (L.freeHit) r = protectFromDismissal(r, "free-hit");
+    L.result = r;
+    setTimingMeter(Math.max(-320, Math.min(320, offset)));
+    if (shot.kind === "loft" && r.contact !== "miss") window.setTimeout(() => sfx("whoosh"), 60);
+  }, []);
 
   // Keyboard: arrows/WASD to play, Shift to loft, L toggles loft, Space bowls between balls.
   useEffect(() => {
@@ -366,7 +472,7 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
         const shot = shotFromKey(e.code, e.shiftKey, false);
         if (shot) {
           e.preventDefault();
-          playShot(shot);
+          if (!e.repeat) playShot(shot, eventTime(e), "key");
         }
         return;
       }
@@ -379,14 +485,18 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [bowl, playShot]);
 
-  // Swipes on the ground play the shot the moment the gesture is clear.
+  // Swipes on the ground play the shot the moment the gesture is clear; a
+  // tap plays the picked direction. Either way the shot is timed from the
+  // moment the finger landed.
   const onPointerDown = (e: React.PointerEvent) => {
     const L = live.current;
     if (L.phase === "idle" || L.phase === "result") {
       bowl();
       return;
     }
-    swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+    const at = eventTime(e);
+    swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false, at, input: inputKindOf(e.pointerType) };
+    if (L.phase === "delivery" && L.shotAt === null && at >= L.releaseAt) L.gestureAt = at;
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const sw = swipeRef.current;
@@ -395,20 +505,24 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
     const dy = e.clientY - sw.y;
     if (Math.hypot(dx, dy) > 22) {
       sw.done = true;
-      playShot(shotFromSwipe(dx, dy, false));
+      playShot(shotFromSwipe(dx, dy, false), sw.at, sw.input);
     }
+  };
+  const endGesture = () => {
+    swipeRef.current = null;
+    live.current.gestureAt = null;
   };
   const onPointerUp = (e: React.PointerEvent) => {
     const sw = swipeRef.current;
     if (!sw || sw.id !== e.pointerId) return;
-    if (!sw.done) playShot({ dir: dirRef.current, kind: "ground" }); // a tap plays the picked direction
-    swipeRef.current = null;
+    if (!sw.done) playShot({ dir: dirRef.current, kind: "ground" }, sw.at, sw.input);
+    endGesture();
   };
 
   // Auto-bowl the next ball after a short pause, unless a review is pending.
   useEffect(() => {
     if (phase !== "result" || shout) return;
-    autoNext.current = window.setTimeout(() => bowl(), 2600);
+    autoNext.current = window.setTimeout(() => bowl(), NEXT_BALL_MS);
     return () => {
       if (autoNext.current) window.clearTimeout(autoNext.current);
     };
@@ -472,10 +586,15 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
         if (now >= L.releaseAt) goPhase("delivery");
       } else if (L.phase === "delivery" && d && tr) {
         runup = 1 + Math.min(0.9, (now - L.releaseAt) / 700);
-        const p = (now - L.releaseAt) / d.travelMs;
+        const rawP = (now - L.releaseAt) / d.travelMs;
+        // A touch still being read as a tap or a swipe keeps the ball at the bat for a moment (GESTURE_HOLD_MS).
+        const holding = L.gestureAt !== null && L.shotAt === null && now - L.gestureAt < GESTURE_HOLD_MS;
+        const p = holding ? Math.min(rawP, 1) : rawP;
         const fate = L.result ?? (L.shot === null ? L.noShot : null);
         const after = fate?.howOut === "bowled" ? "stumps" : fate?.howOut === "lbw" ? "pad" : "keeper";
         ballPos = ballAt(tr, Math.min(1.35, p), d.bowler, L.wide, after);
+        L.trail.push(ballPos);
+        if (L.trail.length > TRAIL_FRAMES) L.trail.shift();
         if (!L.wide && showMarker) marker = { x: tr.pitch.x, z: tr.pitch.z, alpha: Math.max(0, 1 - p * 1.4) };
         else if (!L.wide && difficulty === "hard") marker = { x: tr.pitch.x, z: tr.pitch.z, alpha: Math.max(0, 0.9 - p * 1.6) };
         const pitchP = (RELEASE.z - tr.pitch.z) / (RELEASE.z - PAD_Z);
@@ -490,7 +609,9 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
         if (r && r.contact !== "miss" && p >= 1) {
           // Bat meets ball: the sound, then the ball leaves the bat.
           sfx(r.contact === "perfect" || r.contact === "great" ? "bat-perfect" : r.contact === "edge" ? "bat-edge" : r.shot?.kind === "defend" ? "defend" : "bat-good");
+          if (L.input === "touch") buzz(r.contact === "perfect" || r.contact === "great" ? 35 : 15);
           if (r.outcome === 6 || r.outcome === 4) L.excite = 1;
+          L.trail = [];
           goPhase("after");
         } else if (p >= 1.35 || (r?.howOut === "bowled" && p >= 1.33)) {
           // Past the bat.
@@ -555,6 +676,7 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
           t,
           runup,
           ball: ballPos,
+          trail: L.phase === "delivery" ? L.trail : undefined,
           marker,
           batAngle: batAngleFor(L.shot, swing, backlift),
           batLean: L.shot?.kind === "loft" && swing !== null ? Math.min(1, swing) : 0,
@@ -573,6 +695,18 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
                 : "none",
           excite: L.excite,
         });
+        // The timing ring, on Easy and Normal, until the shot is played.
+        if (L.phase === "delivery" && d && tr && !L.wide && L.shotAt === null && difficulty !== "hard") {
+          const at = ballAt(tr, 1, d.bowler, false, "keeper");
+          drawTimingRing(ctx, cam, {
+            x: at.x,
+            y: at.y,
+            z: at.z,
+            msToContact: L.contactAt - now,
+            leadMs: Math.min(900, d.travelMs * 0.8),
+            greatMs: CONTACT_WINDOWS.great * d.forgiveness,
+          });
+        }
         const rr = Math.max(22, Math.min(36, W * 0.055));
         drawRadar(ctx, 12 + rr, 12 + rr, rr);
       }
@@ -661,6 +795,7 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
 
   if (!state) return null;
   const chase = chaseState(state);
+  const streak = boundaryStreak(state.history);
   if (phase === "done" && summaryReady && !shout && !playing) {
     const outcome = outcomeOf(state);
     const won = outcome === "won";
@@ -674,9 +809,7 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
           detail={
             tied
               ? `Level on ${state.runs}. It goes to a Super Over.`
-              : avgError === null
-                ? `Target was ${state.target}.`
-                : `Target was ${state.target}. Your average timing was ${avgError}ms off the middle.`
+              : `Target was ${state.target}.${state.extras ? ` Extras: ${state.extras}.` : ""}${avgError === null ? "" : ` Your average timing was ${avgError}ms off the middle.`}`
           }
           score={state.runs}
           scoreLabel="Runs"
@@ -725,7 +858,11 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
             ))}
           </div>
           <p className="cp-setup__note">
-            {difficulty === "easy" ? "Slower bowling, bigger timing window, pitch marker shown." : difficulty === "normal" ? "Real pace, pitch marker shown." : "Express pace, the marker only flashes at release."}
+            {difficulty === "easy"
+              ? "Slower bowling, a wide timing window and the timing ring. Any direction is fine: only the moment counts."
+              : difficulty === "normal"
+                ? "Real pace with the timing ring. Play the shot the ball deserves: going across the line costs you."
+                : "Express pace, no timing ring, and the pitch marker only flashes at release."}
           </p>
         </div>
       )}
@@ -736,7 +873,7 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={() => (swipeRef.current = null)}
+        onPointerCancel={endGesture}
       >
         <canvas ref={canvasRef} className="cp-canvas" role="img" aria-label="Cricket match, broadcast view" />
 
@@ -769,6 +906,17 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
             })}
           </div>
         </div>
+
+        {state.freeHit && phase !== "done" && (
+          <div className="cp-freehit" role="status">
+            FREE HIT
+          </div>
+        )}
+        {streak >= 2 && (phase === "result" || phase === "runup" || phase === "delivery") && (
+          <div className="cp-streak" aria-label={`${streak} boundaries in a row`}>
+            <span aria-hidden="true">🔥</span> {streak} in a row
+          </div>
+        )}
 
         {hudDelivery && (phase === "runup" || phase === "delivery") && (
           <div className="cp-bowler">
@@ -816,6 +964,7 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
           <div className="cp-prompt">
             <p className="cp-prompt__title">{state.ballsBowled === 0 ? `Chase ${state.target} off ${state.totalBalls / BALLS_PER_OVER} overs` : "Ready"}</p>
             <p className="cp-prompt__sub">Tap the ground or press Space to face the bowler</p>
+            {difficulty !== "hard" && <p className="cp-prompt__tip">Swing when the yellow ring closes on the white one.</p>}
           </div>
         )}
 
@@ -870,7 +1019,9 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
               key={kind}
               type="button"
               className={`cp-shot cp-shot--${kind}`}
-              onPointerDown={() => (live.current.phase === "delivery" ? playShot({ dir: kind === "defend" ? "straight" : dirRef.current, kind }) : bowl())}
+              onPointerDown={(e) =>
+                live.current.phase === "delivery" ? playShot({ dir: kind === "defend" ? "straight" : dirRef.current, kind }, eventTime(e), inputKindOf(e.pointerType)) : bowl()
+              }
             >
               {label}
             </button>
@@ -878,7 +1029,7 @@ export function CricketPro({ onBackToHub }: { onBackToHub: () => void }) {
         </div>
       </div>
       <p className="cp-help">
-        <span className="cp-help--touch">Pick a direction with your left thumb, then hit DEFEND, STROKE or LOFT as the ball arrives. Or just swipe on the pitch.</span>
+        <span className="cp-help--touch">Swing when the rings meet: tap the pitch, or hit DEFEND, STROKE or LOFT. Pick a direction with your left thumb, or swipe the shot on the pitch.</span>
         <span className="cp-help--keys">Keys: ← ↑ → play a stroke that way, hold Shift to loft, ↓ defends. Space bowls the next ball.</span>
       </p>
     </div>
