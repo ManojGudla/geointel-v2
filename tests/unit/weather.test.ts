@@ -93,6 +93,30 @@ describe("api/weather handler", () => {
     }
   });
 
+  it("passes on the ground height Open-Meteo reports, and leaves it out when there is none", async () => {
+    const body = (elevation?: number) => ({
+      ...(elevation === undefined ? {} : { elevation }),
+      current: { temperature_2m: 25, apparent_temperature: 26, relative_humidity_2m: 50, wind_speed_10m: 5, precipitation: 0, weather_code: 0 },
+      daily: { time: ["2026-11-26"], temperature_2m_max: [30], temperature_2m_min: [18], weather_code: [0] },
+    });
+
+    mockFetchOnce(true, body(536));
+    const high = fakeReqRes({ lat: "17.39", lon: "78.49" });
+    await handler(high.req, high.res);
+    expect((high.body as { weather: { elevationM?: number } }).weather.elevationM).toBe(536);
+
+    // Sea level is a real answer, not a missing one.
+    mockFetchOnce(true, body(0));
+    const coast = fakeReqRes({ lat: "13.05", lon: "80.28" });
+    await handler(coast.req, coast.res);
+    expect((coast.body as { weather: { elevationM?: number } }).weather.elevationM).toBe(0);
+
+    mockFetchOnce(true, body());
+    const none = fakeReqRes({ lat: "9.93", lon: "76.27" });
+    await handler(none.req, none.res);
+    expect((none.body as { weather: Record<string, unknown> }).weather).not.toHaveProperty("elevationM");
+  });
+
   it("passes a missing reading through as null rather than inventing one (H2)", async () => {
     mockFetchOnce(true, {
       current: { temperature_2m: null, apparent_temperature: null, relative_humidity_2m: 40, wind_speed_10m: null, precipitation: 0, weather_code: 0 },

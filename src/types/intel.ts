@@ -27,6 +27,12 @@ export interface WeatherData {
    */
   timezone?: string;
   timezoneAbbreviation?: string;
+  /**
+   * Ground height of the point in metres above sea level, from the 90 m
+   * Copernicus elevation model Open-Meteo uses. Absent when not returned;
+   * never filled in, since 0 is a real answer on the coast.
+   */
+  elevationM?: number;
   source: string;
   fetchedAt: string;
 }
