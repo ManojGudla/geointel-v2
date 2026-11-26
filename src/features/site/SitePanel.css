@@ -439,3 +439,25 @@ button.site__feature-go:hover {
 .site__radius button {
   min-height: 40px;
 }
+
+/* A record still marked as being built whose end date has passed, or that nobody has updated for years. */
+.site__feature-stale {
+  display: inline-block;
+  margin-top: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--color-warning-50, #fff7e6);
+  color: var(--color-warning-700, #8a5a00);
+  font-size: var(--text-xs, 12px);
+  font-weight: 600;
+}
+
+/* The map server cut its answer short. */
+.site__notice {
+  margin: var(--space-2, 8px) 0;
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-warning-50, #fff7e6);
+  color: var(--color-text, inherit);
+  font-size: var(--text-sm, 13px);
+}

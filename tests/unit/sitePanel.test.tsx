@@ -209,3 +209,37 @@ describe("construction records in the site panel", () => {
     expect(screen.getByRole("link", { name: /BuildNow building permissions/ })).toBeTruthy();
   });
 });
+
+/*
+  Added 26 November 2026: the owner reported construction results looking
+  random. Old records are now flagged rather than counted as current, and a
+  cut-short answer says so and offers to ask again. MOCK data (rendered in
+  jsdom).
+*/
+describe("records that may be out of date", () => {
+  it("flags a site that may be finished, and counts it separately", async () => {
+    setLocation();
+    fetchSite.mockResolvedValue({
+      ...RESULT,
+      features: [
+        { kind: "rail-works", name: "Metro Phase 2", becoming: "subway", osm: "way/11", lat: 17.386, lon: 78.487 },
+        { kind: "building-site", name: "Old Tower", osm: "way/12", lat: 17.387, lon: 78.488, mayBeFinished: "Not updated on the map since 2019. It may be complete." },
+      ],
+      counts: { roads: 2, underConstruction: 1, awaitingDevelopment: 0, mayBeFinished: 1 },
+    });
+    await renderPanel();
+    await waitFor(() => expect(screen.getByText("Metro Phase 2")).toBeTruthy());
+    expect(screen.getByText("Railway or metro under construction", { exact: false })).toBeTruthy();
+    expect(screen.getByText("Not updated on the map since 2019. It may be complete.")).toBeTruthy();
+    expect(screen.getByText("may be finished")).toBeTruthy();
+  });
+
+  it("says when the map server cut its answer short, and offers to ask again", async () => {
+    setLocation();
+    fetchSite.mockResolvedValue({ ...RESULT, incomplete: true });
+    await renderPanel();
+    await waitFor(() => expect(screen.getByText(/answer was cut short/)).toBeTruthy());
+    expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy();
+  });
+});
+
