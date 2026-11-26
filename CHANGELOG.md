@@ -1,5 +1,30 @@
 # Changelog
 
+## v3.6.2 (unreleased, branch property-reliability)
+
+Reported 26 November 2026, evening: a building beside NH163 still read
+Unknown, and a tap on the ground nearby "sometimes works" while a tap on
+the building does not.
+
+### Fixed
+- Shops, offices and clinics mapped inside a building were never found on
+  the live site: the lookup asked for them without their positions, so
+  none could be placed inside anything. "Commercial, from the businesses
+  inside it" now works.
+- An answer the map server cut short is now said to be one, with Try
+  again, and no browser keeps it. It used to be kept for an hour, so a
+  building read from a partial answer stayed wrong however often it was
+  tapped.
+- The land search is lighter (300 m and 150 m, from 500 m and 200 m), and
+  large unnamed land-use zones are also found through the area index on
+  servers that support it.
+
+### Changed
+- A tap on a building that says nothing about itself now gives the same
+  neighbourhood reading a tap beside it gives, as a guess held at 35% at
+  most (40% for open ground), and lists the nearest mapped places with
+  their distances.
+
 ## v3.6.1 (unreleased, branch property-land-use)
 
 Reported with screenshots on 26 November 2026: in Abids (Hyderabad) two

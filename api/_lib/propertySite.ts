@@ -1,5 +1,5 @@
 import type { OverpassElement } from "./overpass.js";
-import { closeRing, distanceToRingM, pointInPolygon, relationPolygons, ringAreaM2, type LonLat, type PolygonRings } from "./geometry.js";
+import { closeRing, distanceToRingM, metresBetween, pointInPolygon, relationPolygons, ringAreaM2, type LonLat, type PolygonRings } from "./geometry.js";
 import type { PropertySite, SiteBuilding, SiteFeature } from "../../src/types/gis.js";
 
 /**
@@ -41,11 +41,18 @@ const SITE_KEYS = "amenity|leisure|tourism|office|shop|healthcare|aeroway|milita
   How far land outlines are fetched, so the one the point is inside can be
   found by geometry. A land-use zone is usually a block or a neighbourhood:
   the residential zone around Abids that prompted this is 0.8 x 0.9 km, and
-  its edge is within 500 m of anywhere inside it. Sites (a school, a park)
-  are smaller. Larger zones are found by the area index when they are named.
+  the Abids buildings are about 150 m from its edge. Sites (a school, a
+  park) are smaller. Larger zones come from the area index: named ones on
+  every server, and unnamed closed ways on servers that index them too.
+
+  300 and 150, down from 500 and 200 (26 November 2026, evening): a wider
+  search costs every lookup, and on a day the public servers were already
+  overloaded the property lookup had become the one that failed.
 */
-export const LANDUSE_SEARCH_RADIUS_M = 500;
-export const SITE_AREA_SEARCH_RADIUS_M = 200;
+export const LANDUSE_SEARCH_RADIUS_M = 300;
+export const SITE_AREA_SEARCH_RADIUS_M = 150;
+/** How many of the nearest mapped places to name as context when the building says nothing itself. */
+export const NEARBY_PLACES_MAX = 3;
 
 export function buildPropertySiteQuery(lat: number, lon: number, radius = SITE_SEARCH_RADIUS_M): string {
   const at = `${lat},${lon}`;
@@ -63,6 +70,18 @@ export function buildPropertySiteQuery(lat: number, lon: number, radius = SITE_S
     like the buildings. Named zones too large for that reach still come from
     the index.
   */
+  /*
+    Businesses are printed with plain `out`, not `out tags`. "All output
+    modes except out ids and out tags include the coordinates of the nodes"
+    (Overpass API manual), and with `out tags` every business came back with
+    no position, so none could ever be found inside a building: the "shops
+    or offices mapped inside it" reading never fired on the live site.
+
+    `way.a` after `is_in`: servers since Overpass 0.7.57 also return the
+    closed ways that contain the point, unnamed ones included, which finds
+    land-use zones of any size cheaply. Servers that do not simply return
+    none, and the outline search above still covers the zone.
+  */
   return `
     [out:json][timeout:20];
     way(around:${radius},${at})[building];
@@ -70,7 +89,7 @@ export function buildPropertySiteQuery(lat: number, lon: number, radius = SITE_S
     relation(around:${radius},${at})[building];
     out geom;
     node(around:${radius},${at})[~"^(${BUSINESS_KEYS})$"~"."];
-    out tags;
+    out;
     way(around:${LANDUSE_SEARCH_RADIUS_M},${at})[landuse][!building];
     out geom;
     way(around:${SITE_AREA_SEARCH_RADIUS_M},${at})[~"^(${SITE_KEYS})$"~"."][!building];
@@ -78,6 +97,8 @@ export function buildPropertySiteQuery(lat: number, lon: number, radius = SITE_S
     is_in(${at})->.a;
     area.a[~"^(${AREA_KEYS})$"~"."];
     out tags;
+    way.a[~"^(landuse|${SITE_KEYS})$"~"."][!building];
+    out geom;
   `;
 }
 
@@ -134,6 +155,17 @@ function isClosedWay(el: OverpassElement): boolean {
 
 const LAND_KEY = new RegExp(`^(landuse|${SITE_KEYS})$`);
 const sizeForSort = (areaM2: number | undefined) => areaM2 ?? Number.MAX_SAFE_INTEGER;
+
+/** The same element can come back from two parts of the query; keep the first. */
+function uniqueById(els: OverpassElement[]): OverpassElement[] {
+  const seen = new Set<string>();
+  return els.filter((el) => {
+    const key = `${el.type}/${el.id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 const isLandWay = (el: OverpassElement) =>
   el.type === "way" && !el.tags?.building && Object.keys(el.tags ?? {}).some((key) => LAND_KEY.test(key)) && isClosedWay(el);
 
@@ -217,8 +249,7 @@ export function extractSite(
     plot-sized one does. Then whatever the area index adds that the outlines
     did not already cover (named zones too big to fetch), size unknown.
   */
-  const outlined = elements
-    .filter(isLandWay)
+  const outlined = uniqueById(elements.filter(isLandWay))
     .map((el) => ({ el, polygons: footprintOf(el) }))
     .filter((c) => c.polygons.some((p) => pointInPolygon(pt, p)))
     .map((c) => ({
@@ -242,12 +273,39 @@ export function extractSite(
       ...(a.areaM2 !== undefined ? { areaM2: a.areaM2 } : {}),
     }));
 
+  /*
+    The nearest mapped places that are not inside the building, as context:
+    when the building says nothing itself, "a fuel station 47 m away and a
+    supermarket 90 m away" is more use to someone checking it than a count
+    of what lies within 250 m. Named places, or shops, offices, workshops and
+    clinics without a name; not benches or bins.
+  */
+  const insideIds = new Set(inside.map((f) => f.id));
+  const nearby: Array<SiteFeature & { distanceMeters: number }> = uniqueById(
+    elements.filter((el) => el.type === "node" && el.lat !== undefined && el.lon !== undefined && !insideIds.has(el.id))
+  )
+    .filter((el) => {
+      const t = el.tags ?? {};
+      return Boolean(t.name || t.shop || t.office || t.craft || t.healthcare);
+    })
+    .map((el) => ({ el, d: metresBetween(pt, [el.lon!, el.lat!]) }))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, NEARBY_PLACES_MAX)
+    .map(({ el, d }) => ({
+      osmType: "node" as const,
+      id: el.id,
+      url: osmUrl("node", el.id),
+      tags: keep(el.tags, KEEP_FEATURE_TAG),
+      distanceMeters: Math.round(d),
+    }));
+
   return {
     lat: point.lat,
     lon: point.lon,
     building,
     inside,
     areas,
+    ...(nearby.length ? { nearby } : {}),
     source: "OpenStreetMap / Overpass",
     dataAsOf: meta.dataAsOf,
     fetchedAt: meta.fetchedAt,
