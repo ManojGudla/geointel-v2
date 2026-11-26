@@ -20,7 +20,12 @@ import { INFO_PATHS } from "../../src/seo/infoPaths";
  * are the ones that keep these pages honest and distinct.
  */
 
-vi.mock("../../src/services/intel", () => ({ fetchNearby: vi.fn(async () => []) }));
+/* Ground height rides on the weather answer. Kochi's is left out, as Open-Meteo
+   might, to check the page says "Unavailable" rather than showing 0 m. */
+vi.mock("../../src/services/intel", () => ({
+  fetchNearby: vi.fn(async () => []),
+  fetchWeather: vi.fn(async (lat: number) => (lat < 10 ? { source: "Open-Meteo" } : { elevationM: 541.6, source: "Open-Meteo" })),
+}));
 vi.mock("../../src/services/live", () => ({ fetchAirQuality: vi.fn(async () => ({ europeanAqi: null })) }));
 vi.mock("../../src/services/apiClient", () => ({
   apiGet: vi.fn(async () => ({ population: null })),
@@ -86,6 +91,19 @@ describe("the city data itself", () => {
     // The specific shape that was wrong, banned by name so it cannot return.
     for (const c of CITIES) {
       expect(c.summary, c.slug).not.toMatch(/^Explore .+ on an interactive map and ask questions about any part of it/);
+    }
+  });
+
+  it("keeps every city's title and description inside what a result shows", async () => {
+    // Descriptions used to have a second sentence appended that took them to
+    // 244-263 characters; nobody ever saw it, because results cut at about
+    // 160. Titles went past 60 with the full brand on the end.
+    const { cityMeta } = await import("../../src/seo/routeMeta");
+    for (const c of CITIES) {
+      const meta = cityMeta(c);
+      expect(meta.title.length, c.slug).toBeLessThanOrEqual(60);
+      expect(meta.title.startsWith(c.name), c.slug).toBe(true);
+      expect(meta.description, c.slug).toBe(c.summary);
     }
   });
 
@@ -276,5 +294,29 @@ describe("a rendered city page", () => {
     for (const c of CITIES.filter((c) => c.slug !== "pune")) {
       expect(hrefs, c.slug).toContain(`/maps/${c.slug}`);
     }
+  });
+  it("shows the ground height near the centre, with its source", async () => {
+    await renderCity("hyderabad");
+    expect(await screen.findByText("542 m")).toBeTruthy();
+    expect(document.body.textContent).toContain("Copernicus 90 m elevation model, via Open-Meteo");
+  });
+
+  it("says the height is unavailable rather than inventing one", async () => {
+    await renderCity("kochi");
+    const label = await screen.findByText("Ground height");
+    await screen.findAllByText("Unavailable");
+    expect(label.parentElement!.textContent).toContain("Unavailable");
+    expect(label.parentElement!.textContent).not.toMatch(/\d m\b/);
+  });
+
+  it("links the tools, opened at the city, and the pages that explain them", async () => {
+    const { cityToolLinks } = await import("../../src/seo/routeMeta");
+    await renderCity("indore");
+    const hrefs = [...document.querySelectorAll<HTMLAnchorElement>("a")].map((a) => a.getAttribute("href"));
+    for (const tool of cityToolLinks(CITY_BY_SLUG.get("indore")!)) {
+      expect(hrefs).toContain(tool.href);
+      expect(hrefs).toContain(tool.guide);
+    }
+    expect(screen.getByRole("heading", { level: 2, name: "Tools to use in Indore" })).toBeTruthy();
   });
 });

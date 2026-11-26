@@ -90,6 +90,21 @@ function InfoPageView({ page }: { page: InfoPageData }) {
           </section>
         ))}
 
+        {/* Always open, as plain headings and paragraphs: the same markup the
+            static HTML carries, and what the page's FAQPage structured data
+            describes, so every answer it claims is one a visitor can read. */}
+        {page.faq && (
+          <section className="info__section info__faq" aria-labelledby="info-faq">
+            <h2 id="info-faq">{page.faq.heading}</h2>
+            {page.faq.items.map((item) => (
+              <div key={item.q} className="info__faq-item">
+                <h3>{item.q}</h3>
+                <p>{item.a}</p>
+              </div>
+            ))}
+          </section>
+        )}
+
         <section className="info__section info__limits">
           <h2>What it cannot tell you</h2>
           <ul>
