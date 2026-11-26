@@ -549,9 +549,24 @@
     max-width: calc(100% - 16px);
   }
 
+  /* Sized to the screen so the six balls of the over still fit beside the
+     score on the narrowest phones (they were cut off at 390px). */
   .cp-tv > div {
-    padding: 6px 8px;
+    padding: 6px clamp(5px, 1.6vw, 8px);
     gap: 5px;
+  }
+
+  .cp-tv__over {
+    gap: clamp(2px, 0.8vw, 4px) !important;
+  }
+
+  .cp-streak {
+    top: 50px;
+    right: 8px;
+  }
+
+  .cp-freehit {
+    top: 46px;
   }
 
   .cp-tv__bat strong {
@@ -563,9 +578,9 @@
   }
 
   .cp-ball {
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
+    width: clamp(14px, 4vw, 18px);
+    height: clamp(14px, 4vw, 18px);
+    font-size: clamp(9px, 2.4vw, 10px);
   }
 
   .cp-controls {
@@ -654,32 +669,6 @@
   }
   to {
     transform: translateX(-50%) scale(1.06);
-  }
-}
-
-/* The smallest phones: the six balls of the over have to fit beside the score. */
-@media (max-width: 420px) {
-  .cp-tv > div {
-    padding: 5px 6px;
-  }
-
-  .cp-tv__over {
-    gap: 3px !important;
-  }
-
-  .cp-ball {
-    width: 15px;
-    height: 15px;
-    font-size: 9px;
-  }
-
-  .cp-streak {
-    top: 50px;
-    right: 8px;
-  }
-
-  .cp-freehit {
-    top: 46px;
   }
 }
 
