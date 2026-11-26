@@ -66,7 +66,7 @@ export function PropertyIntelligencePanel() {
           </button>
         </p>
       )}
-      <PropertyResult analysis={analysis} dataAsOf={site.data?.dataAsOf ?? null} />
+      <PropertyResult analysis={analysis} dataAsOf={site.data?.dataAsOf ?? null} point={{ lat: location.lat, lon: location.lon }} />
     </div>
   );
 }
@@ -77,8 +77,38 @@ function heightText(analysis: PropertyAnalysis): string {
   return b.heightSource === "mapped" ? `${b.heightMeters} m (as mapped)` : `About ${b.heightMeters} m (${b.levels} floors × 3.2 m)`;
 }
 
-export function PropertyResult({ analysis, dataAsOf }: { analysis: PropertyAnalysis; dataAsOf: string | null }) {
+/** OpenStreetMap's editor, opened on this building: "https://www.openstreetmap.org/way/1" -> ".../edit?way=1". */
+export function osmEditUrl(osmUrl: string): string | null {
+  const m = /^https:\/\/www\.openstreetmap\.org\/(way|relation)\/(\d+)$/.exec(osmUrl);
+  return m ? `https://www.openstreetmap.org/edit?${m[1]}=${m[2]}` : null;
+}
+
+/**
+ * Street-level photos of the point, to check by eye what the map cannot say.
+ * Mapillary, because its photos are openly licensed and may be used to add
+ * what they show to OpenStreetMap, which the link below this one invites.
+ */
+export const mapillaryUrl = (p: { lat: number; lon: number }) =>
+  `https://www.mapillary.com/app/?lat=${p.lat.toFixed(6)}&lng=${p.lon.toFixed(6)}&z=18`;
+
+export function PropertyResult({
+  analysis,
+  dataAsOf,
+  point,
+}: {
+  analysis: PropertyAnalysis;
+  dataAsOf: string | null;
+  /** The chosen point, for the street-photo link. */
+  point?: { lat: number; lon: number } | null;
+}) {
   const b = analysis.building;
+  /*
+    When nothing on the map says what this building is for (Unknown, or only
+    inferred from the land or its name), whoever knows can say so where it
+    counts: on OpenStreetMap, for everyone. Once added, the next lookup reads
+    it from the building itself, as Verified.
+  */
+  const editUrl = b && analysis.trust !== "verified" ? osmEditUrl(b.osmUrl) : null;
   // The building card says these two; the list keeps everything else.
   const lines = b ? analysis.evidence.filter((line) => !/^(Building|Height):/.test(line) && line !== analysis.surroundings) : analysis.evidence;
 
@@ -148,19 +178,36 @@ export function PropertyResult({ analysis, dataAsOf }: { analysis: PropertyAnaly
         </ul>
       )}
 
-      {analysis.links && analysis.links.length > 0 && (
+      {((analysis.links && analysis.links.length > 0) || point) && (
         <div className="property-panel__check">
           <span>Check it yourself:</span>
           <ul>
-            {analysis.links.map((link) => (
+            {analysis.links?.map((link) => (
               <li key={link.url}>
                 <a href={link.url} target="_blank" rel="noopener noreferrer">
                   {link.label} ↗
                 </a>
               </li>
             ))}
+            {point && (
+              <li>
+                <a href={mapillaryUrl(point)} target="_blank" rel="noopener noreferrer">
+                  Street photos of this spot on Mapillary ↗
+                </a>
+              </li>
+            )}
           </ul>
         </div>
+      )}
+
+      {editUrl && (
+        <p className="property-panel__edit">
+          Know what this building is used for?{" "}
+          <a href={editUrl} target="_blank" rel="noopener noreferrer">
+            Add it on OpenStreetMap ↗
+          </a>{" "}
+          (a free account). The next lookup reads it from the building itself, usually within the hour.
+        </p>
       )}
 
       {analysis.surroundings && <p className="property-panel__surroundings">{analysis.surroundings}</p>}
@@ -173,9 +220,11 @@ export function PropertyResult({ analysis, dataAsOf }: { analysis: PropertyAnaly
         </p>
         <p>
           Strongest first: the building's own type (for example an office building or an apartment building) and any
-          business tagged on it, 90%; businesses mapped inside it, 80%; the land or campus it stands on, 60 to 70%; a
-          telling word in its name, 45%. Homes with shops or offices mapped inside are Mixed Use. A tap next to a wall
-          rather than inside it counts 15 points less.
+          business tagged on it, 90%; businesses mapped inside it, 80%; the land or campus it stands on, 60 to 70%, or
+          50% when that land is drawn as one large zone over a whole neighbourhood; a telling word in its name, 45%.
+          Homes with shops or offices mapped inside are Mixed Use. A tap next to a wall rather than inside it counts 15
+          points less. Where there is no building, the land itself is read: a park or a sports ground is Open Space,
+          farmland is Agricultural.
         </p>
         <p>
           Verified means OpenStreetMap says it about this building. Inferred means it was worked out from the land or

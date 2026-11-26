@@ -99,6 +99,10 @@ export type PropertyClassification =
   | "Mixed Use"
   | "Transport"
   | "Landmark"
+  /** Farmland, orchards, farmyards: land mapped for growing or keeping animals. */
+  | "Agricultural"
+  /** Parks, gardens, playgrounds, sports grounds, woods and grassland: land kept open. */
+  | "Open Space"
   | "Unknown";
 
 /** An OpenStreetMap object an answer rests on, with the link to check it. */
@@ -124,6 +128,8 @@ export interface SiteBuilding extends OsmRef {
 /** A business or facility mapped inside the building's footprint, or an area containing the point. */
 export interface SiteFeature extends OsmRef {
   tags: Record<string, string>;
+  /** For land read from its outline: how big it is, in square metres. Absent when only the area index knew of it. */
+  areaM2?: number;
 }
 
 /**

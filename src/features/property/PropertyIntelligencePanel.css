@@ -195,6 +195,16 @@
   overflow-wrap: anywhere;
 }
 
+.property-panel__edit {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.property-panel__edit a {
+  color: var(--color-brand-text);
+}
+
 .property-panel__surroundings {
   margin: 0 0 var(--space-3);
   font-size: var(--text-xs);
