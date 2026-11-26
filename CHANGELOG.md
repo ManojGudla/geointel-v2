@@ -1,5 +1,25 @@
 # Changelog
 
+## v3.6.1 (unreleased, branch property-land-use)
+
+Reported with screenshots on 26 November 2026: in Abids (Hyderabad) two
+buildings read "Unknown ... no land use around it", and a tap near
+Malakpet read "Nothing is mapped at this exact point".
+
+### Fixed
+- Property type now finds the land a building stands on even when that
+  land has no name, which is most land. Both Abids buildings are inside an
+  unnamed residential zone and now read Residential (inferred, 50%, because
+  the zone covers a whole neighbourhood); the Malakpet tap is inside
+  farmland and now reads Agricultural.
+
+### New
+- Parks, gardens, playgrounds and sports grounds read as Open Space, and
+  farmland and orchards as Agricultural, instead of Unknown.
+- When the map does not say what a building is used for, the panel links
+  straight to editing it on OpenStreetMap, and to street photos of the
+  spot on Mapillary to check by eye.
+
 ## v3.6 (unreleased, branch property-directions-seo)
 
 Reported: Directions did nothing from a list of found places; an office

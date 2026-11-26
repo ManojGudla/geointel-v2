@@ -56,4 +56,25 @@ describe("the Property panel", () => {
     const facts = within(screen.getByLabelText("The building at this point"));
     expect(facts.getAllByText("Not mapped")).toHaveLength(2);
   });
+
+  it("when the map does not say what a building is for, offers to add it on OpenStreetMap", () => {
+    const untagged = { ...SITE, building: { ...SITE.building!, id: 358752595, url: "https://www.openstreetmap.org/way/358752595", tags: { building: "yes" } } };
+    const analysis = analyzeProperty(null, untagged);
+    expect(analysis.classification).toBe("Unknown");
+    render(<PropertyResult analysis={analysis} dataAsOf={null} point={{ lat: 17.38342, lon: 78.46975 }} />);
+    const edit = screen.getByRole("link", { name: /Add it on OpenStreetMap/ });
+    expect(edit.getAttribute("href")).toBe("https://www.openstreetmap.org/edit?way=358752595");
+    expect(edit.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+
+  it("does not ask for what the map already says", () => {
+    render(<PropertyResult analysis={analyzeProperty(null, SITE)} dataAsOf={SITE.dataAsOf} point={{ lat: SITE.lat, lon: SITE.lon }} />);
+    expect(screen.queryByRole("link", { name: /Add it on OpenStreetMap/ })).toBeNull();
+  });
+
+  it("links street photos of the exact spot, to check by eye", () => {
+    render(<PropertyResult analysis={analyzeProperty(null, SITE)} dataAsOf={SITE.dataAsOf} point={{ lat: 17.419687, lon: 78.347545 }} />);
+    const photos = screen.getByRole("link", { name: /Street photos of this spot on Mapillary/ });
+    expect(photos.getAttribute("href")).toBe("https://www.mapillary.com/app/?lat=17.419687&lng=78.347545&z=18");
+  });
 });
