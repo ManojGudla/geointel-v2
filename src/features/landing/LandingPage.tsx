@@ -3,7 +3,9 @@ import maplibregl, { Map as MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { buildBasemapStyle } from "@/features/map/basemaps";
 import "./LandingPage.css";
-import { LANDING_META } from "@/seo/routeMeta";
+import { LANDING_META, LANDING_SCHEMA_ID, landingSchema } from "@/seo/routeMeta";
+import { LANDING_FAQ as FAQ, LANDING_FAQ_HEADING } from "@/seo/landingContent";
+import { useJsonLd } from "@/hooks/usePageMeta";
 
 /**
  * The page a stranger lands on.
@@ -213,34 +215,8 @@ const USES = [
   },
 ];
 
-/* Real questions people ask before trusting a tool like this, answered
-   honestly - including the places the answer is "no". */
-const FAQ = [
-  {
-    q: "Is it actually free, or free-for-now?",
-    a: "Free. There is no account, no trial clock and no paid tier today. It runs on free public data, which is what makes giving it away sustainable rather than a growth tactic.",
-  },
-  {
-    q: "What do you collect about me?",
-    a: "Nothing loads until you answer the banner. Say no and the site behaves exactly the same. No analytics, no error tracking, no third-party tags. You do not have to take that on trust: say no, then watch the network tab.",
-  },
-  {
-    q: "How accurate are the answers?",
-    a: "As accurate as the source it came from, which is exactly why the source is printed next to it. OpenStreetMap is mapped by volunteers and it is genuinely uneven between regions: dense in some cities, thin in others. Where a source has no figure, the app says so rather than estimating one.",
-  },
-  {
-    q: "Can I use this for work?",
-    a: "Yes. The answers come from open data, so check each source's own licence before you redistribute anything. OpenStreetMap is ODbL, and the imagery carries Esri's and NASA's terms.",
-  },
-  {
-    q: "Why not just use Google Maps?",
-    a: "Different job. Google Maps is navigation-first and will not tell you how many clinics sit inside a 2 km circle, or which source and year a population figure came from. This is built for counting, measuring and citing.",
-  },
-  {
-    q: "Does it work offline?",
-    a: "No. Every answer is a live query against a live source, which is the trade for never serving you a stale number without saying so.",
-  },
-];
+/* The questions and answers live in src/seo/landingContent.ts, shared with
+   the static HTML the build writes for this page and its structured data. */
 
 const STEPS = [
   { n: "01", t: "Drop a point", d: "Search a place, click the map, or use your location. Anywhere on Earth." },
@@ -491,38 +467,19 @@ function useScrollableDocument() {
 const PAGE_URL = LANDING_META.url;
 
 /*
-  FAQ structured data.
+  Structured data for this page: the page itself and its six questions.
 
-  index.html already carries a WebApplication block describing the app, but
-  nothing described this page's FAQ, and six genuine question-and-answer
-  pairs are exactly what schema.org/FAQPage is for. Google can surface them
-  as expandable questions directly under the search result, which costs
-  nothing here because the answers are already written and already visible
-  on the page, which is the condition Google sets for using them.
+  Built in src/seo/routeMeta.ts from the same list the FAQ section renders, so
+  the markup cannot drift from the visible text; claiming answers in
+  structured data that a visitor cannot find on the page is against Google's
+  rules. The build step writes the same block into this page's static HTML
+  under the same id, and useJsonLd adopts it instead of adding a second copy.
 
-  Built from the same FAQ array the section renders, so the markup cannot
-  drift from the visible text. Claiming answers in structured data that a
-  visitor cannot find on the page is a manual-action offence, and generating
-  both from one source is what makes that impossible rather than unlikely.
+  Google stopped showing FAQ rich results on 7 May 2026, so this no longer
+  changes how the result looks there. It is still an accurate description of
+  the page for any other reader of schema.org, and costs nothing.
 */
-function useFaqSchema() {
-  useEffect(() => {
-    const el = document.createElement("script");
-    el.type = "application/ld+json";
-    el.dataset.landingFaq = "true";
-    el.textContent = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: FAQ.map((f) => ({
-        "@type": "Question",
-        name: f.q,
-        acceptedAnswer: { "@type": "Answer", text: f.a },
-      })),
-    });
-    document.head.appendChild(el);
-    return () => el.remove();
-  }, []);
-}
+const LANDING_SCHEMA = landingSchema();
 
 function useDocumentMeta() {
   useEffect(() => {
@@ -638,7 +595,7 @@ export function LandingPage() {
   useScrollableDocument();
   useDisplayFonts();
   useDocumentMeta();
-  useFaqSchema();
+  useJsonLd(LANDING_SCHEMA, LANDING_SCHEMA_ID);
 
   /* The bar starts transparent over the map - putting a solid strip across
      a satellite photograph would waste the one thing the hero is for - and
@@ -870,10 +827,15 @@ export function LandingPage() {
               Live satellite map. Drag it.
             </p>
 
+            {/* "AI map search" leads because it is the phrase people search for and
+                the page's title; "with sources" is the claim the product rests on.
+                Two lines at full width, like the heading it replaced ("A map that
+                cites its sources."); the longer "AI map search that cites its
+                sources." took three. */}
             <h1 className="ln-h1">
-              A map that cites
+              AI map search
               <br />
-              its sources.
+              with sources.
             </h1>
 
             <p className="ln-sub">
@@ -1136,7 +1098,7 @@ export function LandingPage() {
       <section className="ln-faq" id="faq">
         <div className="ln-wrap">
           <p className="ln-kicker">Straight answers</p>
-          <h2 className="ln-h2 ln-h2--wide">The questions worth asking before you trust it.</h2>
+          <h2 className="ln-h2 ln-h2--wide">{LANDING_FAQ_HEADING}</h2>
           <div className="ln-faqlist">
             {FAQ.map((f) => (
               <details key={f.q} className="ln-faqitem">

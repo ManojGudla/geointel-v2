@@ -52,6 +52,13 @@ interface OpenMeteoResponse {
   */
   timezone?: string;
   timezone_abbreviation?: string;
+  /*
+    Ground height of the queried point in metres above sea level, which
+    Open-Meteo returns with every forecast: "the elevation from a 90 meter
+    digital elevation model", the Copernicus DEM GLO-90. It was discarded the
+    same way the timezone once was; the city pages now show it.
+  */
+  elevation?: number;
   current?: {
     temperature_2m: number;
     apparent_temperature: number;
@@ -139,6 +146,8 @@ const handler: ApiHandler = async (req, res) => {
       // The point's own timezone, not the reader's. See OpenMeteoResponse.
       timezone: data.timezone,
       timezoneAbbreviation: data.timezone_abbreviation,
+      // Left out, not zeroed, when absent: 0 m is a real height (the coast).
+      ...(typeof data.elevation === "number" && Number.isFinite(data.elevation) ? { elevationM: data.elevation } : {}),
       source: "Open-Meteo",
       fetchedAt,
     },

@@ -25,6 +25,20 @@ export interface InfoSection {
   bullets?: string[];
 }
 
+/**
+ * Questions and answers shown on the page.
+ *
+ * The same items become the page's FAQPage structured data (routeMeta.ts
+ * infoSchema), so the markup can only ever say what a visitor can read.
+ * Every answer has to be true of the app as it is: if a question can only be
+ * answered with "soon", it does not go here.
+ */
+export interface InfoFaq {
+  /** The section heading, written for this page rather than a bare "FAQ". */
+  heading: string;
+  items: Array<{ q: string; a: string }>;
+}
+
 export interface InfoPage {
   path: string;
   group: "Report" | "Tools" | "Solutions";
@@ -37,6 +51,7 @@ export interface InfoPage {
   /** Opens the app at a real place with this page's feature already running. */
   examples: Array<{ label: string; href: string }>;
   sections: InfoSection[];
+  faq?: InfoFaq;
   /** What this cannot tell you. Every page has one; it is why the rest can be trusted. */
   limits: string[];
   related: string[];
@@ -62,11 +77,11 @@ export const INFO_PAGES: InfoPage[] = [
     path: "/area-report",
     group: "Report",
     nav: "Area report",
-    title: "Free Area Report for Any Address in India | maNOWj",
+    title: "Free Neighbourhood & Locality Report by Address | maNOWj",
     description:
-      "Hospitals, schools, transit and daily needs around any address, with distances and sources. Print it or save it as a PDF. Free, no sign-up.",
-    h1: "Free area report for any address",
-    lead: "Pick an address and get a short report on what is around it: hospitals, schools, public transport, shops and more, each with a distance and the source it came from. It prints on paper or saves as a PDF.",
+      "Free neighbourhood report for any address: hospitals, schools, transit and shops nearby, with distances and sources. Print it or save a PDF. No sign-up.",
+    h1: "Free neighbourhood and locality report for any address",
+    lead: "Pick an address and get a short area report on the neighbourhood around it: hospitals, schools, public transport, shops and more, each with a distance and the source it came from. It prints on paper or saves as a PDF.",
     examples: [
       { label: "Gachibowli, Hyderabad", href: open(GACHIBOWLI.lat, GACHIBOWLI.lon, 15, "r=1000&s=place&t=evidence") },
       { label: "Koramangala, Bengaluru", href: open(KORAMANGALA.lat, KORAMANGALA.lon, 15, "r=1000&s=place&t=evidence") },
@@ -74,7 +89,7 @@ export const INFO_PAGES: InfoPage[] = [
     ],
     sections: [
       {
-        heading: "How to get a report",
+        heading: "How to get a neighbourhood report",
         steps: [
           "Search for an address, a locality or a landmark, or tap any point on the map.",
           "Choose how far to look, from 100 m to 5 km. The default is 250 m; 1 km is a good choice for a neighbourhood.",
@@ -83,11 +98,11 @@ export const INFO_PAGES: InfoPage[] = [
         ],
       },
       {
-        heading: "What the report contains",
+        heading: "What the locality report contains",
         bullets: [
           "The address and its coordinates.",
           "Counts of mapped places within your chosen distance, such as hospitals, schools, shops, banks, parks and public transport stops.",
-          "What kind of area it is, judged from the mapped buildings and land use around the point.",
+          "What the building at the point is used for, such as homes, offices, shops or a mix, read from its map record, with a link to check it yourself.",
           "Any analysis you ran, for example the nearest hospital or every school within 2 km.",
           "Current weather and air quality.",
           "The source and date of every figure.",
@@ -101,6 +116,31 @@ export const INFO_PAGES: InfoPage[] = [
       },
       { heading: "Where the data comes from", paragraphs: [SOURCES_LINE] },
     ],
+    faq: {
+      heading: "Questions about the neighbourhood report",
+      items: [
+        {
+          q: "Is the neighbourhood report really free?",
+          a: "Yes. There is no account, no trial and no paid tier. Pick a place, press Report, and print it or save it as a PDF.",
+        },
+        {
+          q: "Does it work for any address?",
+          a: "It works for any address, locality or point the map can find, anywhere in the world. It is most detailed in large cities, where OpenStreetMap volunteers have mapped the most.",
+        },
+        {
+          q: "How far around the address does it look?",
+          a: "As far as you choose, from 100 m to 5 km. The default is 250 m, and 1 km is a good size for a neighbourhood.",
+        },
+        {
+          q: "Where do the figures come from?",
+          a: "Places come from OpenStreetMap, weather and air quality from Open-Meteo, and population from Wikidata. Every figure in the report names its source and the date it applies to.",
+        },
+        {
+          q: "Can I use it for a property listing?",
+          a: "Yes. Agents attach it to a listing as a 'what is nearby' page. It has no prices, rents or legal checks, so use RERA and the land records for those.",
+        },
+      ],
+    },
     limits: [
       "It does not include property prices, rents, crime figures or the legal status of a property. Check RERA and the local land records for those.",
       "OpenStreetMap is built by volunteers. Coverage is very good in large cities and thinner in small towns, so a low count can mean 'not mapped yet' as well as 'not there'.",
@@ -111,10 +151,17 @@ export const INFO_PAGES: InfoPage[] = [
     path: "/tools/radius-search",
     group: "Tools",
     nav: "Radius search",
-    title: "Radius Search: Count Places Within a Distance | maNOWj",
+    /*
+      No "| maNOWj" on this one, and only this one. The wording asked for was
+      "Free Map Radius Tool: Count Hospitals, Schools & Amenities | maNOWj",
+      67 characters, and a result shows about 60 before it cuts the rest to
+      "...". Every word before the brand is a search term; the brand is not,
+      and Google prints the site's name above the title in any case.
+    */
+    title: "Free Map Radius Tool: Count Hospitals, Schools & Amenities",
     description:
-      "Count hospitals, schools, shops, ATMs or transit stops within any distance of any point, from 100 m to 5 km. Free map tool with CSV and GeoJSON download.",
-    h1: "Count places within a radius of any point",
+      "Free map radius tool: count hospitals, schools, ATMs, shops and other amenities within 100 m to 5 km of any point, then download the list as CSV or GeoJSON.",
+    h1: "Free map radius tool: count hospitals, schools and amenities near any point",
     lead: "Choose a point and a distance, and see how many hospitals, schools, shops, ATMs or transit stops fall inside the circle, listed nearest first. Download the list as CSV or GeoJSON.",
     examples: [
       { label: "Hospitals within 5 km of HITEC City", href: open(HITEC_CITY.lat, HITEC_CITY.lon, 13, "q=hospitals+within+5+km") },
@@ -123,7 +170,7 @@ export const INFO_PAGES: InfoPage[] = [
     ],
     sections: [
       {
-        heading: "How to use it",
+        heading: "How to use the radius tool",
         steps: [
           "Search for a place or tap the map to choose the centre point.",
           "Type a question in the search box in plain words, such as 'hospitals within 2 km' or 'schools within 1 km', or open Analyse and pick a category and a distance.",
@@ -132,7 +179,7 @@ export const INFO_PAGES: InfoPage[] = [
         ],
       },
       {
-        heading: "What you can count",
+        heading: "Amenities you can count",
         paragraphs: [
           "Hospitals and clinics, schools, pharmacies, police stations, banks, ATMs, fuel stations, restaurants, cafés, hotels, shops, parks and public transport stops.",
         ],
@@ -147,6 +194,31 @@ export const INFO_PAGES: InfoPage[] = [
       },
       { heading: "Where the data comes from", paragraphs: [SOURCES_LINE] },
     ],
+    faq: {
+      heading: "Questions about the radius tool",
+      items: [
+        {
+          q: "What is the largest radius I can search?",
+          a: "5 km. The smallest is 100 m, and 1 km is a good size for a neighbourhood.",
+        },
+        {
+          q: "Are the distances walking or driving distances?",
+          a: "No. They are straight lines from your point, the same as the circle on the map. Tap a place in the list to get directions and a real route to it.",
+        },
+        {
+          q: "Can I download the places it finds?",
+          a: "Yes. Press CSV or GeoJSON under the list. CSV opens in Excel or Google Sheets, and GeoJSON opens in QGIS, ArcGIS or geojson.io.",
+        },
+        {
+          q: "Why is the count lower than I expected?",
+          a: "It counts places mapped in OpenStreetMap, which volunteers edit. Large cities are well mapped, but in smaller towns some places may not be on the map yet.",
+        },
+        {
+          q: "Does it cost anything?",
+          a: "No. The radius tool is free and needs no account.",
+        },
+      ],
+    },
     limits: [
       "Distances are straight lines from your point, not walking or driving distances. Use Directions for a route.",
       "The largest radius is 5 km.",
@@ -158,18 +230,18 @@ export const INFO_PAGES: InfoPage[] = [
     path: "/tools/measure-area",
     group: "Tools",
     nav: "Measure distance and area",
-    title: "Measure Distance and Area on a Map, Free | maNOWj",
+    title: "Measure Land Area & Distance on Satellite Map | maNOWj",
     description:
-      "Draw on the map to measure a distance or the area of a plot, on street or satellite view. Drag any point to adjust. Free, no sign-up, works on phones.",
-    h1: "Measure a distance or an area on the map",
-    lead: "Tap points on the map to measure how far apart two places are, or draw around a plot, a lake or a campus to get its area. It works on the satellite view, so you can trace what you can see.",
+      "Measure land area and distance on a satellite map. Tap around a plot, field or lake to read its area, and drag any point to adjust. Free, and works on phones.",
+    h1: "Measure land area and distance on a satellite map",
+    lead: "Tap points on the map to measure how far apart two places are, or draw around a plot, a field, a lake or a campus to get its area. It works on the satellite view, so you can trace what you can see.",
     examples: [
       { label: "Open the measuring tools in Hyderabad", href: open(17.385, 78.4867, 15, "s=tools") },
       { label: "Measure on satellite view at Hussain Sagar", href: open(HUSSAIN_SAGAR.lat, HUSSAIN_SAGAR.lon, 14, "map=satellite&s=tools") },
     ],
     sections: [
       {
-        heading: "How to measure",
+        heading: "How to measure a plot or a distance",
         steps: [
           "Press Measure under the search box.",
           "Choose distance or area.",
@@ -178,7 +250,7 @@ export const INFO_PAGES: InfoPage[] = [
         ],
       },
       {
-        heading: "Tips for a better measurement",
+        heading: "Tips for an accurate land measurement",
         bullets: [
           "Switch to Satellite in the bottom corner to trace real boundaries such as walls, fields and water.",
           "Zoom in before placing points. A point placed at city zoom can be tens of metres off.",
@@ -186,6 +258,27 @@ export const INFO_PAGES: InfoPage[] = [
         ],
       },
     ],
+    faq: {
+      heading: "Questions about measuring land area",
+      items: [
+        {
+          q: "Can I measure the area of a plot of land?",
+          a: "Yes. Press Measure, choose area, switch to Satellite and tap around the edge of the plot. The area updates with every point, and you can drag a point to correct it.",
+        },
+        {
+          q: "Which units does it show?",
+          a: "In metric it shows square metres, hectares or square kilometres, and metres or kilometres for distances. Choose Imperial under Distance units in Settings to see square feet, acres or square miles instead.",
+        },
+        {
+          q: "Is it accurate enough for registration or a legal boundary?",
+          a: "No. It is a map measurement, not a land survey, and satellite images can be offset by a few metres. Use a licensed surveyor for anything legal.",
+        },
+        {
+          q: "Does it work on a phone?",
+          a: "Yes. Tap the map to add points, and drag a point to move it.",
+        },
+      ],
+    },
     limits: [
       "This is a map measurement, not a land survey. Satellite images can be offset by a few metres, so do not use the result for legal boundaries or registration.",
       "Measurements are along the ground as seen from above and do not account for slopes.",
@@ -195,24 +288,34 @@ export const INFO_PAGES: InfoPage[] = [
   {
     path: "/tools/satellite-history",
     group: "Tools",
-    nav: "Satellite imagery by year",
-    title: "Satellite Imagery by Year, with Capture Dates | maNOWj",
+    nav: "Historical satellite imagery",
+    title: "Free Historical Satellite Imagery & Capture Dates | maNOWj",
+    /*
+      This page used to describe only NASA's 250 m imagery, written before
+      the sharp past versions (Esri World Imagery Wayback) were added to the
+      app. Everything below is checked against features/timeline: the toggle
+      is "Historical imagery" under Time travel, the two sources are "Sharp,
+      since 2014" and "NASA daily, since 2012", and NASA's slider has one
+      view a year (15 February, the clearest month over much of South Asia)
+      plus the latest day.
+    */
     description:
-      "See any place from above, check when the image was taken, and look back through NASA imagery to 2012 to watch lakes, green cover and cities change.",
-    h1: "See any place by satellite, and how it has changed",
-    lead: "Switch any location to satellite view and see when the image was captured. Then step back through NASA's imagery to 2012 to watch lakes, coastlines, green cover and the edge of a city change.",
+      "Free historical satellite imagery of any place: sharp past versions about monthly since 2014, NASA views back to 2012, and capture dates where published.",
+    h1: "Free historical satellite imagery of any place, with dates",
+    lead: "Switch any place to satellite view and see when the current image was captured. Then step back through sharp past versions of the satellite map, about one a month since 2014, or NASA views back to 2012, to watch lakes, green cover, roads and new buildings change.",
     examples: [
       { label: "Hussain Sagar, Hyderabad, on satellite", href: open(HUSSAIN_SAGAR.lat, HUSSAIN_SAGAR.lon, 14, "map=satellite&s=layers") },
       { label: "HITEC City, Hyderabad, on satellite", href: open(HITEC_CITY.lat, HITEC_CITY.lon, 15, "map=satellite&s=layers") },
     ],
     sections: [
       {
-        heading: "How to use it",
+        heading: "How to see historical satellite imagery",
         steps: [
           "Search for a place or move the map to it.",
-          "Press Satellite in the bottom corner of the map.",
-          "The capture date of the image appears with the map controls, wherever the imagery provider publishes one.",
-          "To look back in time, open Layers, turn on Time travel and move the slider.",
+          "Press Satellite in the bottom corner of the map. The capture date of the image appears with the map controls, wherever the imagery provider publishes one.",
+          "Open Layers and, under Time travel, turn on Historical imagery.",
+          "Choose 'Sharp, since 2014' for past versions of the satellite map, or 'NASA daily, since 2012' for wide views of how a whole area has changed.",
+          "Move the slider to step through the dates, and use Blend with current map to compare a past version with today's.",
         ],
       },
       {
@@ -222,14 +325,36 @@ export const INFO_PAGES: InfoPage[] = [
         ],
       },
       {
-        heading: "Where the imagery comes from",
+        heading: "Where the historical imagery comes from",
         paragraphs: [
-          "The current high-resolution view is Esri World Imagery. The time slider uses NASA's public daily imagery (GIBS, from the MODIS Terra satellite).",
+          "The current view is Esri World Imagery. The sharp past versions are Esri World Imagery Wayback, each labelled with the date Esri published it. The wide views are NASA's public GIBS imagery from the MODIS sensor on the Terra satellite, at 250 m per pixel.",
         ],
       },
     ],
+    faq: {
+      heading: "Questions about historical satellite imagery",
+      items: [
+        {
+          q: "How far back does the satellite history go?",
+          a: "The sharp past versions of the satellite map go back to 2014, about one a month. NASA's wide views go back to 2012, one for each year, and are much less detailed.",
+        },
+        {
+          q: "Is the date shown the day the photo was taken?",
+          a: "For the current view, yes, wherever Esri publishes a capture date. A sharp past version is labelled with the date Esri published it, and its photos were taken on or before that date. Each NASA view is from the day shown on the slider.",
+        },
+        {
+          q: "Can I see individual buildings in old images?",
+          a: "In the sharp past versions, usually yes: they are detailed enough for buildings and streets in most cities. NASA's views are 250 m per pixel, so they show lakes, coastlines, green cover and the spread of a city, not single buildings.",
+        },
+        {
+          q: "Is it free?",
+          a: "Yes. It needs no account, and the imagery carries Esri's and NASA's own terms.",
+        },
+      ],
+    },
     limits: [
-      "The time slider's imagery is 250 m per pixel. It shows reservoirs, coastlines, vegetation and large-scale growth well. It does not show individual buildings or streets.",
+      "A sharp past version is labelled with the date Esri published it, not the date its photos were taken. Two versions can show the same photo where nothing new was flown.",
+      "NASA's views are 250 m per pixel. They show reservoirs, coastlines, vegetation and large-scale growth well. They do not show individual buildings or streets.",
       "Esri does not publish a capture date for every area. Where it does not, the app says the age of the image is unknown.",
     ],
     related: ["/tools/measure-area", "/solutions/urban-planning", "/area-report"],
@@ -329,7 +454,7 @@ export const INFO_PAGES: InfoPage[] = [
         bullets: [
           "Count schools, clinics, parks and transit stops within walking distance of any point, and download the result as GeoJSON or CSV.",
           "Find the nearest facility of a kind and its distance.",
-          "See large-scale change in water, vegetation and built-up area in NASA imagery back to 2012.",
+          "See how an area has changed in sharp past versions of the satellite map since 2014, and large-scale change in water, vegetation and built-up area in NASA imagery back to 2012.",
           "Read a city's population, area and density with the census year attached.",
           "Measure the length of a corridor or the area of a site by drawing on the map.",
         ],

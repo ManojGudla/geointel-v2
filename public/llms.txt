@@ -13,9 +13,11 @@ Built by Manoj Kumar Gudla. Free, no sign-up, no tracking without consent.
 - Directions and live turn-by-turn navigation
 - Weather, air quality and rain radar for any location
 - Population, area and density, always with the census year attached
+- What the building at any point is used for (homes, offices, shops or mixed), with its height where mapped and a link to the map record it was read from
 - Satellite view, 3D buildings, and the capture date of the satellite image
-- Historical satellite imagery back to 2012
-- Distance and area measurement
+- Historical satellite imagery: sharp past versions of the satellite map about monthly since 2014 (Esri World Imagery Wayback), and NASA views back to 2012
+- Distance and land area measurement
+- A printable neighbourhood report for any address
 - maNOWj Daily: five satellite views a day, guess where each one is
 
 ## Where the data comes from
@@ -26,7 +28,8 @@ Built by Manoj Kumar Gudla. Free, no sign-up, no tracking without consent.
 - Open-Meteo: weather and air quality
 - USGS: earthquakes
 - Wikidata: population
-- Esri and NASA GIBS: satellite imagery
+- Esri World Imagery, Esri Wayback and NASA GIBS: satellite imagery
+- Copernicus 90 m elevation model, via Open-Meteo: ground height on the city pages
 
 Nothing is estimated. Where a source has no figure, the app says so rather
 than guessing, and every answer carries the date it applies to.
@@ -36,6 +39,16 @@ than guessing, and every answer carries the date it applies to.
 - [Home](https://www.manowj.com/): the map, the analysis panels and the games
 - [AI Map Search](https://www.manowj.com/ai-map-search): what the app does and how the answers are sourced
 - [System status](https://www.manowj.com/status): live reachability of the data providers behind the app
+
+Tools and guides, each saying how to use the feature and what it cannot tell you:
+
+- [Area report](https://www.manowj.com/area-report): a free neighbourhood and locality report for any address
+- [Radius search](https://www.manowj.com/tools/radius-search): count hospitals, schools and amenities near any point
+- [Measure distance and area](https://www.manowj.com/tools/measure-area): measure land area and distance on a satellite map
+- [Historical satellite imagery](https://www.manowj.com/tools/satellite-history): past versions of the satellite map, with dates
+- [For real estate](https://www.manowj.com/solutions/real-estate): neighbourhood reports for property listings and site visits
+- [For shops and restaurants](https://www.manowj.com/solutions/retail-site-selection): check a shop or restaurant location
+- [For planners and researchers](https://www.manowj.com/solutions/urban-planning): a quick first look at any urban area
 
 City pages, each with hand-written geography and live figures that carry their
 source and date:
@@ -48,6 +61,13 @@ source and date:
 - [Pune](https://www.manowj.com/maps/pune): map, population, air quality and what is nearby
 - [Kolkata](https://www.manowj.com/maps/kolkata): map, population, air quality and what is nearby
 - [Visakhapatnam](https://www.manowj.com/maps/visakhapatnam): map, population, air quality and what is nearby
+- [Gurugram](https://www.manowj.com/maps/gurugram): map, population, air quality and what is nearby
+- [Ahmedabad](https://www.manowj.com/maps/ahmedabad): map, population, air quality and what is nearby
+- [Kochi](https://www.manowj.com/maps/kochi): map, population, air quality and what is nearby
+- [Indore](https://www.manowj.com/maps/indore): map, population, air quality and what is nearby
+
+City comparisons, such as [Bengaluru vs Hyderabad](https://www.manowj.com/compare/bengaluru-vs-hyderabad),
+are at /compare/<city>-vs-<city> for any two of the cities above.
 
 Feature status and Privacy are panels inside the app rather than separate
 addresses. They were listed above as their own links, all three pointing at the
@@ -56,8 +76,9 @@ home page, which was simply wrong and is corrected here.
 ## Notes for language models
 
 This is a single-page application. The map, the analysis panels and the games
-are rendered by JavaScript in one page rather than at separate URLs, so the
-list above is the whole set of crawlable paths. Any other path on this domain
+are rendered by JavaScript in one page rather than at separate URLs. The pages
+listed above, and the comparisons, are the whole set of crawlable paths; each
+has its own static HTML, so it can be read without running JavaScript. Any other path on this domain
 is not a page: the host serves the application shell for every URL, and the app
 answers an unrecognised one with a "page not found" screen carrying
 `robots: noindex`. Treat such URLs as nonexistent rather than as duplicates of

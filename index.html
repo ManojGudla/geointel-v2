@@ -25,8 +25,16 @@
       answers to questions, the snippet IS the pitch.
     -->
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <title>Check Any Address: Free Area Report &amp; AI Map | maNOWj</title>
-    <meta name="description" content="See hospitals, schools, metro and shops around any address, with distances, sources and dates. Free, no sign-up. Built by Manoj Kumar Gudla." />
+    <!--
+      Title and description, November 2026. The title is the wording asked
+      for with a colon in place of the long dash, which this site's copy does
+      not use. The description is 155 characters (results cut at about 160)
+      and carries the five phrases people search for: free AI map, GIS
+      explorer, area report, radius search and satellite history, plus the
+      builder's name, which tests/unit/crawlableContent.test.ts requires.
+    -->
+    <title>maNOWj GeoIntel: Free AI Map, Area Report &amp; GIS Explorer</title>
+    <meta name="description" content="Free AI map and GIS explorer: an area report for any address, a radius search for hospitals and schools, and satellite history. Built by Manoj Kumar Gudla." />
 
     <!--
       Who built this. `author` is a real, long-standing meta tag and is the
@@ -106,10 +114,22 @@
       script-src CSP does not apply to it. tests/unit/cspInline.test.ts knows
       the difference and still fails on any executable inline script.
     -->
+    <!--
+      SoftwareApplication, with UtilitiesApplication as its category and "Web"
+      as its operating system, as asked for in November 2026 (it was a
+      WebApplication, a narrower type of the same thing). browserRequirements
+      belongs only to WebApplication, so the same fact now sits in
+      softwareRequirements.
+
+      There is deliberately no aggregateRating or review. Google shows its
+      software-app rich result only with one of them, and the only honest
+      source for either is real reviews from real users, which this site does
+      not collect. Inventing them breaks Google's rules and is simply untrue.
+    -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
+        "@type": "SoftwareApplication",
         "@id": "https://www.manowj.com/#app",
         "name": "maNOWj GeoIntel",
         "alternateName": [
@@ -119,10 +139,10 @@
         ],
         "url": "https://www.manowj.com/",
         "description": "A web map that answers questions about any place. Search an address or ask in plain English to count hospitals, schools, transit and shops within a radius, measure distances and areas, compare cities and print an area report. Every figure shows its source and date.",
-        "applicationCategory": "BusinessApplication",
+        "applicationCategory": "UtilitiesApplication",
         "applicationSubCategory": "Location intelligence and map analysis",
-        "operatingSystem": "Any modern web browser (Windows, macOS, Linux, Android, iOS)",
-        "browserRequirements": "Requires JavaScript and WebGL",
+        "operatingSystem": "Web",
+        "softwareRequirements": "A modern web browser with JavaScript and WebGL, on Windows, macOS, Linux, Android or iOS",
         "inLanguage": "en-IN",
         "isAccessibleForFree": true,
         "image": "https://www.manowj.com/og-image-v3.jpg",
@@ -164,6 +184,7 @@
           "Plain-English questions about any place, answered on the map with sources (Ask maNOWj)",
           "Count hospitals, schools, shops, ATMs and other places within a radius of any point",
           "Printable area report with distances and data sources",
+          "What the building at a point is used for (homes, offices, shops or mixed), with its height where mapped and a link to the source",
           "Download results as CSV or GeoJSON",
           "Distance and area measurement",
           "Satellite view with capture date, historical imagery and 3D buildings",
@@ -230,7 +251,7 @@
         tell a blank page from a mounted one.
       -->
       <div id="prerender" class="prerender">
-        <h1>maNOWj GeoIntel: check any address in seconds</h1>
+        <h1>maNOWj GeoIntel: free AI map, area report and GIS explorer</h1>
         <p>
           A map that answers questions about a place. Pick a point anywhere in the world and ask what is there,
           how many hospitals are within five kilometres, what the weather is doing, or how to get there. Every
@@ -258,14 +279,14 @@
 
         <h2>Tools and guides</h2>
         <ul>
-          <li><a href="/area-report">Free area report for any address</a></li>
-          <li><a href="/tools/radius-search">Count places within a radius</a></li>
-          <li><a href="/tools/measure-area">Measure a distance or an area</a></li>
-          <li><a href="/tools/satellite-history">Satellite imagery by year</a></li>
+          <li><a href="/area-report">Free neighbourhood and locality report for any address</a></li>
+          <li><a href="/tools/radius-search">Map radius tool: count hospitals, schools and amenities</a></li>
+          <li><a href="/tools/measure-area">Measure land area and distance on a satellite map</a></li>
+          <li><a href="/tools/satellite-history">Historical satellite imagery, with dates</a></li>
           <li><a href="/solutions/real-estate">Neighbourhood reports for property listings</a></li>
           <li><a href="/solutions/retail-site-selection">Check a shop or restaurant location</a></li>
           <li><a href="/solutions/urban-planning">Quick area checks for planners and researchers</a></li>
-          <li><a href="/ai-map-search">AI map search that shows its sources</a></li>
+          <li><a href="/ai-map-search">AI map search: ask questions about any location</a></li>
         </ul>
 
         <h2>Who built it</h2>
@@ -274,10 +295,24 @@
           based in Hyderabad, India.
         </p>
 
-        <p>
-          It is free and needs no sign-up. Usage analytics run only if you agree to them. The map itself needs
-          JavaScript, so please enable it to use the app.
-        </p>
+        <p>It is free and needs no sign-up. Usage analytics run only if you agree to them.</p>
+
+        <!--
+          The JavaScript notice, kept out of search snippets.
+
+          It used to be a plain paragraph, so Google could pick "The map itself
+          needs JavaScript, so please enable it to use the app." as the text
+          under the result. Two things stop that now: <noscript> means a
+          browser that runs JavaScript (Google's renderer included) never
+          shows it, and data-nosnippet tells Google never to quote it even
+          from the raw HTML. data-nosnippet only works on span, div and
+          section elements, and this block must not contain a div element
+          at all (the build step's #prerender replacement stops at the first
+          closing div tag), hence the span.
+        -->
+        <noscript>
+          <p><span data-nosnippet>The map itself needs JavaScript, so please enable it to use the app.</span></p>
+        </noscript>
       </div>
     </div>
 

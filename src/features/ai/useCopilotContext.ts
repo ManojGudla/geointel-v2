@@ -5,6 +5,7 @@ import { useRouteStore } from "@/stores/routeStore";
 import { useGisEvidence } from "@/features/gis/useGisEvidence";
 import { useRoute } from "@/features/routing/useRoute";
 import { analyzeProperty } from "@/features/property/propertyAnalyzer";
+import { usePropertySite } from "@/features/property/usePropertySite";
 import { fetchWeather, fetchNearbyResult } from "@/services/intel";
 import { useOfficials } from "@/features/officials/useOfficials";
 import type { CopilotContext } from "@/types/ai";
@@ -108,6 +109,7 @@ export function useCopilotContext(): CopilotContext {
   const route = useRouteStore((s) => (s.from && s.to ? { from: s.from, to: s.to, mode: s.mode } : null));
 
   const gisQuery = useGisEvidence();
+  const siteQuery = usePropertySite();
   const routeQuery = useRoute();
   const officialsQuery = useOfficials();
 
@@ -126,7 +128,7 @@ export function useCopilotContext(): CopilotContext {
   });
 
   return useMemo<CopilotContext>(() => {
-    const property = gisQuery.data ? analyzeProperty(gisQuery.data) : undefined;
+    const property = gisQuery.data || siteQuery.data ? analyzeProperty(gisQuery.data ?? null, siteQuery.data ?? null) : undefined;
 
     const nearbyItems = nearbyQuery.data?.items;
     const nearbyTopCategories = nearbyItems
@@ -170,5 +172,5 @@ export function useCopilotContext(): CopilotContext {
         sourceLabel: o.sourceLabel,
       })),
     };
-  }, [location, radiusMeters, gisQuery.data, weatherQuery.data, nearbyQuery.data, route, routeQuery.data, officialsQuery.data]);
+  }, [location, radiusMeters, gisQuery.data, siteQuery.data, weatherQuery.data, nearbyQuery.data, route, routeQuery.data, officialsQuery.data]);
 }

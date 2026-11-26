@@ -4,13 +4,20 @@ import { ok, err, getClientIp, withEdgeCache, getNumberParam } from "../_lib/htt
 import { TtlCache, RateLimiter } from "../_lib/cache.js";
 import { runOverpassQuery, buildBuildingGeometryQuery, type OverpassElement, type Bbox } from "../_lib/overpass.js";
 import { estimateBuildingHeight } from "../_lib/buildingHeight.js";
+import { closeRing, relationPolygons, ringAreaM2, type LonLat, type Ring } from "../_lib/geometry.js";
 
 // Caps how much viewport a single request can cover, so a fast pan/zoom
 // can't trigger a multi-megabyte Overpass geometry pull. ~0.03deg is
 // roughly a 3km square at the latitudes this app targets - plenty for a
 // zoomed-in 3D view, since extrusions aren't meaningful once zoomed out.
 const MAX_BBOX_DEGREES = 0.03;
-const MAX_BUILDINGS_RETURNED = 1500;
+/*
+  2,500, from 1,500: a 1.1 km cell of a dense Indian or Egyptian neighbourhood
+  holds more than 1,500 buildings, and the smallest were left flat. Rounding
+  coordinates to 6 decimals (11 cm) keeps the larger answer about the size
+  the smaller one was.
+*/
+export const MAX_BUILDINGS_RETURNED = 2500;
 
 // OSM's built environment - buildings, shops, amenities, POIs - changes over
 // days and weeks, not minutes, so a short TTL bought nothing and cost a great
@@ -21,29 +28,63 @@ const MAX_BUILDINGS_RETURNED = 1500;
 // it evaporates on a cold start - it reduces load and speeds up repeat views,
 // it is not a durability guarantee.
 const cache = new TtlCache<OverpassElement[]>(6 * 60 * 60 * 1000);
-// 60, not 20: the map now asks for up to nine fixed cells at once (see
+// 120: the map asks for up to sixteen fixed cells at once (see
 // src/features/map/buildings3d.ts), and repeat cells are answered by the CDN
 // without reaching this function at all.
-const limiter = new RateLimiter(60_000, 60);
+const limiter = new RateLimiter(60_000, 120);
 
 /** Footprint size in square degrees, only ever used to rank buildings against each other. */
-function footprint(el: OverpassElement): number {
-  const g = el.geometry ?? [];
-  let twice = 0;
-  for (let i = 0; i < g.length; i++) {
-    const a = g[i]!;
-    const b = g[(i + 1) % g.length]!;
-    twice += a.lon * b.lat - b.lon * a.lat;
-  }
-  return Math.abs(twice) / 2;
-}
-
 export interface BuildingDto {
+  /** The way id; for a multipolygon relation, minus (relation id x 100 + outline number), so the two can never collide. */
   id: number;
   polygon: Array<[number, number]>;
+  /** Courtyards: rings cut out of the footprint. Only multipolygons have them. */
+  holes?: Array<Array<[number, number]>>;
   heightMeters: number;
   heightIsEstimated: boolean;
   name?: string;
+}
+
+const round6 = (ring: Ring): Array<[number, number]> => ring.map(([lon, lat]) => [Math.round(lon * 1e6) / 1e6, Math.round(lat * 1e6) / 1e6]);
+
+/** One footprint ready to extrude, with its area for the cap. */
+interface Shape {
+  dto: BuildingDto;
+  areaM2: number;
+}
+
+/** Every building in the answer as footprints: a way is one; a multipolygon relation is one per outline. */
+export function buildingShapes(elements: OverpassElement[]): Shape[] {
+  const relations = elements.filter((el) => el.type === "relation" && el.tags?.building && el.members?.length);
+  // A way that is an outline of a building relation would be drawn twice.
+  const outlineWays = new Set(relations.flatMap((rel) => (rel.members ?? []).filter((m) => m.type === "way").map((m) => m.ref)));
+  const shapes: Shape[] = [];
+
+  for (const el of elements) {
+    if (el.type !== "way" || !el.tags?.building || outlineWays.has(el.id)) continue;
+    const ring = closeRing((el.geometry ?? []).map((pt): LonLat => [pt.lon, pt.lat]));
+    if (!ring) continue;
+    const { meters, explicit } = estimateBuildingHeight(el.tags);
+    shapes.push({ dto: { id: el.id, polygon: round6(ring), heightMeters: meters, heightIsEstimated: !explicit, name: el.tags.name }, areaM2: ringAreaM2(ring) });
+  }
+
+  for (const rel of relations) {
+    const { meters, explicit } = estimateBuildingHeight(rel.tags ?? {});
+    relationPolygons(rel.members ?? []).forEach((polygon, index) => {
+      shapes.push({
+        dto: {
+          id: -(rel.id * 100 + index),
+          polygon: round6(polygon.outer),
+          ...(polygon.holes.length ? { holes: polygon.holes.map(round6) } : {}),
+          heightMeters: meters,
+          heightIsEstimated: !explicit,
+          name: rel.tags?.name,
+        },
+        areaM2: ringAreaM2(polygon.outer) - polygon.holes.reduce((sum, hole) => sum + ringAreaM2(hole), 0),
+      });
+    });
+  }
+  return shapes;
 }
 
 function parseBbox(req: Parameters<ApiHandler>[0]): Bbox | null {
@@ -86,25 +127,14 @@ const handler: ApiHandler = async (req, res) => {
     }
   }
 
-  const buildings: BuildingDto[] = elements
-    .filter((el) => el.type === "way" && Array.isArray(el.geometry) && el.geometry.length >= 3 && el.tags?.building)
-    /* When an area has more buildings than the cap, the ones left out used
-       to be whichever Overpass happened to list last: an arbitrary scatter of
-       missing buildings, large ones included. Largest first means the cap,
-       when it bites, drops the smallest sheds and garages instead. */
-    .sort((a, b) => footprint(b) - footprint(a))
+  /* When an area has more buildings than the cap, the ones left out used
+     to be whichever Overpass happened to list last: an arbitrary scatter of
+     missing buildings, large ones included. Largest first means the cap,
+     when it bites, drops the smallest sheds and garages instead. */
+  const buildings: BuildingDto[] = buildingShapes(elements)
+    .sort((a, b) => b.areaM2 - a.areaM2)
     .slice(0, MAX_BUILDINGS_RETURNED)
-    .map((el) => {
-      const ring = el.geometry!.map((pt): [number, number] => [pt.lon, pt.lat]);
-      // Overpass `out geom` normally returns closed rings for closed ways;
-      // close it defensively so downstream GeoJSON is always valid.
-      const first = ring[0]!;
-      const last = ring[ring.length - 1]!;
-      if (first[0] !== last[0] || first[1] !== last[1]) ring.push(first);
-
-      const { meters, explicit } = estimateBuildingHeight(el.tags || {});
-      return { id: el.id, polygon: ring, heightMeters: meters, heightIsEstimated: !explicit, name: el.tags?.name };
-    });
+    .map((shape) => shape.dto);
 
   ok(res, { buildings, source: "OpenStreetMap / Overpass", fetchedAt: new Date().toISOString() });
 };

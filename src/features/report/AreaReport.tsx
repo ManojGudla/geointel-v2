@@ -5,6 +5,7 @@ import { useReportStore } from "@/stores/reportStore";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { useGisEvidence } from "@/features/gis/useGisEvidence";
 import { analyzeProperty } from "@/features/property/propertyAnalyzer";
+import { usePropertySite } from "@/features/property/usePropertySite";
 import { fetchWeather } from "@/services/intel";
 import { aqiBand, useAirQuality } from "@/features/live/useLiveLayers";
 import { formatCoordinateLabel, formatDms } from "@/features/search/coordinateSearch";
@@ -53,10 +54,13 @@ export function AreaReport() {
     enabled: !!location && isOpen,
     staleTime: 10 * 60 * 1000,
   });
+  const site = usePropertySite();
 
   if (!isOpen || !location) return null;
 
-  const property = evidence.data ? analyzeProperty(evidence.data) : null;
+  // The same answer as the Property panel: the building at the exact point first.
+  const property = site.data || evidence.data ? analyzeProperty(evidence.data ?? null, site.data ?? null) : null;
+  const building = property?.building;
   const counts = evidence.data?.counts;
   const band = aqiBand(air.data?.europeanAqi ?? null);
   const generatedAt = new Date();
@@ -182,10 +186,16 @@ export function AreaReport() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
+              {building && (
+                <p className="report__source">
+                  Building on OpenStreetMap: {building.osmUrl}
+                  {building.footprintM2 > 0 ? `. Footprint ${building.footprintM2.toLocaleString()} m²` : ""}.
+                </p>
+              )}
               <p className="report__source">Limitations: {property.limitations.join(" ")}</p>
               <p className="report__source">
-                Derived from the mapped evidence above by this application&apos;s own scoring, not by a third party. Sources:{" "}
-                {property.sources.join(", ")}, retrieved{" "}
+                Derived by this application from the OpenStreetMap tags of the building at this point and the land
+                around it, not by a third party. Sources: {property.sources.join(", ")}, retrieved{" "}
                 {new Date(property.retrievedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}.
               </p>
             </section>

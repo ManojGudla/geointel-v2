@@ -158,6 +158,23 @@
   color: var(--color-brand-text);
 }
 
+/* Questions: each a small heading with its answer, all visible. */
+
+.info__faq-item + .info__faq-item {
+  margin-top: var(--space-4);
+}
+
+.info__faq h3 {
+  max-width: 66ch;
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.info__faq p {
+  margin: 0;
+}
+
 .info__limits {
   padding: var(--space-4);
   border-radius: var(--radius-lg);

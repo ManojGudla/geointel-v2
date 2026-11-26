@@ -39,8 +39,8 @@ export const NO_ACCOUNT_FACTS: Fact[] = [
   {
     claim: "Your location is used, never stored",
     detail:
-      "Pressing 'use my location' sends your coordinates to this site's own server once, to turn them into a street address, and starting navigation sends them to work out the route. Nothing is written to a database and no history is kept. While navigating, your position is used to follow the route and is discarded when you stop.",
-    where: "api/_routes/reverse-geocode.ts and api/_routes/route.ts (answered and dropped, never written; both marked private so no shared cache keeps them)",
+      "Pressing 'use my location' sends your coordinates to this site's own server once, to turn them into a street address and to check which building is there, and starting navigation sends them to work out the route. Nothing is written to a database and no history is kept. While navigating, your position is used to follow the route and is discarded when you stop.",
+    where: "api/_routes/reverse-geocode.ts, api/_routes/property.ts and api/_routes/route.ts (answered and dropped, never written; all three marked private so no shared cache keeps them)",
   },
 ];
 

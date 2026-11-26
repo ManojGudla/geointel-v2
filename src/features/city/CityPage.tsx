@@ -2,8 +2,9 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/services/apiClient";
 import { fetchAirQuality } from "@/services/live";
-import { fetchNearby } from "@/services/intel";
-import { cityMeta, citySchema, citySchemaId } from "@/seo/routeMeta";
+import { fetchNearby, fetchWeather } from "@/services/intel";
+import { cityMeta, citySchema, citySchemaId, cityToolLinks } from "@/seo/routeMeta";
+import { INFO_PAGE_BY_PATH } from "@/seo/infoPages";
 import { usePageMeta, useJsonLd } from "@/hooks/usePageMeta";
 import { buildShareUrl } from "@/features/share/viewState";
 import { CITIES, type City } from "@/data/cities";
@@ -89,6 +90,19 @@ export function CityPage({ city }: Props) {
     staleTime: 30 * 60 * 1000,
   });
 
+  /*
+    Ground height comes with Open-Meteo's weather answer, which reports the
+    height of the point from the Copernicus 90 m elevation model. The weather
+    request is snapped to two decimals (about a kilometre) like every other
+    weather request, so this is the height near the centre, and says so.
+  */
+  const weather = useQuery({
+    queryKey: ["city-weather", city.slug],
+    queryFn: ({ signal }) => fetchWeather(city.lat, city.lon, signal),
+    staleTime: 6 * 60 * 60 * 1000,
+  });
+  const elevationM = weather.data?.elevationM;
+
   const counts = useQuery({
     queryKey: ["city-counts", city.slug],
     queryFn: async ({ signal }) => {
@@ -117,6 +131,7 @@ export function CityPage({ city }: Props) {
     buildShareUrl({ lat: city.lat, lon: city.lon, zoom: city.zoom, question }, { zoom: 12 });
 
   const others = CITIES.filter((c) => c.slug !== city.slug);
+  const tools = cityToolLinks(city);
   const pop = population.data?.population ?? null;
 
   return (
@@ -215,6 +230,22 @@ export function CityPage({ city }: Props) {
             </div>
 
             <div className="city__figure">
+              <span className="city__figure-label">Ground height</span>
+              {weather.isLoading && <span className="city__figure-value city__figure-value--muted">Loading…</span>}
+              {!weather.isLoading && elevationM !== undefined && (
+                <>
+                  <span className="city__figure-value">{Math.round(elevationM).toLocaleString("en-IN")} m</span>
+                  <span className="city__figure-note">
+                    Above sea level, near the city centre. Source: Copernicus 90 m elevation model, via Open-Meteo
+                  </span>
+                </>
+              )}
+              {!weather.isLoading && elevationM === undefined && (
+                <span className="city__figure-value city__figure-value--muted">Unavailable</span>
+              )}
+            </div>
+
+            <div className="city__figure">
               <span className="city__figure-label">Coordinates</span>
               <span className="city__figure-value city__figure-value--small">
                 {city.lat.toFixed(4)}, {city.lon.toFixed(4)}
@@ -222,6 +253,33 @@ export function CityPage({ city }: Props) {
               <span className="city__figure-note">City centre, WGS 84</span>
             </div>
           </div>
+        </section>
+
+        {/* ── The tools, already pointed at this city ───────────────────── */}
+        <section className="city__section" aria-labelledby="city-tools">
+          <h2 id="city-tools">Tools to use in {city.name}</h2>
+          <ul className="city__questions">
+            {tools.map((tool) => (
+              <li key={tool.href}>
+                <a
+                  className="city__question"
+                  href={tool.href}
+                  onClick={() => track("map_opened", { source: "city-page-tool" })}
+                >
+                  {tool.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p className="city__prose city__prose--small">
+            How each one works:{" "}
+            {tools.map((tool, i) => (
+              <span key={tool.guide}>
+                <a href={tool.guide}>{INFO_PAGE_BY_PATH.get(tool.guide)?.nav ?? tool.guide}</a>
+                {i < tools.length - 1 ? ", " : "."}
+              </span>
+            ))}
+          </p>
         </section>
 
         {/* ── Geography. Hand-written, and the reason this page is not thin. */}
@@ -300,7 +358,8 @@ export function CityPage({ city }: Props) {
           <h2 id="city-sources">Where this data comes from</h2>
           <p className="city__prose city__prose--small">
             Population and area come from Wikidata, with the year each figure applies to. Air quality comes from
-            Open-Meteo's CAMS model. Counts of places come from{" "}
+            Open-Meteo's CAMS model, and ground height from the Copernicus 90 m elevation model via Open-Meteo. Counts
+            of places come from{" "}
             <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">
               OpenStreetMap contributors
             </a>{" "}

@@ -40,6 +40,8 @@ export interface OverpassElement {
   center?: { lat: number; lon: number };
   /** Present when the query uses `out geom` - the way's full node ring, for building footprints etc. */
   geometry?: Array<{ lat: number; lon: number }>;
+  /** A relation's members; with `out geom`, each way member carries its own geometry. */
+  members?: Array<{ type: string; ref: number; role?: string; geometry?: Array<{ lat: number; lon: number }> }>;
   tags?: Record<string, string>;
   /** Present when the query uses `out meta`: when this element was last edited in OpenStreetMap. */
   timestamp?: string;
@@ -476,10 +478,19 @@ export interface Bbox {
  * size-checked viewport (see api/buildings.ts).
  */
 export function buildBuildingGeometryQuery(bbox: Bbox): string {
+  const box = `${bbox.south},${bbox.west},${bbox.north},${bbox.east}`;
+  /*
+    Relations too. A building with a courtyard, or a large complex drawn as
+    several outlines, is a multipolygon relation, and those were never asked
+    for: reported (25 November 2026) as "some buildings are showing 3D and
+    some are not". `out geom` on a relation returns its member ways with their
+    geometry, which api/_routes/buildings.ts joins into rings.
+  */
   return `
     [out:json][timeout:25];
     (
-      way[building](${bbox.south},${bbox.west},${bbox.north},${bbox.east});
+      way[building](${box});
+      relation[building](${box});
     );
     out geom;
   `;

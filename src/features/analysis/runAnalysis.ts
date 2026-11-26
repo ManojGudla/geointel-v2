@@ -5,7 +5,7 @@ import { fetchGISEvidence } from "@/services/gis";
 import { formatDistance } from "@/features/map/geo";
 import { bearingDegrees, compassPoint, nearest, scoreBand, weightedScore, within } from "./spatialMath";
 import { buildFactors, SUITABILITY_PRESETS } from "./suitability";
-import { categoryLabel } from "./categories";
+import { categoryLabel, placeLabel } from "./categories";
 
 /**
  * The single implementation of every spatial operation.
@@ -41,7 +41,7 @@ function toPoints(items: Awaited<ReturnType<typeof fetchNearby>>): AnalysisPoint
     id: item.id,
     lat: item.lat,
     lon: item.lon,
-    label: item.name,
+    label: placeLabel(item),
     distanceMeters: item.distanceMeters,
   }));
 }

@@ -12,6 +12,7 @@ import nearby from "./nearby.js";
 import news from "./news.js";
 import officials from "./officials.js";
 import population from "./population.js";
+import property from "./property.js";
 import reverseGeocode from "./reverse-geocode.js";
 import routeHandler from "./route.js";
 import site from "./site.js";
@@ -59,6 +60,7 @@ export const ROUTES: Record<string, ApiHandler> = {
   news,
   officials,
   population,
+  property,
   "reverse-geocode": reverseGeocode,
   route: routeHandler,
   site,

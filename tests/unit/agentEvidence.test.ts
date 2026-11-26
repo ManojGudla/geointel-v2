@@ -26,6 +26,7 @@ function stand(name: string) {
 
 vi.mock("../../api/_routes/reverse-geocode", () => stand("reverse-geocode"));
 vi.mock("../../api/_routes/gis", () => stand("gis"));
+vi.mock("../../api/_routes/property", () => stand("property"));
 vi.mock("../../api/_routes/weather", () => stand("weather"));
 vi.mock("../../api/_routes/nearby", () => stand("nearby"));
 vi.mock("../../api/_routes/route", () => stand("route"));
@@ -129,6 +130,39 @@ describe("evidence the agents gather themselves (mock providers)", () => {
     const classification = g.items.find((i) => i.label === "Property classification")!;
     expect(classification.kind).toBe("computed");
     expect(classification.note).toMatch(/Not a land record/);
+  });
+
+  it("classifies the building at the exact point, with its height and a link to check it", async () => {
+    // Reported 25 November 2026: an office tower came back Residential from
+    // a house near the snapped point. The Property agent now reads the
+    // building whose footprint contains the point.
+    routes.answers = {
+      "reverse-geocode": PLACE,
+      gis: GIS,
+      property: {
+        status: 200,
+        body: {
+          ok: true,
+          site: {
+            lat: 17.4197,
+            lon: 78.3475,
+            building: { osmType: "way", id: 630847222, url: "https://www.openstreetmap.org/way/630847222", tags: { building: "office", "building:levels": "9", name: "Wave Rock Tower 2.3" }, containsPoint: true, distanceMeters: 0, footprintM2: 3400 },
+            inside: [],
+            areas: [],
+            source: "OpenStreetMap / Overpass",
+            dataAsOf: null,
+            fetchedAt: "2026-11-25T17:30:00.000Z",
+          },
+        },
+      },
+    };
+    const g = await gatherForAgent("property", BANJARA, request());
+    expect(g.items.find((i) => i.label === "Building at the point")).toMatchObject({ value: "Wave Rock Tower 2.3, office building", kind: "retrieved", note: "Check it: https://www.openstreetmap.org/way/630847222" });
+    expect(g.items.find((i) => i.label === "Building height")).toMatchObject({ value: "28.8 m", kind: "computed" });
+    expect(g.items.find((i) => i.label === "Floors")!.value).toBe("9");
+    expect(g.items.find((i) => i.label === "Property classification")!.value).toBe("Commercial");
+    expect(g.items.find((i) => i.label === "Classification confidence")!.value).toBe("90%");
+    expect(g.outcomes.find((o) => o.tool === "property")!.status).toBe("ok");
   });
 
   it("says an Overpass answer cut short may be low, and calls it partial", async () => {

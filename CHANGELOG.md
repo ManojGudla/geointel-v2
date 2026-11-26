@@ -1,5 +1,51 @@
 # Changelog
 
+## v3.6 (unreleased, branch property-directions-seo)
+
+Reported: Directions did nothing from a list of found places; an office
+tower was called "RESIDENTIAL, VERIFIED, 95%"; some buildings were not 3D.
+Also the SEO brief of 26 November 2026 (details in
+docs/audit/SEO_AUDIT_2026-11.md).
+
+### Fixed
+- Tapping a place in an Analyse result (for example "ATMs within 2 km")
+  opens Directions to it, starting where the distances were measured from.
+  Unnamed places read as what they are ("ATM", or "State Bank of India
+  ATM") instead of a code like "atms". Directions from "My Location" now
+  starts there.
+- Property type reads the building the exact point is inside, anywhere in
+  the world: its own OpenStreetMap tags first, then the businesses mapped
+  inside it, then the land or campus it stands on. Only the first two are
+  ever called Verified. A house next door no longer decides it. Homes with
+  shops or offices inside are Mixed Use; with no evidence it says Unknown.
+- 3D buildings: buildings mapped as several parts (courtyards, large
+  complexes) are now drawn; the whole view is filled (up to 16 blocks of
+  about 1 km, nearest first) instead of a fixed 3 x 3 block around the
+  centre; and up to 2,500 buildings are drawn per block (was 1,500).
+  Clicking a 3D building selects that building, not the ground behind it.
+
+### New
+- The property panel shows the building's height (as mapped, or floors x
+  3.2 m, saying which), floors, footprint and address, with links to check
+  the building and the land on OpenStreetMap.
+- City pages show the ground height near the centre (Copernicus 90 m
+  elevation model, via Open-Meteo) and a "Tools to use in <city>" section.
+- Visible questions and answers on the tool pages and the area report.
+- Links written as ?lat=&lng=&layer= open too.
+
+### Changed
+- New titles, descriptions and headings for the homepage, the tool pages
+  and the AI map search page, written around what people search for.
+- The "needs JavaScript" notice can no longer be quoted under a search
+  result.
+- Structured data: the homepage is a SoftwareApplication (Utilities, Web);
+  tool pages carry HowTo and FAQPage built from what they show; the AI map
+  search page's questions are in its static HTML.
+- The satellite history page describes the sharp past versions since 2014,
+  not only NASA's 250 m imagery.
+- City titles and descriptions fit what a search result shows.
+- llms.txt lists every page.
+
 ## v3.5.1 (unreleased, branch ai-busy-fallback)
 
 Reported: "What can this app do?", the first suggestion in Ask maNOWj,

@@ -33,6 +33,7 @@ const OTHER_ROUTES = [
   "../../api/_routes/geocode",
   "../../api/_routes/population",
   "../../api/_routes/officials",
+  "../../api/_routes/property",
 ];
 
 async function down(_req: unknown, res: { status: (n: number) => { json: (b: unknown) => void } }) {

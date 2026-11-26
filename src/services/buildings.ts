@@ -3,6 +3,8 @@ import { apiGet } from "@/services/apiClient";
 export interface BuildingDto {
   id: number;
   polygon: Array<[number, number]>;
+  /** Courtyards, for buildings drawn as multipolygons. */
+  holes?: Array<Array<[number, number]>>;
   heightMeters: number;
   heightIsEstimated: boolean;
   name?: string;

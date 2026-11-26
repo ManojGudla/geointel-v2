@@ -12,7 +12,8 @@ export function buildingsToGeoJSON(buildings: BuildingDto[]): GeoJSON.FeatureCol
     features: buildings.map((b) => ({
       type: "Feature",
       id: b.id,
-      geometry: { type: "Polygon", coordinates: [b.polygon] },
+      // Courtyards are holes in the footprint, so they stay open in 3D.
+      geometry: { type: "Polygon", coordinates: [b.polygon, ...(b.holes ?? [])] },
       properties: { heightMeters: b.heightMeters, heightIsEstimated: b.heightIsEstimated, name: b.name ?? null },
     })),
   };
@@ -45,8 +46,19 @@ export function roundBbox(bbox: { south: number; west: number; north: number; ea
  * the CDN answers repeat requests instead of Overpass.
  */
 export const BUILDING_CELL_DEGREES = 0.01;
-/** Cells either side of the one under the map centre: 1 means a 3x3 block. */
+/** Cells either side of the one under the map centre: 1 means a 3x3 block. Used when the view is not known. */
 export const BUILDING_CELL_REACH = 1;
+/**
+ * Cells either side when the view IS known, and the most fetched at once.
+ *
+ * A fixed 3x3 block (about 3.3 km) was too small for a wide screen at zoom
+ * 16, and much too small for a tilted view looking towards the horizon: the
+ * far buildings stayed flat. Reported (25 November 2026) as "some buildings
+ * are showing 3D and some are not". Now every cell the view touches is
+ * fetched, out to five either side, nearest first, up to 16 cells.
+ */
+export const BUILDING_VIEW_REACH = 5;
+export const MAX_BUILDING_CELLS = 16;
 
 export interface BuildingCell {
   key: string;
@@ -62,7 +74,7 @@ export function buildingCells(
   center: { lat: number; lon: number },
   view: { south: number; west: number; north: number; east: number } | null,
   size = BUILDING_CELL_DEGREES,
-  reach = BUILDING_CELL_REACH
+  reach = view ? BUILDING_VIEW_REACH : BUILDING_CELL_REACH
 ): BuildingCell[] {
   const row = Math.floor(center.lat / size);
   const col = Math.floor(center.lon / size);
@@ -81,8 +93,48 @@ export function buildingCells(
       cells.push({ key: `${south},${west}`, south, west, north, east, order: dr * dr + dc * dc });
     }
   }
-  // Nearest first, so the buildings under the centre arrive before the edges.
-  return cells.sort((a, b) => a.order - b.order).map(({ order: _order, ...cell }) => cell);
+  // Nearest first, so the buildings under the centre arrive before the edges,
+  // and the cap drops the farthest.
+  return cells
+    .sort((a, b) => a.order - b.order)
+    .slice(0, MAX_BUILDING_CELLS)
+    .map(({ order: _order, ...cell }) => cell);
+}
+
+/**
+ * A point inside a building's footprint, for a click on its 3D shape.
+ *
+ * A click on the side or roof of an extruded building in a tilted view hits
+ * the ground BEHIND it: the map reports where the line of sight meets the
+ * ground. So a click on a tower selected whatever stood behind the tower,
+ * and its property type was that building's. The click is kept when it is
+ * inside the footprint (a view from straight above); otherwise the
+ * footprint's centre, or for an L- or U-shaped building whose centre is
+ * outside it, a point just inside one of its corners.
+ */
+export function pointInsideFootprint(ring: Array<[number, number]>, preferred: [number, number]): [number, number] {
+  const inside = (pt: [number, number]) => {
+    let hit = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i]!;
+      const [xj, yj] = ring[j]!;
+      if (yi > pt[1] !== yj > pt[1] && pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) hit = !hit;
+    }
+    return hit;
+  };
+  if (ring.length < 4 || inside(preferred)) return preferred;
+  const corners = ring.slice(0, -1);
+  const centre: [number, number] = [corners.reduce((s, p) => s + p[0], 0) / corners.length, corners.reduce((s, p) => s + p[1], 0) / corners.length];
+  if (inside(centre)) return centre;
+  for (let i = 0; i < corners.length; i++) {
+    const prev = corners[(i + corners.length - 1) % corners.length]!;
+    const here = corners[i]!;
+    const next = corners[(i + 1) % corners.length]!;
+    // A tenth of the way from a corner towards its two neighbours' midpoint.
+    const candidate: [number, number] = [here[0] + (((prev[0] + next[0]) / 2) - here[0]) * 0.1, here[1] + (((prev[1] + next[1]) / 2) - here[1]) * 0.1];
+    if (inside(candidate)) return candidate;
+  }
+  return preferred;
 }
 
 /** Buildings from several cells as one list. A building on a cell edge comes back from both cells; it is kept once. */

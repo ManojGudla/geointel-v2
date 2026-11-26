@@ -43,6 +43,8 @@ export function QuickActions() {
 
   const location = useLocationStore((s) => s.selectedLocation);
   const openDirections = useRouteStore((s) => s.openPanel);
+  const setRouteFrom = useRouteStore((s) => s.setFrom);
+  const setRouteTo = useRouteStore((s) => s.setTo);
   const setIntelTab = useIntelTabStore((s) => s.setTab);
   const setMeasureMode = useMeasureStore((s) => s.setMode);
   const openSection = useShellStore((s) => s.openSection);
@@ -194,6 +196,25 @@ export function QuickActions() {
    * not a destination anybody meant to ask for, so guessing there would
    * replace a dead button with a confusing answer.
    */
+  /*
+    "My Location" (the device's own position, as the ATM and Fuel chips set
+    it) is where a route starts, not where it ends. Routing TO it left the
+    start empty and the panel saying "Now add a starting point", with the
+    reader already standing at the only place they had chosen. Reported
+    (25 November 2026) as "directions not coming".
+  */
+  const isMe = location?.name === "My Location";
+  const directionsFromHere = () => {
+    if (location && isMe) {
+      setRouteFrom(location);
+      const current = useRouteStore.getState().to;
+      if (current && Math.abs(current.lat - location.lat) < 1e-6 && Math.abs(current.lon - location.lon) < 1e-6) setRouteTo(null);
+      openDirections();
+      return;
+    }
+    openDirections(location ?? undefined);
+  };
+
   const run = (action: () => void) => () => {
     if (needsPlace) {
       promptForPlace();
@@ -208,8 +229,8 @@ export function QuickActions() {
         <button
           type="button"
           className={needsPlace ? "quick-actions__needs-place" : undefined}
-          onClick={run(() => openDirections(location ?? undefined))}
-          title={needsPlace ? "Pick a place first. This will take you to the search box" : "Get directions to this place"}
+          onClick={run(() => directionsFromHere())}
+          title={needsPlace ? "Pick a place first. This will take you to the search box" : isMe ? "Get directions from where you are" : "Get directions to this place"}
         >
           🧭 Directions
         </button>

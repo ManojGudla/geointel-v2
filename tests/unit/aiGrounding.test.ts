@@ -31,6 +31,7 @@ function stand(name: string) {
 
 vi.mock("../../api/_routes/reverse-geocode", () => stand("reverse-geocode"));
 vi.mock("../../api/_routes/gis", () => stand("gis"));
+vi.mock("../../api/_routes/property", () => stand("property"));
 vi.mock("../../api/_routes/weather", () => stand("weather"));
 vi.mock("../../api/_routes/nearby", () => stand("nearby"));
 vi.mock("../../api/_routes/route", () => stand("route"));
