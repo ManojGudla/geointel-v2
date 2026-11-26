@@ -40,6 +40,64 @@ function readableText(source: string): string {
     .trim();
 }
 
+describe("the home page's title and description", () => {
+  const title = html.match(/<title>([^<]*)<\/title>/)?.[1]?.replace(/&amp;/g, "&");
+  const description = html.match(/<meta\s+name="description"\s+content="([^"]*)"/i)?.[1] ?? "";
+
+  it("leads with the name and what it is, short enough to show in full", () => {
+    expect(title).toBe("maNOWj GeoIntel: Free AI Map, Area Report & GIS Explorer");
+    // A result shows about 60 characters of a title before cutting it.
+    expect(title!.length).toBeLessThanOrEqual(60);
+  });
+
+  it("is 150 to 160 characters and names the five things people search for", () => {
+    expect(description.length).toBeGreaterThanOrEqual(150);
+    expect(description.length).toBeLessThanOrEqual(160);
+    for (const phrase of ["free ai map", "gis explorer", "area report", "radius search", "satellite history"]) {
+      expect(description.toLowerCase()).toContain(phrase);
+    }
+  });
+
+  it("uses no long dashes, like the rest of the site's copy", () => {
+    expect(`${title} ${description}`).not.toMatch(/[—–]/);
+  });
+});
+
+/**
+ * "The map itself needs JavaScript, so please enable it to use the app."
+ *
+ * Google was quoting that sentence as the text under the search result: it
+ * sat in a plain paragraph of the static page, where it was the only line
+ * addressed to nobody in particular. It is now in <noscript> (never shown by a
+ * browser that runs JavaScript) and inside a data-nosnippet element (never
+ * quoted by Google even from the raw HTML).
+ */
+describe("the JavaScript notice", () => {
+  const SENTENCE = "The map itself needs JavaScript";
+
+  // Comments explain the change and quote the sentence; only markup counts.
+  const markup = html.replace(/<!--[\s\S]*?-->/g, "");
+
+  it("is only in a noscript block, inside an element Google will not quote", () => {
+    const noscript = markup.match(/<noscript>([\s\S]*?)<\/noscript>/i)?.[1] ?? "";
+    expect(noscript).toContain(SENTENCE);
+    // data-nosnippet is honoured on span, div and section only.
+    expect(noscript).toMatch(/<(span|section|div) data-nosnippet>[^<]*The map itself needs JavaScript/);
+    expect(markup.replace(/<noscript>[\s\S]*?<\/noscript>/gi, "")).not.toContain(SENTENCE);
+  });
+
+  it("stays inside the static block, which must contain no div elements for the build step", () => {
+    // plugins/vite-plugin-prerender.ts replaces #prerender up to its first
+    // closing div tag, and throws if the block contains another div. The raw
+    // file is checked, comments included, because that is what it reads.
+    const open = '<div id="prerender" class="prerender">';
+    const start = html.indexOf(open);
+    const inner = html.slice(start + open.length, html.indexOf("</div>", start));
+    expect(inner).not.toContain("<div");
+    expect(inner.replace(/<!--[\s\S]*?-->/g, "")).toContain(SENTENCE);
+  });
+});
+
 describe("the home page has content without JavaScript", () => {
   const text = readableText(html);
 
@@ -151,12 +209,34 @@ describe("structured data", () => {
   it("describes this application, with its name and its free price", () => {
     const data = JSON.parse(block!) as Record<string, unknown>;
     expect(data["@context"]).toBe("https://schema.org");
-    expect(data["@type"]).toBe("WebApplication");
+    // SoftwareApplication / UtilitiesApplication / "Web", as asked for in
+    // November 2026 (it was a WebApplication filed under business software).
+    expect(data["@type"]).toBe("SoftwareApplication");
+    expect(data.applicationCategory).toBe("UtilitiesApplication");
+    expect(data.operatingSystem).toBe("Web");
     expect(data.name).toBe("maNOWj GeoIntel");
     expect(data.url).toContain("www.manowj.com");
     expect(String(data.description).length).toBeGreaterThan(60);
     expect(data.isAccessibleForFree).toBe(true);
+    expect(data.offers).toMatchObject({ "@type": "Offer", price: "0", priceCurrency: "INR" });
     expect(Array.isArray(data.featureList)).toBe(true);
+  });
+
+  it("uses only properties its type has", () => {
+    // browserRequirements is defined on WebApplication alone; on a
+    // SoftwareApplication the same fact belongs in softwareRequirements.
+    const data = JSON.parse(block!) as Record<string, unknown>;
+    expect(data).not.toHaveProperty("browserRequirements");
+    expect(String(data.softwareRequirements)).toMatch(/JavaScript/);
+  });
+
+  it("claims no ratings or reviews, because the site has none to show", () => {
+    // Google's software-app rich result wants one of these. Making them up
+    // would break its rules and be untrue, so they stay absent until real
+    // reviews exist.
+    const data = JSON.parse(block!) as Record<string, unknown>;
+    expect(data).not.toHaveProperty("aggregateRating");
+    expect(data).not.toHaveProperty("review");
   });
 
   it("lists the brand's other spellings so a search for the name finds it", () => {
@@ -218,5 +298,15 @@ describe("llms.txt", () => {
     for (const phrase of ["OpenStreetMap", "Manoj Kumar Gudla", "satellite"]) {
       expect(llms).toContain(phrase);
     }
+  });
+
+  it("lists every page that has its own address", async () => {
+    // It once said its list was "the whole set of crawlable paths" while
+    // naming eight of twelve cities and none of the tool pages.
+    const { CITIES } = await import("../../src/data/cities");
+    const { INFO_PAGES } = await import("../../src/seo/infoPages");
+    for (const c of CITIES) expect(llms, c.slug).toContain(`(https://www.manowj.com/maps/${c.slug})`);
+    for (const p of INFO_PAGES) expect(llms, p.path).toContain(`(https://www.manowj.com${p.path})`);
+    expect(llms).toContain("(https://www.manowj.com/ai-map-search)");
   });
 });
