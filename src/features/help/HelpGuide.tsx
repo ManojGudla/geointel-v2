@@ -143,7 +143,7 @@ function HelpGuideBody({ section, setSection, close }: { section: Section; setSe
                     </li>
                   ))}
                 </ul>
-                <p>Every answer says which model wrote it and at what time. That isn't decoration: on the free tier the request goes to a router that picks whichever free model is available at that moment, so running the same agent twice can genuinely give you two different authors of two different standards. If an answer looks weak, "Run again" is worth a try, and the line underneath tells you whether you got a different model the second time.</p>
+                <p>Every answer says which model wrote it and at what time, because different models can be asked depending on which one is available, and running the same agent twice can give you two different authors. If an answer looks weak, "Run again" is worth a try, and the line underneath tells you whether a different model answered the second time. When no written answer is available, the agent still shows every fact it checked.</p>
                 <p>Neither Ask maNOWj nor any agent invents facts about a location. Both need a one-time free setup (a Supabase project and an OpenRouter key). Until that's configured, they show a plain "not configured yet" message.</p>
               </>
             )}

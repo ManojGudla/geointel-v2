@@ -1,5 +1,40 @@
 # Changelog
 
+## v3.7.1 (unreleased, branch ai-property-fixes)
+
+Reported 28 November 2026 from a client meeting the day before: Ask
+maNOWj did not answer, the AI agents were slow and then said the servers
+were busy, and property type still came back with nothing when no source
+described a building.
+
+### Fixed
+- AI answers no longer depend on OpenRouter's shared free models alone.
+  Groq (GROQ_API_KEY) and Google Gemini (GEMINI_API_KEY) are asked first
+  when their keys are set: answers in seconds, each with its own free
+  allowance. OpenRouter stays as the last resort. Good agent answers are
+  kept for 15 minutes per agent and place, so reopening a place is
+  instant.
+- No visitor is told "the free AI is busy, try again later" any more.
+  When no written answer is possible, the agents, the team report and the
+  chat show the checked facts with one neutral line; the reason is kept
+  for diagnostics and the server log.
+- Ask maNOWj no longer gives up when the AI cannot read a question: it
+  tries a looser reading of the same words ("show me hospitals" finds
+  hospitals), and a question that means nothing gets an example of how to
+  ask.
+- Property type is never Unknown for a building nothing describes. After
+  the building's own tags, the businesses inside it, the land it stands
+  on, its name and the neighbourhood, it now looks at land use within
+  800 m (in the same map query), and if that does not settle it, answers
+  Residential as a default: labelled as a default, 30% for a house-sized
+  footprint and lower for bigger ones.
+- A tap on a building opens the Overview with the property type first and
+  everything else folded under "More about this place".
+
+### Needs
+- GROQ_API_KEY in Vercel (free at console.groq.com/keys) for the speed-up.
+  Without it the AI behaves as before, with the new wording.
+
 ## v3.6.2 (unreleased, branch property-reliability)
 
 Reported 26 November 2026, evening: a building beside NH163 still read

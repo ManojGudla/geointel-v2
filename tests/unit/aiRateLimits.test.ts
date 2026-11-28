@@ -73,7 +73,7 @@ describe("account-wide limits", () => {
     expect(result).toEqual({ ok: false, error: AI_MESSAGES.minuteLimit, reason: "minute-limit" });
   });
 
-  it("stop at the first per-day refusal, and say when it resets", async () => {
+  it("stop at the first per-day refusal, and say so to the code, not the visitor", async () => {
     const spy = vi.fn(async () => refuse(DAY));
     vi.stubGlobal("fetch", spy);
     const result = await getAiCompletion([{ role: "user", content: "hi" }]);
@@ -81,7 +81,8 @@ describe("account-wide limits", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.reason).toBe("daily-limit");
-      expect(result.error).toContain("midnight UTC (5:30 AM India time)");
+      // Owner's request, 28 November 2026: no "allowance used, resets at midnight" for visitors.
+      expect(result.error).not.toMatch(/free|busy|try again|in a minute|allowance|quota/i);
     }
   });
 

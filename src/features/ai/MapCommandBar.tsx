@@ -9,7 +9,7 @@ import { categoryLabel } from "@/features/analysis/categories";
 import { layerLabels, layersForRequest } from "@/features/analysis/layerSync";
 import { SUITABILITY_PRESETS } from "@/features/analysis/suitability";
 import { AnalysisResultView } from "@/features/analysis/AnalysisResultView";
-import { describeCommand, parseMapCommand, type MapCommand } from "./mapCommands";
+import { ASK_EXAMPLE, describeCommand, looseMapCommand, parseMapCommand, type MapCommand } from "./mapCommands";
 import { describeSettingCommand, parseSettingCommand, type SettingCommand } from "./settingCommands";
 import { useWeatherEffectStore } from "@/features/weather/effects/weatherEffectStore";
 import { formatDistance } from "@/features/map/geo";
@@ -136,19 +136,29 @@ export function MapCommandBar() {
         // Local parser couldn't read it - spend one model call on working
         // out the operation.
         setUsedModel(true);
-        const { intent } = await apiPost<{
-          intent: { operation: string; category: string | null; presetId: string | null; radiusMeters: number | null };
-        }>("/api/ai-intent", { question: text });
+        try {
+          const { intent } = await apiPost<{
+            intent: { operation: string; category: string | null; presetId: string | null; radiusMeters: number | null };
+          }>("/api/ai-intent", { question: text });
 
-        const radius = intent.radiusMeters ?? radiusMeters;
-        command =
-          intent.operation === "suitability"
-            ? { operation: "suitability", presetId: intent.presetId!, radiusMeters: radius }
-            : intent.operation === "nearest"
-              ? { operation: "nearest", category: intent.category as NearbyCategory }
-              : intent.operation === "buffer"
-                ? { operation: "buffer", radiusMeters: radius }
-                : { operation: "within", category: intent.category as NearbyCategory, radiusMeters: radius };
+          const radius = intent.radiusMeters ?? radiusMeters;
+          command =
+            intent.operation === "suitability"
+              ? { operation: "suitability", presetId: intent.presetId!, radiusMeters: radius }
+              : intent.operation === "nearest"
+                ? { operation: "nearest", category: intent.category as NearbyCategory }
+                : intent.operation === "buffer"
+                  ? { operation: "buffer", radiusMeters: radius }
+                  : { operation: "within", category: intent.category as NearbyCategory, radiusMeters: radius };
+        } catch (aiError) {
+          // The AI could not read it (or could not be reached). Before saying
+          // anything, try a looser reading of the same words: most questions
+          // name what to find, and that is enough to answer.
+          if (typeof navigator !== "undefined" && navigator.onLine === false) throw aiError;
+          command = looseMapCommand(text);
+          setUsedModel(false);
+          if (!command) throw new Error(ASK_EXAMPLE);
+        }
       }
 
       // Echoed BEFORE the results, so a misreading is obvious at a glance

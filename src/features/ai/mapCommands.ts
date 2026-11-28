@@ -157,6 +157,31 @@ export function parseMapCommand(input: string): MapCommand | null {
   return null;
 }
 
+/**
+ * A looser reading, for when the strict parser and the AI both could not
+ * read a question: anything that names a kind of place is a search for it
+ * around the selected point ("good biryani places" finds restaurants), and
+ * a bare distance is a ring. Used only as a fallback, so a question that
+ * means something else is still asked of the AI first.
+ *
+ * Added 28 November 2026: in a client meeting Ask maNOWj answered "the AI
+ * is busy" to questions it could have read itself.
+ */
+export function looseMapCommand(input: string): MapCommand | null {
+  const text = input.toLowerCase().trim();
+  if (!text) return null;
+  const distance = parseDistanceMeters(text);
+  const category = matchFirst(text, CATEGORY_WORDS);
+  if (category) {
+    return /\bnearest\b|\bclosest\b/.test(text) ? { operation: "nearest", category } : { operation: "within", category, radiusMeters: distance ?? DEFAULT_RADIUS_METERS };
+  }
+  if (distance) return { operation: "buffer", radiusMeters: distance };
+  return null;
+}
+
+/** What Ask maNOWj says when a question cannot be read at all: how to ask, never "busy". */
+export const ASK_EXAMPLE = 'Ask about something to find around this place, for example "hospitals within 2 km", "nearest metro station" or "schools near here".';
+
 const FILLER_WORDS =
   /\b(a|an|the|of|is|are|there|any|me|all|places?|here|this|that|for|to|in|at|on|me|my|what(?:'?s)?|is|it|good|place|spot|location|site|best|score|should|can|i|build|open|put|do|you|please|and|by|from|km|kms|m|meters?|metres?|mi|miles?)\b/g;
 

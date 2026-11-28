@@ -221,8 +221,12 @@ describe("a bad roll from the free model router", () => {
     expect(asked[1]).toBe("nvidia/nemotron-3.5-lightning:free");
     expect(asked[3]).toBe("openrouter/free");
     expect(result.ok).toBe(false);
-    // And says something the reader can act on.
-    if (!result.ok) expect(result.error).toMatch(/Run again/i);
+    // And says that the checked facts follow, with no excuses about the
+    // servers (owner's request, 28 November 2026); the reason is for code.
+    if (!result.ok) {
+      expect(result.reason).toBe("empty");
+      expect(result.error).not.toMatch(/free|busy|try again|in a minute/i);
+    }
   });
 
   it("never re-rolls a rejected key or a used-up daily allowance", async () => {

@@ -38,7 +38,7 @@ test("a shared link opens the place in the AI section, and the agents answer tog
   await expect(page.getByRole("button", { name: "Show the route to Care Clinic on the map" })).toBeVisible();
 });
 
-test("when the AI is busy, the agents still show the facts they checked, and the route", async ({ page }) => {
+test("when the AI cannot write, the agents still show the facts they checked, and the route, with no excuses", async ({ page }) => {
   // Registered after stubApi, so it answers /api/ai/ask instead of the fixture.
   await page.route("**/api/ai/ask", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(TEAM_FACTS_ONLY) }));
   await page.goto(`/?lat=${HITEC.lat}&lon=${HITEC.lon}&s=ai`);
@@ -46,7 +46,9 @@ test("when the AI is busy, the agents still show the facts they checked, and the
   await team.getByLabel("What should the agents do?").fill("Is this good for a family home? Route to the nearest hospital");
   await team.getByRole("button", { name: "Ask", exact: true }).click();
 
-  await expect(team.getByRole("status")).toHaveText("The free AI models are busy right now. Please try again in a minute. The facts the agents checked are in the evidence list below.");
+  // Since 28 November 2026 (owner's request) no visitor is told the free AI is busy: one neutral line, then the facts.
+  await expect(team.getByRole("status")).toHaveText("A written report wasn't available for this one, so the facts the agents checked are listed below.");
+  await expect(team).not.toContainText(/free AI|busy|try again in a minute/i);
   await expect(team.locator(".agent-evidence__item").filter({ hasText: "Route distance" })).toBeVisible();
   await expect(team.getByRole("button", { name: "Show the route to Care Clinic on the map" })).toBeVisible();
   await expect(team.getByText(/^No AI model used: the AI could not answer this time/)).toBeVisible();

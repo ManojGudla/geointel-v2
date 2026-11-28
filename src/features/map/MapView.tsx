@@ -31,6 +31,7 @@ import { MapLoadState, type MapLoadPhase } from "./MapLoadState";
 import "./MapView.css";
 import { useImportStore, importCollection } from "@/stores/importStore";
 import { useSheetCommandStore } from "@/features/shell/sheetCommandStore";
+import { useIntelTabStore } from "@/stores/intelTabStore";
 
 // How long before we stop pretending everything is normal. Under a second is
 // a normal load on a decent connection; past SLOW_AFTER_MS the user deserves
@@ -890,9 +891,12 @@ export function MapView({ fullscreenContainerRef }: MapViewProps = {}) {
       const building = map.getLayer(BUILDINGS_LAYER) ? map.queryRenderedFeatures(e.point, { layers: [BUILDINGS_LAYER] })[0] : undefined;
       if (building?.geometry.type === "Polygon") {
         const [lon, lat] = pointInsideFootprint(building.geometry.coordinates[0] as Array<[number, number]>, [e.lngLat.lng, e.lngLat.lat]);
+        // A building was tapped: lead with what it is (see BuildingFocus).
+        useIntelTabStore.getState().focusBuilding({ lat, lon: wrapLongitude(lon) });
         clickAt(lat, lon);
         return;
       }
+      useIntelTabStore.getState().clearBuildingFocus();
       clickAt(e.lngLat.lat, e.lngLat.lng);
     });
     map.on("mouseenter", GIS_LAYER_POINTS, () => {

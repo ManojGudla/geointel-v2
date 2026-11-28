@@ -232,12 +232,15 @@ export function PropertyResult({
           50% when that land is drawn as one large zone over a whole neighbourhood; a telling word in its name, 45%.
           Homes with shops or offices mapped inside are Mixed Use. A tap next to a wall rather than inside it counts 15
           points less. Where there is no building, the land itself is read: a park or a sports ground is Open Space,
-          farmland is Agricultural. When nothing on the map is about the building at all, it says what the
-          neighbourhood suggests, as a guess held at 35% at most, and lists the nearest mapped places.
+          farmland is Agricultural. When nothing on the map is about the building at all, it looks further: what the
+          neighbourhood suggests (35% at most), then the land use mapped within 800 m (25 to 30%), and lists the nearest
+          mapped places.
         </p>
         <p>
-          Verified means OpenStreetMap says it about this building. Inferred means it was worked out from the land or
-          the name. If nothing says what the building is used for, the answer is Unknown rather than a guess.
+          If even that finds nothing, the building is shown as Residential by default, because most buildings are homes:
+          30% for a house-sized footprint, less for bigger ones, and always labelled as a default rather than a finding.
+          Verified means OpenStreetMap says it about this building. Inferred means it was worked out from the land, the
+          name, the area or that default.
         </p>
       </details>
 

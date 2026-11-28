@@ -15,13 +15,13 @@ export function describeAiFailure(error: unknown, online: boolean = typeof navig
 
   const text = error instanceof Error ? error.message : "";
   if (/timed out/i.test(text)) {
-    return "The AI took too long to answer. The free models it uses are sometimes slow, so trying again in a moment usually works.";
+    return "That took too long to answer, so it was stopped. Ask it again, or ask something shorter.";
   }
   if (/could not reach/i.test(text)) {
     return "Couldn't reach maNOWj. Check your connection and try again.";
   }
   if (/unexpected response/i.test(text)) {
-    return "The AI service sent back something unreadable, which usually means it was restarting. Try again in a moment.";
+    return "That answer came back unreadable. Ask it again.";
   }
   return "The AI couldn't answer this time. Please try again.";
 }

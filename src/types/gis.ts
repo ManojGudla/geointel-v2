@@ -146,6 +146,9 @@ export interface PropertySite {
   areas: SiteFeature[];
   /** The nearest mapped places outside the building (up to three), as context only. */
   nearby?: Array<SiteFeature & { distanceMeters: number }>;
+  /** Land use mapped within `widerRadiusMeters`, sized by bounding box: read only when nothing closer describes the building. */
+  widerLand?: SiteFeature[];
+  widerRadiusMeters?: number;
   /**
    * The map server flagged its answer as cut short (an Overpass "remark"),
    * so something mapped here may be missing from it. An absence is then not
@@ -177,7 +180,12 @@ export interface BuildingFacts {
 }
 
 /** What a classification rests on, strongest first. */
-export type PropertyBasis = "building" | "inside" | "land" | "name" | "area" | "none";
+/**
+ * What a reading rests on. "wider" is land use mapped further away (800 m);
+ * "default" is the owner's rule for a building nothing describes: shown as
+ * residential, since most buildings are homes, and labelled as a default.
+ */
+export type PropertyBasis = "building" | "inside" | "land" | "name" | "area" | "wider" | "default" | "none";
 
 export interface PropertyAnalysis {
   classification: PropertyClassification;

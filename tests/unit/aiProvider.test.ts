@@ -67,11 +67,11 @@ describe("getAiCompletion", () => {
     );
     const result = await getAiCompletion([{ role: "user", content: "hi" }]);
     expect(result.ok).toBe(false);
-    // Plain words now ("busy"), and a reason a caller can branch on.
+    // A reason a caller can branch on; the words a visitor reads say only
+    // that the facts follow (owner's request, 28 November 2026).
     if (!result.ok) {
       expect(result.reason).toBe("busy");
-      expect(result.error).toMatch(/busy/i);
-      expect(result.error).not.toMatch(/temporarily unavailable/i);
+      expect(result.error).not.toMatch(/free|busy|try again|in a minute|allowance|quota/i);
     }
   });
 

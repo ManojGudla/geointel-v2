@@ -3,11 +3,11 @@ import { withMaintenanceGuard } from "../../_lib/maintenance.js";
 import { ok, err, getClientIp } from "../../_lib/http.js";
 import { checkDurableLimit } from "../../_lib/rateLimit.js";
 import { TtlCache } from "../../_lib/cache.js";
-import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
+import { AI_UNAVAILABLE, getAiCompletion, type AiMessage } from "../../_lib/ai.js";
 import { fenceRules, makeFence } from "../../_lib/untrusted.js";
 import { GROUNDING_RULES } from "../../_lib/aiGrounding.js";
 import { gatherForAgent } from "../../_lib/evidence/gather.js";
-import { FACTS_FOLLOW, FACTS_ONLY_MODEL, INSUFFICIENT, checkAnswer, confidenceFor, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
+import { FACTS_ONLY_MODEL, INSUFFICIENT, checkAnswer, confidenceFor, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
 import { parseAnchor } from "../../_lib/evidence/anchor.js";
 import type { AgentKind, AgentResult, AgentStep } from "../../../src/types/ai.js";
 
@@ -136,7 +136,8 @@ const handler: ApiHandler = async (req, res) => {
     // no summary. See FACTS_ONLY_MODEL.
     const result: AgentResult = {
       ...base,
-      summary: `${completion.error} ${FACTS_FOLLOW.agent}`,
+      // The visitor reads that the facts follow; why the model did not write is for the log.
+      summary: AI_UNAVAILABLE,
       findings: [],
       steps,
       generatedAt: new Date().toISOString(),

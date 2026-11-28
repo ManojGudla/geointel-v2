@@ -116,3 +116,25 @@ describe("describeCommand", () => {
     expect(describeCommand({ operation: "buffer", radiusMeters: 1500 }, categoryLabel, presetLabel)).toContain("1.5 km");
   });
 });
+
+/*
+  Added 28 November 2026: in a client meeting Ask maNOWj answered "the AI is
+  busy" to questions it could read itself. When the AI cannot read one, a
+  looser reading of the same words is tried, and a question that still means
+  nothing gets an example of how to ask, never "busy".
+*/
+describe("the looser reading, when the AI cannot read a question", () => {
+  it("finds what was named, around the selected place", async () => {
+    const { looseMapCommand } = await import("@/features/ai/mapCommands");
+    expect(looseMapCommand("show me hospitals")).toEqual(expect.objectContaining({ operation: "within", category: "hospitals" }));
+    expect(looseMapCommand("closest atm please")).toEqual(expect.objectContaining({ operation: "nearest" }));
+    expect(looseMapCommand("everything in 3 km")).toEqual({ operation: "buffer", radiusMeters: 3000 });
+    expect(looseMapCommand("tell me a joke")).toBeNull();
+  });
+
+  it("explains how to ask, without blaming the servers", async () => {
+    const { ASK_EXAMPLE } = await import("@/features/ai/mapCommands");
+    expect(ASK_EXAMPLE).toContain("hospitals within 2 km");
+    expect(ASK_EXAMPLE).not.toMatch(/free|busy|try again/i);
+  });
+});

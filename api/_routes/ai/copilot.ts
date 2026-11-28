@@ -3,14 +3,14 @@ import { withMaintenanceGuard } from "../../_lib/maintenance.js";
 import { ok, err, getClientIp } from "../../_lib/http.js";
 import { checkDurableLimit } from "../../_lib/rateLimit.js";
 
-import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
+import { AI_UNAVAILABLE, getAiCompletion, type AiMessage } from "../../_lib/ai.js";
 import { BUILT_IN_MODEL, builtInAnswer } from "../../_lib/appHelp.js";
 import { searchKnowledgeBase } from "../../_lib/kb.js";
 import { fenceRules, makeFence, sanitizeField } from "../../_lib/untrusted.js";
 import { GROUNDING_RULES, isAboutThePlace } from "../../_lib/aiGrounding.js";
 import { parseAnchor } from "../../_lib/evidence/anchor.js";
 import { gatherTools, type ToolName } from "../../_lib/evidence/gather.js";
-import { FACTS_FOLLOW, FACTS_ONLY_MODEL, INSUFFICIENT, checkAnswer, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
+import { FACTS_ONLY_MODEL, INSUFFICIENT, checkAnswer, evidenceTable, sourcesOf } from "../../_lib/evidence/grounding.js";
 import type { AgentStep, EvidenceItem } from "../../../src/types/ai.js";
 
 interface CopilotRequestBody {
@@ -222,7 +222,7 @@ const handler: ApiHandler = async (req, res) => {
     */
     if (aboutPlace && evidence.some((item) => item.kind !== "unavailable")) {
       return ok(res, {
-        answer: `${result.error} ${FACTS_FOLLOW.copilot}`,
+        answer: AI_UNAVAILABLE,
         sources: sourcesOf(evidence),
         evidence,
         findings: [],
@@ -233,7 +233,8 @@ const handler: ApiHandler = async (req, res) => {
         aiUnavailable: result.error,
       });
     }
-    return err(res, 502, result.error, "AI_UNAVAILABLE");
+    console.warn("[api/ai/copilot] no written answer:", result.reason, result.error);
+    return err(res, 502, AI_UNAVAILABLE, "AI_UNAVAILABLE");
   }
 
   /*

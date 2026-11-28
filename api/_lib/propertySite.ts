@@ -50,6 +50,13 @@ const SITE_KEYS = "amenity|leisure|tourism|office|shop|healthcare|aeroway|milita
   overloaded the property lookup had become the one that failed.
 */
 export const LANDUSE_SEARCH_RADIUS_M = 300;
+/**
+ * The wider look, for a building nothing else describes (owner's request,
+ * 28 November 2026: when there are no sources, research further before
+ * answering). Land use within this distance, as tags and bounding boxes
+ * only, in the same query, so it costs no extra round trip to the server.
+ */
+export const WIDER_LANDUSE_RADIUS_M = 800;
 export const SITE_AREA_SEARCH_RADIUS_M = 150;
 /** How many of the nearest mapped places to name as context when the building says nothing itself. */
 export const NEARBY_PLACES_MAX = 3;
@@ -92,6 +99,8 @@ export function buildPropertySiteQuery(lat: number, lon: number, radius = SITE_S
     out;
     way(around:${LANDUSE_SEARCH_RADIUS_M},${at})[landuse][!building];
     out geom;
+    way(around:${WIDER_LANDUSE_RADIUS_M},${at})[landuse][!building];
+    out tags bb;
     way(around:${SITE_AREA_SEARCH_RADIUS_M},${at})[~"^(${SITE_KEYS})$"~"."][!building];
     out geom;
     is_in(${at})->.a;
@@ -142,6 +151,14 @@ function areaRank(tags: Record<string, string>): number {
   if (tags.aeroway || tags.military || tags.industrial || tags.railway || tags.leisure) return 2;
   if (tags.landuse) return 3;
   return 4;
+}
+
+/** The area of a bounding box in square metres (a flat approximation, fine at city scale). */
+export function boundsArea(b: { minlat: number; minlon: number; maxlat: number; maxlon: number }): number {
+  const midLat = ((b.minlat + b.maxlat) / 2) * (Math.PI / 180);
+  const h = (b.maxlat - b.minlat) * 111_320;
+  const w = (b.maxlon - b.minlon) * 111_320 * Math.cos(midLat);
+  return Math.max(0, h) * Math.max(0, w);
 }
 
 /** A way drawn as a closed outline. An unclosed one is a line (or broken data), never an area. */
@@ -299,6 +316,16 @@ export function extractSite(
       distanceMeters: Math.round(d),
     }));
 
+  /*
+    Land use mapped within WIDER_LANDUSE_RADIUS_M, each with the area of its
+    bounding box: a rough size (it over-counts slanted shapes), which is
+    enough to tell a mostly residential neighbourhood from an industrial one.
+    Read only when nothing closer describes the building.
+  */
+  const widerLand: SiteFeature[] = uniqueById(elements.filter((el) => el.type === "way" && el.bounds && el.tags?.landuse))
+    .map((el) => ({ osmType: "way" as const, id: el.id, url: osmUrl("way", el.id), tags: keep(el.tags, KEEP_FEATURE_TAG), areaM2: Math.round(boundsArea(el.bounds!)) }))
+    .filter((f) => f.areaM2 > 0);
+
   return {
     lat: point.lat,
     lon: point.lon,
@@ -306,6 +333,7 @@ export function extractSite(
     inside,
     areas,
     ...(nearby.length ? { nearby } : {}),
+    ...(widerLand.length ? { widerLand, widerRadiusMeters: WIDER_LANDUSE_RADIUS_M } : {}),
     source: "OpenStreetMap / Overpass",
     dataAsOf: meta.dataAsOf,
     fetchedAt: meta.fetchedAt,

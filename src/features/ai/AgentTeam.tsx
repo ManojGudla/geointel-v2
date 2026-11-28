@@ -157,7 +157,7 @@ export function AgentTeam() {
 
           {result.aiUnavailable && (
             <p className="agent-evidence__unavailable" role="status">
-              {result.aiUnavailable} The facts the agents checked are in the evidence list below.
+              A written report wasn&apos;t available for this one, so the facts the agents checked are listed below.
             </p>
           )}
 

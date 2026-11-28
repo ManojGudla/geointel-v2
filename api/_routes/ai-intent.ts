@@ -2,7 +2,7 @@ import type { ApiHandler } from "../_lib/http.js";
 import { withMaintenanceGuard } from "../_lib/maintenance.js";
 import { ok, err, getClientIp } from "../_lib/http.js";
 import { checkDurableLimit } from "../_lib/rateLimit.js";
-import { getAiCompletion } from "../_lib/ai.js";
+import { AI_UNAVAILABLE, getAiCompletion } from "../_lib/ai.js";
 
 /**
  * Translates a question the local parser couldn't handle into a spatial
@@ -146,7 +146,10 @@ const handler: ApiHandler = async (req, res) => {
   );
 
   if (!completion.ok) {
-    return err(res, 502, completion.error, "AI_UNAVAILABLE");
+    // Neutral words for the visitor (Ask maNOWj then tries a looser reading of
+    // the question itself); the reason is for the log.
+    console.warn("[api/ai-intent] no reading:", completion.reason, completion.error);
+    return err(res, 502, AI_UNAVAILABLE, "AI_UNAVAILABLE");
   }
 
   const intent = validate(extractJson(completion.content));

@@ -38,7 +38,8 @@ vi.mock("../../api/_routes/nearby", () => stand("nearby"));
 vi.mock("../../api/_routes/route", () => stand("route"));
 vi.mock("../../api/_routes/geocode", () => stand("geocode"));
 vi.mock("../../api/_routes/population", () => stand("population"));
-vi.mock("../../api/_lib/ai", () => ({
+vi.mock("../../api/_lib/ai", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
   getAiCompletion: vi.fn(async (messages: Array<{ role: string; content: string }>) => {
     state.modelCalls += 1;
     state.prompt = messages.find((m) => m.role === "system")?.content;
@@ -178,7 +179,11 @@ describe("api/ai/agent", () => {
     expect(result.model).toBe("test-model");
   });
 
-  it("still shows the checked facts when the AI cannot write, and says why", async () => {
+  it("still shows the checked facts when the AI cannot write, with no excuses about servers", async () => {
+    // Changed 28 November 2026 at the owner's request: visitors are never told
+    // "the free AI is busy, try again later". They get the checked facts and
+    // one neutral sentence; the reason stays in the result for diagnostics.
+
     // Reported 25 November 2026: every card showed only "busy" although the
     // evidence had already been fetched and checked.
     state.fail = "The free AI models are busy right now. Please try again in a minute.";
@@ -186,7 +191,8 @@ describe("api/ai/agent", () => {
     const result = resultOf(r);
     expect(r.statusCode).toBe(200);
     expect(result.aiUnavailable).toBe(state.fail);
-    expect(result.summary).toBe(`${state.fail} The facts this agent checked are listed below.`);
+    expect(result.summary).toBe("A written summary wasn't available for this one, so here are the facts maNOWj checked.");
+    expect(result.summary).not.toMatch(/free|busy|try again|in a minute|allowance|quota/i);
     expect(result.findings).toEqual([]);
     expect(result.model).toBe("none: the AI could not answer this time");
     // The evidence and its confidence are exactly what a written answer would have had.

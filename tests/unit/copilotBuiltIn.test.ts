@@ -12,7 +12,8 @@ import { fakeReqRes } from "./testUtils";
 const seen = vi.hoisted(() => ({ modelCalls: 0, limiterCalls: 0, kbCalls: 0 }));
 
 function mockAll() {
-  vi.doMock("../../api/_lib/ai", () => ({
+  vi.doMock("../../api/_lib/ai", async (importOriginal) => ({
+    ...(await importOriginal<object>()),
     getAiCompletion: vi.fn(async () => {
       seen.modelCalls += 1;
       return { ok: false, error: "The free AI models are busy right now. Please try again in a minute.", reason: "busy" };

@@ -51,10 +51,18 @@ export type AiFailureReason =
  * (rate limited)" was shown for an account-wide limit as well as for a busy
  * model, and it told nobody which.
  */
+/*
+  Reworded on 28 November 2026 at the owner's request: a visitor (in that
+  case a client, in a meeting) must never read "the free AI is busy, try
+  again later". Every route that uses these shows the checked facts with
+  them, so the sentence only has to say that the written part is missing,
+  not why. Why is in `reason` and in the server log.
+*/
+export const AI_UNAVAILABLE = "A written summary wasn't available for this one, so here are the facts maNOWj checked.";
 export const AI_MESSAGES = {
-  minuteLimit: "Ask maNOWj's free AI has had too many questions in the last minute. Please try again in a minute.",
-  dailyLimit: "Ask maNOWj has used today's free AI allowance. It resets at midnight UTC (5:30 AM India time).",
-  busy: "The free AI models are busy right now. Please try again in a minute.",
+  minuteLimit: AI_UNAVAILABLE,
+  dailyLimit: AI_UNAVAILABLE,
+  busy: AI_UNAVAILABLE,
 } as const;
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -458,7 +466,7 @@ async function openRouterCompletion(
   // when time is short the remaining ones get what is left, and an attempt
   // with under 4 seconds left is not started at all.
   const deadline = Date.now() + (opts.deadlineMs ?? 30_000);
-  let lastError = "The AI provider is temporarily unavailable.";
+  let lastError = AI_UNAVAILABLE;
   let lastReason: AiFailureReason = "unavailable";
 
   // During a remembered account limit (see accountPause), free models are
@@ -531,7 +539,7 @@ async function openRouterCompletion(
           lastError = `No AI endpoint matched this request. Check the OPENROUTER_MODEL setting ("${requestedModel}"). This is a configuration problem, not an outage.`;
           lastReason = "no-endpoint";
         } else {
-          lastError = `The AI provider is temporarily unavailable (HTTP ${response.status}).`;
+          lastError = AI_UNAVAILABLE;
           lastReason = "unavailable";
         }
         if (isLast) return { ok: false, error: lastError, reason: lastReason };
@@ -552,8 +560,7 @@ async function openRouterCompletion(
 
       if (!content) {
         console.warn("[ai] empty content from", model, "(rolling for a different model)");
-        lastError =
-          "Every model tried returned an empty answer. Free models are shared and this usually passes. Press Run again in a moment.";
+        lastError = AI_UNAVAILABLE;
         lastReason = "empty";
         if (isLast) return { ok: false, error: lastError, reason: lastReason };
         continue;
@@ -563,7 +570,7 @@ async function openRouterCompletion(
       return { ok: true, content, model: served, requestedModel };
     } catch (error) {
       console.error("[ai] request failed", model, error);
-      lastError = "The AI provider is temporarily unavailable.";
+      lastError = AI_UNAVAILABLE;
       lastReason = "unavailable";
       if (isLast) return { ok: false, error: lastError, reason: lastReason };
     }

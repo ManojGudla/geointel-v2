@@ -108,7 +108,11 @@ describe("asking the agents together", () => {
     expect(container.querySelector(".is-highlighted")!.textContent).toContain("Route distance");
   });
 
-  it("says why there is no written report, opens the evidence, and still offers the route", async () => {
+  it("says the facts follow, without excuses, opens the evidence, and still offers the route", async () => {
+    // Changed 28 November 2026 at the owner's request: visitors are never told
+    // "the free AI is busy, try again later". They get the checked facts and
+    // one neutral sentence; the reason stays in the result for diagnostics.
+
     const reason = "Ask maNOWj has used today's free AI allowance. It resets at midnight UTC (5:30 AM India time).";
     const factsOnly: TeamResult = {
       ...RESULT,
@@ -122,7 +126,8 @@ describe("asking the agents together", () => {
     };
     const { container } = await renderTeam(async () => factsOnly);
     fireEvent.click(screen.getByRole("button", { name: "Analyse the area within 1 km of here" }));
-    expect(await screen.findByText(`${reason} The facts the agents checked are in the evidence list below.`)).toBeTruthy();
+    expect(await screen.findByText("A written report wasn't available for this one, so the facts the agents checked are listed below.")).toBeTruthy();
+    expect(screen.queryByText(new RegExp(reason.slice(0, 20)))).toBeNull();
     const evidence = [...container.querySelectorAll("details")].find((d) => d.textContent?.startsWith("Evidence"))!;
     expect(evidence.open).toBe(true);
     expect(screen.getByRole("button", { name: "Show the route to Care Clinic on the map" })).toBeTruthy();

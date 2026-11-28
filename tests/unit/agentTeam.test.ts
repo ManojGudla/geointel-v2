@@ -84,7 +84,8 @@ vi.mock("../../api/_routes/route", () => stand("route"));
 vi.mock("../../api/_routes/geocode", () => stand("geocode"));
 vi.mock("../../api/_routes/population", () => stand("population"));
 vi.mock("../../api/_routes/officials", () => stand("officials"));
-vi.mock("../../api/_lib/ai", () => ({
+vi.mock("../../api/_lib/ai", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
   getAiCompletion: vi.fn(async (messages: Array<{ role: string; content: string }>) => {
     state.modelCalls += 1;
     state.prompt = messages.find((m) => m.role === "system")?.content ?? "";

@@ -41,7 +41,8 @@ vi.mock("../../api/_routes/officials", () => stand("officials"));
 
 function capture(reply = "Answer.") {
   const seen: { system?: string } = {};
-  vi.doMock("../../api/_lib/ai", () => ({
+  vi.doMock("../../api/_lib/ai", async (importOriginal) => ({
+    ...(await importOriginal<object>()),
     getAiCompletion: vi.fn(async (messages: Array<{ role: string; content: string }>) => {
       seen.system = messages.find((m) => m.role === "system")?.content;
       return { ok: true, content: reply, model: "test-model" };
@@ -55,7 +56,8 @@ function capture(reply = "Answer.") {
 
 /** The model fails, as the free tier does when it is busy or used up. */
 function failing(error: string) {
-  vi.doMock("../../api/_lib/ai", () => ({
+  vi.doMock("../../api/_lib/ai", async (importOriginal) => ({
+    ...(await importOriginal<object>()),
     getAiCompletion: vi.fn(async () => ({ ok: false, error, reason: "busy" })),
   }));
   vi.doMock("../../api/_lib/kb", () => ({ searchKnowledgeBase: vi.fn(async () => []) }));
@@ -178,13 +180,18 @@ describe("what the Copilot is given, and what its answer says it was based on (m
 describe("when the AI cannot write (mock model)", () => {
   const BUSY = "The free AI models are busy right now. Please try again in a minute.";
 
-  it("still shows the facts it checked for a question about the place, and says why", async () => {
+  it("still shows the facts it checked for a question about the place, with no excuses about servers", async () => {
+    // Changed 28 November 2026 at the owner's request: visitors are never told
+    // "the free AI is busy, try again later". They get the checked facts and
+    // one neutral sentence; the reason stays in the result for diagnostics.
+
     failing(BUSY);
     const call = await ask("What's the weather here?");
     const body = call.body as { answer: string; aiUnavailable: string; model: string; sources: string[]; evidence: Array<{ label: string; value: string }> };
     expect(call.statusCode).toBe(200);
     expect(body.aiUnavailable).toBe(BUSY);
-    expect(body.answer).toBe(`${BUSY} Meanwhile, here are the facts the app checked for this place.`);
+    expect(body.answer).toBe("A written summary wasn't available for this one, so here are the facts maNOWj checked.");
+    expect(body.answer).not.toMatch(/free|busy|try again|in a minute|allowance|quota/i);
     expect(body.model).toBe("none: the AI could not answer this time");
     expect(body.sources).toContain("Open-Meteo");
     // The server's own weather, never the 99 degrees the browser sent.
@@ -192,18 +199,20 @@ describe("when the AI cannot write (mock model)", () => {
     expect(JSON.stringify(body.evidence)).not.toMatch(/\b99\s*°|Snow/);
   });
 
-  it("gives the reason alone when every source failed too", async () => {
+  it("says plainly that no answer was possible when every source failed too, without blaming the servers", async () => {
     failing(BUSY);
     routes.answers = {};
     const call = await ask("What's the weather here?");
     expect(call.statusCode).toBe(502);
-    expect(call.body).toEqual(expect.objectContaining({ error: BUSY, code: "AI_UNAVAILABLE" }));
+    expect(call.body).toEqual(expect.objectContaining({ code: "AI_UNAVAILABLE" }));
+    expect((call.body as { error: string }).error).not.toMatch(/free|busy|try again|in a minute|allowance|quota/i);
   });
 
-  it("gives the reason alone when there were no facts to show", async () => {
+  it("says plainly that no answer was possible when there were no facts to show", async () => {
     failing(BUSY);
     const call = await ask("who is his future wife");
     expect(call.statusCode).toBe(502);
-    expect(call.body).toEqual(expect.objectContaining({ error: BUSY, code: "AI_UNAVAILABLE" }));
+    expect(call.body).toEqual(expect.objectContaining({ code: "AI_UNAVAILABLE" }));
+    expect((call.body as { error: string }).error).not.toMatch(/free|busy|try again|in a minute|allowance|quota/i);
   });
 });

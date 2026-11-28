@@ -25,7 +25,14 @@ const EMPTY_SCORES: GISEvidence["scores"] = { commercial: 0, residential: 0, ind
  *   2. businesses mapped inside its footprint,   VERIFIED, 80%
  *   3. the land or site it stands on,            INFERRED, 60-70%
  *   4. a telling word in its name,               INFERRED, 45%
- *   5. otherwise Unknown: a building is there, its use is not mapped.
+ *   5. what the neighbourhood suggests,          INFERRED, 35% at most
+ *   6. land use mapped within 800 m,             INFERRED, 25-30%
+ *   7. otherwise Residential, as a default:      INFERRED, 10-30% by size.
+ *      The owner's rule (28 November 2026): research further when nothing
+ *      describes the building, and if still nothing does, answer
+ *      residential rather than Unknown. Most buildings are homes, so it is
+ *      the likeliest answer; it is labelled as a default, never a finding,
+ *      and held lower for large footprints, which are less often homes.
  * The surroundings (`evidence`, the area within the chosen radius) are shown
  * as context and never change the answer about the building.
  *
@@ -295,13 +302,26 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
       }
     }
 
-    // 6. Honest Unknown.
+    // 6. Land use further out.
+    const wider = widerLandReading(site);
+    if (wider) {
+      return done(
+        wider.use,
+        "inferred",
+        wider.confidence,
+        `${nothingOnIt} Looking further out, ${wider.text}, so it is probably ${wider.use.toLowerCase()}. That is a guess from the wider area, not a reading of this building.${cutShort}`,
+        "wider"
+      );
+    }
+
+    // 7. The default.
+    const fallback = residentialDefault(facts.footprintM2 ?? site.building?.footprintM2);
     return done(
-      "Unknown",
-      "unavailable",
-      0,
-      `${nothingOnIt}${surroundings || nearby ? " What is mapped nearby is listed below as context only." : ""} If you know it, it can be added on OpenStreetMap.${cutShort}`,
-      "none"
+      "Residential",
+      "inferred",
+      fallback.confidence,
+      `${nothingOnIt} Nothing mapped around it settles it either, so it is shown as residential by default: most buildings are homes${fallback.note}. This is a default, not a finding.${surroundings || nearby ? " What is mapped nearby is listed below as context only." : ""} If you know what it is, it can be added on OpenStreetMap.${cutShort}`,
+      "default"
     );
   }
 
@@ -336,14 +356,65 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
     }
   }
 
+  const wider = widerLandReading(site);
+  if (wider) {
+    return done(
+      wider.use,
+      "inferred",
+      Math.min(wider.confidence, 25),
+      `No building, business or land use is mapped at this exact point. Looking further out, ${wider.text}, so this is probably ${wider.use.toLowerCase()} land. Tap directly on a building to read that building.${cutShort}`,
+      "wider"
+    );
+  }
+
   lines.push("No building, business or land use is mapped at this point.");
   return done(
-    "Unknown",
-    "unavailable",
-    0,
-    `Nothing is mapped at this exact point: no building, no business and no land use. This does not mean it is empty, only that it is not mapped in detail. Tap directly on a building to read that building.${cutShort}`,
-    "none"
+    "Residential",
+    "inferred",
+    10,
+    `Nothing is mapped at this exact point: no building, no business and no land use, and nothing mapped further out settles it. It is shown as residential by default, since most built-up land is homes; treat it as a default, not a finding. Tap directly on a building to read that building.${cutShort}`,
+    "default"
   );
+}
+
+/**
+ * Land use mapped within the wider radius, weighted by size. Parks and
+ * farmland say little about what a building is used for, so only built-up
+ * land counts, and one huge zone is capped so it cannot decide alone. A
+ * clear lead (at least 40% of that land) is needed for an answer.
+ */
+export function widerLandReading(site: PropertySite): { use: PropertyClassification; confidence: number; text: string } | null {
+  const totals = new Map<PropertyClassification, { area: number; count: number; kind: string }>();
+  let all = 0;
+  for (const f of site.widerLand ?? []) {
+    const reading = readArea(f.tags);
+    if (!reading || reading.use === "Open Space" || reading.use === "Agricultural") continue;
+    const area = Math.min(f.areaM2 ?? 0, 400_000);
+    if (area <= 0) continue;
+    all += area;
+    const t = totals.get(reading.use) ?? { area: 0, count: 0, kind: reading.kind };
+    t.area += area;
+    t.count += 1;
+    totals.set(reading.use, t);
+  }
+  if (!all) return null;
+  const [use, top] = [...totals.entries()].sort((a, b) => b[1].area - a[1].area)[0]!;
+  const share = top.area / all;
+  if (share < 0.4) return null;
+  return {
+    use,
+    confidence: share >= 0.7 ? 30 : 25,
+    text: `about ${Math.round(share * 100)}% of the built-up land mapped within ${site.widerRadiusMeters ?? 800} m is ${top.kind} (${top.count} area${top.count === 1 ? "" : "s"})`,
+  };
+}
+
+/** How much a residential default is worth, by the size of the building's footprint. */
+export function residentialDefault(footprintM2: number | undefined): { confidence: number; note: string } {
+  if (!footprintM2) return { confidence: 20, note: "" };
+  if (footprintM2 <= 400) return { confidence: 30, note: `, and at ${formatArea(footprintM2)} this one is house-sized` };
+  if (footprintM2 <= 2500) return { confidence: 25, note: `, and at ${formatArea(footprintM2)} this one is the size of a house or an apartment block` };
+  if (footprintM2 <= 8000) return { confidence: 15, note: `, though at ${formatArea(footprintM2)} this one is larger than most homes` };
+  return { confidence: 10, note: `, though at ${formatArea(footprintM2)} this one is very large for a home, so the default is weak here` };
 }
 
 const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);

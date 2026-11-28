@@ -60,7 +60,9 @@ describe("the Property panel", () => {
   it("when the map does not say what a building is for, offers to add it on OpenStreetMap", () => {
     const untagged = { ...SITE, building: { ...SITE.building!, id: 358752595, url: "https://www.openstreetmap.org/way/358752595", tags: { building: "yes" } } };
     const analysis = analyzeProperty(null, untagged);
-    expect(analysis.classification).toBe("Unknown");
+    // Residential as a default since 28 November 2026; still not Verified, so the link is offered.
+    expect(analysis.classification).toBe("Residential");
+    expect(analysis.basis).toBe("default");
     render(<PropertyResult analysis={analysis} dataAsOf={null} point={{ lat: 17.38342, lon: 78.46975 }} />);
     const edit = screen.getByRole("link", { name: /Add it on OpenStreetMap/ });
     expect(edit.getAttribute("href")).toBe("https://www.openstreetmap.org/edit?way=358752595");

@@ -1,4 +1,5 @@
-import { useIntelTabStore, type IntelTab } from "@/stores/intelTabStore";
+import { isBuildingFocus, useIntelTabStore, type IntelTab } from "@/stores/intelTabStore";
+import { useLocationStore } from "@/stores/locationStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LocationIdentityPanel } from "@/features/location/LocationIdentityPanel";
 import { LocationIntelligencePanel } from "@/features/intelligence/LocationIntelligencePanel";
@@ -41,6 +42,29 @@ const TABS: Array<{ id: IntelTab; label: string }> = [
 export function IntelligencePanel() {
   const tab = useIntelTabStore((s) => s.tab);
   const setTab = useIntelTabStore((s) => s.setTab);
+  const buildingFocus = useIntelTabStore((s) => s.buildingFocus);
+  const location = useLocationStore((s) => s.selectedLocation);
+  // A building was tapped and is still the selected place: lead with what it is.
+  const building = isBuildingFocus(buildingFocus, location);
+
+  const property = (
+    <ErrorBoundary label="Property intelligence" variant="panel">
+      <PropertyIntelligencePanel />
+    </ErrorBoundary>
+  );
+  const aboutPlace = (
+    <>
+      <ErrorBoundary label="Location intelligence score" variant="panel">
+        <LocationIntelligencePanel />
+      </ErrorBoundary>
+      <ErrorBoundary label="Location identity" variant="panel">
+        <LocationIdentityPanel />
+      </ErrorBoundary>
+      <ErrorBoundary label="Population" variant="panel">
+        <PopulationPanel />
+      </ErrorBoundary>
+    </>
+  );
 
   return (
     <div className="intel-panel">
@@ -53,7 +77,23 @@ export function IntelligencePanel() {
       </div>
 
       <div className="intel-panel__content">
-        {tab === "overview" && (
+        {tab === "overview" && building && (
+          <>
+            {/* A tapped building: its property type is the answer, so it
+                comes first and alone. The rest of the place is one tap
+                away, folded, rather than pushing the answer below the fold
+                on a phone. */}
+            {property}
+            <details className="intel-panel__more">
+              <summary>More about this place</summary>
+              {aboutPlace}
+              <ErrorBoundary label="Official & authority intelligence" variant="panel">
+                <OfficialsPanel />
+              </ErrorBoundary>
+            </details>
+          </>
+        )}
+        {tab === "overview" && !building && (
           <>
             {/* A single row pointing at the AI agents, which otherwise live
                 only in the AI section where people who land here never
