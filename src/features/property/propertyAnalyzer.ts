@@ -194,15 +194,7 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
     const nextToPenalty = b.containsPoint ? 0 : 15;
     links.push({ label: facts.name ? `${facts.name} on OpenStreetMap` : "This building on OpenStreetMap", url: b.url });
     lines.push(`Building: ${facts.name ? `${facts.name}, ` : ""}${facts.kind} (OpenStreetMap ${b.osmType} ${b.id}), ${b.containsPoint ? "the point is inside it" : `${b.distanceMeters} m from the point`}`);
-    if (facts.heightMeters !== null) {
-      lines.push(
-        facts.heightSource === "mapped"
-          ? `Height: ${facts.heightMeters} m, as mapped${facts.levels ? `, ${facts.levels} floors` : ""}`
-          : `Height: about ${facts.heightMeters} m, worked out from ${facts.levels} floors at 3.2 m each`
-      );
-    } else {
-      lines.push("Height: not mapped");
-    }
+    lines.push(heightLine(facts));
 
     const typed = readBuildingType(b.tags);
     const own = readBusiness(b.tags);
@@ -364,6 +356,21 @@ export function residentialDefault(footprintM2: number | undefined): { confidenc
 }
 
 const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** The height, and how it is known, in the words the evidence list uses. */
+export function heightLine(facts: Pick<BuildingFacts, "heightMeters" | "heightSource" | "levels" | "kind">): string {
+  if (facts.heightMeters === null) return "Height: not mapped";
+  switch (facts.heightSource) {
+    case "mapped":
+      return `Height: ${facts.heightMeters} m, as mapped${facts.levels ? `, ${facts.levels} floors` : ""}`;
+    case "floors":
+      return `Height: about ${facts.heightMeters} m, worked out from ${facts.levels} floors at 3.2 m each`;
+    case "type":
+      return `Height: about ${facts.heightMeters} m, the usual height for ${article(facts.kind)} ${facts.kind}: no height or floors are mapped`;
+    default:
+      return `Height: about ${facts.heightMeters} m, taken as one floor: no height or floors are mapped`;
+  }
+}
 
 /** "2,400 m²" for a plot, "0.62 km²" for a zone. */
 function formatArea(m2: number): string {

@@ -172,10 +172,14 @@ export interface BuildingFacts {
   osmUrl: string;
   containsPoint: boolean;
   distanceMeters: number;
-  /** Null when neither a height nor a number of floors is mapped. */
+  /** Always a figure since 28 November 2026; `heightSource` says how it is known. Null only in answers from older pages. */
   heightMeters: number | null;
-  /** "mapped" = the height tag itself; "floors" = worked out from the number of floors. */
-  heightSource: "mapped" | "floors" | null;
+  /**
+   * "mapped" = the height tag itself; "floors" = worked out from the number
+   * of floors; "type" = the usual height for its mapped type; "assumed" =
+   * nothing mapped, so one floor (3.2 m), the owner's rule.
+   */
+  heightSource: "mapped" | "floors" | "type" | "assumed" | null;
   levels: number | null;
   footprintM2: number;
   /** "12, Main Road" from the building's own address tags, when mapped. */

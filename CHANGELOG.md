@@ -34,6 +34,11 @@ described a building.
   could not be checked, with Try again.
 - A tap on a building opens the Overview with the property type first and
   everything else folded under "More about this place".
+- A building with no height or floors mapped is one floor, 3.2 m, said to
+  be assumed (it showed "Not mapped", and the 3D view drew it at 7 m). A
+  building mapped with a type keeps its type's usual height (an apartment
+  block 15 m), said to be an estimate. One set of rules
+  (src/lib/buildingHeight.ts) for the 3D view, the panel and the agents.
 
 ### Faster
 - The map page downloads the map code together with the app instead of

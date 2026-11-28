@@ -82,7 +82,11 @@ export function PropertyIntelligencePanel() {
 function heightText(analysis: PropertyAnalysis): string {
   const b = analysis.building;
   if (!b || b.heightMeters === null) return "Not mapped";
-  return b.heightSource === "mapped" ? `${b.heightMeters} m (as mapped)` : `About ${b.heightMeters} m (${b.levels} floors × 3.2 m)`;
+  if (b.heightSource === "mapped") return `${b.heightMeters} m (as mapped)`;
+  if (b.heightSource === "floors") return `About ${b.heightMeters} m (${b.levels} floors × 3.2 m)`;
+  if (b.heightSource === "type") return `About ${b.heightMeters} m (usual for its type; no height mapped)`;
+  // Owner's rule, 28 November 2026: nothing mapped means one floor.
+  return `About ${b.heightMeters} m (one floor, assumed; no height mapped)`;
 }
 
 /** OpenStreetMap's editor, opened on this building: "https://www.openstreetmap.org/way/1" -> ".../edit?way=1". */

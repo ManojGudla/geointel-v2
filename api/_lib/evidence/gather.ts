@@ -274,7 +274,14 @@ const property: Tool = async (ctx) => {
         kind: b.heightSource === "mapped" ? "retrieved" : "computed",
         source: osm,
         retrievedAt: at,
-        note: b.heightSource === "floors" ? `Worked out from ${b.levels} mapped floors at 3.2 m each; the height itself is not mapped.` : undefined,
+        note:
+          b.heightSource === "floors"
+            ? `Worked out from ${b.levels} mapped floors at 3.2 m each; the height itself is not mapped.`
+            : b.heightSource === "type"
+              ? "Estimated: the usual height for this type of building. No height or floors are mapped."
+              : b.heightSource === "assumed"
+                ? "Assumed: one floor (3.2 m), because no height or floors are mapped."
+                : undefined,
       });
     }
     if (b.levels !== null) ctx.book.add({ label: "Floors", value: String(b.levels), kind: "retrieved", source: osm, retrievedAt: at });

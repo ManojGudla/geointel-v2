@@ -1,3 +1,4 @@
+import { buildingHeight, type BuildingHeight } from "@/lib/buildingHeight";
 import type { PropertyClassification } from "@/types/gis";
 
 /**
@@ -247,32 +248,15 @@ export function readName(name: string | undefined): UseReading | null {
   return { use, kind: `"${name.match(pattern)![0]}" in its name`, tag: "name" };
 }
 
-const METRES_PER_FLOOR = 3.2;
-
-/** Metres from a height tag: "28.8", "28.8 m", "95 ft", "95'". Null when it cannot be read. */
-export function parseHeight(raw: string | undefined): number | null {
-  if (!raw) return null;
-  const text = raw.trim().toLowerCase();
-  const feet = /^(\d+(?:\.\d+)?)\s*(?:ft|feet|')\s*(?:(\d+(?:\.\d+)?)\s*(?:in|"))?$/.exec(text);
-  if (feet) return Number(feet[1]) * 0.3048 + (feet[2] ? Number(feet[2]) * 0.0254 : 0);
-  const metres = /^(\d+(?:\.\d+)?)\s*(?:m|metres|meters)?$/.exec(text);
-  if (metres) return Number(metres[1]);
-  return null;
-}
+export { parseHeight } from "@/lib/buildingHeight";
 
 /**
- * The building's height and floors, and how each is known. A mapped height
- * wins. Otherwise floors x 3.2 m, the same figure the 3D view uses, said as
- * worked out rather than measured. Otherwise nothing, rather than a guess
- * from the building type.
+ * The building's height and how it is known: mapped, worked out from its
+ * floors, estimated from its type, or assumed to be one floor when nothing
+ * is mapped (owner's rule, 28 November 2026). See src/lib/buildingHeight.ts.
  */
-export function heightFromTags(tags: Record<string, string>): { meters: number | null; source: "mapped" | "floors" | null; levels: number | null } {
-  const levelsRaw = Number(tags["building:levels"]);
-  const levels = Number.isFinite(levelsRaw) && levelsRaw > 0 ? Math.round(levelsRaw * 10) / 10 : null;
-  const mapped = parseHeight(tags.height ?? tags["building:height"]);
-  if (mapped !== null && mapped > 0 && mapped < 1000) return { meters: Math.round(mapped * 10) / 10, source: "mapped", levels };
-  if (levels !== null) return { meters: Math.round(levels * METRES_PER_FLOOR * 10) / 10, source: "floors", levels };
-  return { meters: null, source: null, levels: null };
+export function heightFromTags(tags: Record<string, string>): BuildingHeight {
+  return buildingHeight(tags);
 }
 
 /** "12, Main Road" from the address tags, when mapped. */

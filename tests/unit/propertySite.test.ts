@@ -468,10 +468,21 @@ describe("heights", () => {
     expect(parseHeight("tall")).toBeNull();
   });
 
-  it("prefers a mapped height, works one out from floors, and otherwise says nothing", () => {
+  // Changed 28 November 2026 (owner's rule): nothing mapped means one floor, never "no height".
+  it("prefers a mapped height, works one out from floors, then the type's usual height, then one floor", () => {
     expect(heightFromTags({ height: "40", "building:levels": "9" })).toEqual({ meters: 40, source: "mapped", levels: 9 });
     expect(heightFromTags({ "building:levels": "9" })).toEqual({ meters: 28.8, source: "floors", levels: 9 });
-    expect(heightFromTags({ building: "office" })).toEqual({ meters: null, source: null, levels: null });
+    expect(heightFromTags({ building: "office" })).toEqual({ meters: 14, source: "type", levels: null });
+    expect(heightFromTags({ building: "yes" })).toEqual({ meters: 3.2, source: "assumed", levels: null });
+    expect(heightFromTags({ building: "house" })).toEqual({ meters: 3.2, source: "assumed", levels: null });
+  });
+
+  it("draws the 3D view with the same heights, marking every estimate as one", async () => {
+    const { estimateBuildingHeight } = await import("../../api/_lib/buildingHeight");
+    expect(estimateBuildingHeight({ building: "yes" })).toEqual({ meters: 3.2, explicit: false });
+    expect(estimateBuildingHeight({ building: "apartments" })).toEqual({ meters: 15, explicit: false });
+    expect(estimateBuildingHeight({ building: "yes", "building:levels": "4" })).toEqual({ meters: 12.8, explicit: true });
+    expect(estimateBuildingHeight({ building: "yes", height: "95 ft" })).toEqual({ meters: 29, explicit: true });
   });
 });
 

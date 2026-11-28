@@ -50,11 +50,23 @@ describe("the Property panel", () => {
     expect(link.getAttribute("rel")).toBe("noopener noreferrer");
   });
 
-  it("says 'not mapped' rather than guessing a height", () => {
-    const bare = { ...SITE, building: { ...SITE.building!, tags: { building: "office" } } };
+  /*
+    Changed 28 November 2026 at the owner's request: no height mapped means
+    one floor, said to be assumed; a typed building gets its type's usual
+    height, said to be an estimate. Never shown as if measured.
+  */
+  it("gives one floor, said to be assumed, when no height is mapped", () => {
+    const bare = { ...SITE, building: { ...SITE.building!, tags: { building: "yes" } } };
     render(<PropertyResult analysis={analyzeProperty(null, bare)} dataAsOf={null} />);
     const facts = within(screen.getByLabelText("The building at this point"));
-    expect(facts.getAllByText("Not mapped")).toHaveLength(2);
+    expect(facts.getByText("About 3.2 m (one floor, assumed; no height mapped)")).toBeTruthy();
+  });
+
+  it("gives a typed building its type's usual height, said to be an estimate", () => {
+    const office = { ...SITE, building: { ...SITE.building!, tags: { building: "office" } } };
+    render(<PropertyResult analysis={analyzeProperty(null, office)} dataAsOf={null} />);
+    const facts = within(screen.getByLabelText("The building at this point"));
+    expect(facts.getByText("About 14 m (usual for its type; no height mapped)")).toBeTruthy();
   });
 
   it("when the map does not say what a building is for, offers to add it on OpenStreetMap", () => {
