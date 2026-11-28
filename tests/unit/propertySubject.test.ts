@@ -83,17 +83,19 @@ describe("a commercial building surrounded by housing", () => {
     expect(scores.residential).toBeGreaterThan(scores.commercial);
   });
 
-  it("is classified Commercial once distance is taken into account", () => {
+  /*
+    Since 28 November 2026 (owner's rule: never a wrong guess) the property
+    answer never comes from the area lookup; these now check the evidence
+    layer itself, which the Evidence tab still shows.
+  */
+  it("finds the building under the pin once distance is taken into account", () => {
     const result = classifyFeatures(waverock(), PIN, 250);
-    expect(analyzeProperty(asEvidence(result)).classification).toBe("Commercial");
+    expect(result.subject?.category).toBe("commercial");
+    expect(result.scores.commercial).toBeGreaterThan(result.scores.residential);
   });
 
-  it("names the building it is talking about, so the claim can be checked", () => {
-    // A classification nobody can verify is just an assertion. The whole
-    // product's premise is that every answer shows where it came from.
-    const analysis = analyzeProperty(asEvidence(classifyFeatures(waverock(), PIN, 250)));
-    expect(analysis.reasoning).toContain("Wave Rock Tower 2.3");
-    expect(analysis.evidence[0]).toContain("Wave Rock Tower 2.3");
+  it("names the building it found, so the claim can be checked", () => {
+    expect(classifyFeatures(waverock(), PIN, 250).subject?.name).toBe("Wave Rock Tower 2.3");
   });
 
   it("still reports the forty residential buildings as raw evidence", () => {
@@ -131,20 +133,19 @@ describe("what the VERIFIED badge is allowed to mean", () => {
     expect(emptySpot.trust).toBe("inferred");
   });
 
-  it("caps confidence when it is reading the area rather than the building", () => {
-    // A guess from context is never as good as reading the label, and no
-    // amount of nearby evidence should be able to lift it past one.
+  it("never lets the area decide: without the building check it is the default, whatever surrounds it", () => {
     const analysis = analyzeProperty(
       asEvidence(classifyFeatures(waverock().filter((el) => el.tags.name !== "Wave Rock Tower 2.3"), PIN, 250))
     );
-    expect(analysis.confidence).toBeLessThanOrEqual(60);
-    expect(analysis.reasoning).toContain("Nothing is mapped at this exact point");
+    expect(analysis.classification).toBe("Residential");
+    expect(analysis.basis).toBe("default");
+    expect(analysis.confidence).toBeLessThanOrEqual(30);
   });
 
-  it("says nothing is here rather than guessing, when nothing is mapped", () => {
+  it("gives the default, said as such, when nothing is mapped", () => {
     const analysis = analyzeProperty(asEvidence(classifyFeatures([], PIN, 250)));
-    expect(analysis.classification).toBe("Unknown");
-    expect(analysis.trust).toBe("unavailable");
+    expect(analysis.classification).toBe("Residential");
+    expect(analysis.reasoning).toContain("This is a default, not a finding.");
   });
 });
 
@@ -161,10 +162,10 @@ describe("the property is the property, not the postcode", () => {
       ...Array.from({ length: 30 }, (_, i) => at(60 + i * 6, { building: "office" })),
       ...Array.from({ length: 15 }, (_, i) => at(80 + i * 8, { shop: "convenience" })),
     ];
-    const analysis = analyzeProperty(asEvidence(classifyFeatures(elements, PIN, 250)));
-    expect(analysis.classification).toBe("Residential");
-    // And it is honest that the surroundings disagree.
-    expect(analysis.reasoning).toContain("lean commercial");
+    const result = classifyFeatures(elements, PIN, 250);
+    expect(result.subject?.category).toBe("residential");
+    // And the surroundings, which disagree, are counted as they are.
+    expect(result.scores.commercial).toBeGreaterThan(result.scores.residential);
   });
 
   it("does not let a zoning polygon overrule the building you are standing in", () => {

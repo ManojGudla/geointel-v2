@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AsyncPanel } from "@/components/AsyncPanel";
 import { TrustBadge } from "@/components/TrustBadge";
 import { useOfficials } from "./useOfficials";
@@ -6,12 +7,19 @@ import type { OfficialEntry, OfficialLevel } from "@/services/officials";
 import "./OfficialsPanel.css";
 
 const LEVEL_ORDER: OfficialLevel[] = ["country", "state", "district", "city"];
-const LEVEL_HEADING: Record<OfficialLevel, string> = { country: "Country", state: "State / Province", district: "District / County", city: "City" };
+const LEVEL_HEADING: Record<OfficialLevel, string> = {
+  country: "Country",
+  state: "State / Province",
+  district: "District / County",
+  city: "City",
+};
 
 /** ISO 3166-1 alpha-2 -> flag emoji, via the two Unicode regional indicator symbols. */
 function flagEmoji(iso2?: string): string | null {
   if (!iso2 || iso2.length !== 2) return null;
-  const codePoints = [...iso2.toUpperCase()].map((c) => 0x1f1e6 + (c.charCodeAt(0) - 65));
+  const codePoints = [...iso2.toUpperCase()].map(
+    (c) => 0x1f1e6 + (c.charCodeAt(0) - 65),
+  );
   if (codePoints.some((cp) => cp < 0x1f1e6 || cp > 0x1f1ff)) return null;
   return String.fromCodePoint(...codePoints);
 }
@@ -20,12 +28,18 @@ function formatDate(iso: string | null): string | null {
   if (!iso) return null;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function OfficialRow({ entry }: { entry: OfficialEntry }) {
   return (
-    <div className={`officials-panel__row officials-panel__row--${entry.status}`}>
+    <div
+      className={`officials-panel__row officials-panel__row--${entry.status}`}
+    >
       <div className="officials-panel__row-head">
         <span className="officials-panel__role">{entry.role}</span>
         <TrustBadge trust={entry.status} />
@@ -42,11 +56,15 @@ function OfficialRow({ entry }: { entry: OfficialEntry }) {
             ) : (
               entry.sourceLabel
             )}
-            {entry.since && formatDate(entry.since) ? ` · In office since ${formatDate(entry.since)}` : ""}
+            {entry.since && formatDate(entry.since)
+              ? ` · In office since ${formatDate(entry.since)}`
+              : ""}
           </p>
         </>
       ) : (
-        <p className="officials-panel__unavailable">Unable to verify{entry.note ? `: ${entry.note}` : "."}</p>
+        <p className="officials-panel__unavailable">
+          Unable to verify{entry.note ? `: ${entry.note}` : "."}
+        </p>
       )}
     </div>
   );
@@ -62,45 +80,74 @@ function OfficialRow({ entry }: { entry: OfficialEntry }) {
  * genuinely thin worldwide).
  */
 export function OfficialsPanel() {
-  const query = useOfficials();
-  const countryCode = useLocationStore((s) => s.selectedLocation?.address.countryCode);
-  const fetchedAt = query.dataUpdatedAt ? new Date(query.dataUpdatedAt).toLocaleString() : null;
+  const countryCode = useLocationStore(
+    (s) => s.selectedLocation?.address.countryCode,
+  );
   const flag = flagEmoji(countryCode);
+  /*
+    Folded by default, and now asked for only when unfolded. It used to run
+    its Wikidata lookup for every place selected, folded or not: one more
+    slow request competing with the map and the panels people are looking
+    at (reported slow, 28 November 2026). Once opened it stays mounted, so
+    folding it again keeps the answer.
+  */
+  const [opened, setOpened] = useState(false);
 
   return (
-    <details className="officials-panel">
+    <details
+      className="officials-panel"
+      onToggle={(e) => e.currentTarget.open && setOpened(true)}
+    >
       <summary className="officials-panel__summary">
         Official / Authority Intelligence
-        {flag ? <span className="officials-panel__summary-flag">{flag}</span> : null}
+        {flag ? (
+          <span className="officials-panel__summary-flag">{flag}</span>
+        ) : null}
       </summary>
-      <AsyncPanel
-        query={query}
-        label="Official & authority intelligence"
-        idleMessage="Select a location to see the officials connected to it."
-        isEmpty={(entries) => entries.length === 0}
-        emptyMessage="No administrative levels could be resolved for this location."
-      >
-        {(entries) => (
-          <>
-            {LEVEL_ORDER.filter((level) => entries.some((e) => e.level === level)).map((level) => {
-              const rows = entries.filter((e) => e.level === level);
-              const levelLabel = rows[0]!.levelLabel;
-              return (
-                <section key={level} className="officials-panel__level">
-                  <h3>
-                    {level === "country" && flag ? `${flag} ` : ""}
-                    {LEVEL_HEADING[level]}: {levelLabel}
-                  </h3>
-                  {rows.map((entry, i) => (
-                    <OfficialRow key={`${entry.role}-${i}`} entry={entry} />
-                  ))}
-                </section>
-              );
-            })}
-            {fetchedAt && <p className="officials-panel__verified-at">Live-checked: {fetchedAt}</p>}
-          </>
-        )}
-      </AsyncPanel>
+      {opened && <OfficialsBody flag={flag} />}
     </details>
+  );
+}
+
+function OfficialsBody({ flag }: { flag: string | null }) {
+  const query = useOfficials();
+  const fetchedAt = query.dataUpdatedAt
+    ? new Date(query.dataUpdatedAt).toLocaleString()
+    : null;
+  return (
+    <AsyncPanel
+      query={query}
+      label="Official & authority intelligence"
+      idleMessage="Select a location to see the officials connected to it."
+      isEmpty={(entries) => entries.length === 0}
+      emptyMessage="No administrative levels could be resolved for this location."
+    >
+      {(entries) => (
+        <>
+          {LEVEL_ORDER.filter((level) =>
+            entries.some((e) => e.level === level),
+          ).map((level) => {
+            const rows = entries.filter((e) => e.level === level);
+            const levelLabel = rows[0]!.levelLabel;
+            return (
+              <section key={level} className="officials-panel__level">
+                <h3>
+                  {level === "country" && flag ? `${flag} ` : ""}
+                  {LEVEL_HEADING[level]}: {levelLabel}
+                </h3>
+                {rows.map((entry, i) => (
+                  <OfficialRow key={`${entry.role}-${i}`} entry={entry} />
+                ))}
+              </section>
+            );
+          })}
+          {fetchedAt && (
+            <p className="officials-panel__verified-at">
+              Live-checked: {fetchedAt}
+            </p>
+          )}
+        </>
+      )}
+    </AsyncPanel>
   );
 }

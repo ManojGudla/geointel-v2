@@ -1,8 +1,5 @@
 import type { BuildingFacts, GISEvidence, PropertyAnalysis, PropertyClassification, PropertySite, SiteFeature } from "@/types/gis";
-import { totalEvidenceCount } from "../gis/evidenceTotal.js";
 import { addressFromTags, article, heightFromTags, readArea, readBuildingType, readBusiness, readName, structureKind, type Use, type UseReading } from "./buildingUse.js";
-
-const MIN_EVIDENCE_FOR_CONFIDENCE = 6;
 
 /*
   Said with every result, because the most expensive misreading of this panel
@@ -23,39 +20,54 @@ const EMPTY_SCORES: GISEvidence["scores"] = { commercial: 0, residential: 0, ind
  *   1. the building's own type (building=office, building=apartments ...)
  *      and any business tag on it,               VERIFIED, 90% (75% if next to it)
  *   2. businesses mapped inside its footprint,   VERIFIED, 80%
- *   3. the land or site it stands on,            INFERRED, 60-70%
- *   4. a telling word in its name,               INFERRED, 45%
- *   5. what the neighbourhood suggests,          INFERRED, 35% at most
- *   6. land use mapped within 800 m,             INFERRED, 25-30%
- *   7. otherwise Residential, as a default:      INFERRED, 10-30% by size.
- *      The owner's rule (28 November 2026): research further when nothing
- *      describes the building, and if still nothing does, answer
- *      residential rather than Unknown. Most buildings are homes, so it is
- *      the likeliest answer; it is labelled as a default, never a finding,
- *      and held lower for large footprints, which are less often homes.
- * The surroundings (`evidence`, the area within the chosen radius) are shown
- * as context and never change the answer about the building.
+ *   3. businesses mapped at its wall (within 8 m, no other building
+ *      nearer): a ground-floor shop drawn on the road side,   INFERRED, 65%
+ *   4. the land or site it stands on,            INFERRED, 60-70%
+ *   5. a telling word in its name,               INFERRED, 45%
+ *   6. otherwise Residential, as a default:      INFERRED, 10-30% by size.
  *
- * Without `site` (an older page, or the building lookup failed) it falls back
- * to reading the area, as it used to, and never calls that VERIFIED.
+ * Only evidence about THIS building or the land it stands on decides the
+ * answer. The owner's rule (28 November 2026): property type must be
+ * accurate, never wrong, and when nothing is available it is Residential.
+ * Guesses from the neighbourhood ("lots of shops around, so probably
+ * commercial") were wrong for exactly the buildings people tap, so the
+ * surroundings are shown as context only and never change the answer.
+ *
+ * Without `site` (an older page, or the building lookup failed) the
+ * building was not checked, so the answer is the default, said as such.
  */
 export function analyzeProperty(evidence: GISEvidence | null | undefined, site?: PropertySite | null): PropertyAnalysis {
   if (site) return analyzeSite(site, evidence ?? null);
-  if (!evidence) {
+  if (evidence) {
+    const surroundings = surroundingsLine(evidence);
     return {
-      classification: "Unknown",
-      confidence: 0,
-      trust: "unavailable",
-      evidence: ["Neither the building at this point nor the area around it could be read."],
-      reasoning: "The map data for this point did not load, so there is nothing to classify from yet.",
-      scores: EMPTY_SCORES,
+      classification: "Residential",
+      confidence: 10,
+      trust: "inferred",
+      evidence: surroundings ? [surroundings] : [],
+      reasoning:
+        "The building at this point could not be checked just now, so it is shown as residential by default: most buildings are homes. This is a default, not a finding. Try again to read the building itself.",
+      scores: evidence.scores,
       sources: ["OpenStreetMap / Overpass"],
-      retrievedAt: new Date().toISOString(),
-      limitations: [OSM_IS_NOT_LEGAL_USE],
-      basis: "none",
+      retrievedAt: evidence.fetchedAt,
+      limitations: [OSM_IS_NOT_LEGAL_USE, "The building at this point could not be checked, so this is the default rather than a reading of it."],
+      basis: "default",
+      surroundings,
     };
   }
-  return analyzeArea(evidence);
+  // Nothing loaded at all: the one case with no answer, since this is a failure to read, not an absence.
+  return {
+    classification: "Unknown",
+    confidence: 0,
+    trust: "unavailable",
+    evidence: ["Neither the building at this point nor the area around it could be read."],
+    reasoning: "The map data for this point did not load, so there is nothing to classify from yet.",
+    scores: EMPTY_SCORES,
+    sources: ["OpenStreetMap / Overpass"],
+    retrievedAt: new Date().toISOString(),
+    limitations: [OSM_IS_NOT_LEGAL_USE],
+    basis: "none",
+  };
 }
 
 /* ---------------------------------------------------------------- the building at the point */
@@ -252,7 +264,33 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
       return done("Mixed Use", "verified", 75 - nextToPenalty, `${name} has no type of its own on the map, and what is mapped inside it is a mix: ${listInside(inside, 4)}. ${capitalise(where)}.`, "inside");
     }
 
-    // 3. Nothing about the building's use is mapped: the land it stands on.
+    // 3. Businesses at its wall: drawn just outside it, with no other building nearer.
+    const atWall = (site.attached ?? [])
+      .map((feature) => ({ feature, reading: readBusiness(feature.tags) }))
+      .filter((x): x is { feature: SiteFeature & { distanceMeters: number }; reading: UseReading } => x.reading !== null);
+    if (atWall.length) {
+      lines.push(`Mapped at its wall: ${atWall.length} (${listInside(atWall, 4)}), within 8 m of it and nearer to it than to any other building`);
+      for (const { feature } of atWall.slice(0, 3)) links.push({ label: `${feature.tags.name ?? readBusiness(feature.tags)!.kind} on OpenStreetMap`, url: feature.url });
+      limitations.push("The businesses are mapped just outside the building's outline, not inside it, so they are read as its own rather than checked against it.");
+      const ranked = tally(atWall.map((x) => x.reading));
+      const [topUse, topCount] = ranked[0]!;
+      const share = topCount / atWall.length;
+      /*
+        One or two shops at the foot of a building of two floors or more is
+        the usual Indian street: homes above shops, which is mixed use.
+      */
+      const homesAbove = topUse === "Commercial" && topCount <= 2 && (facts.levels ?? 0) >= 2;
+      const use: PropertyClassification = share < 0.75 || homesAbove ? "Mixed Use" : topUse;
+      return done(
+        use,
+        "inferred",
+        65 - nextToPenalty,
+        `${name} has no type of its own on the map and nothing mapped inside it, but ${atWall.length === 1 ? "a business is" : `${atWall.length} businesses are`} mapped at its wall: ${listInside(atWall, 4)}. A business drawn right beside a building, with no other building nearer, is in that building (usually a ground-floor shop drawn on the road side).${homesAbove ? ` With ${facts.levels} floors and ${topCount === 1 ? "one business" : "two businesses"} at street level, it reads as homes above shops: mixed use.` : ""} ${capitalise(where)}.`,
+        "attached"
+      );
+    }
+
+    // 4. Nothing about the building's use is mapped: the land it stands on.
     limitations.push("This building's own use is not mapped, so the answer is inferred and not checked against the building.");
     if (landReading) {
       const { reading } = landReading;
@@ -266,7 +304,7 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
       );
     }
 
-    // 4. A word in its name.
+    // 5. A word in its name.
     const fromName = readName(facts.name);
     if (fromName) {
       return done(
@@ -280,47 +318,13 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
 
     const nothingOnIt = `${facts.kind === "building (its use is not mapped)" ? "A building" : capitalise(article(facts.kind))} is mapped here, but nothing on the map says what it is used for: no type, no businesses inside it and no land use around it.`;
 
-    /*
-      5. The neighbourhood, as a guess. Reported 26 November 2026: a tap on
-      open ground beside a building gave a reading from the surroundings,
-      and a tap on the building itself gave "Unknown", so the more precise
-      tap said less. Now both give it, and on a building it is held lower
-      (35% at most, against 40%) and called what it is: a guess from what is
-      mapped around it, never a reading of the building.
-    */
-    if (evidence && totalEvidenceCount(evidence.counts) > 0) {
-      const area = analyzeArea({ ...evidence, subject: null });
-      if (area.classification !== "Unknown") {
-        const parts = surroundingsParts(evidence);
-        return done(
-          area.classification,
-          "inferred",
-          Math.max(5, Math.min(area.confidence, 35)),
-          `${nothingOnIt} Going only by what is mapped within ${evidence.radiusMeters} m${parts.length ? ` (${parts.join(", ")})` : ""}, it is probably ${area.classification === "Mixed Use" ? "mixed use" : area.classification.toLowerCase()}. That is a guess from the neighbourhood, not a reading of this building.${cutShort}`,
-          "area"
-        );
-      }
-    }
-
-    // 6. Land use further out.
-    const wider = widerLandReading(site);
-    if (wider) {
-      return done(
-        wider.use,
-        "inferred",
-        wider.confidence,
-        `${nothingOnIt} Looking further out, ${wider.text}, so it is probably ${wider.use.toLowerCase()}. That is a guess from the wider area, not a reading of this building.${cutShort}`,
-        "wider"
-      );
-    }
-
-    // 7. The default.
+    // 6. The default (owner's rule): Residential, said to be a default.
     const fallback = residentialDefault(facts.footprintM2 ?? site.building?.footprintM2);
     return done(
       "Residential",
       "inferred",
       fallback.confidence,
-      `${nothingOnIt} Nothing mapped around it settles it either, so it is shown as residential by default: most buildings are homes${fallback.note}. This is a default, not a finding.${surroundings || nearby ? " What is mapped nearby is listed below as context only." : ""} If you know what it is, it can be added on OpenStreetMap.${cutShort}`,
+      `${nothingOnIt} So it is shown as residential by default: most buildings are homes${fallback.note}. This is a default, not a finding.${surroundings || nearby ? " What is mapped nearby is listed below as context only, and does not change the answer." : ""} If you know what it is, it can be added on OpenStreetMap.${cutShort}`,
       "default"
     );
   }
@@ -340,72 +344,14 @@ function analyzeSite(site: PropertySite, evidence: GISEvidence | null): Property
     );
   }
 
-  if (evidence && totalEvidenceCount(evidence.counts) > 0) {
-    const area = analyzeArea({ ...evidence, subject: null });
-    if (area.classification !== "Unknown") {
-      return {
-        ...area,
-        confidence: Math.min(area.confidence, 40),
-        reasoning: `No building is mapped at this exact point, and the land use is not mapped either, so this only describes the surroundings: ${area.reasoning.replace(/^Nothing is mapped at this exact point, so this describes the area rather than the building: /, "")}`,
-        limitations: [...limitations, ...area.limitations.filter((l) => l !== OSM_IS_NOT_LEGAL_USE)],
-        basis: "area",
-        links,
-        surroundings,
-        retrievedAt,
-      };
-    }
-  }
-
-  const wider = widerLandReading(site);
-  if (wider) {
-    return done(
-      wider.use,
-      "inferred",
-      Math.min(wider.confidence, 25),
-      `No building, business or land use is mapped at this exact point. Looking further out, ${wider.text}, so this is probably ${wider.use.toLowerCase()} land. Tap directly on a building to read that building.${cutShort}`,
-      "wider"
-    );
-  }
-
   lines.push("No building, business or land use is mapped at this point.");
   return done(
     "Residential",
     "inferred",
     10,
-    `Nothing is mapped at this exact point: no building, no business and no land use, and nothing mapped further out settles it. It is shown as residential by default, since most built-up land is homes; treat it as a default, not a finding. Tap directly on a building to read that building.${cutShort}`,
+    `Nothing is mapped at this exact point: no building, no business and no land use. It is shown as residential by default, since most built-up land is homes; treat it as a default, not a finding. Tap directly on a building to read that building.${cutShort}`,
     "default"
   );
-}
-
-/**
- * Land use mapped within the wider radius, weighted by size. Parks and
- * farmland say little about what a building is used for, so only built-up
- * land counts, and one huge zone is capped so it cannot decide alone. A
- * clear lead (at least 40% of that land) is needed for an answer.
- */
-export function widerLandReading(site: PropertySite): { use: PropertyClassification; confidence: number; text: string } | null {
-  const totals = new Map<PropertyClassification, { area: number; count: number; kind: string }>();
-  let all = 0;
-  for (const f of site.widerLand ?? []) {
-    const reading = readArea(f.tags);
-    if (!reading || reading.use === "Open Space" || reading.use === "Agricultural") continue;
-    const area = Math.min(f.areaM2 ?? 0, 400_000);
-    if (area <= 0) continue;
-    all += area;
-    const t = totals.get(reading.use) ?? { area: 0, count: 0, kind: reading.kind };
-    t.area += area;
-    t.count += 1;
-    totals.set(reading.use, t);
-  }
-  if (!all) return null;
-  const [use, top] = [...totals.entries()].sort((a, b) => b[1].area - a[1].area)[0]!;
-  const share = top.area / all;
-  if (share < 0.4) return null;
-  return {
-    use,
-    confidence: share >= 0.7 ? 30 : 25,
-    text: `about ${Math.round(share * 100)}% of the built-up land mapped within ${site.widerRadiusMeters ?? 800} m is ${top.kind} (${top.count} area${top.count === 1 ? "" : "s"})`,
-  };
 }
 
 /** How much a residential default is worth, by the size of the building's footprint. */
@@ -423,101 +369,4 @@ const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1
 function formatArea(m2: number): string {
   if (m2 < 100_000) return `${(Math.round(m2 / 10) * 10).toLocaleString("en-US")} m²`;
   return `${(m2 / 1_000_000).toFixed(2)} km²`;
-}
-
-/* ---------------------------------------------------------------- the area (fallback) */
-
-/**
- * The area around the point: the old reading, kept for when the building at
- * the point cannot be checked. It is never VERIFIED any more. It was, when a
- * classified feature's centre lay within 35 m, and that is how an office
- * tower came back "RESIDENTIAL, VERIFIED, 95%": the area endpoint snaps the
- * point by up to about 55 m for caching, and the nearest centre was a house.
- */
-function analyzeArea(evidence: GISEvidence): PropertyAnalysis {
-  const { scores, counts } = evidence;
-  const totalEvidence = totalEvidenceCount(counts);
-
-  if (totalEvidence === 0) {
-    return {
-      classification: "Unknown",
-      confidence: 0,
-      trust: "unavailable",
-      evidence: ["No mapped buildings, shops, offices, amenities, tourism features, or transit infrastructure were found within this radius."],
-      reasoning: "OpenStreetMap has no recorded features here yet. This does not mean the area is empty, only that it isn't mapped in detail.",
-      scores,
-      sources: ["OpenStreetMap / Overpass"],
-      retrievedAt: evidence.fetchedAt,
-      limitations: [OSM_IS_NOT_LEGAL_USE, COVERAGE_VARIES],
-      basis: "none",
-    };
-  }
-
-  const ranked = (Object.entries(scores) as Array<[keyof typeof scores, number]>).sort((a, b) => b[1] - a[1]);
-  const [topKey, topScore] = ranked[0]!;
-  const [, secondScore] = ranked[1] ?? ["", 0];
-
-  const classificationMap: Record<keyof typeof scores, PropertyClassification> = {
-    commercial: "Commercial",
-    residential: "Residential",
-    industrial: "Industrial",
-    institutional: "Institutional",
-    landmark: "Landmark",
-    transport: "Transport",
-  };
-
-  const margin = topScore - secondScore;
-  const isMixed = topScore > 0 && margin < topScore * 0.25;
-  const areaClassification: PropertyClassification = topScore === 0 ? "Unknown" : isMixed ? "Mixed Use" : classificationMap[topKey];
-
-  const subject = evidence.subject ?? null;
-  const classification: PropertyClassification = subject ? classificationMap[subject.category] : areaClassification;
-
-  const dominance = topScore === 0 ? 0 : Math.min(1, margin / topScore);
-  const volumeFactor = Math.min(1, totalEvidence / MIN_EVIDENCE_FOR_CONFIDENCE);
-  const areaAgrees = subject ? classificationMap[topKey] === classification : false;
-  // Without the building check, nothing here is more than an inference.
-  const confidence = Math.min(60, subject ? Math.round(45 + (areaAgrees ? 15 : 5) * volumeFactor) : Math.round(dominance * 0.6 * 100 + volumeFactor * 0.4 * 100));
-
-  const evidenceLines: string[] = [];
-  if (counts.shops) evidenceLines.push(`${counts.shops} mapped shop${counts.shops === 1 ? "" : "s"}`);
-  if (counts.offices) evidenceLines.push(`${counts.offices} office${counts.offices === 1 ? "" : "s"}`);
-  if (counts.residential) evidenceLines.push(`${counts.residential} residential building${counts.residential === 1 ? "" : "s"}`);
-  if (counts.industrial) evidenceLines.push(`${counts.industrial} industrial feature${counts.industrial === 1 ? "" : "s"}`);
-  if (counts.institutional) evidenceLines.push(`${counts.institutional} institutional feature${counts.institutional === 1 ? "" : "s"}`);
-  if (counts.amenities) evidenceLines.push(`${counts.amenities} amenities`);
-  if (counts.tourism) evidenceLines.push(`${counts.tourism} tourism/landmark feature${counts.tourism === 1 ? "" : "s"}`);
-  if (counts.transport) evidenceLines.push(`${counts.transport} transit feature${counts.transport === 1 ? "" : "s"}`);
-  evidenceLines.push(`${counts.buildings} mapped buildings total within ${evidence.radiusMeters}m`);
-
-  const subjectName = subject?.name ? `"${subject.name}"` : `a ${subject?.kind}`;
-  const reasoning = subject
-    ? `OpenStreetMap has ${subjectName} mapped near this spot, tagged as ${subject.kind}, but the building at the exact point could not be checked, so this is an inference. The ${totalEvidence} features within ${evidence.radiusMeters}m are the surrounding area, and they ${areaAgrees ? "agree with it" : `lean ${areaClassification.toLowerCase()}`}.`
-    : topScore === 0
-      ? `${totalEvidence} feature${totalEvidence === 1 ? " is" : "s are"} mapped within ${evidence.radiusMeters}m, but none carry a specific-enough OpenStreetMap tag (shop, office, amenity, tourism, transit, or a typed building) to classify. A bare 'building=yes' with nothing else nearby is the usual case.`
-      : `Nothing is mapped at this exact point, so this describes the area rather than the building: the evidence within ${evidence.radiusMeters}m ${isMixed ? "is closely split between several use types" : `leans ${classification.toLowerCase()}`}. Click directly on a building for a reading of that building.`;
-
-  const unclassified = classification === "Unknown";
-  const trust = unclassified ? "unavailable" : "inferred";
-
-  const limitations = [OSM_IS_NOT_LEGAL_USE];
-  limitations.push(
-    subject
-      ? "The building at the exact point could not be checked, so this reads a feature near the spot and the surrounding area."
-      : "Nothing is mapped at the exact point, so this describes the surrounding area, not a specific building."
-  );
-  limitations.push(COVERAGE_VARIES);
-
-  return {
-    classification,
-    confidence: unclassified ? 0 : confidence,
-    trust,
-    evidence: subject ? [`${subject.name ? `${subject.name}: ` : ""}${subject.kind}, mapped near this spot`, ...evidenceLines] : evidenceLines,
-    reasoning,
-    scores,
-    sources: ["OpenStreetMap / Overpass"],
-    retrievedAt: evidence.fetchedAt,
-    limitations,
-    basis: subject ? "area" : topScore === 0 ? "none" : "area",
-  };
 }

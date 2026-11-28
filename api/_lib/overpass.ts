@@ -45,8 +45,6 @@ export interface OverpassElement {
   tags?: Record<string, string>;
   /** Present when the query uses `out meta`: when this element was last edited in OpenStreetMap. */
   timestamp?: string;
-  /** Present when the query uses `out bb`: the element's bounding box. */
-  bounds?: { minlat: number; minlon: number; maxlat: number; maxlon: number };
 }
 
 // 9s, down from 14s. A mirror that has not answered a small radius query in

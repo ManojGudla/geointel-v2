@@ -60,7 +60,7 @@ export function PropertyIntelligencePanel() {
       <h2>Property Intelligence</h2>
       {siteFailed && (
         <p className="property-panel__notice" role="status">
-          The building at this exact point could not be checked, so this reads the area around it.{" "}
+          The building at this exact point could not be checked just now, so this shows the default until it is.{" "}
           <button type="button" className="property-panel__link-button" onClick={() => void site.refetch()}>
             Try again
           </button>
@@ -223,24 +223,26 @@ export function PropertyResult({
       <details className="property-panel__why">
         <summary>How is this worked out?</summary>
         <p>
-          The answer comes from the building at the exact point you chose: the one whose outline on OpenStreetMap
-          contains the point, or whose wall is within 10 m of it. The rest of the area never changes it.
+          The answer comes only from the building at the exact point you chose (the one whose outline on OpenStreetMap
+          contains the point, or whose wall is within 10 m of it) and the land it stands on. What is around it is shown
+          as context and never changes the answer, because a guess from the neighbourhood is wrong for exactly the
+          buildings people tap.
         </p>
         <p>
           Strongest first: the building's own type (for example an office building or an apartment building) and any
           business tagged on it, 90%; businesses mapped inside it, 80%; the land or campus it stands on, 60 to 70%, or
           50% when that land is drawn as one large zone over a whole neighbourhood; a telling word in its name, 45%.
-          Homes with shops or offices mapped inside are Mixed Use. A tap next to a wall rather than inside it counts 15
-          points less. Where there is no building, the land itself is read: a park or a sports ground is Open Space,
-          farmland is Agricultural. When nothing on the map is about the building at all, it looks further: what the
-          neighbourhood suggests (35% at most), then the land use mapped within 800 m (25 to 30%), and lists the nearest
-          mapped places.
+          Businesses mapped just outside its wall (within 8 m, with no other building nearer, which is how ground-floor
+          shops are usually drawn) count as its own, 65%; one or two shops below two or more floors read as homes above
+          shops, Mixed Use. Homes with shops or offices mapped inside are Mixed Use too. A tap next to a wall rather than
+          inside it counts 15 points less. Where there is no building, the land itself is read: a park or a sports ground
+          is Open Space, farmland is Agricultural.
         </p>
         <p>
-          If even that finds nothing, the building is shown as Residential by default, because most buildings are homes:
-          30% for a house-sized footprint, less for bigger ones, and always labelled as a default rather than a finding.
-          Verified means OpenStreetMap says it about this building. Inferred means it was worked out from the land, the
-          name, the area or that default.
+          When nothing on the map is about the building, it is shown as Residential by default, because most buildings
+          are homes: 30% for a house-sized footprint, less for bigger ones, and always labelled as a default rather than a
+          finding. Verified means OpenStreetMap says it about this building. Inferred means it was worked out from
+          businesses at its wall, the land, the name or that default.
         </p>
       </details>
 

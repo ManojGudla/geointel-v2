@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildPropertySiteQuery, extractSite } from "../../api/_lib/propertySite";
 import { assembleRings, pointInPolygon, relationPolygons } from "../../api/_lib/geometry";
 import type { OverpassElement } from "../../api/_lib/overpass";
-import { analyzeProperty, residentialDefault, widerLandReading } from "../../src/features/property/propertyAnalyzer";
+import { analyzeProperty, residentialDefault } from "../../src/features/property/propertyAnalyzer";
 import { heightFromTags, parseHeight } from "../../src/features/property/buildingUse";
 import type { GISEvidence, PropertySite } from "../../src/types/gis";
 
@@ -151,20 +151,22 @@ describe("what a building's type cannot settle", () => {
     Unknown, so the more precise tap said less. The building now gets the
     same reading, held lower and called a guess.
   */
-  it("when nothing says what the building is for, gives the neighbourhood's reading as a guess, at 35% at most", () => {
-    const a = analyzeProperty(AREA_EVIDENCE, site([way(6, { building: "yes" }, FOOT)], CENTRE));
+  /*
+    Changed 28 November 2026 (owner's rule: accurate, never a wrong guess;
+    Residential when nothing is available). The neighbourhood used to give
+    its reading as a guess here; now it is context only.
+  */
+  it("when nothing says what the building is for, the neighbourhood never decides: Residential by default", () => {
+    const shoppingStreet: GISEvidence = {
+      ...AREA_EVIDENCE,
+      scores: { commercial: 95, residential: 10, industrial: 0, institutional: 0, landmark: 0, transport: 0 },
+    };
+    const a = analyzeProperty(shoppingStreet, site([way(6, { building: "yes" }, FOOT)], CENTRE));
     expect(a.classification).toBe("Residential");
-    expect(a.trust).toBe("inferred");
-    expect(a.basis).toBe("area");
-    expect(a.confidence).toBeGreaterThan(0);
-    expect(a.confidence).toBeLessThanOrEqual(35);
+    expect(a.basis).toBe("default");
     expect(a.reasoning).toMatch(/^A building is mapped here, but nothing on the map says what it is used for/);
-    expect(a.reasoning).toContain("Going only by what is mapped within 2000 m (374 residential buildings, 82 shops, 57 offices");
-    expect(a.reasoning).toContain("it is probably residential. That is a guess from the neighbourhood, not a reading of this building.");
+    expect(a.reasoning).toContain("does not change the answer");
     expect(a.surroundings).toContain("374 residential buildings");
-    // Never more than a guess: the empty-ground reading of the same place is allowed 40%.
-    const open = analyzeProperty(AREA_EVIDENCE, site([], CENTRE));
-    expect(a.confidence).toBeLessThanOrEqual(Math.min(open.confidence, 35));
   });
 
   /*
@@ -201,12 +203,12 @@ describe("what a building's type cannot settle", () => {
     expect(a.reasoning).toContain("this point is 5 m from its outline");
   });
 
-  it("with no building and no land use, reads only the surroundings, at low confidence", () => {
+  it("with no building and no land use, gives the default at its lowest, and says to tap a building", () => {
     const a = analyzeProperty(AREA_EVIDENCE, site([], CENTRE));
     expect(a.classification).toBe("Residential");
-    expect(a.basis).toBe("area");
-    expect(a.confidence).toBeLessThanOrEqual(40);
-    expect(a.reasoning).toMatch(/^No building is mapped at this exact point/);
+    expect(a.basis).toBe("default");
+    expect(a.confidence).toBe(10);
+    expect(a.reasoning).toContain("Tap directly on a building");
   });
 
   it("open land mapped as residential is read as land, not as a building", () => {
@@ -395,7 +397,7 @@ describe("the nearest mapped places", () => {
     expect(unknown.classification).toBe("Residential");
     expect(unknown.basis).toBe("default");
     expect(unknown.evidence).toContain("Nearest mapped places: Nayara (fuel station), 47 m; Ratnadeep (supermarket shop), 90 m.");
-    expect(unknown.reasoning).toContain("What is mapped nearby is listed below as context only.");
+    expect(unknown.reasoning).toContain("What is mapped nearby is listed below as context only, and does not change the answer.");
 
     const typed = [way(1300, { building: "house" }, square(NH163.lat, NH163.lon, 6)), ...elements().slice(1)];
     const known = analyzeProperty(null, site(typed, NH163));
@@ -478,41 +480,44 @@ describe("heights", () => {
   a building is, research further (land use within 800 m), and if that does
   not settle it, answer Residential as a default.
 */
-describe("researching further before the residential default", () => {
+describe("researching the building itself before the residential default", () => {
+  /*
+    Owner's rules, 28 November 2026: research further when nothing describes
+    a building, but never answer wrong; if nothing is found, Residential.
+    The research is about the building itself: businesses drawn just outside
+    its wall (a ground-floor shop drawn on the road side of the outline).
+  */
   const CENTRE = { lat: 17.4, lon: 78.4 };
   const FOOT = square(CENTRE.lat, CENTRE.lon, 10);
-  /** A land-use way as `out tags bb` returns it: tags and a bounding box, no geometry. */
-  const landBox = (id: number, landuse: string, dLatM: number, half: number): OverpassElement => {
-    const lat = CENTRE.lat + dLatM / 111_320;
-    const d = half / 111_320;
-    return { type: "way", id, tags: { landuse }, bounds: { minlat: lat - d, maxlat: lat + d, minlon: CENTRE.lon - d, maxlon: CENTRE.lon + d } };
-  };
+  const metresNorth = (m: number) => CENTRE.lat + m / 111_320;
 
-  it("asks for land use within 800 m in the same query, as tags and bounding boxes only", () => {
-    expect(buildPropertySiteQuery(CENTRE.lat, CENTRE.lon)).toMatch(/way\(around:800,[^)]+\)\[landuse\]\[!building\];\s*out tags bb;/);
-  });
-
-  it("reads the wider land, sized by bounding box, when nothing closer describes the building", () => {
-    const s1 = site([way(1, { building: "yes" }, FOOT), landBox(10, "industrial", 600, 150), landBox(11, "industrial", -500, 120), landBox(12, "residential", 700, 60)], CENTRE);
-    expect(s1.widerRadiusMeters).toBe(800);
-    expect(s1.widerLand?.length).toBe(3);
+  it("reads a shop drawn just outside the wall as the building's own", () => {
+    const s1 = site([way(1, { building: "yes" }, FOOT), node(50, metresNorth(13), CENTRE.lon, { shop: "bakery", name: "Karachi Bakery" })], CENTRE);
+    expect(s1.attached?.map((a) => a.id)).toEqual([50]);
     const a = analyzeProperty(null, s1);
-    expect(a.classification).toBe("Industrial");
-    expect(a.basis).toBe("wider");
+    expect(a.classification).toBe("Commercial");
+    expect(a.basis).toBe("attached");
     expect(a.trust).toBe("inferred");
-    expect(a.confidence).toBe(30);
-    expect(a.reasoning).toMatch(/Looking further out, about \d+% of the built-up land mapped within 800 m is industrial land/);
+    expect(a.confidence).toBe(65);
+    expect(a.reasoning).toContain("Karachi Bakery");
   });
 
-  it("ignores parks and farmland, which say nothing about what a building is used for", () => {
-    const s1 = site([way(1, { building: "yes" }, FOOT), landBox(20, "farmland", 400, 300), landBox(21, "grass", -400, 300)], CENTRE);
-    expect(widerLandReading(s1)).toBeNull();
+  it("reads one shop under a building of several floors as homes above shops", () => {
+    const a = analyzeProperty(null, site([way(1, { building: "yes", "building:levels": "4" }, FOOT), node(51, metresNorth(12), CENTRE.lon, { shop: "mobile_phone" })], CENTRE));
+    expect(a.classification).toBe("Mixed Use");
+    expect(a.reasoning).toContain("homes above shops");
+  });
+
+  it("never gives a shop to the wrong building: one nearer another building is not this one's", () => {
+    const neighbour = square(metresNorth(30), CENTRE.lon, 10);
+    const s1 = site([way(1, { building: "yes" }, FOOT), way(2, { building: "yes" }, neighbour), node(52, metresNorth(17), CENTRE.lon, { shop: "tailor" })], CENTRE);
+    expect(s1.attached ?? []).toEqual([]);
     expect(analyzeProperty(null, s1).basis).toBe("default");
   });
 
-  it("needs a clear lead: a close split falls through to the default", () => {
-    const s1 = site([way(1, { building: "yes" }, FOOT), landBox(30, "residential", 400, 100), landBox(31, "commercial", -400, 100), landBox(32, "industrial", 500, 100)], CENTRE);
-    expect(widerLandReading(s1)).toBeNull();
+  it("ignores street furniture and anything further than 8 m from the wall", () => {
+    const s1 = site([way(1, { building: "yes" }, FOOT), node(53, metresNorth(12), CENTRE.lon, { amenity: "bench" }), node(54, metresNorth(25), CENTRE.lon, { shop: "kiosk" })], CENTRE);
+    expect(s1.attached ?? []).toEqual([]);
   });
 
   it("holds the default lower the bigger the building, since big buildings are less often homes", () => {
@@ -524,18 +529,9 @@ describe("researching further before the residential default", () => {
     expect(residentialDefault(undefined).confidence).toBe(20);
   });
 
-  it("gives a tap on unmapped ground the default too, at its lowest, and says to tap a building", () => {
-    const a = analyzeProperty(null, site([], CENTRE));
-    expect(a.classification).toBe("Residential");
-    expect(a.basis).toBe("default");
-    expect(a.confidence).toBe(10);
-    expect(a.reasoning).toContain("Tap directly on a building");
-  });
-
   it("never lets the default outrank real evidence: a typed building still reads as itself", () => {
-    const a = analyzeProperty(null, site([way(1, { building: "commercial" }, FOOT), landBox(40, "residential", 300, 300)], CENTRE));
+    const a = analyzeProperty(null, site([way(1, { building: "commercial" }, FOOT), node(55, metresNorth(12), CENTRE.lon, { shop: "bakery" })], CENTRE));
     expect(a.classification).toBe("Commercial");
     expect(a.trust).toBe("verified");
   });
 });
-

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { isBuildingFocus, useIntelTabStore, type IntelTab } from "@/stores/intelTabStore";
 import { useLocationStore } from "@/stores/locationStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -84,13 +85,12 @@ export function IntelligencePanel() {
                 away, folded, rather than pushing the answer below the fold
                 on a phone. */}
             {property}
-            <details className="intel-panel__more">
-              <summary>More about this place</summary>
+            <MoreAboutPlace key={`${location?.lat},${location?.lon}`}>
               {aboutPlace}
               <ErrorBoundary label="Official & authority intelligence" variant="panel">
                 <OfficialsPanel />
               </ErrorBoundary>
-            </details>
+            </MoreAboutPlace>
           </>
         )}
         {tab === "overview" && !building && (
@@ -158,3 +158,19 @@ export function IntelligencePanel() {
     </div>
   );
 }
+
+/**
+ * Everything but the property type, after a building tap: folded, and not
+ * mounted until unfolded, so its panels (score, population, officials) do
+ * not fetch anything for a tap that only asked what the building is.
+ */
+function MoreAboutPlace({ children }: { children: React.ReactNode }) {
+  const [opened, setOpened] = useState(false);
+  return (
+    <details className="intel-panel__more" onToggle={(e) => e.currentTarget.open && setOpened(true)}>
+      <summary>More about this place</summary>
+      {opened && children}
+    </details>
+  );
+}
+

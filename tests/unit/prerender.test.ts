@@ -73,3 +73,26 @@ describe("per-page HTML written at build time", () => {
     expect(byPath.size).toBe(routes.length);
   });
 });
+
+/*
+  Added 28 November 2026 (map reported slow): the map code is fetched with
+  the app on the map page, the map library on the city pages, and neither
+  where no map is drawn.
+*/
+describe("the early map download", () => {
+  const withPreload = indexHtml.replace(
+    "</head>",
+    '<link rel="modulepreload" href="/assets/MapView-x.js" data-map-preload="workspace">\n<link rel="modulepreload" href="/assets/maplibre-gl-x.js" data-map-preload="library">\n</head>'
+  );
+
+  it("keeps only the map library on a city page", () => {
+    const html = renderRoute(withPreload, byPath.get("/maps/hyderabad")!);
+    expect(html).toContain('data-map-preload="library"');
+    expect(html).not.toContain('data-map-preload="workspace"');
+  });
+
+  it("drops both where no map is drawn", () => {
+    const route = [...byPath.values()].find((r) => !r.path.startsWith("/maps/"))!;
+    expect(renderRoute(withPreload, route)).not.toContain("data-map-preload");
+  });
+});

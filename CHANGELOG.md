@@ -22,14 +22,28 @@ described a building.
   tries a looser reading of the same words ("show me hospitals" finds
   hospitals), and a question that means nothing gets an example of how to
   ask.
-- Property type is never Unknown for a building nothing describes. After
-  the building's own tags, the businesses inside it, the land it stands
-  on, its name and the neighbourhood, it now looks at land use within
-  800 m (in the same map query), and if that does not settle it, answers
-  Residential as a default: labelled as a default, 30% for a house-sized
-  footprint and lower for bigger ones.
+- Property type reads only the building and the land it stands on, never
+  the neighbourhood, which gave wrong answers for exactly the buildings
+  people tap (a house in a shopping street read as Commercial). New
+  research about the building itself: businesses mapped just outside its
+  wall (within 8 m, no other building nearer, the usual way ground-floor
+  shops are drawn) count as its own, 65%; one or two shops below two or
+  more floors read as homes above shops, Mixed Use. When nothing describes
+  the building it is Residential, labelled as a default: 30% for a
+  house-sized footprint, lower for bigger ones. The same when the building
+  could not be checked, with Try again.
 - A tap on a building opens the Overview with the property type first and
   everything else folded under "More about this place".
+
+### Faster
+- The map page downloads the map code together with the app instead of
+  after it (preload tags written at build time; city pages get only the
+  map library, other pages neither), and opens the connection to the tile
+  server early.
+- Sentry is not downloaded at all when no reporting address is set (it
+  was about 160 KB compressed, fetched for nothing).
+- Folded panels fetch nothing until unfolded: the officials panel always,
+  and everything under More about this place after a building tap.
 
 ### Needs
 - GROQ_API_KEY in Vercel (free at console.groq.com/keys) for the speed-up.

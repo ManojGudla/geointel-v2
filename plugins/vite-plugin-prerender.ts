@@ -30,6 +30,10 @@ function setAttr(html: string, pattern: RegExp, value: string, label: string): s
 export function renderRoute(html: string, route: PrerenderRoute): string {
   const { meta } = route;
   let out = html;
+  // The early map download (vite-plugin-map-preload.ts) only where a map is
+  // drawn: the city pages keep the map library, nothing else keeps either.
+  const keep = route.path.startsWith("/maps/") ? /data-map-preload="library"/ : null;
+  out = out.replace(/\s*<link\b[^>]*data-map-preload="[a-z]+"[^>]*>/g, (tag) => (keep && keep.test(tag) ? tag : ""));
   out = out.replace(/<title>[^<]*<\/title>/, `<title>${esc(meta.title)}</title>`);
   out = setAttr(out, /(<meta name="description" content=")[^"]*(")/, meta.description, "meta description");
   out = setAttr(out, /(<link rel="canonical" href=")[^"]*(")/, meta.url, "canonical link");

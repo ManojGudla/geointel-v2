@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import apiPlugin from "./plugins/vite-plugin-api";
 import prerenderPlugin from "./plugins/vite-plugin-prerender";
+import mapPreloadPlugin from "./plugins/vite-plugin-map-preload";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -22,7 +23,7 @@ export default defineConfig(({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), ""));
 
   return {
-    plugins: [react(), apiPlugin(), prerenderPlugin()],
+    plugins: [react(), apiPlugin(), mapPreloadPlugin(), prerenderPlugin()],
     resolve: {
       alias: {
         "@": path.resolve(dirname, "src"),

@@ -122,20 +122,22 @@ export async function enableSentry(): Promise<boolean> {
   if (sentryEnabled) return false;
   sentryEnabled = true;
 
+  /*
+    No address to report to, nothing to load. This used to download the
+    whole of Sentry (about 160 KB compressed) and then find there was no
+    DSN, on every visit that accepted cookies: on a phone, bandwidth taken
+    from the map tiles for nothing (reported slow, 28 November 2026). And
+    only `init` is taken from it, so the build keeps only what init needs.
+  */
+  const dsn = sentryDsn();
+  if (!dsn) return true;
   try {
-    // Dynamically import Sentry to avoid loading it before consent
-    const Sentry = await import("@sentry/react");
-    const dsn = sentryDsn();
-
-    if (dsn) {
-      Sentry.init({
-        dsn,
-        environment: import.meta.env.MODE,
-        tracesSampleRate: 0.1,
-        replaysSessionSampleRate: 0.1,
-        replaysOnErrorSampleRate: 1.0,
-      });
-    }
+    const { init } = await import("@sentry/react");
+    init({
+      dsn,
+      environment: import.meta.env.MODE,
+      tracesSampleRate: 0.1,
+    });
   } catch (error) {
     // Sentry not configured or import failed, continue silently
     console.error("[sentry] initialization failed", error);

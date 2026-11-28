@@ -51,12 +51,14 @@ const SITE_KEYS = "amenity|leisure|tourism|office|shop|healthcare|aeroway|milita
 */
 export const LANDUSE_SEARCH_RADIUS_M = 300;
 /**
- * The wider look, for a building nothing else describes (owner's request,
- * 28 November 2026: when there are no sources, research further before
- * answering). Land use within this distance, as tags and bounding boxes
- * only, in the same query, so it costs no extra round trip to the server.
+ * A business mapped OUTSIDE a building but this close to its wall, with no
+ * other building closer, is read as that building's. Ground-floor shops in
+ * Indian streets are very often mapped as a point on the road side of the
+ * outline rather than inside it, so "inside the footprint" alone missed the
+ * commonest case. Research about the building itself, which is what the
+ * owner asked for on 28 November 2026 in place of guesses from the area.
  */
-export const WIDER_LANDUSE_RADIUS_M = 800;
+export const ATTACHED_BUSINESS_M = 8;
 export const SITE_AREA_SEARCH_RADIUS_M = 150;
 /** How many of the nearest mapped places to name as context when the building says nothing itself. */
 export const NEARBY_PLACES_MAX = 3;
@@ -99,8 +101,6 @@ export function buildPropertySiteQuery(lat: number, lon: number, radius = SITE_S
     out;
     way(around:${LANDUSE_SEARCH_RADIUS_M},${at})[landuse][!building];
     out geom;
-    way(around:${WIDER_LANDUSE_RADIUS_M},${at})[landuse][!building];
-    out tags bb;
     way(around:${SITE_AREA_SEARCH_RADIUS_M},${at})[~"^(${SITE_KEYS})$"~"."][!building];
     out geom;
     is_in(${at})->.a;
@@ -153,12 +153,17 @@ function areaRank(tags: Record<string, string>): number {
   return 4;
 }
 
-/** The area of a bounding box in square metres (a flat approximation, fine at city scale). */
-export function boundsArea(b: { minlat: number; minlon: number; maxlat: number; maxlon: number }): number {
-  const midLat = ((b.minlat + b.maxlat) / 2) * (Math.PI / 180);
-  const h = (b.maxlat - b.minlat) * 111_320;
-  const w = (b.maxlon - b.minlon) * 111_320 * Math.cos(midLat);
-  return Math.max(0, h) * Math.max(0, w);
+/**
+ * Whether a point is a business or a facility (what the building is used
+ * for), not street furniture: a shop, an office, a workshop, a clinic, a
+ * restaurant, a bank, a school. Benches, bins, toilets, parking and the
+ * like say nothing about the building beside them.
+ */
+const NOT_A_USE = /^(bench|waste_basket|waste_disposal|recycling|toilets|parking|parking_entrance|bicycle_parking|motorcycle_parking|drinking_water|water_point|telephone|post_box|vending_machine|atm|clock|shelter|fountain|bus_station|taxi|charging_station|grit_bin|letter_box)$/;
+function readsAsBusiness(tags: Record<string, string> | undefined): boolean {
+  if (!tags) return false;
+  if (tags.shop || tags.office || tags.craft || tags.healthcare) return true;
+  return Boolean(tags.amenity && !NOT_A_USE.test(tags.amenity));
 }
 
 /** A way drawn as a closed outline. An unclosed one is a line (or broken data), never an area. */
@@ -317,14 +322,24 @@ export function extractSite(
     }));
 
   /*
-    Land use mapped within WIDER_LANDUSE_RADIUS_M, each with the area of its
-    bounding box: a rough size (it over-counts slanted shapes), which is
-    enough to tell a mostly residential neighbourhood from an industrial one.
-    Read only when nothing closer describes the building.
+    Businesses at the building's wall (ATTACHED_BUSINESS_M): outside its
+    outline, within 8 m of it, and nearer to it than to any other building,
+    so a shop between two houses is never given to the wrong one.
   */
-  const widerLand: SiteFeature[] = uniqueById(elements.filter((el) => el.type === "way" && el.bounds && el.tags?.landuse))
-    .map((el) => ({ osmType: "way" as const, id: el.id, url: osmUrl("way", el.id), tags: keep(el.tags, KEEP_FEATURE_TAG), areaM2: Math.round(boundsArea(el.bounds!)) }))
-    .filter((f) => f.areaM2 > 0);
+  const attached: Array<SiteFeature & { distanceMeters: number }> = [];
+  if (chosen) {
+    const others = candidates.filter((c) => c !== chosen);
+    const wallOf = (c: (typeof candidates)[number], at: LonLat) => Math.min(...c.polygons.map((p) => distanceToRingM(at, p.outer)));
+    for (const el of uniqueById(elements.filter((e) => e.type === "node" && e.lat !== undefined && e.lon !== undefined && !insideIds.has(e.id)))) {
+      if (!readsAsBusiness(el.tags)) continue;
+      const at: LonLat = [el.lon!, el.lat!];
+      if (chosen.polygons.some((p) => pointInPolygon(at, p))) continue;
+      const d = wallOf(chosen, at);
+      if (d > ATTACHED_BUSINESS_M) continue;
+      if (others.some((o) => o.polygons.some((p) => pointInPolygon(at, p)) || wallOf(o, at) < d)) continue;
+      attached.push({ osmType: "node", id: el.id, url: osmUrl("node", el.id), tags: keep(el.tags, KEEP_FEATURE_TAG), distanceMeters: Math.round(d) });
+    }
+  }
 
   return {
     lat: point.lat,
@@ -333,7 +348,7 @@ export function extractSite(
     inside,
     areas,
     ...(nearby.length ? { nearby } : {}),
-    ...(widerLand.length ? { widerLand, widerRadiusMeters: WIDER_LANDUSE_RADIUS_M } : {}),
+    ...(attached.length ? { attached } : {}),
     source: "OpenStreetMap / Overpass",
     dataAsOf: meta.dataAsOf,
     fetchedAt: meta.fetchedAt,
