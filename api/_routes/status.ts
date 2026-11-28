@@ -1,6 +1,7 @@
 import type { ApiHandler } from "../_lib/http.js";
 import { ok, err, getClientIp } from "../_lib/http.js";
 import { TtlCache, RateLimiter, fetchWithTimeout, withTimeout } from "../_lib/cache.js";
+import { configuredAiProviders } from "../_lib/ai.js";
 import { OVERPASS_ENDPOINTS, getOverpassHealth, runOverpassQueryDetailed } from "../_lib/overpass.js";
 import { getSupabaseClient } from "../_lib/supabase.js";
 
@@ -150,8 +151,24 @@ async function probeWikidata(): Promise<{ status: DependencyStatus["status"]; de
  */
 async function probeOpenRouter(): Promise<{ status: DependencyStatus["status"]; detail: string }> {
   const apiKey = process.env.OPENROUTER_API_KEY;
+  // Since 28 November 2026 faster providers are asked first when their keys
+  // are set (api/_lib/ai.ts). Listing a model catalogue spends no quota on
+  // any of them, so the same rule as below holds.
+  const fast = configuredAiProviders().filter((id) => id !== "openrouter");
+  const fastNote = fast.length ? `Asked first: ${fast.map((id) => (id === "groq" ? "Groq" : "Google Gemini")).join(", ")}. ` : "";
+  if (process.env.GROQ_API_KEY) {
+    const groq = await fetchWithTimeout(
+      "https://api.groq.com/openai/v1/models",
+      { headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, "User-Agent": USER_AGENT } },
+      PROBE_TIMEOUT_MS
+    ).catch(() => null);
+    if (groq && (groq.status === 401 || groq.status === 403)) {
+      return { status: "degraded", detail: `Groq rejected its API key, so answers fall back to OpenRouter's free models. ${fastNote}`.trim() };
+    }
+  }
   if (!apiKey) {
-    return { status: "not_configured", detail: "No OPENROUTER_API_KEY set, so Copilot and all AI agents are unavailable" };
+    if (fast.length) return { status: "operational", detail: `${fastNote}No OpenRouter fallback configured.` };
+    return { status: "not_configured", detail: "No GROQ_API_KEY or OPENROUTER_API_KEY set, so Copilot and all AI agents are unavailable" };
   }
 
   const response = await fetchWithTimeout(
@@ -163,8 +180,8 @@ async function probeOpenRouter(): Promise<{ status: DependencyStatus["status"]; 
   if (response.status === 401 || response.status === 403) {
     return { status: "down", detail: "Provider rejected the configured API key" };
   }
-  if (!response.ok) return { status: "degraded", detail: `Provider returned HTTP ${response.status}` };
-  return { status: "operational", detail: "Key accepted and provider reachable (daily generation quota not checked)" };
+  if (!response.ok) return { status: "degraded", detail: `${fastNote}OpenRouter returned HTTP ${response.status}` };
+  return { status: "operational", detail: `${fastNote}OpenRouter key accepted and reachable (daily generation quota not checked)` };
 }
 
 async function probeSupabase(): Promise<{ status: DependencyStatus["status"]; detail: string }> {
@@ -206,7 +223,7 @@ const handler: ApiHandler = async (req, res) => {
     probe("overpass", "OpenStreetMap Overpass", "GIS evidence, Nearby places, click-to-inspect, 3D buildings", probeOverpass),
     probe("nominatim", "Nominatim geocoding", "Location search and address lookup", probeNominatim),
     probe("wikidata", "Wikidata", "Official / Authority Intelligence", probeWikidata),
-    probe("openrouter", "OpenRouter (AI)", "Copilot and the six AI agents", probeOpenRouter),
+    probe("openrouter", "AI providers", "Copilot, Ask maNOWj and the six AI agents", probeOpenRouter),
     probe("supabase", "Supabase", "Knowledge base, feedback, maintenance mode", probeSupabase),
   ]);
 

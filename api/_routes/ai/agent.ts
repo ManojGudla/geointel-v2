@@ -2,6 +2,7 @@ import type { ApiHandler } from "../../_lib/http.js";
 import { withMaintenanceGuard } from "../../_lib/maintenance.js";
 import { ok, err, getClientIp } from "../../_lib/http.js";
 import { checkDurableLimit } from "../../_lib/rateLimit.js";
+import { TtlCache } from "../../_lib/cache.js";
 import { getAiCompletion, type AiMessage } from "../../_lib/ai.js";
 import { fenceRules, makeFence } from "../../_lib/untrusted.js";
 import { GROUNDING_RULES } from "../../_lib/aiGrounding.js";
@@ -39,6 +40,21 @@ const INSUFFICIENT_FOR: Partial<Record<AgentKind, string>> = {
 /** The client gives up at 40 s; everything here has to fit inside that. */
 const REQUEST_BUDGET_MS = 37_000;
 
+/*
+  A written answer, kept for 15 minutes per agent and place. In a demo the
+  same place is opened again and again; asking the model each time spent
+  the free allowance and made every repeat as slow as the first. Only real
+  answers are kept: a failure is always asked again. The evidence behind an
+  answer (weather, nearby places) does not change meaningfully in 15
+  minutes, and the card shows when it was written.
+*/
+const answers = new TtlCache<AgentResult>(15 * 60_000);
+
+/** Forget kept answers. For tests, which ask about one place with different model replies. */
+export function resetAgentAnswers(): void {
+  answers.clear();
+}
+
 const handler: ApiHandler = async (req, res) => {
   if (req.method !== "POST") return err(res, 405, "Use POST.");
 
@@ -65,6 +81,10 @@ const handler: ApiHandler = async (req, res) => {
   if (!anchor) {
     return err(res, 400, "Reload the page to use the agents: they now check every fact on the server, and need the selected place to do it.", "ANCHOR_REQUIRED");
   }
+
+  const cacheKey = `${kind}|${JSON.stringify(anchor)}`;
+  const kept = answers.get(cacheKey);
+  if (kept) return ok(res, { result: kept });
 
   const started = Date.now();
   const gathered = await gatherForAgent(kind, anchor, req);
@@ -139,6 +159,7 @@ const handler: ApiHandler = async (req, res) => {
     model: completion.model,
     removedSentences: checked.removed,
   };
+  if (checked.findings.length) answers.set(cacheKey, result);
   ok(res, { result });
 };
 

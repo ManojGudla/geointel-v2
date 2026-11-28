@@ -35,6 +35,10 @@ export class TtlCache<T> {
   delete(key: string) {
     this.store.delete(key);
   }
+
+  clear() {
+    this.store.clear();
+  }
 }
 
 export class RateLimiter {

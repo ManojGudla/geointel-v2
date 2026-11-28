@@ -178,15 +178,185 @@ export function stripReasoning(text: string): string {
   return text.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/^[\s\S]*?<\/think>/i, "").trim();
 }
 
+// ── Fast providers, asked before OpenRouter ──────────────────────────────
+
+/*
+  Why there is more than one provider.
+
+  Reported on 28 November 2026 from a client meeting: Ask maNOWj did not
+  answer, and the AI agents took a long time and then said the servers were
+  busy. Every answer came from OpenRouter's free models: shared by everyone
+  on OpenRouter, capped at 50 requests a day for the whole site (1,000 once
+  $10 of credits has been bought), and mostly models that think for ten or
+  twenty seconds before writing a word. A demo in front of a client is the
+  worst possible moment to depend on that.
+
+  So providers with their own free allowance, and much faster hardware, are
+  asked first, each only when its key is set in the server's environment:
+
+  - Groq (GROQ_API_KEY): open models on Groq's own chips, typically a whole
+    answer in one to three seconds. Free plan limits are per model (about
+    30 a minute and 1,000 a day each), so a busy model moves on to the next.
+  - Google Gemini (GEMINI_API_KEY), through Google's OpenAI-compatible
+    endpoint. Note that Google's free tier may use requests to improve its
+    products; Groq says it does not train on API data.
+
+  OpenRouter stays as the last resort, exactly as before. With none of the
+  new keys set, nothing changes. Model names drift, so each provider has a
+  short list, a 404 or a decommissioned model moves to the next, and
+  GROQ_MODEL / GEMINI_MODEL can put a different one first.
+*/
+interface FastProvider {
+  id: "groq" | "gemini";
+  label: string;
+  url: string;
+  keyEnv: "GROQ_API_KEY" | "GEMINI_API_KEY";
+  modelEnv: "GROQ_MODEL" | "GEMINI_MODEL";
+  models: string[];
+  /** A fast provider that has not answered in this long is not going to be fast. */
+  perAttemptMs: number;
+}
+
+export const FAST_PROVIDERS: readonly FastProvider[] = [
+  {
+    id: "groq",
+    label: "Groq",
+    url: "https://api.groq.com/openai/v1/chat/completions",
+    keyEnv: "GROQ_API_KEY",
+    modelEnv: "GROQ_MODEL",
+    // A general model that answers without a long think first, then a
+    // reasoning model, then the smallest and fastest.
+    models: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b", "llama-3.1-8b-instant"],
+    perAttemptMs: 12_000,
+  },
+  {
+    id: "gemini",
+    label: "Google Gemini",
+    url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+    keyEnv: "GEMINI_API_KEY",
+    modelEnv: "GEMINI_MODEL",
+    models: ["gemini-3.1-flash-lite", "gemini-2.5-flash"],
+    perAttemptMs: 15_000,
+  },
+];
+
+/** A provider that refused (rate limit, rejected key) is skipped until this time. */
+const providerPause = new Map<string, number>();
+const MAX_PROVIDER_PAUSE_MS = 10 * 60_000;
+
+/** Forget remembered provider pauses. For tests. */
+export function resetProviderPauses(): void {
+  providerPause.clear();
+}
+
+/** Which providers have a key set, in the order they are asked. Names only, never keys. */
+export function configuredAiProviders(env: NodeJS.ProcessEnv = process.env): string[] {
+  return [...FAST_PROVIDERS.filter((p) => env[p.keyEnv]).map((p) => p.id), ...(env.OPENROUTER_API_KEY ? ["openrouter"] : [])];
+}
+
+function retryAfterMs(response: Response): number | null {
+  const header = typeof response.headers?.get === "function" ? response.headers.get("retry-after") : null;
+  if (!header) return null;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) return seconds * 1000;
+  const at = Date.parse(header);
+  return Number.isNaN(at) ? null : at - Date.now();
+}
+
+type FastOutcome = { result: AiResult & { ok: true } } | { tried: boolean };
+
+async function askFastProviders(
+  messages: AiMessage[],
+  opts: { maxTokens?: number; temperature?: number },
+  deadline: number
+): Promise<FastOutcome> {
+  let tried = false;
+  for (const provider of FAST_PROVIDERS) {
+    const key = process.env[provider.keyEnv];
+    if (!key) continue;
+    const pausedUntil = providerPause.get(provider.id) ?? 0;
+    if (Date.now() < pausedUntil) continue;
+    const preferred = process.env[provider.modelEnv]?.trim();
+    const models = [...new Set([preferred, ...provider.models].filter((m): m is string => Boolean(m)))];
+
+    for (const model of models) {
+      const remaining = deadline - Date.now();
+      if (remaining < 3_000) return { tried };
+      tried = true;
+      let response: Response;
+      try {
+        response = await fetchWithTimeout(
+          provider.url,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+            body: JSON.stringify({ model, messages, max_tokens: opts.maxTokens ?? 1200, temperature: opts.temperature ?? 0.3 }),
+          },
+          Math.min(provider.perAttemptMs, remaining)
+        );
+      } catch (error) {
+        // Slow or unreachable: the next provider, not the next model here.
+        console.error("[ai] provider request failed", provider.id, model, error);
+        break;
+      }
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        console.error("[ai] provider error", provider.id, model, response.status, text.slice(0, 200));
+        if (response.status === 429) {
+          // Groq's limits are per model: another model may well have room.
+          // Gemini's free limits are per project, so the provider waits.
+          if (provider.id === "groq") continue;
+          providerPause.set(provider.id, Date.now() + Math.min(MAX_PROVIDER_PAUSE_MS, Math.max(15_000, retryAfterMs(response) ?? 60_000)));
+          break;
+        }
+        if (response.status === 401 || response.status === 403) {
+          // A wrong or revoked key: say so in the log, and stop asking for a while.
+          providerPause.set(provider.id, Date.now() + MAX_PROVIDER_PAUSE_MS);
+          break;
+        }
+        // 400 and 404 are how a retired or misspelt model answers; 5xx is one model's trouble.
+        continue;
+      }
+
+      const data = (await response.json().catch(() => ({}))) as { choices?: Array<{ message?: { content?: string } }>; model?: string };
+      const content = stripReasoning(data.choices?.[0]?.message?.content ?? "");
+      if (!content) continue;
+      const served = typeof data.model === "string" && data.model.trim() ? data.model.trim() : model;
+      return { result: { ok: true, content, model: `${served} (${provider.label})`, requestedModel: model } };
+    }
+  }
+  return { tried };
+}
+
 /**
- * Thin abstraction over the AI provider so swapping providers later is a
- * config change, not a rewrite (see .env.example - AI_MODEL_* all point
- * here). OpenRouter's free tier by default. Never throws: a missing key or
- * a provider failure comes back as {ok:false, error}, the same
- * graceful-degradation discipline as every other external-data handler in
- * this project (geocode/gis/weather/route all follow this shape).
+ * Asks for a completion: the fast providers first (when configured), then
+ * OpenRouter. Never throws: a missing key or a provider failure comes back
+ * as {ok:false, error}, the same graceful-degradation discipline as every
+ * other external-data handler in this project.
  */
 export async function getAiCompletion(
+  messages: AiMessage[],
+  opts: { model?: string; maxTokens?: number; temperature?: number; deadlineMs?: number } = {}
+): Promise<AiResult> {
+  const deadline = Date.now() + (opts.deadlineMs ?? 30_000);
+  // A specific model asked for by name is an OpenRouter model.
+  if (!opts.model) {
+    const fast = await askFastProviders(messages, opts, deadline);
+    if ("result" in fast) return fast.result;
+    if (!process.env.OPENROUTER_API_KEY && fast.tried) {
+      return { ok: false, error: AI_MESSAGES.busy, reason: "busy" };
+    }
+  }
+  return openRouterCompletion(messages, { ...opts, deadlineMs: Math.max(0, deadline - Date.now()) });
+}
+
+/**
+ * OpenRouter's free models, as the app used them before the fast providers.
+ * Thin abstraction over the AI provider so swapping providers later is a
+ * config change, not a rewrite.
+ */
+async function openRouterCompletion(
   messages: AiMessage[],
   opts: {
     model?: string;
@@ -208,7 +378,11 @@ export async function getAiCompletion(
   const requestedModel = configured && configured !== FREE_ROUTER ? configured : PREFERRED_FREE_MODELS[0]!;
 
   if (!apiKey) {
-    return { ok: false, error: "AI features aren't configured yet. An OPENROUTER_API_KEY is needed on the server.", reason: "not-configured" };
+    return {
+      ok: false,
+      error: "AI features aren't configured yet. A GROQ_API_KEY (fast, free) or an OPENROUTER_API_KEY is needed on the server.",
+      reason: "not-configured",
+    };
   }
 
   /*

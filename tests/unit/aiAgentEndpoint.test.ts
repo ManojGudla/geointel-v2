@@ -47,7 +47,7 @@ vi.mock("../../api/_lib/ai", () => ({
   }),
 }));
 
-import handler from "../../api/_routes/ai/agent";
+import handler, { resetAgentAnswers } from "../../api/_routes/ai/agent";
 
 const AT = "2026-11-25T07:30:00.000Z";
 const PLACE = { status: 200, body: { ok: true, location: { name: "Eiffel Tower", displayName: "Eiffel Tower, Paris", source: "OpenStreetMap / Nominatim", address: { city: "Paris", country: "France" } } } };
@@ -84,6 +84,7 @@ const resultOf = (r: { body: unknown }) => (r.body as { result: AgentResult }).r
 
 describe("api/ai/agent", () => {
   beforeEach(() => {
+    resetAgentAnswers();
     state.answers = { "reverse-geocode": PLACE, gis: GIS, population: { status: 200, body: { ok: true, population: null } } };
     state.prompt = undefined;
     state.modelCalls = 0;
